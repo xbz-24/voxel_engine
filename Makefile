@@ -1,15 +1,15 @@
 CXX = g++
-CXXFLAGS = -I/opt/homebrew/include
-LDFLAGS = -L/opt/homebrew/lib -lglfw -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+CXXFLAGS = -I/opt/homebrew/include -I/Applications/Autodesk/FBX\ SDK/2020.3.7/include -std=c++11
+LDFLAGS = -L/opt/homebrew/lib -L/Applications/Autodesk/FBX\ SDK/2020.3.7/lib/clang/release -lglfw -lfbxsdk -lxml2 -lz -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
 
 TARGET = main
-SOURCE = main.cpp
+SOURCES = main.cpp fbx_simple.cpp
 
 all: $(TARGET)
 	./$(TARGET)
 
-$(TARGET): $(SOURCE)
-	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS) $(LDFLAGS)
+$(TARGET): $(SOURCES)
+	$(CXX) -o $(TARGET) $(SOURCES) $(CXXFLAGS) $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET)

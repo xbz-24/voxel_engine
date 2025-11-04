@@ -1,0 +1,14 @@
+tinyobjloader/
+stb_image.h
+
+*.bk
+*.tmp
+*.log
+*.swp
+
+*.o
+*.out
+*.exe
+
+build/
+
