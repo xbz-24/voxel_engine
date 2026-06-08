@@ -61,6 +61,16 @@ namespace ve::blocks
 		const GLuint dirt = LoadBlockTexture(paths.blockTexturesDirectory, "dirt.png");
 		const GLuint stone = LoadBlockTexture(paths.blockTexturesDirectory, "stone.png");
 		const GLuint cobblestone = LoadBlockTexture(paths.blockTexturesDirectory, "cobblestone.png");
+		const GLuint oakLog = LoadBlockTexture(paths.blockTexturesDirectory, "oak_log.png");
+		const GLuint oakLogTop = LoadBlockTexture(paths.blockTexturesDirectory, "oak_log_top.png");
+		const GLuint oakPlanks = LoadBlockTexture(paths.blockTexturesDirectory, "oak_planks.png");
+		const GLuint sand = LoadBlockTexture(paths.blockTexturesDirectory, "sand.png");
+		const GLuint bricks = LoadBlockTexture(paths.blockTexturesDirectory, "bricks.png");
+		const GLuint diamondOre = LoadBlockTexture(paths.blockTexturesDirectory, "diamond_ore.png");
+		const GLuint coalOre = LoadBlockTexture(paths.blockTexturesDirectory, "coal_ore.png");
+		const GLuint ironOre = LoadBlockTexture(paths.blockTexturesDirectory, "iron_ore.png");
+		const GLuint obsidian = LoadBlockTexture(paths.blockTexturesDirectory, "obsidian.png");
+		const GLuint oakLeaves = LoadBlockTexture(paths.blockTexturesDirectory, "oak_leaves.png");
 
 		_blocks[IndexOf(BlockId::Air)] = BlockType{
 			BlockId::Air,
@@ -103,6 +113,76 @@ namespace ve::blocks
 			true,
 			SameTexture(cobblestone)
 		};
+
+		_blocks[IndexOf(BlockId::OakLog)] = BlockType{
+			BlockId::OakLog,
+			"Oak Log",
+			true,
+			{
+				oakLogTop,
+				oakLogTop,
+				oakLog,
+				oakLog,
+				oakLog,
+				oakLog
+			}
+		};
+
+		_blocks[IndexOf(BlockId::OakPlanks)] = BlockType{
+			BlockId::OakPlanks,
+			"Oak Planks",
+			true,
+			SameTexture(oakPlanks)
+		};
+
+		_blocks[IndexOf(BlockId::Sand)] = BlockType{
+			BlockId::Sand,
+			"Sand",
+			true,
+			SameTexture(sand)
+		};
+
+		_blocks[IndexOf(BlockId::Bricks)] = BlockType{
+			BlockId::Bricks,
+			"Bricks",
+			true,
+			SameTexture(bricks)
+		};
+
+		_blocks[IndexOf(BlockId::DiamondOre)] = BlockType{
+			BlockId::DiamondOre,
+			"Diamond Ore",
+			true,
+			SameTexture(diamondOre)
+		};
+
+		_blocks[IndexOf(BlockId::CoalOre)] = BlockType{
+			BlockId::CoalOre,
+			"Coal Ore",
+			true,
+			SameTexture(coalOre)
+		};
+
+		_blocks[IndexOf(BlockId::IronOre)] = BlockType{
+			BlockId::IronOre,
+			"Iron Ore",
+			true,
+			SameTexture(ironOre)
+		};
+
+		_blocks[IndexOf(BlockId::Obsidian)] = BlockType{
+			BlockId::Obsidian,
+			"Obsidian",
+			true,
+			SameTexture(obsidian)
+		};
+
+		_blocks[IndexOf(BlockId::OakLeaves)] = BlockType{
+			BlockId::OakLeaves,
+			"Oak Leaves",
+			true,
+			SameTexture(oakLeaves)
+		};
 	}
 
 	const BlockType& BlockRegistry::Get(BlockId id) const
@@ -125,4 +205,3 @@ namespace ve::blocks
 		return Get(id).faceTextures[IndexOf(face)];
 	}
 }
-

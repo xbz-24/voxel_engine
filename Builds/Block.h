@@ -14,6 +14,15 @@ namespace ve::blocks
 		Dirt,
 		Stone,
 		Cobblestone,
+		OakLog,
+		OakPlanks,
+		Sand,
+		Bricks,
+		DiamondOre,
+		CoalOre,
+		IronOre,
+		Obsidian,
+		OakLeaves,
 		Count
 	};
 
@@ -31,4 +40,3 @@ namespace ve::blocks
 		Count
 	};
 }
-

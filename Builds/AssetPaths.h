@@ -14,6 +14,7 @@ namespace ve::assets
 		std::filesystem::path environmentTexturesDirectory;
 		std::filesystem::path crosshairTexture;
 		std::filesystem::path hotbarTexture;
+		std::filesystem::path hotbarSelectionTexture;
 		std::filesystem::path experienceBarTexture;
 		std::filesystem::path healthTexture;
 		std::filesystem::path hungerTexture;
@@ -28,4 +29,3 @@ namespace ve::assets
 	 */
 	AssetPaths ResolveFromSourceFile(const std::filesystem::path& applicationSourceFile);
 }
-

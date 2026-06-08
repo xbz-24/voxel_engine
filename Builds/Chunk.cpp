@@ -171,7 +171,23 @@ void Chunk::Generate()
 			{
 				if (y < surfaceHeight - 4)
 				{
-					blocks[x][y][z] = BlockId::Stone;
+					const int orePattern = static_cast<int>(globalX * 13.0f + globalZ * 7.0f + static_cast<float>(y) * 5.0f);
+					if (y < 28 && orePattern % 97 == 0)
+					{
+						blocks[x][y][z] = BlockId::DiamondOre;
+					}
+					else if (y < 42 && orePattern % 53 == 0)
+					{
+						blocks[x][y][z] = BlockId::IronOre;
+					}
+					else if (orePattern % 37 == 0)
+					{
+						blocks[x][y][z] = BlockId::CoalOre;
+					}
+					else
+					{
+						blocks[x][y][z] = BlockId::Stone;
+					}
 				}
 				else if (y < surfaceHeight)
 				{
@@ -192,6 +208,30 @@ void Chunk::Generate()
 				for (int y = surfaceHeight + 1; y <= surfaceHeight + 3 && y < CHUNK_HEIGHT; y++)
 				{
 					blocks[x][y][z] = BlockId::Cobblestone;
+				}
+			}
+
+			if (x > 1 && x < CHUNK_WIDTH - 2 && z > 1 && z < CHUNK_DEPTH - 2 &&
+				(static_cast<int>(globalX) % 29 == 4) && (static_cast<int>(globalZ) % 31 == 6))
+			{
+				for (int y = surfaceHeight + 1; y <= surfaceHeight + 4 && y < CHUNK_HEIGHT; y++)
+				{
+					blocks[x][y][z] = BlockId::OakLog;
+				}
+
+				const int leavesY = surfaceHeight + 5;
+				if (leavesY < CHUNK_HEIGHT)
+				{
+					for (int lx = x - 2; lx <= x + 2; lx++)
+					{
+						for (int lz = z - 2; lz <= z + 2; lz++)
+						{
+							if (ContainsLocalBlock(lx, leavesY, lz) && std::abs(lx - x) + std::abs(lz - z) <= 3)
+							{
+								blocks[lx][leavesY][lz] = BlockId::OakLeaves;
+							}
+						}
+					}
 				}
 			}
 		}
