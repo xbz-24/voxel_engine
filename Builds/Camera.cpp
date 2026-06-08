@@ -1,68 +1,105 @@
-#include <GL/glew.h>
 #include "Camera.h"
 
-Camera::Camera(double x, double y, double z, double yaw, double pitch, double speed, double sensitivity)
+Camera::Camera()
 {
-    _position = glm::vec3(x, y, z);
-    _yaw = yaw;
-    _pitch = pitch;
-    _speed = speed;
-    _sensitivity = sensitivity;
-};
-Camera::Camera(glm::vec3 position, double  yaw, double pitch, double speed, double sensitivity)
-{
-    _position = position;
-    _yaw = yaw;
-    _pitch = pitch;
-    _speed = speed;
-    _sensitivity = sensitivity;
-};
-
-void Camera::apply_to_scene()
-{
-    glRotatef(-_pitch, 1.0f, 0.0f, 0.0f);
-    glRotatef(-_yaw, 0.0f, 1.0f, 0.0f);
-    glTranslatef(-_position.x, -_position.y, -_position.z);
-}
-void Camera::move_forward()
-{
-    _position.x += sin(glm::radians(_yaw)) * _speed;
-    _position.z -= cos(glm::radians(_yaw)) * _speed;
-}
-void Camera::move_backward()
-{
-    _position.x -= sin(glm::radians(_yaw)) * _speed;
-    _position.z += cos(glm::radians(_yaw)) * _speed;
-}
-void Camera::move_left()
-{
-    _position.x -= cos(glm::radians(_yaw)) * _speed;
-    _position.z -= sin(glm::radians(_yaw)) * _speed;
-}
-void Camera::move_right()
-{
-    _position.x += cos(glm::radians(_yaw)) * _speed;
-    _position.z += sin(glm::radians(_yaw)) * _speed;
-}
-void Camera::move_up()
-{
-    _position.y += _speed;
-}
-void Camera::move_down()
-{
-    _position.y -= _speed;
+	_position = glm::vec3(80.0f, 50.0f, 80.0f);
+	_yaw = 0.0f;
+	_pitch = 0.0f;
 }
 
-void Camera::rotate(double xoffset, double yoffset)
+Camera::~Camera()
 {
-    xoffset *= _sensitivity;
-    yoffset *= _sensitivity;
+}
 
-    _yaw += xoffset;
-    _pitch += yoffset;
+glm::vec3 Camera::GetPosition() const
+{
+	return _position;
+}
 
-    if (_pitch > 89.0f)
-        _pitch = 89.0f;
-    if (_pitch < -89.0f)
-        _pitch = -89.0f;
+glm::vec3 Camera::GetForward() const
+{
+	glm::vec4 forward = glm::inverse(GetRotationMatrix()) * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+	return glm::vec3(forward);
+}
+
+glm::vec3 Camera::GetRight() const
+{
+	glm::vec4 right = glm::inverse(GetRotationMatrix()) * glm::vec4(1.f, 0.f, 0.f, 1.f);
+	return glm::vec3(right);
+}
+
+glm::vec3 Camera::GetUp() const
+{
+	glm::vec4 up = glm::inverse(GetRotationMatrix()) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	return glm::vec3(up);
+}
+
+glm::mat4 Camera::GetViewMatrix() const
+{
+
+	return GetRotationMatrix() * glm::translate(glm::mat4(1.0f), -_position);
+}
+
+glm::mat4 Camera::GetRotationMatrix() const
+{
+	glm::mat4 rotation(1.0f);
+	rotation = glm::rotate(rotation, glm::radians(_pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+	rotation = glm::rotate(rotation, glm::radians(_yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+	return rotation;
+}
+
+void Camera::Move(const glm::vec3& direction, float amount)
+{
+	_position = _position + direction * amount;
+}
+
+void Camera::Pitch(float angle)
+{
+	_pitch += angle;
+	NormalizePitch();
+}
+
+void Camera::Yaw(float angle)
+{
+	_yaw += angle;
+	NormalizeYaw();
+}
+
+void Camera::TurnTo(const glm::vec3& position)
+{
+	if (_position == position)
+	{
+		return;
+	}
+	glm::vec3 direction = glm::normalize(position - _position);
+	_pitch = glm::degrees(asinf(-direction.y));
+	NormalizePitch();
+	_yaw = glm::degrees(atan2f(direction.x, -direction.z));
+	NormalizeYaw();
+}
+
+void Camera::MoveTo(const glm::vec3& position)
+{
+	_position = position;
+}
+
+void Camera::NormalizeYaw()
+{
+	_yaw = fmod(_yaw, 360.f);
+	if (_yaw < 0.f)
+	{
+		_yaw += 360.f;
+	}
+}
+
+void Camera::NormalizePitch()
+{
+	if (_pitch > 85.f)
+	{
+		_pitch = 85.f;
+	}
+	else if (_pitch < -85.f)
+	{
+		_pitch = -85.f;
+	}
 }

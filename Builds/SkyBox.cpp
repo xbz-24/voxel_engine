@@ -1,6 +1,6 @@
 #include "SkyBox.h"
 #include "Utilities.h"
-SkyBox::SkyBox(std::string path)
+SkyBox::SkyBox(const std::string& path)
 {
     _front = Utils::load_texture((path + "clouds.png").c_str());
     _back = Utils::load_texture((path + "clouds.png").c_str());

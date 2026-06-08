@@ -1,6 +1,21 @@
 tinyobjloader/
 stb_image.h
 
+.DS_Store
+.vs/
+Builds/.vs/
+Builds/CMakeFiles/
+Builds/CMakeCache.txt
+Builds/cmake_install.cmake
+Builds/vcpkg_installed/
+Builds/Debug/
+Builds/x64/
+Builds/*.dir/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+out/
+
 *.bk
 *.tmp
 *.log
@@ -9,6 +24,12 @@ stb_image.h
 *.o
 *.out
 *.exe
+*.aps
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.slnx
 
 build/
 

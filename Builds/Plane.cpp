@@ -1,11 +1,13 @@
 #include "Plane.h"
 #include "Utilities.h"
 
-Plane::Plane(std::string path) {
+Plane::Plane(const std::string& path) 
+{
 	_texture = Utils::load_texture(path.c_str());
 }
 
-void Plane::draw() {
+void Plane::draw() 
+{
     glBindTexture(GL_TEXTURE_2D, _texture);
 
     glBegin(GL_QUADS);
