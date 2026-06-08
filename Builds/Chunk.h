@@ -1,5 +1,6 @@
 #pragma once
-#include "Cube.h"
+#include "Block.h"
+#include "BlockRegistry.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -9,8 +10,6 @@ public:
 	static const int CHUNK_WIDTH = 16;
 	static const int CHUNK_HEIGHT = 128;
 	static const int CHUNK_DEPTH = 16;
-
-	int blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_DEPTH];
 
 	/**
 	 * Creates and generates a chunk at chunk-grid coordinates.
@@ -51,22 +50,30 @@ public:
 	/**
 	 * Builds an OpenGL display list containing visible chunk faces.
 	 *
-	 * @param cubeManager Cube texture provider used to bind block textures.
+	 * @param blockRegistry Registry used to resolve block textures and solidity.
 	 */
-	void BuildMesh(Cube& cubeManager);
+	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry);
 
 	/**
 	 * Draws the chunk, building its mesh lazily on first use.
 	 *
-	 * @param cubeManager Cube texture provider used if the mesh must be built.
+	 * @param blockRegistry Registry used if the mesh must be built.
 	 */
-	void Draw(Cube& cubeManager);
+	void Draw(const ve::blocks::BlockRegistry& blockRegistry);
 
-private:
-	int _chunkX;
-	int _chunkZ;
-	GLuint _displayListID;
-	bool _isMeshBuilt;
+	/**
+	 * Returns the chunk-grid X coordinate.
+	 *
+	 * @return Chunk X coordinate.
+	 */
+	int GetChunkX() const noexcept;
+
+	/**
+	 * Returns the chunk-grid Z coordinate.
+	 *
+	 * @return Chunk Z coordinate.
+	 */
+	int GetChunkZ() const noexcept;
 
 	/**
 	 * Reads a block id, treating out-of-bounds as air.
@@ -74,9 +81,42 @@ private:
 	 * @param x Local block X coordinate.
 	 * @param y Local block Y coordinate.
 	 * @param z Local block Z coordinate.
-	 * @return Block id, or 0 for air/out-of-bounds.
+	 * @return Block id, or Air for out-of-bounds.
 	 */
-	int GetBlock(int x, int y, int z);
+	ve::blocks::BlockId GetBlock(int x, int y, int z) const;
+
+	/**
+	 * Writes a block id and marks the mesh dirty when the block changes.
+	 *
+	 * @param x Local block X coordinate.
+	 * @param y Local block Y coordinate.
+	 * @param z Local block Z coordinate.
+	 * @param blockId New block id.
+	 * @return true when a block was changed.
+	 */
+	bool SetBlock(int x, int y, int z, ve::blocks::BlockId blockId);
+
+	/**
+	 * Marks the cached mesh as dirty so it is rebuilt next draw.
+	 */
+	void MarkDirty();
+
+private:
+	ve::blocks::BlockId blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_DEPTH];
+	int _chunkX;
+	int _chunkZ;
+	GLuint _displayListID;
+	bool _isMeshBuilt;
+
+	/**
+	 * Checks if a local coordinate belongs to this chunk.
+	 *
+	 * @param x Local block X coordinate.
+	 * @param y Local block Y coordinate.
+	 * @param z Local block Z coordinate.
+	 * @return true when the coordinate is inside chunk bounds.
+	 */
+	bool ContainsLocalBlock(int x, int y, int z) const;
 
 	/**
 	 * Checks whether all six neighboring blocks hide this block.
@@ -86,6 +126,6 @@ private:
 	 * @param z Local block Z coordinate.
 	 * @return true when the block is completely surrounded.
 	 */
-	bool IsBlockObscured(int x, int y, int z);
+	bool IsBlockObscured(int x, int y, int z, const ve::blocks::BlockRegistry& blockRegistry) const;
 };
 

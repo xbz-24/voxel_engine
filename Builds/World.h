@@ -3,6 +3,7 @@
 #include "Chunk.h"
 #include "LevelSpawn.h"
 
+#include <glm/glm.hpp>
 #include <memory_resource>
 #include <vector>
 
@@ -39,13 +40,79 @@ namespace ve::world
 		/**
 		 * Draws all chunks in the world.
 		 *
-		 * @param cubeManager Cube texture provider used by chunk meshes.
+		 * @param blockRegistry Registry used by chunk meshes.
 		 */
-		void Draw(Cube& cubeManager);
+		void Draw(const ve::blocks::BlockRegistry& blockRegistry);
+
+		/**
+		 * Reads a block from world coordinates.
+		 *
+		 * @param globalX World X block coordinate.
+		 * @param globalY World Y block coordinate.
+		 * @param globalZ World Z block coordinate.
+		 * @return Block id at the coordinate, or Air when outside loaded chunks.
+		 */
+		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
+
+		/**
+		 * Reads a block from world coordinates.
+		 *
+		 * @param position World block coordinate.
+		 * @return Block id at the coordinate, or Air when outside loaded chunks.
+		 */
+		ve::blocks::BlockId GetBlock(const glm::ivec3& position) const;
+
+		/**
+		 * Writes a block in world coordinates and marks affected chunks dirty.
+		 *
+		 * @param globalX World X block coordinate.
+		 * @param globalY World Y block coordinate.
+		 * @param globalZ World Z block coordinate.
+		 * @param blockId New block id.
+		 * @return true when the block changed.
+		 */
+		bool SetBlock(int globalX, int globalY, int globalZ, ve::blocks::BlockId blockId);
+
+		/**
+		 * Writes a block in world coordinates and marks affected chunks dirty.
+		 *
+		 * @param position World block coordinate.
+		 * @param blockId New block id.
+		 * @return true when the block changed.
+		 */
+		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
 
 	private:
+		/**
+		 * Returns the chunk that contains a chunk-grid coordinate.
+		 *
+		 * @param chunkX Chunk-grid X coordinate.
+		 * @param chunkZ Chunk-grid Z coordinate.
+		 * @return Mutable chunk pointer, or nullptr when not loaded.
+		 */
+		Chunk* FindChunk(int chunkX, int chunkZ);
+
+		/**
+		 * Returns the chunk that contains a chunk-grid coordinate.
+		 *
+		 * @param chunkX Chunk-grid X coordinate.
+		 * @param chunkZ Chunk-grid Z coordinate.
+		 * @return Const chunk pointer, or nullptr when not loaded.
+		 */
+		const Chunk* FindChunk(int chunkX, int chunkZ) const;
+
+		/**
+		 * Marks neighbor chunks dirty when a changed local block touches a border.
+		 *
+		 * @param chunkX Changed chunk-grid X coordinate.
+		 * @param chunkZ Changed chunk-grid Z coordinate.
+		 * @param localX Local X block coordinate.
+		 * @param localZ Local Z block coordinate.
+		 */
+		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
+
 		LevelSpawn _levelSpawn;
 		ChunkList _chunks;
+		int _worldSize;
 	};
 }
-
