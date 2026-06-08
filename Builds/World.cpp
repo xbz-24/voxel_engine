@@ -1,5 +1,8 @@
 #include "World.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace ve::world
 {
 	namespace
@@ -67,11 +70,32 @@ namespace ve::world
 		}
 	}
 
-	void World::Draw(const ve::blocks::BlockRegistry& blockRegistry)
+	void World::Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, int renderDistanceChunks)
 	{
-		for (Chunk& chunk : _chunks)
+		const int cameraChunkX = FloorDiv(static_cast<int>(std::floor(cameraPosition.x)), Chunk::CHUNK_WIDTH);
+		const int cameraChunkZ = FloorDiv(static_cast<int>(std::floor(cameraPosition.z)), Chunk::CHUNK_DEPTH);
+		const int minChunkX = std::max(0, cameraChunkX - renderDistanceChunks);
+		const int maxChunkX = std::min(_worldSize - 1, cameraChunkX + renderDistanceChunks);
+		const int minChunkZ = std::max(0, cameraChunkZ - renderDistanceChunks);
+		const int maxChunkZ = std::min(_worldSize - 1, cameraChunkZ + renderDistanceChunks);
+
+		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
 		{
-			chunk.Draw(blockRegistry);
+			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++)
+			{
+				Chunk* chunk = FindChunk(chunkX, chunkZ);
+				if (!chunk)
+				{
+					continue;
+				}
+
+				chunk->Draw(
+					blockRegistry,
+					FindChunk(chunkX - 1, chunkZ),
+					FindChunk(chunkX + 1, chunkZ),
+					FindChunk(chunkX, chunkZ - 1),
+					FindChunk(chunkX, chunkZ + 1));
+			}
 		}
 	}
 

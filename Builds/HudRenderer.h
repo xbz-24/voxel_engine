@@ -35,8 +35,9 @@ namespace ve::ui
 		 * @param selectedPlacementBlock Block currently selected for placement.
 		 * @param showDebugOverlay Whether debug text should be visible.
 		 * @param isFlying Whether player movement is currently in fly mode.
+		 * @param renderDistanceChunks Current chunk render radius.
 		 */
-		void Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying);
+		void Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
 
 	private:
 		struct Textures
@@ -83,8 +84,9 @@ namespace ve::ui
 		 * @param selectedPlacementBlock Block currently selected for placement.
 		 * @param showDebugOverlay Whether debug text should be visible.
 		 * @param isFlying Whether player movement is currently in fly mode.
+		 * @param renderDistanceChunks Current chunk render radius.
 		 */
-		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying);
+		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
 
 		/**
 		 * Draws text using the loaded bitmap font.

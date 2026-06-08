@@ -41,8 +41,10 @@ namespace ve::world
 		 * Draws all chunks in the world.
 		 *
 		 * @param blockRegistry Registry used by chunk meshes.
+		 * @param cameraPosition Current camera world position.
+		 * @param renderDistanceChunks Radius in chunks around the camera.
 		 */
-		void Draw(const ve::blocks::BlockRegistry& blockRegistry);
+		void Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, int renderDistanceChunks);
 
 		/**
 		 * Reads a block from world coordinates.

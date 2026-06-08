@@ -186,10 +186,13 @@ private:
 	bool _wasRightMouseButtonPressed;
 	bool _wasDebugTogglePressed;
 	bool _wasFlyTogglePressed;
+	bool _wasRenderDistanceDecreasePressed;
+	bool _wasRenderDistanceIncreasePressed;
 	bool _isDebugOverlayVisible;
 	bool _isFlying;
 	bool _isGrounded;
 	float _verticalVelocity;
+	int _renderDistanceChunks;
 	ve::blocks::BlockId _selectedPlacementBlock;
 
 };

@@ -1,6 +1,7 @@
 #include "Chunk.h"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 using ve::blocks::BlockFace;
 using ve::blocks::BlockId;
@@ -9,6 +10,28 @@ using ve::blocks::BlockRegistry;
 namespace
 {
 	constexpr float BlockHalfSize = 0.5f;
+
+	enum class MeshFaceDirection
+	{
+		Top,
+		Bottom,
+		Front,
+		Back,
+		Right,
+		Left
+	};
+
+	struct MeshFace
+	{
+		GLuint texture;
+		MeshFaceDirection direction;
+		float x;
+		float y;
+		float z;
+		float r;
+		float g;
+		float b;
+	};
 
 	/**
 	 * Emits the top face of one block into the active immediate-mode batch.
@@ -98,6 +121,37 @@ namespace
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+	}
+
+	/**
+	 * Emits one collected face into the active immediate-mode batch.
+	 *
+	 * @param face Mesh face to emit.
+	 */
+	void EmitCollectedFace(const MeshFace& face)
+	{
+		glColor3f(face.r, face.g, face.b);
+		switch (face.direction)
+		{
+		case MeshFaceDirection::Top:
+			EmitTopFace(face.x, face.y, face.z);
+			break;
+		case MeshFaceDirection::Bottom:
+			EmitBottomFace(face.x, face.y, face.z);
+			break;
+		case MeshFaceDirection::Front:
+			EmitFrontFace(face.x, face.y, face.z);
+			break;
+		case MeshFaceDirection::Back:
+			EmitBackFace(face.x, face.y, face.z);
+			break;
+		case MeshFaceDirection::Right:
+			EmitRightFace(face.x, face.y, face.z);
+			break;
+		case MeshFaceDirection::Left:
+			EmitLeftFace(face.x, face.y, face.z);
+			break;
+		}
 	}
 }
 
@@ -239,35 +293,29 @@ void Chunk::Generate()
 	MarkDirty();
 }
 
-void Chunk::BuildMesh(const BlockRegistry& blockRegistry)
+void Chunk::BuildMesh(const BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor)
 {
 	if (_displayListID != 0)
 	{
 		glDeleteLists(_displayListID, 1);
 	}
 
-	_displayListID = glGenLists(1);
-	glNewList(_displayListID, GL_COMPILE);
+	std::vector<MeshFace> faces;
+	faces.reserve(CHUNK_WIDTH * CHUNK_DEPTH * 8);
 
-	bool isBatchOpen = false;
-	GLuint currentTexture = 0;
-
-	auto useTexture = [&](GLuint texture)
+	auto collectFace = [&](BlockId blockId, BlockFace face, MeshFaceDirection direction, float dx, float dy, float dz)
 	{
-		if (!isBatchOpen)
-		{
-			glBindTexture(GL_TEXTURE_2D, texture);
-			glBegin(GL_QUADS);
-			currentTexture = texture;
-			isBatchOpen = true;
-		}
-		else if (texture != currentTexture)
-		{
-			glEnd();
-			glBindTexture(GL_TEXTURE_2D, texture);
-			glBegin(GL_QUADS);
-			currentTexture = texture;
-		}
+		const bool isGrassTop = blockId == BlockId::Grass && face == BlockFace::Top;
+		faces.push_back(MeshFace{
+			blockRegistry.TextureFor(blockId, face),
+			direction,
+			dx,
+			dy,
+			dz,
+			isGrassTop ? 0.404f : 1.0f,
+			isGrassTop ? 0.655f : 1.0f,
+			isGrassTop ? 0.239f : 1.0f
+		});
 	};
 
 	for (int x = 0; x < CHUNK_WIDTH; x++) 
@@ -284,44 +332,72 @@ void Chunk::BuildMesh(const BlockRegistry& blockRegistry)
 				const float dy = static_cast<float>(y);
 				const float dz = static_cast<float>(z + (_chunkZ * CHUNK_DEPTH));
 
-				if (!blockRegistry.IsSolid(GetBlock(x, y + 1, z))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x, y + 1, z, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(blockId == BlockId::Grass ? 0.404f : 1.0f, blockId == BlockId::Grass ? 0.655f : 1.0f, blockId == BlockId::Grass ? 0.239f : 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Top));
-					EmitTopFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Top, MeshFaceDirection::Top, dx, dy, dz);
 				}
-				if (!blockRegistry.IsSolid(GetBlock(x, y - 1, z))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x, y - 1, z, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(1.0f, 1.0f, 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Bottom));
-					EmitBottomFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Bottom, MeshFaceDirection::Bottom, dx, dy, dz);
 				}
-				if (!blockRegistry.IsSolid(GetBlock(x, y, z + 1))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x, y, z + 1, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(1.0f, 1.0f, 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Front));
-					EmitFrontFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Front, MeshFaceDirection::Front, dx, dy, dz);
 				}
-				if (!blockRegistry.IsSolid(GetBlock(x, y, z - 1))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x, y, z - 1, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(1.0f, 1.0f, 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Back));
-					EmitBackFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Back, MeshFaceDirection::Back, dx, dy, dz);
 				}
-				if (!blockRegistry.IsSolid(GetBlock(x + 1, y, z))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x + 1, y, z, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(1.0f, 1.0f, 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Right));
-					EmitRightFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Right, MeshFaceDirection::Right, dx, dy, dz);
 				}
-				if (!blockRegistry.IsSolid(GetBlock(x - 1, y, z))) 
+				if (!blockRegistry.IsSolid(GetBlockWithNeighbors(x - 1, y, z, westNeighbor, eastNeighbor, northNeighbor, southNeighbor))) 
 				{ 
-					glColor3f(1.0f, 1.0f, 1.0f);
-					useTexture(blockRegistry.TextureFor(blockId, BlockFace::Left));
-					EmitLeftFace(dx, dy, dz);
+					collectFace(blockId, BlockFace::Left, MeshFaceDirection::Left, dx, dy, dz);
 				}
 			}
 		}
+	}
+
+	std::sort(faces.begin(), faces.end(), [](const MeshFace& left, const MeshFace& right)
+	{
+		if (left.texture != right.texture)
+		{
+			return left.texture < right.texture;
+		}
+		if (left.r != right.r)
+		{
+			return left.r < right.r;
+		}
+		if (left.g != right.g)
+		{
+			return left.g < right.g;
+		}
+		return left.b < right.b;
+	});
+
+	_displayListID = glGenLists(1);
+	glNewList(_displayListID, GL_COMPILE);
+
+	GLuint currentTexture = 0;
+	bool isBatchOpen = false;
+	for (const MeshFace& face : faces)
+	{
+		if (!isBatchOpen || face.texture != currentTexture)
+		{
+			if (isBatchOpen)
+			{
+				glEnd();
+			}
+
+			glBindTexture(GL_TEXTURE_2D, face.texture);
+			glBegin(GL_QUADS);
+			currentTexture = face.texture;
+			isBatchOpen = true;
+		}
+
+		EmitCollectedFace(face);
 	}
 
 	if (isBatchOpen)
@@ -335,12 +411,12 @@ void Chunk::BuildMesh(const BlockRegistry& blockRegistry)
 	_isMeshBuilt = true;
 }
 
-void Chunk::Draw(const BlockRegistry& blockRegistry)
+void Chunk::Draw(const BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor)
 {
 	
 	if (!_isMeshBuilt)
 	{
-		BuildMesh(blockRegistry);
+		BuildMesh(blockRegistry, westNeighbor, eastNeighbor, northNeighbor, southNeighbor);
 	}
 
 	glCallList(_displayListID);
@@ -385,6 +461,32 @@ void Chunk::MarkDirty()
 bool Chunk::ContainsLocalBlock(int x, int y, int z) const
 {
 	return x >= 0 && x < CHUNK_WIDTH && y >= 0 && y < CHUNK_HEIGHT && z >= 0 && z < CHUNK_DEPTH;
+}
+
+BlockId Chunk::GetBlockWithNeighbors(int x, int y, int z, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor) const
+{
+	if (y < 0 || y >= CHUNK_HEIGHT)
+	{
+		return BlockId::Air;
+	}
+	if (x < 0)
+	{
+		return westNeighbor ? westNeighbor->GetBlock(CHUNK_WIDTH - 1, y, z) : BlockId::Air;
+	}
+	if (x >= CHUNK_WIDTH)
+	{
+		return eastNeighbor ? eastNeighbor->GetBlock(0, y, z) : BlockId::Air;
+	}
+	if (z < 0)
+	{
+		return northNeighbor ? northNeighbor->GetBlock(x, y, CHUNK_DEPTH - 1) : BlockId::Air;
+	}
+	if (z >= CHUNK_DEPTH)
+	{
+		return southNeighbor ? southNeighbor->GetBlock(x, y, 0) : BlockId::Air;
+	}
+
+	return GetBlock(x, y, z);
 }
 
 bool Chunk::IsBlockObscured(int x, int y, int z, const BlockRegistry& blockRegistry) const

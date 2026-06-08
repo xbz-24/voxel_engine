@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include "AssetPaths.h"
@@ -19,10 +20,13 @@ Engine::Engine()
 	  _wasRightMouseButtonPressed(false),
 	  _wasDebugTogglePressed(false),
 	  _wasFlyTogglePressed(false),
+	  _wasRenderDistanceDecreasePressed(false),
+	  _wasRenderDistanceIncreasePressed(false),
 	  _isDebugOverlayVisible(true),
 	  _isFlying(false),
 	  _isGrounded(false),
 	  _verticalVelocity(0.0f),
+	  _renderDistanceChunks(3),
 	  _selectedPlacementBlock(ve::blocks::BlockId::Cobblestone)
 {
 	_applicationSourceFilePath = std::filesystem::absolute(__FILE__);
@@ -82,7 +86,7 @@ int Engine::Run()
 
 		Render3DWorld(window, camera, skyBox, plane, cube, blockRegistry, world, currentSelection);
 
-		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentSelection.targetBlock, currentSelection.hasTarget, blockRegistry, _selectedPlacementBlock, _isDebugOverlayVisible, _isFlying);
+		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentSelection.targetBlock, currentSelection.hasTarget, blockRegistry, _selectedPlacementBlock, _isDebugOverlayVisible, _isFlying, _renderDistanceChunks);
 
 		window.Update();
 	}
@@ -164,6 +168,20 @@ void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::wo
 		_verticalVelocity = 0.0f;
 	}
 	_wasFlyTogglePressed = isFlyTogglePressed;
+
+	const bool isRenderDistanceDecreasePressed = glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS;
+	if (isRenderDistanceDecreasePressed && !_wasRenderDistanceDecreasePressed)
+	{
+		_renderDistanceChunks = std::max(1, _renderDistanceChunks - 1);
+	}
+	_wasRenderDistanceDecreasePressed = isRenderDistanceDecreasePressed;
+
+	const bool isRenderDistanceIncreasePressed = glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS;
+	if (isRenderDistanceIncreasePressed && !_wasRenderDistanceIncreasePressed)
+	{
+		_renderDistanceChunks = std::min(6, _renderDistanceChunks + 1);
+	}
+	_wasRenderDistanceIncreasePressed = isRenderDistanceIncreasePressed;
 
 	float playerMovementVelocityScalar = 5.0f * static_cast<float>(frameDeltaTimeSeconds);
 	glm::vec3 forward = camera.GetForward();
@@ -404,7 +422,7 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 		//plane.draw();
 		//cube.draw();
 		RenderClouds();
-		world.Draw(blockRegistry);
+		world.Draw(blockRegistry, camera.GetPosition(), _renderDistanceChunks);
 
 		renderDebugCoordinateSystemAxes();
 		
