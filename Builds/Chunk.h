@@ -51,15 +51,23 @@ public:
 	 * Builds an OpenGL display list containing visible chunk faces.
 	 *
 	 * @param blockRegistry Registry used to resolve block textures and solidity.
+	 * @param westNeighbor Neighbor chunk at X - 1, or nullptr when absent.
+	 * @param eastNeighbor Neighbor chunk at X + 1, or nullptr when absent.
+	 * @param northNeighbor Neighbor chunk at Z - 1, or nullptr when absent.
+	 * @param southNeighbor Neighbor chunk at Z + 1, or nullptr when absent.
 	 */
-	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry);
+	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor);
 
 	/**
 	 * Draws the chunk, building its mesh lazily on first use.
 	 *
 	 * @param blockRegistry Registry used if the mesh must be built.
+	 * @param westNeighbor Neighbor chunk at X - 1, or nullptr when absent.
+	 * @param eastNeighbor Neighbor chunk at X + 1, or nullptr when absent.
+	 * @param northNeighbor Neighbor chunk at Z - 1, or nullptr when absent.
+	 * @param southNeighbor Neighbor chunk at Z + 1, or nullptr when absent.
 	 */
-	void Draw(const ve::blocks::BlockRegistry& blockRegistry);
+	void Draw(const ve::blocks::BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor);
 
 	/**
 	 * Returns the chunk-grid X coordinate.
@@ -117,6 +125,20 @@ private:
 	 * @return true when the coordinate is inside chunk bounds.
 	 */
 	bool ContainsLocalBlock(int x, int y, int z) const;
+
+	/**
+	 * Reads a local or neighbor block for mesh visibility checks.
+	 *
+	 * @param x Local X coordinate, allowed to be one block outside this chunk.
+	 * @param y Local Y coordinate.
+	 * @param z Local Z coordinate, allowed to be one block outside this chunk.
+	 * @param westNeighbor Neighbor chunk at X - 1, or nullptr when absent.
+	 * @param eastNeighbor Neighbor chunk at X + 1, or nullptr when absent.
+	 * @param northNeighbor Neighbor chunk at Z - 1, or nullptr when absent.
+	 * @param southNeighbor Neighbor chunk at Z + 1, or nullptr when absent.
+	 * @return Block id, or Air when the coordinate is outside loaded data.
+	 */
+	ve::blocks::BlockId GetBlockWithNeighbors(int x, int y, int z, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor) const;
 
 	/**
 	 * Checks whether all six neighboring blocks hide this block.

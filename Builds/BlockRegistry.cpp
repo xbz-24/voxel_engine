@@ -71,6 +71,15 @@ namespace ve::blocks
 		const GLuint ironOre = LoadBlockTexture(paths.blockTexturesDirectory, "iron_ore.png");
 		const GLuint obsidian = LoadBlockTexture(paths.blockTexturesDirectory, "obsidian.png");
 		const GLuint oakLeaves = LoadBlockTexture(paths.blockTexturesDirectory, "oak_leaves.png");
+		const GLuint deepslate = LoadBlockTexture(paths.blockTexturesDirectory, "deepslate.png");
+		const GLuint copperOre = LoadBlockTexture(paths.blockTexturesDirectory, "copper_ore.png");
+		const GLuint goldOre = LoadBlockTexture(paths.blockTexturesDirectory, "gold_ore.png");
+		const GLuint emeraldOre = LoadBlockTexture(paths.blockTexturesDirectory, "emerald_ore.png");
+		const GLuint lapisOre = LoadBlockTexture(paths.blockTexturesDirectory, "lapis_ore.png");
+		const GLuint gravel = LoadBlockTexture(paths.blockTexturesDirectory, "gravel.png");
+		const GLuint mossBlock = LoadBlockTexture(paths.blockTexturesDirectory, "moss_block.png");
+		const GLuint snow = LoadBlockTexture(paths.blockTexturesDirectory, "snow.png");
+		const GLuint mossyCobblestone = LoadBlockTexture(paths.blockTexturesDirectory, "mossy_cobblestone.png");
 
 		_blocks[IndexOf(BlockId::Air)] = BlockType{
 			BlockId::Air,
@@ -182,6 +191,69 @@ namespace ve::blocks
 			"Oak Leaves",
 			true,
 			SameTexture(oakLeaves)
+		};
+
+		_blocks[IndexOf(BlockId::Deepslate)] = BlockType{
+			BlockId::Deepslate,
+			"Deepslate",
+			true,
+			SameTexture(deepslate)
+		};
+
+		_blocks[IndexOf(BlockId::CopperOre)] = BlockType{
+			BlockId::CopperOre,
+			"Copper Ore",
+			true,
+			SameTexture(copperOre)
+		};
+
+		_blocks[IndexOf(BlockId::GoldOre)] = BlockType{
+			BlockId::GoldOre,
+			"Gold Ore",
+			true,
+			SameTexture(goldOre)
+		};
+
+		_blocks[IndexOf(BlockId::EmeraldOre)] = BlockType{
+			BlockId::EmeraldOre,
+			"Emerald Ore",
+			true,
+			SameTexture(emeraldOre)
+		};
+
+		_blocks[IndexOf(BlockId::LapisOre)] = BlockType{
+			BlockId::LapisOre,
+			"Lapis Ore",
+			true,
+			SameTexture(lapisOre)
+		};
+
+		_blocks[IndexOf(BlockId::Gravel)] = BlockType{
+			BlockId::Gravel,
+			"Gravel",
+			true,
+			SameTexture(gravel)
+		};
+
+		_blocks[IndexOf(BlockId::MossBlock)] = BlockType{
+			BlockId::MossBlock,
+			"Moss",
+			true,
+			SameTexture(mossBlock)
+		};
+
+		_blocks[IndexOf(BlockId::Snow)] = BlockType{
+			BlockId::Snow,
+			"Snow",
+			true,
+			SameTexture(snow)
+		};
+
+		_blocks[IndexOf(BlockId::MossyCobblestone)] = BlockType{
+			BlockId::MossyCobblestone,
+			"Mossy Cobble",
+			true,
+			SameTexture(mossyCobblestone)
 		};
 	}
 

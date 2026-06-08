@@ -23,6 +23,15 @@ namespace ve::blocks
 		IronOre,
 		Obsidian,
 		OakLeaves,
+		Deepslate,
+		CopperOre,
+		GoldOre,
+		EmeraldOre,
+		LapisOre,
+		Gravel,
+		MossBlock,
+		Snow,
+		MossyCobblestone,
 		Count
 	};
 
