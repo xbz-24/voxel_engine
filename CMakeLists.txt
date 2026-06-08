@@ -21,6 +21,7 @@ add_executable(main
     Builds/Cube.cpp
     Builds/Engine.cpp
     Builds/FrameTimer.cpp
+    Builds/Hotbar.cpp
     Builds/HudRenderer.cpp
     Builds/LevelSpawn.cpp
     Builds/Logger.cpp

@@ -43,6 +43,7 @@ namespace ve::ui
 		{
 			GLuint crosshair;
 			GLuint hotbar;
+			GLuint hotbarSelection;
 			GLuint experienceBar;
 			GLuint heart;
 			GLuint hunger;
@@ -66,8 +67,10 @@ namespace ve::ui
 		 * Draws the fixed Minecraft-like HUD widgets.
 		 *
 		 * @param window Window used for screen-space positioning.
+		 * @param blockRegistry Registry used to draw block icons.
+		 * @param selectedPlacementBlock Currently selected hotbar block.
 		 */
-		void DrawSurvivalHud(const Window& window);
+		void DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
 
 		/**
 		 * Draws debug text readouts.

@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "Hotbar.h"
 #include "Render2D.h"
 #include "Utilities.h"
 
@@ -44,6 +45,7 @@ namespace ve::ui
 		: _textures{
 			Utils::load_texture(paths.crosshairTexture.string().c_str()),
 			Utils::load_texture(paths.hotbarTexture.string().c_str()),
+			Utils::load_texture(paths.hotbarSelectionTexture.string().c_str()),
 			Utils::load_texture(paths.experienceBarTexture.string().c_str()),
 			Utils::load_texture(paths.healthTexture.string().c_str()),
 			Utils::load_texture(paths.hungerTexture.string().c_str()),
@@ -67,7 +69,7 @@ namespace ve::ui
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 
-		DrawSurvivalHud(window);
+		DrawSurvivalHud(window, blockRegistry, selectedPlacementBlock);
 		DrawDebugOverlay(camera, displayedFps, targetBlock, isBlockSelected, blockRegistry, selectedPlacementBlock, showDebugOverlay, isFlying);
 
 		glEnable(GL_DEPTH_TEST);
@@ -88,7 +90,7 @@ namespace ve::ui
 		}
 	}
 
-	void HudRenderer::DrawSurvivalHud(const Window& window)
+	void HudRenderer::DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock)
 	{
 		const float screenCenterViewportX = window.GetWidth() / 2.0f;
 		const float screenCenterViewportY = window.GetHeight() / 2.0f;
@@ -109,6 +111,31 @@ namespace ve::ui
 
 		ve::rendering::DrawTexturedQuad(_textures.hotbar, hotbarScreenPositionX, hotbarScreenPositionY, hotbarRenderWidth, hotbarRenderHeight);
 
+		const float slotSize = 20.0f * globalGuiScalingFactor;
+		const float blockIconSize = 16.0f * globalGuiScalingFactor;
+		const float blockIconInset = 3.0f * globalGuiScalingFactor;
+		const float selectionSize = 24.0f * globalGuiScalingFactor;
+		const int selectedSlot = ve::gameplay::HotbarIndexFor(selectedPlacementBlock);
+
+		ve::rendering::DrawTexturedQuad(
+			_textures.hotbarSelection,
+			hotbarScreenPositionX + (static_cast<float>(selectedSlot) * slotSize) - (1.0f * globalGuiScalingFactor),
+			hotbarScreenPositionY - (1.0f * globalGuiScalingFactor),
+			selectionSize,
+			selectionSize);
+
+		const auto& hotbarBlocks = ve::gameplay::DefaultHotbarBlocks();
+		for (int slot = 0; slot < ve::gameplay::HotbarSlotCount; slot++)
+		{
+			const ve::blocks::BlockId blockId = hotbarBlocks[static_cast<std::size_t>(slot)];
+			ve::rendering::DrawTexturedQuad(
+				blockRegistry.TextureFor(blockId, ve::blocks::BlockFace::Top),
+				hotbarScreenPositionX + (static_cast<float>(slot) * slotSize) + blockIconInset,
+				hotbarScreenPositionY + blockIconInset,
+				blockIconSize,
+				blockIconSize);
+		}
+
 		const float experienceBarRenderWidth = 182.0f * globalGuiScalingFactor;
 		const float experienceBarRenderHeight = 5.0f * globalGuiScalingFactor;
 		const float experienceBarAnchorScreenPosX = (window.GetWidth() / 2.0f) - (experienceBarRenderWidth / 2.0f);
@@ -127,7 +154,7 @@ namespace ve::ui
 	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying)
 	{
 		const std::string selectedPlacementName(blockRegistry.Get(selectedPlacementBlock).name);
-		DrawText("Block " + selectedPlacementName + "  1 Grass 2 Dirt 3 Stone 4 Cobble", 10.0f, 10.0f, 1.2f);
+		DrawText("Block " + selectedPlacementName + "  1-9 hotbar", 10.0f, 10.0f, 1.2f);
 		DrawText("LMB break  RMB place  Space jump  F fly  F3 debug", 10.0f, 26.0f, 1.2f);
 
 		if (!showDebugOverlay)

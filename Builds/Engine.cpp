@@ -4,6 +4,7 @@
 #include "BlockRegistry.h"
 #include "Chunk.h"
 #include "Engine.h"
+#include "Hotbar.h"
 #include "HudRenderer.h"
 #include "Logger.h"
 #include "Plane.h"
@@ -321,19 +322,39 @@ void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const
 
 	if (glfwGetKey(nativeWindow, GLFW_KEY_1) == GLFW_PRESS)
 	{
-		_selectedPlacementBlock = ve::blocks::BlockId::Grass;
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[0];
 	}
 	if (glfwGetKey(nativeWindow, GLFW_KEY_2) == GLFW_PRESS)
 	{
-		_selectedPlacementBlock = ve::blocks::BlockId::Dirt;
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[1];
 	}
 	if (glfwGetKey(nativeWindow, GLFW_KEY_3) == GLFW_PRESS)
 	{
-		_selectedPlacementBlock = ve::blocks::BlockId::Stone;
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[2];
 	}
 	if (glfwGetKey(nativeWindow, GLFW_KEY_4) == GLFW_PRESS)
 	{
-		_selectedPlacementBlock = ve::blocks::BlockId::Cobblestone;
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[3];
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_5) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[4];
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_6) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[5];
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_7) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[6];
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_8) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[7];
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_9) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::gameplay::DefaultHotbarBlocks()[8];
 	}
 
 	const bool isDebugTogglePressed = glfwGetKey(nativeWindow, GLFW_KEY_F3) == GLFW_PRESS;
