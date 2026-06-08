@@ -3,6 +3,7 @@
 #include "Block.h"
 #include "BlockRegistry.h"
 #include "ChunkGpuMesh.h"
+#include "ChunkMeshTypes.h"
 #include "ChunkTerrain.h"
 
 class Chunk
@@ -30,11 +31,21 @@ public:
 	/// Fills block data using procedural terrain generation.
 	void Generate();
 
-	/// Builds a GPU mesh containing visible chunk faces.
-	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor);
+	/**
+	 * Builds a GPU mesh containing visible chunk faces.
+	 *
+	 * @param blockRegistry Registry used to resolve texture ids.
+	 * @param neighbors Adjacent chunks used for border occlusion.
+	 */
+	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors);
 
-	/// Draws the chunk, building its mesh lazily on first use.
-	void Draw(const ve::blocks::BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor);
+	/**
+	 * Draws the chunk, building its mesh lazily on first use.
+	 *
+	 * @param blockRegistry Registry used to resolve texture ids.
+	 * @param neighbors Adjacent chunks used for border occlusion.
+	 */
+	void Draw(const ve::blocks::BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors);
 
 	/// Returns the chunk-grid X coordinate.
 	int GetChunkX() const noexcept;

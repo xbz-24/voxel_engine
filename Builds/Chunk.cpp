@@ -43,20 +43,20 @@ void Chunk::Generate()
 	ve::world::terrain::GenerateChunkTerrain(_chunkX, _chunkZ, blocks);
 	MarkDirty();
 }
-void Chunk::BuildMesh(const BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor)
+void Chunk::BuildMesh(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
 {
 	ve::world::mesh::ChunkMeshBuildResult mesh = ve::world::mesh::BuildChunkMesh(
 		*this,
 		blockRegistry,
-		ve::world::mesh::NeighborChunks{ westNeighbor, eastNeighbor, northNeighbor, southNeighbor });
+		neighbors);
 	_mesh.Upload(mesh.vertices, std::move(mesh.batches));
 	_isMeshBuilt = true;
 }
-void Chunk::Draw(const BlockRegistry& blockRegistry, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor)
+void Chunk::Draw(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
 {
 	if (!_isMeshBuilt)
 	{
-		BuildMesh(blockRegistry, westNeighbor, eastNeighbor, northNeighbor, southNeighbor);
+		BuildMesh(blockRegistry, neighbors);
 	}
 	_mesh.Draw();
 }

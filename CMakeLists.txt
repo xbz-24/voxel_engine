@@ -15,6 +15,7 @@ find_package(Stb REQUIRED)
 add_executable(main
     main.cpp
     Builds/AssetPaths.cpp
+    Builds/BlockInteraction.cpp
     Builds/BlockRaycaster.cpp
     Builds/BlockRegistry.cpp
     Builds/BlockTextureCache.cpp
@@ -66,7 +67,9 @@ add_executable(main
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
     Builds/WorldCoordinates.cpp
+    Builds/WorldRender.cpp
     Builds/WorldVisibility.cpp
+    Builds/WorldViewRange.cpp
     Builds/World.cpp
     Builds/dependencies.cpp
 )

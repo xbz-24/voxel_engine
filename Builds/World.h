@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Chunk.h"
+#include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
+#include "WorldRenderRequest.h"
 
 #include <glm/glm.hpp>
 #include <memory_resource>
@@ -23,11 +25,19 @@ namespace ve::world
 		World(World&&) = delete;
 		World& operator=(World&&) = delete;
 
-		/// Spawns a square grid of generated chunks.
+		/**
+		 * Spawns a square grid of generated chunks.
+		 *
+		 * @param worldSize Number of chunks along each world side.
+		 */
 		void SpawnFlatGrid(int worldSize);
 
-		/// Draws chunks around the camera after coarse visibility culling.
-		void Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, const glm::vec3& cameraForward, int renderDistanceChunks);
+		/**
+		 * Draws chunks described by a render request after visibility culling.
+		 *
+		 * @param request Camera and render data used to submit visible chunks.
+		 */
+		void Draw(const WorldRenderRequest& request);
 
 		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
@@ -50,6 +60,12 @@ namespace ve::world
 
 		/// Marks neighbor chunks dirty when a changed local block touches a border.
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
+
+		/// Draws one chunk when it passes camera-direction culling.
+		void DrawVisibleChunk(const WorldRenderRequest& request, int chunkX, int chunkZ);
+
+		/// Collects neighboring chunks used to hide shared border faces.
+		ve::world::mesh::NeighborChunks FindNeighborChunks(int chunkX, int chunkZ) const;
 
 		LevelSpawn _levelSpawn;
 		ChunkList _chunks;

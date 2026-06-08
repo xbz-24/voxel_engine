@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+#include "BlockInteraction.h"
 #include "BlockRaycaster.h"
 #include "GameplayInput.h"
 #include "Hotbar.h"
@@ -43,11 +44,11 @@ void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const
 
 	if (selection.hasTarget && ve::gameplay::ConsumeBlockBreak(nativeWindow, _wasLeftMouseButtonPressed))
 	{
-		world.SetBlock(selection.targetBlock, ve::blocks::BlockId::Air);
+		ve::gameplay::BreakBlock(world, selection.targetBlock);
 	}
 	if (selection.hasTarget && ve::gameplay::ConsumeBlockPlace(nativeWindow, _wasRightMouseButtonPressed))
 	{
-		world.SetBlock(selection.placementBlock, _selectedPlacementBlock);
+		ve::gameplay::PlaceBlock(world, selection.placementBlock, _selectedPlacementBlock);
 	}
 }
 
