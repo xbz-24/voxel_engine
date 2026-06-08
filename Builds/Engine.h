@@ -9,10 +9,10 @@
 #include "Camera.h"
 #include "Cube.h"
 #include "FrameTimer.h"
+#include "HudRenderer.h"
 #include "Window.h"
 #include "SkyBox.h"
 #include "Plane.h"
-#include "Chunk.h"
 #include "World.h"
 
 class Engine
@@ -35,16 +35,6 @@ public:
 	 */
 	int Run();
 private:
-	struct HudTextures
-	{
-		GLuint crosshair;
-		GLuint hotbar;
-		GLuint experienceBar;
-		GLuint heart;
-		GLuint hunger;
-		GLuint font;
-	};
-
 	struct MouseState
 	{
 		double previousX;
@@ -79,14 +69,6 @@ private:
 	 * Configures global OpenGL state used by the current renderer.
 	 */
 	void ConfigureOpenGLState();
-
-	/**
-	 * Loads all textures needed by the HUD.
-	 *
-	 * @param paths Resolved engine asset paths.
-	 * @return Texture id bundle used by RenderHUD.
-	 */
-	HudTextures LoadHudTextures(const ve::assets::AssetPaths& paths);
 
 	/**
 	 * Draws debug X/Y/Z axes in world space.
@@ -153,15 +135,6 @@ private:
 	void Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, ve::world::World& world, const glm::ivec3& selectedBlock, bool isBlockSelected);
 
 	/**
-	 * Renders the 2D HUD over the 3D scene.
-	 *
-	 * @param window Window used for HUD positioning.
-	 * @param textures Texture ids used by the HUD.
-	 * @param fpsText Text drawn in the corner.
-	 */
-	void RenderHUD(const Window& window, const HudTextures& textures, const std::string& fpsText);
-
-	/**
 	 * Rebuilds 3D and 2D projection matrices after window size changes.
 	 *
 	 * @param width Framebuffer width in pixels.
@@ -169,7 +142,6 @@ private:
 	 */
 	void UpdateProjections(int width, int height);
 	glm::mat4 _projection3D;
-	glm::mat4 _projection2D;
 	int _currentWindowWidth;
 	int _currentWindowHeight;
 
@@ -178,15 +150,5 @@ private:
 	 */
 	void RenderClouds();
 
-	/**
-	 * Draws ASCII text using a 16x16 bitmap font texture.
-	 *
-	 * @param text Text to render.
-	 * @param x Left position in screen pixels.
-	 * @param y Top position in screen pixels.
-	 * @param scale Glyph scale multiplier.
-	 * @param fontTexture OpenGL texture id for the font atlas.
-	 */
-	void RenderText(const std::string& text, float x, float y, float scale, GLuint fontTexture);
 };
 

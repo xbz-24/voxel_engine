@@ -1,0 +1,16 @@
+PROJECT_NAME           = "VoxelEngine"
+PROJECT_BRIEF          = "High-level voxel engine foundation"
+OUTPUT_DIRECTORY       = "@CMAKE_BINARY_DIR@/docs/doxygen"
+INPUT                  = "@CMAKE_SOURCE_DIR@/Builds" "@CMAKE_SOURCE_DIR@/main.cpp"
+RECURSIVE              = NO
+FILE_PATTERNS          = *.h *.cpp
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_AS_ERROR          = NO
+JAVADOC_AUTOBRIEF      = YES
+USE_MDFILE_AS_MAINPAGE =
+

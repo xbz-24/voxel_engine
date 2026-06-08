@@ -2,6 +2,101 @@
 #include <algorithm>
 #include <cmath>
 
+namespace
+{
+	constexpr float BlockHalfSize = 0.5f;
+
+	/**
+	 * Emits the top face of one block into the active immediate-mode batch.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitTopFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+	}
+
+	/**
+	 * Emits the bottom face of one block into the active immediate-mode batch.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitBottomFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+	}
+
+	/**
+	 * Emits the positive Z side face of one block.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitFrontFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+	}
+
+	/**
+	 * Emits the negative Z side face of one block.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitBackFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+	}
+
+	/**
+	 * Emits the positive X side face of one block.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitRightFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx + BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx + BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+	}
+
+	/**
+	 * Emits the negative X side face of one block.
+	 *
+	 * @param dx World X block origin.
+	 * @param dy World Y block origin.
+	 * @param dz World Z block origin.
+	 */
+	void EmitLeftFace(float dx, float dy, float dz)
+	{
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz - BlockHalfSize);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(dx - BlockHalfSize, dy - BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz + BlockHalfSize);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - BlockHalfSize, dy + BlockHalfSize, dz - BlockHalfSize);
+	}
+}
+
 Chunk::Chunk(int chunkX, int chunkZ) : _chunkX(chunkX), _chunkZ(chunkZ)
 {
 	_isMeshBuilt = false;
@@ -88,10 +183,13 @@ void Chunk::Generate()
 
 void Chunk::BuildMesh(Cube& cubeManager)
 {
+	if (_displayListID != 0)
+	{
+		glDeleteLists(_displayListID, 1);
+	}
+
 	_displayListID = glGenLists(1);
 	glNewList(_displayListID, GL_COMPILE);
-
-	float s = 0.5f;
 
 	glBindTexture(GL_TEXTURE_2D, cubeManager.GetTop());
 	glColor3f(0.404f, 0.655f, 0.239f); 
@@ -106,11 +204,7 @@ void Chunk::BuildMesh(Cube& cubeManager)
 					continue;
 				if (GetBlock(x, y + 1, z) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - s, dy + s, dz - s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - s, dy + s, dz + s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + s, dy + s, dz + s);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + s, dy + s, dz - s);
+					EmitTopFace(static_cast<float>(x + (_chunkX * CHUNK_WIDTH)), static_cast<float>(y), static_cast<float>(z + (_chunkZ * CHUNK_DEPTH)));
 				}
 			}
 		}
@@ -129,11 +223,7 @@ void Chunk::BuildMesh(Cube& cubeManager)
 				if (blocks[x][y][z] == 0) continue;
 				if (GetBlock(x, y - 1, z) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - s, dy - s, dz - s);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + s, dy - s, dz - s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + s, dy - s, dz + s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - s, dy - s, dz + s);
+					EmitBottomFace(static_cast<float>(x + (_chunkX * CHUNK_WIDTH)), static_cast<float>(y), static_cast<float>(z + (_chunkZ * CHUNK_DEPTH)));
 				}
 			}
 		}
@@ -150,82 +240,26 @@ void Chunk::BuildMesh(Cube& cubeManager)
 			{
 				if (blocks[x][y][z] == 0) 
 					continue;
+
+				const float dx = static_cast<float>(x + (_chunkX * CHUNK_WIDTH));
+				const float dy = static_cast<float>(y);
+				const float dz = static_cast<float>(z + (_chunkZ * CHUNK_DEPTH));
+
 				if (GetBlock(x, y, z + 1) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - s, dy - s, dz + s);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + s, dy - s, dz + s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + s, dy + s, dz + s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - s, dy + s, dz + s);
+					EmitFrontFace(dx, dy, dz);
 				}
-			}
-		}
-	}
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, cubeManager.GetBack());
-	glBegin(GL_QUADS);
-	for (int x = 0; x < CHUNK_WIDTH; x++) 
-	{
-		for (int z = 0; z < CHUNK_DEPTH; z++) 
-		{
-			for (int y = 0; y < CHUNK_HEIGHT; y++) 
-			{
-				if (blocks[x][y][z] == 0) 
-					continue;
 				if (GetBlock(x, y, z - 1) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx - s, dy - s, dz - s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx - s, dy + s, dz - s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx + s, dy + s, dz - s);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx + s, dy - s, dz - s);
+					EmitBackFace(dx, dy, dz);
 				}
-			}
-		}
-	}
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, cubeManager.GetRight());
-	glBegin(GL_QUADS);
-	for (int x = 0; x < CHUNK_WIDTH; x++) 
-	{
-		for (int z = 0; z < CHUNK_DEPTH; z++) 
-		{
-			for (int y = 0; y < CHUNK_HEIGHT; y++) 
-			{
-				if (blocks[x][y][z] == 0) 
-					continue;
 				if (GetBlock(x + 1, y, z) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx + s, dy - s, dz - s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx + s, dy + s, dz - s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx + s, dy + s, dz + s);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx + s, dy - s, dz + s);
+					EmitRightFace(dx, dy, dz);
 				}
-			}
-		}
-	}
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, cubeManager.GetLeft());
-	glBegin(GL_QUADS);
-	for (int x = 0; x < CHUNK_WIDTH; x++) 
-	{
-		for (int z = 0; z < CHUNK_DEPTH; z++) 
-		{
-			for (int y = 0; y < CHUNK_HEIGHT; y++) 
-			{
-				if (blocks[x][y][z] == 0) 
-					continue;
 				if (GetBlock(x - 1, y, z) == 0) 
 				{ 
-					float dx = x + (_chunkX * CHUNK_WIDTH); float dy = y; float dz = z + (_chunkZ * CHUNK_DEPTH);
-					glTexCoord2f(0.0f, 0.0f); glVertex3f(dx - s, dy - s, dz - s);
-					glTexCoord2f(1.0f, 0.0f); glVertex3f(dx - s, dy - s, dz + s);
-					glTexCoord2f(1.0f, 1.0f); glVertex3f(dx - s, dy + s, dz + s);
-					glTexCoord2f(0.0f, 1.0f); glVertex3f(dx - s, dy + s, dz - s);
+					EmitLeftFace(dx, dy, dz);
 				}
 			}
 		}

@@ -3,36 +3,12 @@
 #include "AssetPaths.h"
 #include "Chunk.h"
 #include "Engine.h"
+#include "HudRenderer.h"
 #include "Logger.h"
 #include "Plane.h"
-#include "Render2D.h"
 #include "SkyBox.h"
-#include "Utilities.h"
 #include "Window.h"
 #include "World.h"
-
-namespace
-{
-	/**
-	 * Draws a horizontal row of equally sized HUD icons.
-	 *
-	 * @param texture OpenGL texture id used by every icon.
-	 * @param startX X position of the first icon.
-	 * @param y Y position shared by every icon.
-	 * @param iconSize Icon width and height in pixels.
-	 * @param spacing Distance in pixels between icon origins.
-	 * @param count Number of icons to draw.
-	 * @param direction Horizontal direction, usually 1.0f or -1.0f.
-	 */
-	void DrawHudIconRow(GLuint texture, float startX, float y, float iconSize, float spacing, int count, float direction)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			const float iconX = startX + (static_cast<float>(i) * spacing * direction);
-			ve::rendering::DrawTexturedQuad(texture, iconX, y, iconSize, iconSize);
-		}
-	}
-}
 
 Engine::Engine() : _currentWindowHeight(0), _currentWindowWidth(0)
 {
@@ -68,7 +44,7 @@ int Engine::Run()
 	ve::world::World world(expectedChunkCount);
 	world.SpawnFlatGrid(worldSize);
 
-	const HudTextures hudTextures = LoadHudTextures(assetPaths);
+	ve::ui::HudRenderer hudRenderer(assetPaths);
 	ve::time::FrameTimer frameTimer;
 	
 	bool isBlockSelected = false;
@@ -91,8 +67,7 @@ int Engine::Run()
 
 		Render3DWorld(window, camera, skyBox, plane, cube, world, currentlySelectedBlockCoordinates, isBlockSelected);
 
-		const std::string fpsText = std::to_string(frameTimer.DisplayedFps()) + " FPS";
-		RenderHUD(window, hudTextures, fpsText);
+		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentlySelectedBlockCoordinates, isBlockSelected);
 
 		window.Update();
 	}
@@ -111,18 +86,6 @@ void Engine::ConfigureOpenGLState()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_CULL_FACE);
-}
-
-Engine::HudTextures Engine::LoadHudTextures(const ve::assets::AssetPaths& paths)
-{
-	return HudTextures{
-		Utils::load_texture(paths.crosshairTexture.string().c_str()),
-		Utils::load_texture(paths.hotbarTexture.string().c_str()),
-		Utils::load_texture(paths.experienceBarTexture.string().c_str()),
-		Utils::load_texture(paths.healthTexture.string().c_str()),
-		Utils::load_texture(paths.hungerTexture.string().c_str()),
-		Utils::load_texture(paths.fontTexture.string().c_str())
-	};
 }
 
 void Engine::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, double currentMouseCursorPosY)
@@ -287,76 +250,6 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 		}
 }
 
-void Engine::RenderHUD(const Window& window, const HudTextures& textures, const std::string& fpsText)
-{
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadMatrixf(glm::value_ptr(_projection2D));
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-
-	//glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-
-	float screenCenterViewportX = window.GetWidth() / 2.0f;
-	float screenCenterViewportY = window.GetHeight() / 2.0f;
-	float crosshairHalfSizePixels = 30.0f;
-
-	ve::rendering::DrawTexturedQuad(
-		textures.crosshair,
-		screenCenterViewportX - crosshairHalfSizePixels,
-		screenCenterViewportY - crosshairHalfSizePixels,
-		crosshairHalfSizePixels * 2.0f,
-		crosshairHalfSizePixels * 2.0f);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor3f(1.0f, 1.0f, 1.0f);
-
-	float globalGuiScalingFactor = 3.0f;
-	float hotbarRenderWidth = 182.0f * globalGuiScalingFactor;
-	float hotbarRenderHeight = 22.0f * globalGuiScalingFactor;
-
-	float hotbarScreenPositionX = (window.GetWidth() / 2.0f) - (hotbarRenderWidth / 2.0f);
-
-	float hotbarScreenPositionY = window.GetHeight() - hotbarRenderHeight;
-
-	ve::rendering::DrawTexturedQuad(textures.hotbar, hotbarScreenPositionX, hotbarScreenPositionY, hotbarRenderWidth, hotbarRenderHeight);
-
-	float experienceBarRenderWidth = 182.0f * globalGuiScalingFactor;
-	float experienceBarRenderHeight = 5.0f * globalGuiScalingFactor;
-
-	float experienceBarAnchorScreenPosX = (window.GetWidth() / 2.0f) - (experienceBarRenderWidth / 2.0f);
-	float experienceBarAnchorScreenPosY = hotbarScreenPositionY - experienceBarRenderHeight - (2.0f * globalGuiScalingFactor);
-
-	ve::rendering::DrawTexturedQuad(textures.experienceBar, experienceBarAnchorScreenPosX, experienceBarAnchorScreenPosY, experienceBarRenderWidth, experienceBarRenderHeight);
-
-	float iconSize = 9.0f * globalGuiScalingFactor;
-	float guiIconHorizontalSpacingOffset = 8.0f * globalGuiScalingFactor;
-
-	float iconsStartY = experienceBarAnchorScreenPosY - iconSize - (1.0f * globalGuiScalingFactor);
-
-	DrawHudIconRow(textures.heart, experienceBarAnchorScreenPosX, iconsStartY, iconSize, guiIconHorizontalSpacingOffset, 10, 1.0f);
-	DrawHudIconRow(textures.hunger, experienceBarAnchorScreenPosX + experienceBarRenderWidth - iconSize, iconsStartY, iconSize, guiIconHorizontalSpacingOffset, 10, -1.0f);
-
-	RenderText(fpsText, 10.0f, 10.0f, 2.0f, textures.font);
-
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-}
-
 void Engine::UpdateProjections(int width, int height)
 {
 	if (height == 0) height = 1; 
@@ -364,8 +257,6 @@ void Engine::UpdateProjections(int width, int height)
 	float aspect = static_cast<float>(width) / static_cast<float>(height);
 
 	_projection3D = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, 100.f);
-
-	_projection2D = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
 
 	glViewport(0, 0, width, height);
 }
@@ -411,44 +302,4 @@ void Engine::RenderClouds()
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
-}
-void Engine::RenderText(const std::string& text, float x, float y, float scale, GLuint fontTexture)
-{
-	glBindTexture(GL_TEXTURE_2D, fontTexture);
-	glBegin(GL_QUADS);
-
-	
-	float charSize = 10.0f * scale;
-	float uvStep = 1.0f / 16.0f;
-	float currentCursorX = x;
-
-	for (char c : text)
-	{
-		
-		if (c == ' ')
-		{
-			currentCursorX += charSize * 0.8f;
-			continue;
-		}
-
-		int asciiCode = static_cast<int>(c);
-		int col = asciiCode % 16;
-
-		
-		int row = 15 - (asciiCode / 16);
-
-		float uvX = col * uvStep;
-		float uvY = row * uvStep;
-
-		
-		glTexCoord2f(uvX, uvY + uvStep); glVertex2f(currentCursorX, y);
-		glTexCoord2f(uvX + uvStep, uvY + uvStep); glVertex2f(currentCursorX + charSize, y);
-		glTexCoord2f(uvX + uvStep, uvY); glVertex2f(currentCursorX + charSize, y + charSize);
-		glTexCoord2f(uvX, uvY); glVertex2f(currentCursorX, y + charSize);
-
-		
-		currentCursorX += charSize * 0.8f;
-	}
-
-	glEnd();
 }
