@@ -22,7 +22,7 @@ bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, cons
 
 void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const BlockSelection& selection)
 {
-	if (_isSettingsMenuOpen)
+	if (_runtimeSettings.isSettingsMenuOpen)
 	{
 		return;
 	}
@@ -44,7 +44,7 @@ void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const
 	const bool debugPressed = glfwGetKey(nativeWindow, GLFW_KEY_F3) == GLFW_PRESS;
 	if (debugPressed && !_wasDebugTogglePressed)
 	{
-		_isDebugOverlayVisible = !_isDebugOverlayVisible;
+		_runtimeSettings.showDebugOverlay = !_runtimeSettings.showDebugOverlay;
 	}
 	_wasDebugTogglePressed = debugPressed;
 

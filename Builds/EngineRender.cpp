@@ -25,7 +25,7 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	RenderClouds();
-	world.Draw(blockRegistry, camera.GetPosition(), camera.GetForward(), _renderDistanceChunks);
+	world.Draw(blockRegistry, camera.GetPosition(), camera.GetForward(), _runtimeSettings.renderDistanceChunks);
 	renderDebugCoordinateSystemAxes();
 	if (selection.hasTarget)
 	{

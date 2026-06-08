@@ -18,23 +18,10 @@ Engine::Engine()
 	  _wasLeftMouseButtonPressed(false),
 	  _wasRightMouseButtonPressed(false),
 	  _wasDebugTogglePressed(false),
-	  _wasSettingsTogglePressed(false),
-	  _wasSettingsUpPressed(false),
-	  _wasSettingsDownPressed(false),
-	  _wasSettingsLeftPressed(false),
-	  _wasSettingsRightPressed(false),
-	  _wasSettingsConfirmPressed(false),
 	  _wasFlyTogglePressed(false),
 	  _wasRenderDistanceDecreasePressed(false),
 	  _wasRenderDistanceIncreasePressed(false),
-	  _isSettingsMenuOpen(false),
-	  _isVSyncEnabled(false),
-	  _isDebugOverlayVisible(true),
-	  _isFlying(false),
 	  _isGrounded(false),
-	  _verticalVelocity(0.0f),
-	  _renderDistanceChunks(2),
-	  _selectedSettingsMenuOption(ve::ui::SettingsMenuOption::RenderDistance),
 	  _selectedPlacementBlock(ve::blocks::BlockId::Cobblestone)
 {
 	_applicationSourceFilePath = std::filesystem::absolute(__FILE__);
@@ -49,10 +36,10 @@ int Engine::Run()
 	{
 		return -1;
 	}
-	window.SetVSync(_isVSyncEnabled);
+	window.SetVSync(_runtimeSettings.isVSyncEnabled);
 
 	Camera camera;
-	CallbackContext callbackContext{ &camera, &_isSettingsMenuOpen, { 0.0, 0.0, true } };
+	CallbackContext callbackContext{ &camera, &_runtimeSettings.isSettingsMenuOpen, { 0.0, 0.0, true } };
 	ConfigureCallbacks(window, callbackContext);
 	ConfigureOpenGLState();
 
@@ -81,7 +68,7 @@ int Engine::Run()
 
 		frameTimer.Tick();
 		ProcessInput(window, world, blockRegistry, camera, frameTimer.DeltaSeconds());
-		if (_isSettingsMenuOpen)
+		if (_runtimeSettings.isSettingsMenuOpen)
 		{
 			currentSelection.hasTarget = false;
 		}
@@ -101,10 +88,10 @@ int Engine::Run()
 			currentSelection.hasTarget,
 			blockRegistry,
 			_selectedPlacementBlock,
-			_isDebugOverlayVisible,
-			_isFlying,
-			_renderDistanceChunks,
-			ve::ui::SettingsMenuState{ _isSettingsMenuOpen, _selectedSettingsMenuOption, _renderDistanceChunks, _isVSyncEnabled, _isDebugOverlayVisible, _isFlying }
+			_runtimeSettings.showDebugOverlay,
+			_runtimeSettings.isFlying,
+			_runtimeSettings.renderDistanceChunks,
+			ve::gameplay::ToSettingsMenuState(_runtimeSettings)
 		};
 		hudRenderer.Draw(hudFrame);
 		window.Update();

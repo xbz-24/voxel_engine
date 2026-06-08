@@ -11,6 +11,8 @@
 #include "Cube.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
+#include "RuntimeSettings.h"
+#include "SettingsMenuController.h"
 #include "Window.h"
 #include "SkyBox.h"
 #include "Plane.h"
@@ -135,43 +137,6 @@ private:
 	void ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds);
 
 	/**
-	 * Processes keyboard input for the settings menu.
-	 *
-	 * @param window Window used for native input and cursor mode.
-	 */
-	void ProcessSettingsMenuInput(Window& window);
-
-	/**
-	 * Opens or closes the settings menu and updates cursor mode.
-	 *
-	 * @param window Window whose cursor mode is updated.
-	 * @param isOpen New menu visibility state.
-	 */
-	void SetSettingsMenuOpen(Window& window, bool isOpen);
-
-	/**
-	 * Moves the selected settings row.
-	 *
-	 * @param direction Positive for next row, negative for previous row.
-	 */
-	void MoveSettingsSelection(int direction);
-
-	/**
-	 * Applies a left/right adjustment to the selected settings row.
-	 *
-	 * @param window Window used when an option needs to close or quit.
-	 * @param direction Positive or negative adjustment direction.
-	 */
-	void ApplySettingsAdjustment(Window& window, int direction);
-
-	/**
-	 * Activates the currently selected settings row.
-	 *
-	 * @param window Window used when an option needs to close or quit.
-	 */
-	void ActivateSettingsOption(Window& window);
-
-	/**
 	 * Processes block interaction input for the selected target.
 	 *
 	 * @param window Window used for mouse/key polling.
@@ -229,23 +194,12 @@ private:
 	bool _wasLeftMouseButtonPressed;
 	bool _wasRightMouseButtonPressed;
 	bool _wasDebugTogglePressed;
-	bool _wasSettingsTogglePressed;
-	bool _wasSettingsUpPressed;
-	bool _wasSettingsDownPressed;
-	bool _wasSettingsLeftPressed;
-	bool _wasSettingsRightPressed;
-	bool _wasSettingsConfirmPressed;
 	bool _wasFlyTogglePressed;
 	bool _wasRenderDistanceDecreasePressed;
 	bool _wasRenderDistanceIncreasePressed;
-	bool _isSettingsMenuOpen;
-	bool _isVSyncEnabled;
-	bool _isDebugOverlayVisible;
-	bool _isFlying;
 	bool _isGrounded;
-	float _verticalVelocity;
-	int _renderDistanceChunks;
-	ve::ui::SettingsMenuOption _selectedSettingsMenuOption;
+	ve::gameplay::RuntimeSettings _runtimeSettings;
+	ve::gameplay::SettingsMenuController _settingsMenuController;
 	ve::blocks::BlockId _selectedPlacementBlock;
 
 };

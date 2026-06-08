@@ -35,7 +35,6 @@ add_executable(main
     Builds/EngineMovement.cpp
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
-    Builds/EngineSettingsMenu.cpp
     Builds/FrameTimer.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
@@ -47,6 +46,8 @@ add_executable(main
     Builds/Logger.cpp
     Builds/Plane.cpp
     Builds/Render2D.cpp
+    Builds/RuntimeSettings.cpp
+    Builds/SettingsMenuController.cpp
     Builds/SkyBox.cpp
     Builds/Utilities.cpp
     Builds/Window.cpp
