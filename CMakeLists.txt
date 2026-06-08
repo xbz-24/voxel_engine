@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(VoxelEngine)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(VE_BUILD_API_DOCS "Build Doxygen API documentation when Doxygen is available" ON)
@@ -54,6 +54,19 @@ add_executable(main
     Builds/LevelSpawn.cpp
     Builds/LogFormatter.cpp
     Builds/Logger.cpp
+    Builds/MultiplayerClient.cpp
+    Builds/MultiplayerClientMessages.cpp
+    Builds/MultiplayerServer.cpp
+    Builds/MultiplayerServerBroadcast.cpp
+    Builds/MultiplayerServerConnections.cpp
+    Builds/NetworkPacketFraming.cpp
+    Builds/NetworkPacketIO.cpp
+    Builds/NetworkSerialization.cpp
+    Builds/NetworkSocketLibrary.cpp
+    Builds/NetworkTcpSocket.cpp
+    Builds/NetworkTcpSocketConnect.cpp
+    Builds/NetworkTcpSocketListen.cpp
+    Builds/NetworkTcpSocketTransfer.cpp
     Builds/Plane.cpp
     Builds/PlayerMovementInput.cpp
     Builds/Render2D.cpp
@@ -82,6 +95,7 @@ target_link_libraries(main PRIVATE
     GLEW::GLEW 
     glfw 
     glm::glm
+    ws2_32
 )
 
 target_include_directories(main PRIVATE
