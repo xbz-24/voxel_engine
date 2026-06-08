@@ -176,11 +176,17 @@ private:
 	glm::mat4 _projection3D;
 	int _currentWindowWidth;
 	int _currentWindowHeight;
+	GLuint _cloudDisplayListID;
 
 	/**
 	 * Draws a simple procedural cloud layer.
 	 */
 	void RenderClouds();
+
+	/**
+	 * Builds the cached cloud display list.
+	 */
+	void BuildCloudDisplayList();
 
 	bool _wasLeftMouseButtonPressed;
 	bool _wasRightMouseButtonPressed;

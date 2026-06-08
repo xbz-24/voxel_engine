@@ -16,6 +16,7 @@
 Engine::Engine()
 	: _currentWindowHeight(0),
 	  _currentWindowWidth(0),
+	  _cloudDisplayListID(0),
 	  _wasLeftMouseButtonPressed(false),
 	  _wasRightMouseButtonPressed(false),
 	  _wasDebugTogglePressed(false),
@@ -26,7 +27,7 @@ Engine::Engine()
 	  _isFlying(false),
 	  _isGrounded(false),
 	  _verticalVelocity(0.0f),
-	  _renderDistanceChunks(3),
+	  _renderDistanceChunks(2),
 	  _selectedPlacementBlock(ve::blocks::BlockId::Cobblestone)
 {
 	_applicationSourceFilePath = std::filesystem::absolute(__FILE__);
@@ -89,6 +90,12 @@ int Engine::Run()
 		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentSelection.targetBlock, currentSelection.hasTarget, blockRegistry, _selectedPlacementBlock, _isDebugOverlayVisible, _isFlying, _renderDistanceChunks);
 
 		window.Update();
+	}
+
+	if (_cloudDisplayListID != 0)
+	{
+		glDeleteLists(_cloudDisplayListID, 1);
+		_cloudDisplayListID = 0;
 	}
 	return 0;
 }
@@ -444,6 +451,18 @@ void Engine::UpdateProjections(int width, int height)
 }
 void Engine::RenderClouds()
 {
+	if (_cloudDisplayListID == 0)
+	{
+		BuildCloudDisplayList();
+	}
+
+	glCallList(_cloudDisplayListID);
+}
+
+void Engine::BuildCloudDisplayList()
+{
+	_cloudDisplayListID = glGenLists(1);
+	glNewList(_cloudDisplayListID, GL_COMPILE);
 	
 	glDisable(GL_TEXTURE_2D);
 
@@ -484,4 +503,6 @@ void Engine::RenderClouds()
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
+
+	glEndList();
 }

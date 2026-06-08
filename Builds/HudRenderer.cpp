@@ -54,7 +54,7 @@ namespace ve::ui
 	{
 	}
 
-	void HudRenderer::Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying)
+	void HudRenderer::Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks)
 	{
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -70,7 +70,7 @@ namespace ve::ui
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		DrawSurvivalHud(window, blockRegistry, selectedPlacementBlock);
-		DrawDebugOverlay(camera, displayedFps, targetBlock, isBlockSelected, blockRegistry, selectedPlacementBlock, showDebugOverlay, isFlying);
+		DrawDebugOverlay(camera, displayedFps, targetBlock, isBlockSelected, blockRegistry, selectedPlacementBlock, showDebugOverlay, isFlying, renderDistanceChunks);
 
 		glEnable(GL_DEPTH_TEST);
 		glDisable(GL_BLEND);
@@ -151,11 +151,11 @@ namespace ve::ui
 		DrawIconRow(_textures.hunger, experienceBarAnchorScreenPosX + experienceBarRenderWidth - iconSize, iconsStartY, iconSize, guiIconHorizontalSpacingOffset, 10, -1.0f);
 	}
 
-	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying)
+	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks)
 	{
 		const std::string selectedPlacementName(blockRegistry.Get(selectedPlacementBlock).name);
 		DrawText("Block " + selectedPlacementName + "  1-9 hotbar", 10.0f, 10.0f, 1.2f);
-		DrawText("LMB break  RMB place  Space jump  F fly  F3 debug", 10.0f, 26.0f, 1.2f);
+		DrawText("LMB break  RMB place  Space jump  F fly  [] distance  F3 debug", 10.0f, 26.0f, 1.2f);
 
 		if (!showDebugOverlay)
 		{
@@ -166,9 +166,10 @@ namespace ve::ui
 		DrawText(std::to_string(displayedFps) + " FPS", 10.0f, 50.0f, 1.6f);
 		DrawText("XYZ " + FormatVec3(cameraPosition), 10.0f, 70.0f, 1.2f);
 		DrawText(std::string("Mode ") + (isFlying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
+		DrawText("Render distance " + std::to_string(renderDistanceChunks) + " chunks", 10.0f, 102.0f, 1.2f);
 
 		const std::string selectedText = isBlockSelected ? "Target " + FormatIvec3(targetBlock) : "Target none";
-		DrawText(selectedText, 10.0f, 102.0f, 1.2f);
+		DrawText(selectedText, 10.0f, 118.0f, 1.2f);
 	}
 
 	void HudRenderer::DrawText(const std::string& text, float x, float y, float scale)

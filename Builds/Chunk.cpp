@@ -230,9 +230,25 @@ void Chunk::Generate()
 					{
 						blocks[x][y][z] = BlockId::DiamondOre;
 					}
+					else if (y < 34 && orePattern % 89 == 0)
+					{
+						blocks[x][y][z] = BlockId::EmeraldOre;
+					}
+					else if (y < 38 && orePattern % 79 == 0)
+					{
+						blocks[x][y][z] = BlockId::LapisOre;
+					}
+					else if (y < 36 && orePattern % 71 == 0)
+					{
+						blocks[x][y][z] = BlockId::GoldOre;
+					}
 					else if (y < 42 && orePattern % 53 == 0)
 					{
 						blocks[x][y][z] = BlockId::IronOre;
+					}
+					else if (y < 55 && orePattern % 47 == 0)
+					{
+						blocks[x][y][z] = BlockId::CopperOre;
 					}
 					else if (orePattern % 37 == 0)
 					{
@@ -240,16 +256,33 @@ void Chunk::Generate()
 					}
 					else
 					{
-						blocks[x][y][z] = BlockId::Stone;
+						blocks[x][y][z] = y < 18 ? BlockId::Deepslate : BlockId::Stone;
 					}
 				}
 				else if (y < surfaceHeight)
 				{
-					blocks[x][y][z] = BlockId::Dirt;
+					const int patchPattern = static_cast<int>(globalX * 3.0f + globalZ * 11.0f);
+					blocks[x][y][z] = patchPattern % 19 == 0 ? BlockId::Gravel : BlockId::Dirt;
 				}
 				else if (y == surfaceHeight)
 				{
-					blocks[x][y][z] = BlockId::Grass;
+					const int surfacePattern = static_cast<int>(globalX * 5.0f + globalZ * 9.0f);
+					if (surfaceHeight > 62)
+					{
+						blocks[x][y][z] = BlockId::Snow;
+					}
+					else if (surfacePattern % 29 == 0)
+					{
+						blocks[x][y][z] = BlockId::Sand;
+					}
+					else if (surfacePattern % 31 == 0)
+					{
+						blocks[x][y][z] = BlockId::MossBlock;
+					}
+					else
+					{
+						blocks[x][y][z] = BlockId::Grass;
+					}
 				}
 				else
 				{
@@ -262,6 +295,14 @@ void Chunk::Generate()
 				for (int y = surfaceHeight + 1; y <= surfaceHeight + 3 && y < CHUNK_HEIGHT; y++)
 				{
 					blocks[x][y][z] = BlockId::Cobblestone;
+				}
+			}
+
+			if ((static_cast<int>(globalX) % 41 == 8) && (static_cast<int>(globalZ) % 37 == 12))
+			{
+				for (int y = surfaceHeight + 1; y <= surfaceHeight + 2 && y < CHUNK_HEIGHT; y++)
+				{
+					blocks[x][y][z] = BlockId::MossyCobblestone;
 				}
 			}
 
