@@ -6,6 +6,8 @@
 #include "BlockRegistry.h"
 #include "Camera.h"
 #include "Cube.h"
+#include "FrameTimer.h"
+#include "HudRenderer.h"
 #include "RuntimeSettings.h"
 #include "SettingsMenuController.h"
 #include "Window.h"

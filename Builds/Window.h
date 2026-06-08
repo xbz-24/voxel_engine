@@ -8,6 +8,15 @@
 class Window
 {
 public:
+	/**
+	 * Cursor modes exposed by the engine window API.
+	 */
+	enum class CursorMode
+	{
+		Normal,
+		Captured
+	};
+
 	struct CallbackContext
 	{
 		Window* window;
@@ -31,6 +40,9 @@ public:
 
 	/// Returns whether vertical synchronization is enabled.
 	bool IsVSyncEnabled() const noexcept;
+
+	/// Applies the cursor mode used by menus and first-person camera control.
+	void SetCursorMode(CursorMode mode);
 
 	/// Swaps buffers and polls window events.
 	void Update();

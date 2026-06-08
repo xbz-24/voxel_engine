@@ -1,30 +1,38 @@
 #include "Engine.h"
 
+#include "Input.h"
+#include "PlayerMovementInput.h"
+
 #include <algorithm>
 
 namespace
 {
 	/**
-	 * Projects a direction onto the ground plane and normalizes it.
+	 * Toggles fly mode from the gameplay shortcut key.
 	 */
-	glm::vec3 Horizontal(glm::vec3 direction)
+	void ConsumeFlyToggle(GLFWwindow* window, ve::gameplay::RuntimeSettings& settings, bool& wasPressed)
 	{
-		direction.y = 0.0f;
-		return glm::length(direction) > 0.0f ? glm::normalize(direction) : direction;
+		if (!ve::input::WasPressed(window, ve::input::Key::F, wasPressed))
+		{
+			return;
+		}
+		settings.isFlying = !settings.isFlying;
+		settings.verticalVelocity = 0.0f;
 	}
 
 	/**
-	 * Moves the camera when a key is pressed.
+	 * Adjusts render distance from a one-shot shortcut key.
 	 */
-	void MoveWhenPressed(GLFWwindow* window, int key, Camera& camera, const glm::vec3& direction, float amount)
+	void ConsumeRenderDistanceAdjustment(GLFWwindow* window, ve::gameplay::RuntimeSettings& settings, ve::input::Key key, int amount, bool& wasPressed)
 	{
-		if (glfwGetKey(window, key) == GLFW_PRESS)
+		if (ve::input::WasPressed(window, key, wasPressed))
 		{
-			camera.Move(direction, amount);
+			settings.renderDistanceChunks = std::clamp(settings.renderDistanceChunks + amount, 1, 6);
 		}
 	}
 }
 
+/// Processes player movement input unless the settings menu owns input.
 void Engine::ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds)
 {
 	const bool wasMenuOpen = _runtimeSettings.isSettingsMenuOpen;
@@ -37,44 +45,20 @@ void Engine::ProcessInput(Window& window, const ve::world::World& world, const v
 	handlePlayerMovementAndWindowInput(window.GetNativeWindow(), world, blockRegistry, camera, frameTimeDeltaSeconds);
 }
 
+/// Reads gameplay shortcuts, moves the camera, and advances player physics.
 void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameDeltaTimeSeconds)
 {
-	const bool flyTogglePressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
-	if (flyTogglePressed && !_wasFlyTogglePressed)
-	{
-		_runtimeSettings.isFlying = !_runtimeSettings.isFlying;
-		_runtimeSettings.verticalVelocity = 0.0f;
-	}
-	_wasFlyTogglePressed = flyTogglePressed;
-
-	const bool decreasePressed = glfwGetKey(window, GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS;
-	if (decreasePressed && !_wasRenderDistanceDecreasePressed)
-	{
-		_runtimeSettings.renderDistanceChunks = std::max(1, _runtimeSettings.renderDistanceChunks - 1);
-	}
-	_wasRenderDistanceDecreasePressed = decreasePressed;
-
-	const bool increasePressed = glfwGetKey(window, GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS;
-	if (increasePressed && !_wasRenderDistanceIncreasePressed)
-	{
-		_runtimeSettings.renderDistanceChunks = std::min(6, _runtimeSettings.renderDistanceChunks + 1);
-	}
-	_wasRenderDistanceIncreasePressed = increasePressed;
-
+	ConsumeFlyToggle(window, _runtimeSettings, _wasFlyTogglePressed);
+	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::LeftBracket, -1, _wasRenderDistanceDecreasePressed);
+	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::RightBracket, 1, _wasRenderDistanceIncreasePressed);
 	const float speed = 5.0f * static_cast<float>(frameDeltaTimeSeconds);
-	const glm::vec3 forward = Horizontal(camera.GetForward());
-	const glm::vec3 right = Horizontal(camera.GetRight());
-	MoveWhenPressed(window, GLFW_KEY_W, camera, forward, speed);
-	MoveWhenPressed(window, GLFW_KEY_S, camera, forward, -speed);
-	MoveWhenPressed(window, GLFW_KEY_A, camera, right, -speed);
-	MoveWhenPressed(window, GLFW_KEY_D, camera, right, speed);
-
+	const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window);
+	ve::gameplay::ApplyPlanarMovement(intent, camera, speed);
 	if (_runtimeSettings.isFlying)
 	{
-		MoveWhenPressed(window, GLFW_KEY_SPACE, camera, glm::vec3(0.0f, 1.0f, 0.0f), speed);
-		MoveWhenPressed(window, GLFW_KEY_LEFT_SHIFT, camera, glm::vec3(0.0f, -1.0f, 0.0f), speed);
+		ve::gameplay::ApplyFlyingMovement(intent, camera, speed);
 	}
-	else if (_isGrounded && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	else if (_isGrounded && ve::gameplay::WantsJump(intent))
 	{
 		_runtimeSettings.verticalVelocity = 7.0f;
 	}

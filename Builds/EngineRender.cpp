@@ -1,29 +1,25 @@
 #include "Engine.h"
 
 #include "Plane.h"
+#include "RenderState.h"
 #include "SkyBox.h"
 #include "Window.h"
 #include "World.h"
 
+/// Configures persistent OpenGL state used by the engine renderer.
 void Engine::ConfigureOpenGLState()
 {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_CULL_FACE);
+	ve::rendering::ConfigureWorldDefaults();
 }
 
+/// Renders the visible 3D world and selection highlight.
 void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection)
 {
-	glClearColor(0.541f, 0.694f, 0.976f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(glm::value_ptr(_projection3D));
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
+	ve::rendering::ApplyProjection(_projection3D);
 	const glm::mat4 view = camera.GetViewMatrix();
-	glLoadMatrixf(glm::value_ptr(view));
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+	ve::rendering::ApplyView(view);
+	ve::rendering::UseSolidFillMode();
 	RenderClouds();
 	world.Draw(blockRegistry, camera.GetPosition(), camera.GetForward(), _runtimeSettings.renderDistanceChunks);
 	renderDebugCoordinateSystemAxes();
@@ -33,6 +29,7 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 	}
 }
 
+/// Rebuilds 3D and 2D projection matrices after window size changes.
 void Engine::UpdateProjections(int width, int height)
 {
 	if (height == 0)
@@ -42,5 +39,5 @@ void Engine::UpdateProjections(int width, int height)
 
 	const float aspect = static_cast<float>(width) / static_cast<float>(height);
 	_projection3D = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, 100.0f);
-	glViewport(0, 0, width, height);
+	ve::rendering::SetViewport(width, height);
 }

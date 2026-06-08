@@ -63,6 +63,12 @@ namespace ve::ui
 
 		/// Draws the settings menu overlay.
 		void DrawSettingsMenu(const HudFrameInfo& frame);
+		/// Draws the title and controls text for the settings menu.
+		void DrawSettingsHeader(float panelX, float firstRowY);
+		/// Draws one selectable settings menu row.
+		void DrawSettingsRow(const HudFrameInfo& frame, SettingsMenuOption option, const char* label, std::size_t rowIndex, float panelX, float firstRowY);
+		/// Draws the render-distance slider for the settings menu.
+		void DrawSettingsSlider(const HudFrameInfo& frame, float panelX, float firstRowY);
 
 		/// Draws text using the loaded bitmap font.
 		void DrawText(const std::string& text, float x, float y, float scale);

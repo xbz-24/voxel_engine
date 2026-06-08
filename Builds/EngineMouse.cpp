@@ -7,7 +7,7 @@ void Engine::ConfigureCallbacks(Window& window, CallbackContext& context)
 {
 	window.SetCallbackUserData(&context);
 	glfwSetCursorPosCallback(window.GetNativeWindow(), mouse_callback);
-	glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	window.SetCursorMode(Window::CursorMode::Captured);
 }
 
 void Engine::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, double currentMouseCursorPosY)

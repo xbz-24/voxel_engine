@@ -38,22 +38,30 @@ add_executable(main
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
     Builds/FrameTimer.cpp
+    Builds/GameplayInput.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
     Builds/HudRenderer.cpp
     Builds/HudSettingsMenu.cpp
+    Builds/HudSettingsMenuParts.cpp
     Builds/HudSurvival.cpp
     Builds/HudText.cpp
+    Builds/Input.cpp
+    Builds/InputMappings.cpp
     Builds/LevelSpawn.cpp
     Builds/LogFormatter.cpp
     Builds/Logger.cpp
     Builds/Plane.cpp
+    Builds/PlayerMovementInput.cpp
     Builds/Render2D.cpp
+    Builds/RenderState.cpp
     Builds/RuntimeSettings.cpp
+    Builds/SettingsMenuActions.cpp
     Builds/SettingsMenuController.cpp
     Builds/SkyBox.cpp
     Builds/Utilities.cpp
     Builds/Window.cpp
+    Builds/WindowCursor.cpp
     Builds/WindowRuntime.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp

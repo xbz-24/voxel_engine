@@ -1,48 +1,47 @@
 #include "SettingsMenuController.h"
 
-#include <algorithm>
-
-namespace
-{
-	/**
-	 * Converts a key press into a one-shot action.
-	 */
-	bool ConsumePress(GLFWwindow* window, int key, bool& wasPressed)
-	{
-		const bool isPressed = glfwGetKey(window, key) == GLFW_PRESS;
-		const bool wasJustPressed = isPressed && !wasPressed;
-		wasPressed = isPressed;
-		return wasJustPressed;
-	}
-}
+#include "Input.h"
 
 namespace ve::gameplay
 {
+	/// Processes one frame of settings menu input.
 	void SettingsMenuController::ProcessInput(Window& window, RuntimeSettings& settings)
 	{
-		GLFWwindow* nativeWindow = window.GetNativeWindow();
-		if (ConsumePress(nativeWindow, GLFW_KEY_ESCAPE, _wasTogglePressed))
+		ToggleMenuFromInput(window, settings);
+		if (settings.isSettingsMenuOpen)
+		{
+			ProcessOpenMenuInput(window, settings);
+		}
+	}
+
+	/// Opens or closes the menu when the toggle key is pressed.
+	void SettingsMenuController::ToggleMenuFromInput(Window& window, RuntimeSettings& settings)
+	{
+		if (ve::input::WasPressed(window.GetNativeWindow(), ve::input::Key::Escape, _wasTogglePressed))
 		{
 			SetOpen(window, settings, !settings.isSettingsMenuOpen);
 		}
-		if (!settings.isSettingsMenuOpen)
-		{
-			return;
-		}
-
-		if (ConsumePress(nativeWindow, GLFW_KEY_UP, _wasUpPressed)) MoveSelection(settings, -1);
-		if (ConsumePress(nativeWindow, GLFW_KEY_DOWN, _wasDownPressed)) MoveSelection(settings, 1);
-		if (ConsumePress(nativeWindow, GLFW_KEY_LEFT, _wasLeftPressed)) ApplyAdjustment(window, settings, -1);
-		if (ConsumePress(nativeWindow, GLFW_KEY_RIGHT, _wasRightPressed)) ApplyAdjustment(window, settings, 1);
-		if (ConsumePress(nativeWindow, GLFW_KEY_ENTER, _wasConfirmPressed)) Activate(window, settings);
 	}
 
+	/// Processes navigation and activation while the menu is open.
+	void SettingsMenuController::ProcessOpenMenuInput(Window& window, RuntimeSettings& settings)
+	{
+		GLFWwindow* nativeWindow = window.GetNativeWindow();
+		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Up, _wasUpPressed)) MoveSelection(settings, -1);
+		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Down, _wasDownPressed)) MoveSelection(settings, 1);
+		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Left, _wasLeftPressed)) ApplyAdjustment(window, settings, -1);
+		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Right, _wasRightPressed)) ApplyAdjustment(window, settings, 1);
+		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Enter, _wasConfirmPressed)) Activate(window, settings);
+	}
+
+	/// Opens or closes the settings menu and updates cursor mode.
 	void SettingsMenuController::SetOpen(Window& window, RuntimeSettings& settings, bool isOpen)
 	{
 		settings.isSettingsMenuOpen = isOpen;
-		glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, isOpen ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+		window.SetCursorMode(isOpen ? Window::CursorMode::Normal : Window::CursorMode::Captured);
 	}
 
+	/// Moves the selected menu row.
 	void SettingsMenuController::MoveSelection(RuntimeSettings& settings, int direction)
 	{
 		const int count = static_cast<int>(ve::ui::SettingsMenuOption::Count);
@@ -50,23 +49,22 @@ namespace ve::gameplay
 		settings.selectedSettingsMenuOption = static_cast<ve::ui::SettingsMenuOption>((selected + direction + count) % count);
 	}
 
+	/// Applies left/right changes to configurable rows.
 	void SettingsMenuController::ApplyAdjustment(Window& window, RuntimeSettings& settings, int direction)
 	{
 		switch (settings.selectedSettingsMenuOption)
 		{
 		case ve::ui::SettingsMenuOption::RenderDistance:
-			settings.renderDistanceChunks = std::clamp(settings.renderDistanceChunks + direction, 1, 6);
+			AdjustRenderDistance(settings, direction);
 			break;
 		case ve::ui::SettingsMenuOption::VSync:
-			settings.isVSyncEnabled = !settings.isVSyncEnabled;
-			window.SetVSync(settings.isVSyncEnabled);
+			ToggleVSync(window, settings);
 			break;
 		case ve::ui::SettingsMenuOption::DebugOverlay:
-			settings.showDebugOverlay = !settings.showDebugOverlay;
+			ToggleDebugOverlay(settings);
 			break;
 		case ve::ui::SettingsMenuOption::FlyMode:
-			settings.isFlying = !settings.isFlying;
-			settings.verticalVelocity = 0.0f;
+			ToggleFlyMode(settings);
 			break;
 		case ve::ui::SettingsMenuOption::Resume:
 		case ve::ui::SettingsMenuOption::Quit:
@@ -75,6 +73,7 @@ namespace ve::gameplay
 		}
 	}
 
+	/// Activates the currently selected row.
 	void SettingsMenuController::Activate(Window& window, RuntimeSettings& settings)
 	{
 		if (settings.selectedSettingsMenuOption == ve::ui::SettingsMenuOption::Resume)

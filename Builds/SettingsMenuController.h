@@ -28,6 +28,16 @@ namespace ve::gameplay
 		bool _wasConfirmPressed = false;
 
 		/**
+		 * Opens or closes the menu when the toggle key is pressed.
+		 */
+		void ToggleMenuFromInput(Window& window, RuntimeSettings& settings);
+
+		/**
+		 * Processes navigation and activation while the menu is open.
+		 */
+		void ProcessOpenMenuInput(Window& window, RuntimeSettings& settings);
+
+		/**
 		 * Opens or closes the settings menu and updates cursor mode.
 		 */
 		void SetOpen(Window& window, RuntimeSettings& settings, bool isOpen);
@@ -41,6 +51,26 @@ namespace ve::gameplay
 		 * Applies left/right changes to configurable rows.
 		 */
 		void ApplyAdjustment(Window& window, RuntimeSettings& settings, int direction);
+
+		/**
+		 * Adjusts render distance within the supported range.
+		 */
+		void AdjustRenderDistance(RuntimeSettings& settings, int direction);
+
+		/**
+		 * Toggles VSync and applies it to the native window.
+		 */
+		void ToggleVSync(Window& window, RuntimeSettings& settings);
+
+		/**
+		 * Toggles debug overlay visibility.
+		 */
+		void ToggleDebugOverlay(RuntimeSettings& settings);
+
+		/**
+		 * Toggles fly mode and clears vertical velocity.
+		 */
+		void ToggleFlyMode(RuntimeSettings& settings);
 
 		/**
 		 * Activates the currently selected row.
