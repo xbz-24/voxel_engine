@@ -27,16 +27,18 @@ namespace
 
 void Engine::ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds)
 {
+	const bool wasMenuOpen = _isSettingsMenuOpen;
+	ProcessSettingsMenuInput(window);
+	if (wasMenuOpen || _isSettingsMenuOpen)
+	{
+		return;
+	}
+
 	handlePlayerMovementAndWindowInput(window.GetNativeWindow(), world, blockRegistry, camera, frameTimeDeltaSeconds);
 }
 
 void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameDeltaTimeSeconds)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-
 	const bool flyTogglePressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
 	if (flyTogglePressed && !_wasFlyTogglePressed)
 	{

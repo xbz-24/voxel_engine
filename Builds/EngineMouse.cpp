@@ -18,6 +18,11 @@ void Engine::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, d
 		ve::log::Error("Camera pointer is null in mouse callback");
 		return;
 	}
+	if (context->isSettingsMenuOpen && *context->isSettingsMenuOpen)
+	{
+		context->mouse.isFirstInputEvent = true;
+		return;
+	}
 
 	if (context->mouse.isFirstInputEvent)
 	{

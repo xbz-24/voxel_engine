@@ -22,6 +22,11 @@ bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, cons
 
 void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const BlockSelection& selection)
 {
+	if (_isSettingsMenuOpen)
+	{
+		return;
+	}
+
 	GLFWwindow* nativeWindow = window.GetNativeWindow();
 	static constexpr std::array<int, ve::gameplay::HotbarSlotCount> hotbarKeys = {
 		GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9

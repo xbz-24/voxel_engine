@@ -18,14 +18,22 @@ Engine::Engine()
 	  _wasLeftMouseButtonPressed(false),
 	  _wasRightMouseButtonPressed(false),
 	  _wasDebugTogglePressed(false),
+	  _wasSettingsTogglePressed(false),
+	  _wasSettingsUpPressed(false),
+	  _wasSettingsDownPressed(false),
+	  _wasSettingsLeftPressed(false),
+	  _wasSettingsRightPressed(false),
+	  _wasSettingsConfirmPressed(false),
 	  _wasFlyTogglePressed(false),
 	  _wasRenderDistanceDecreasePressed(false),
 	  _wasRenderDistanceIncreasePressed(false),
+	  _isSettingsMenuOpen(false),
 	  _isDebugOverlayVisible(true),
 	  _isFlying(false),
 	  _isGrounded(false),
 	  _verticalVelocity(0.0f),
 	  _renderDistanceChunks(2),
+	  _selectedSettingsMenuOption(ve::ui::SettingsMenuOption::RenderDistance),
 	  _selectedPlacementBlock(ve::blocks::BlockId::Cobblestone)
 {
 	_applicationSourceFilePath = std::filesystem::absolute(__FILE__);
@@ -42,7 +50,7 @@ int Engine::Run()
 	}
 
 	Camera camera;
-	CallbackContext callbackContext{ &camera, { 0.0, 0.0, true } };
+	CallbackContext callbackContext{ &camera, &_isSettingsMenuOpen, { 0.0, 0.0, true } };
 	ConfigureCallbacks(window, callbackContext);
 	ConfigureOpenGLState();
 
@@ -71,11 +79,32 @@ int Engine::Run()
 
 		frameTimer.Tick();
 		ProcessInput(window, world, blockRegistry, camera, frameTimer.DeltaSeconds());
-		UpdateGameLogic(world, blockRegistry, camera, currentSelection);
-		ProcessGameplayInput(window, world, currentSelection);
-		UpdateGameLogic(world, blockRegistry, camera, currentSelection);
+		if (_isSettingsMenuOpen)
+		{
+			currentSelection.hasTarget = false;
+		}
+		else
+		{
+			UpdateGameLogic(world, blockRegistry, camera, currentSelection);
+			ProcessGameplayInput(window, world, currentSelection);
+			UpdateGameLogic(world, blockRegistry, camera, currentSelection);
+		}
 		Render3DWorld(window, camera, skyBox, plane, cube, blockRegistry, world, currentSelection);
-		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentSelection.targetBlock, currentSelection.hasTarget, blockRegistry, _selectedPlacementBlock, _isDebugOverlayVisible, _isFlying, _renderDistanceChunks);
+
+		const ve::ui::HudFrameInfo hudFrame{
+			window,
+			camera,
+			frameTimer.DisplayedFps(),
+			currentSelection.targetBlock,
+			currentSelection.hasTarget,
+			blockRegistry,
+			_selectedPlacementBlock,
+			_isDebugOverlayVisible,
+			_isFlying,
+			_renderDistanceChunks,
+			ve::ui::SettingsMenuState{ _isSettingsMenuOpen, _selectedSettingsMenuOption, _renderDistanceChunks, _isDebugOverlayVisible, _isFlying }
+		};
+		hudRenderer.Draw(hudFrame);
 		window.Update();
 	}
 

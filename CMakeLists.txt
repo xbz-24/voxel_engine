@@ -35,6 +35,7 @@ add_executable(main
     Builds/EngineMovement.cpp
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
+    Builds/EngineSettingsMenu.cpp
     Builds/FrameTimer.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
