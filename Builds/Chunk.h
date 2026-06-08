@@ -1,15 +1,15 @@
 #pragma once
 #include "Block.h"
 #include "BlockRegistry.h"
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "ChunkGpuMesh.h"
+#include "ChunkTerrain.h"
 
 class Chunk
 {
 public:
-	static const int CHUNK_WIDTH = 16;
-	static const int CHUNK_HEIGHT = 128;
-	static const int CHUNK_DEPTH = 16;
+	static constexpr int CHUNK_WIDTH = ve::world::terrain::ChunkWidth;
+	static constexpr int CHUNK_HEIGHT = ve::world::terrain::ChunkHeight;
+	static constexpr int CHUNK_DEPTH = ve::world::terrain::ChunkDepth;
 
 	/**
 	 * Creates and generates a chunk at chunk-grid coordinates.
@@ -20,7 +20,7 @@ public:
 	Chunk(int chunkX, int chunkZ);
 
 	/**
-	 * Releases the chunk display list if one was built.
+	 * Releases the uploaded GPU mesh if one was built.
 	 */
 	~Chunk();
 
@@ -28,14 +28,14 @@ public:
 	Chunk& operator=(const Chunk&) = delete;
 
 	/**
-	 * Moves chunk CPU data and transfers ownership of the OpenGL display list.
+	 * Moves chunk CPU data and transfers ownership of the GPU mesh.
 	 *
 	 * @param other Source chunk being moved from.
 	 */
 	Chunk(Chunk&& other) noexcept;
 
 	/**
-	 * Moves chunk CPU data and transfers ownership of the OpenGL display list.
+	 * Moves chunk CPU data and transfers ownership of the GPU mesh.
 	 *
 	 * @param other Source chunk being moved from.
 	 * @return Reference to this chunk after assignment.
@@ -48,7 +48,7 @@ public:
 	void Generate();
 
 	/**
-	 * Builds an OpenGL display list containing visible chunk faces.
+	 * Builds a GPU mesh containing visible chunk faces.
 	 *
 	 * @param blockRegistry Registry used to resolve block textures and solidity.
 	 * @param westNeighbor Neighbor chunk at X - 1, or nullptr when absent.
@@ -110,10 +110,10 @@ public:
 	void MarkDirty();
 
 private:
-	ve::blocks::BlockId blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_DEPTH];
+	ve::world::terrain::BlockStorage blocks;
+	ve::rendering::ChunkGpuMesh _mesh;
 	int _chunkX;
 	int _chunkZ;
-	GLuint _displayListID;
 	bool _isMeshBuilt;
 
 	/**
@@ -126,28 +126,5 @@ private:
 	 */
 	bool ContainsLocalBlock(int x, int y, int z) const;
 
-	/**
-	 * Reads a local or neighbor block for mesh visibility checks.
-	 *
-	 * @param x Local X coordinate, allowed to be one block outside this chunk.
-	 * @param y Local Y coordinate.
-	 * @param z Local Z coordinate, allowed to be one block outside this chunk.
-	 * @param westNeighbor Neighbor chunk at X - 1, or nullptr when absent.
-	 * @param eastNeighbor Neighbor chunk at X + 1, or nullptr when absent.
-	 * @param northNeighbor Neighbor chunk at Z - 1, or nullptr when absent.
-	 * @param southNeighbor Neighbor chunk at Z + 1, or nullptr when absent.
-	 * @return Block id, or Air when the coordinate is outside loaded data.
-	 */
-	ve::blocks::BlockId GetBlockWithNeighbors(int x, int y, int z, const Chunk* westNeighbor, const Chunk* eastNeighbor, const Chunk* northNeighbor, const Chunk* southNeighbor) const;
-
-	/**
-	 * Checks whether all six neighboring blocks hide this block.
-	 *
-	 * @param x Local block X coordinate.
-	 * @param y Local block Y coordinate.
-	 * @param z Local block Z coordinate.
-	 * @return true when the block is completely surrounded.
-	 */
-	bool IsBlockObscured(int x, int y, int z, const ve::blocks::BlockRegistry& blockRegistry) const;
 };
 

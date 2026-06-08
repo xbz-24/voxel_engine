@@ -42,9 +42,10 @@ namespace ve::world
 		 *
 		 * @param blockRegistry Registry used by chunk meshes.
 		 * @param cameraPosition Current camera world position.
+		 * @param cameraForward Current camera forward vector used for coarse visibility.
 		 * @param renderDistanceChunks Radius in chunks around the camera.
 		 */
-		void Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, int renderDistanceChunks);
+		void Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, const glm::vec3& cameraForward, int renderDistanceChunks);
 
 		/**
 		 * Reads a block from world coordinates.

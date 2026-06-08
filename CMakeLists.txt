@@ -15,14 +15,32 @@ find_package(Stb REQUIRED)
 add_executable(main
     main.cpp
     Builds/AssetPaths.cpp
+    Builds/BlockRaycaster.cpp
     Builds/BlockRegistry.cpp
+    Builds/BlockTextureCache.cpp
     Builds/Camera.cpp
     Builds/Chunk.cpp
+    Builds/ChunkDecorations.cpp
+    Builds/ChunkFaceEmitter.cpp
+    Builds/ChunkGpuMesh.cpp
+    Builds/ChunkMeshBuilder.cpp
+    Builds/ChunkMeshCollector.cpp
+    Builds/ChunkTerrain.cpp
     Builds/Cube.cpp
     Builds/Engine.cpp
+    Builds/EngineClouds.cpp
+    Builds/EngineDebugRender.cpp
+    Builds/EngineGameplay.cpp
+    Builds/EngineMouse.cpp
+    Builds/EngineMovement.cpp
+    Builds/EnginePhysics.cpp
+    Builds/EngineRender.cpp
     Builds/FrameTimer.cpp
     Builds/Hotbar.cpp
+    Builds/HudDebug.cpp
     Builds/HudRenderer.cpp
+    Builds/HudSurvival.cpp
+    Builds/HudText.cpp
     Builds/LevelSpawn.cpp
     Builds/Logger.cpp
     Builds/Plane.cpp
@@ -30,6 +48,10 @@ add_executable(main
     Builds/SkyBox.cpp
     Builds/Utilities.cpp
     Builds/Window.cpp
+    Builds/WorldBlockAccess.cpp
+    Builds/WorldChunkLookup.cpp
+    Builds/WorldCoordinates.cpp
+    Builds/WorldVisibility.cpp
     Builds/World.cpp
     Builds/dependencies.cpp
 )

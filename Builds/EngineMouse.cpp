@@ -1,0 +1,37 @@
+#include "Engine.h"
+
+#include "Logger.h"
+#include "Window.h"
+
+void Engine::ConfigureCallbacks(Window& window, CallbackContext& context)
+{
+	window.SetCallbackUserData(&context);
+	glfwSetCursorPosCallback(window.GetNativeWindow(), mouse_callback);
+	glfwSetInputMode(window.GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void Engine::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, double currentMouseCursorPosY)
+{
+	CallbackContext* context = static_cast<CallbackContext*>(Window::GetCallbackUserData(window));
+	if (!context || !context->camera)
+	{
+		ve::log::Error("Camera pointer is null in mouse callback");
+		return;
+	}
+
+	if (context->mouse.isFirstInputEvent)
+	{
+		context->mouse.previousX = currentMouseCursorPosX;
+		context->mouse.previousY = currentMouseCursorPosY;
+		context->mouse.isFirstInputEvent = false;
+	}
+
+	const double deltaX = currentMouseCursorPosX - context->mouse.previousX;
+	const double deltaY = context->mouse.previousY - currentMouseCursorPosY;
+	context->mouse.previousX = currentMouseCursorPosX;
+	context->mouse.previousY = currentMouseCursorPosY;
+
+	constexpr float mouseLookSensitivity = 0.1f;
+	context->camera->Yaw(deltaX * mouseLookSensitivity);
+	context->camera->Pitch(deltaY * mouseLookSensitivity);
+}

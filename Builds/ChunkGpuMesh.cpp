@@ -74,6 +74,7 @@ namespace ve::rendering
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glColor3f(1.0f, 1.0f, 1.0f);
 	}
 
 	void ChunkGpuMesh::Release()
@@ -87,4 +88,3 @@ namespace ve::rendering
 		_batches.clear();
 	}
 }
-

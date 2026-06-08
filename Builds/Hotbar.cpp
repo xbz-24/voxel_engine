@@ -6,14 +6,14 @@ namespace ve::gameplay
 	{
 		static const std::array<ve::blocks::BlockId, HotbarSlotCount> blocks = {
 			ve::blocks::BlockId::Grass,
-			ve::blocks::BlockId::Dirt,
 			ve::blocks::BlockId::Stone,
-			ve::blocks::BlockId::Cobblestone,
 			ve::blocks::BlockId::OakLog,
-			ve::blocks::BlockId::OakPlanks,
-			ve::blocks::BlockId::Sand,
-			ve::blocks::BlockId::Bricks,
-			ve::blocks::BlockId::DiamondOre
+			ve::blocks::BlockId::BirchLog,
+			ve::blocks::BlockId::SprucePlanks,
+			ve::blocks::BlockId::Glass,
+			ve::blocks::BlockId::CraftingTable,
+			ve::blocks::BlockId::Pumpkin,
+			ve::blocks::BlockId::AmethystBlock
 		};
 
 		return blocks;
@@ -33,4 +33,3 @@ namespace ve::gameplay
 		return 0;
 	}
 }
-
