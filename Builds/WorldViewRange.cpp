@@ -8,7 +8,14 @@
 
 namespace ve::world
 {
-	/// Builds the chunk range around the camera for a square world.
+	/**
+	 * Builds the chunk range around the camera for a square world.
+	 *
+	 * @param cameraPosition Camera world position.
+	 * @param worldSize Number of chunks along one world side.
+	 * @param renderDistanceChunks Radius around the camera chunk.
+	 * @return Inclusive chunk range clamped to the world bounds.
+	 */
 	ChunkViewRange BuildChunkViewRange(const glm::vec3& cameraPosition, int worldSize, int renderDistanceChunks)
 	{
 		if (worldSize <= 0)
@@ -27,7 +34,12 @@ namespace ve::world
 		};
 	}
 
-	/// Checks whether a range contains at least one chunk.
+	/**
+	 * Checks whether a range contains at least one chunk.
+	 *
+	 * @param range Chunk range to test.
+	 * @return True when nested loops over the range should run.
+	 */
 	bool HasChunks(const ChunkViewRange& range) noexcept
 	{
 		return range.minChunkX <= range.maxChunkX && range.minChunkZ <= range.maxChunkZ;

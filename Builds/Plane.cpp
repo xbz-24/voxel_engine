@@ -1,9 +1,9 @@
 #include "Plane.h"
-#include "Utilities.h"
+#include "TextureLoader.h"
 
 Plane::Plane(const std::string& path) 
 {
-	_texture = Utils::load_texture(path.c_str());
+	_texture = ve::rendering::LoadTexture(path.c_str());
 }
 
 void Plane::draw() 

@@ -1,6 +1,6 @@
 #include "BlockTextureCache.h"
 
-#include "Utilities.h"
+#include "TextureLoader.h"
 
 namespace ve::blocks
 {
@@ -19,7 +19,7 @@ namespace ve::blocks
 		auto [entry, inserted] = _textures.try_emplace(fileName, 0);
 		if (inserted)
 		{
-			entry->second = Utils::load_texture((_blockTextureDirectory / fileName).string().c_str());
+			entry->second = ve::rendering::LoadTexture((_blockTextureDirectory / fileName).string().c_str());
 		}
 		return entry->second;
 	}

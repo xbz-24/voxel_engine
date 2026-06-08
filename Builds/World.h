@@ -3,6 +3,7 @@
 #include "Chunk.h"
 #include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
+#include "WorldConfiguration.h"
 #include "WorldRenderRequest.h"
 
 #include <glm/glm.hpp>
@@ -17,7 +18,18 @@ namespace ve::world
 	class World
 	{
 	public:
-		/// Creates an empty world with enough arena memory for the requested chunks.
+		/**
+		 * Creates an empty world from explicit memory settings.
+		 *
+		 * @param createInfo Chunk capacity and arena sizing data.
+		 */
+		explicit World(const WorldCreateInfo& createInfo);
+
+		/**
+		 * Creates an empty world with enough arena memory for the requested chunks.
+		 *
+		 * @param chunkCount Number of chunks to reserve in the level arena.
+		 */
 		explicit World(std::size_t chunkCount);
 
 		World(const World&) = delete;
@@ -31,6 +43,13 @@ namespace ve::world
 		 * @param worldSize Number of chunks along each world side.
 		 */
 		void SpawnFlatGrid(int worldSize);
+
+		/**
+		 * Spawns a square grid of generated chunks.
+		 *
+		 * @param settings Spawn settings containing the world size in chunks.
+		 */
+		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
 
 		/**
 		 * Draws chunks described by a render request after visibility culling.
@@ -50,6 +69,13 @@ namespace ve::world
 
 		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
+
+		/**
+		 * Returns loaded chunk and capacity diagnostics.
+		 *
+		 * @return Snapshot of world size and chunk storage counts.
+		 */
+		WorldMetrics Metrics() const noexcept;
 
 	private:
 		/// Returns the chunk that contains a chunk-grid coordinate.

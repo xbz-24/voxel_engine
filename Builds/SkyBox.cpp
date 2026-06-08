@@ -1,13 +1,13 @@
 #include "SkyBox.h"
-#include "Utilities.h"
+#include "TextureLoader.h"
 SkyBox::SkyBox(const std::string& path)
 {
-    _front = Utils::load_texture((path + "clouds.png").c_str());
-    _back = Utils::load_texture((path + "clouds.png").c_str());
-    _top = Utils::load_texture((path + "clouds.png").c_str());
-    _bottom = Utils::load_texture((path + "clouds.png").c_str());
-    _left = Utils::load_texture((path + "clouds.png").c_str());
-    _right = Utils::load_texture((path+ "clouds.png").c_str());
+    _front = ve::rendering::LoadTexture((path + "clouds.png").c_str());
+    _back = ve::rendering::LoadTexture((path + "clouds.png").c_str());
+    _top = ve::rendering::LoadTexture((path + "clouds.png").c_str());
+    _bottom = ve::rendering::LoadTexture((path + "clouds.png").c_str());
+    _left = ve::rendering::LoadTexture((path + "clouds.png").c_str());
+    _right = ve::rendering::LoadTexture((path+ "clouds.png").c_str());
 }
 void SkyBox::draw()
 {

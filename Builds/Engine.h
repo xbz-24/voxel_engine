@@ -5,7 +5,7 @@
 
 #include "BlockRegistry.h"
 #include "Camera.h"
-#include "Cube.h"
+#include "BlockSelectionCube.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
 #include "RuntimeSettings.h"
@@ -58,7 +58,7 @@ private:
 	/// Casts a ray from the camera to find the targeted block and placement cell.
 	bool performRaycastToFindTargetBlock(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& outSelection);
 	/// Draws a wireframe outline around the selected block.
-	void drawBlockHighlight(glm::ivec3 blockPos, Cube& cube);
+	void drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube);
 	/// Processes per-frame player input.
 	void ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds);
 	/// Processes block interaction input for the selected target.
@@ -66,7 +66,7 @@ private:
 	/// Updates simulation state for the current frame.
 	void UpdateGameLogic(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& selection);
 	/// Renders the 3D scene.
-	void Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection);
+	void Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection);
 	/// Rebuilds 3D and 2D projection matrices after window size changes.
 	void UpdateProjections(int width, int height);
 	/// Draws a simple procedural cloud layer.

@@ -45,13 +45,13 @@ int Engine::Run()
 	const ve::assets::AssetPaths assetPaths = ve::assets::ResolveFromSourceFile(_applicationSourceFilePath);
 	ConfigureRuntimeLogging(assetPaths);
 	SkyBox skyBox(assetPaths.environmentTexturesDirectory.string());
-	Cube cube(assetPaths.blockTexturesDirectory.string());
+	BlockSelectionCube selectionCube(assetPaths.blockTexturesDirectory.string());
 	Plane plane((assetPaths.blockTexturesDirectory / "cobblestone.png").string());
 	ve::blocks::BlockRegistry blockRegistry(assetPaths);
 
 	const int worldSize = 10;
-	ve::world::World world(static_cast<std::size_t>(worldSize * worldSize));
-	world.SpawnFlatGrid(worldSize);
+	ve::world::World world(ve::world::CreateInfoForSquareWorld(worldSize));
+	world.SpawnFlatGrid(ve::world::FlatWorldSpawnSettings{ worldSize });
 
 	ve::ui::HudRenderer hudRenderer(assetPaths);
 	ve::time::FrameTimer frameTimer;
@@ -62,7 +62,7 @@ int Engine::Run()
 		UpdateProjectionIfWindowChanged(window);
 		frameTimer.Tick();
 		UpdateFrameGameplay(window, world, blockRegistry, camera, currentSelection, frameTimer.DeltaSeconds());
-		Render3DWorld(window, camera, skyBox, plane, cube, blockRegistry, world, currentSelection);
+		Render3DWorld(window, camera, skyBox, plane, selectionCube, blockRegistry, world, currentSelection);
 		hudRenderer.Draw(CreateHudFrame(window, camera, frameTimer, currentSelection, blockRegistry));
 		window.Update();
 	}

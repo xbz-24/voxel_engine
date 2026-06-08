@@ -18,6 +18,9 @@ add_executable(main
     Builds/BlockInteraction.cpp
     Builds/BlockRaycaster.cpp
     Builds/BlockRegistry.cpp
+    Builds/BlockSelectionCube.cpp
+    Builds/BlockSelectionCubeFaces.cpp
+    Builds/BlockSelectionCubeSideFaces.cpp
     Builds/BlockTextureCache.cpp
     Builds/Camera.cpp
     Builds/Chunk.cpp
@@ -27,15 +30,14 @@ add_executable(main
     Builds/ChunkMeshBuilder.cpp
     Builds/ChunkMeshCollector.cpp
     Builds/ChunkTerrain.cpp
-    Builds/Cube.cpp
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
     Builds/EngineDebugRender.cpp
     Builds/EngineFrame.cpp
-    Builds/EngineGameplay.cpp
+    Builds/EnginePlayerBlockInput.cpp
     Builds/EngineLifecycle.cpp
-    Builds/EngineMouse.cpp
-    Builds/EngineMovement.cpp
+    Builds/EngineCameraMouseInput.cpp
+    Builds/EnginePlayerMovement.cpp
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
     Builds/FrameTimer.cpp
@@ -60,12 +62,13 @@ add_executable(main
     Builds/SettingsMenuActions.cpp
     Builds/SettingsMenuController.cpp
     Builds/SkyBox.cpp
-    Builds/Utilities.cpp
+    Builds/TextureLoader.cpp
     Builds/Window.cpp
     Builds/WindowCursor.cpp
     Builds/WindowRuntime.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
+    Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
     Builds/WorldRender.cpp
     Builds/WorldVisibility.cpp

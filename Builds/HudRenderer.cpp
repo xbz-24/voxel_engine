@@ -1,6 +1,6 @@
 #include "HudRenderer.h"
 
-#include "Utilities.h"
+#include "TextureLoader.h"
 
 #include <glm/ext.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,18 +9,18 @@ namespace ve::ui
 {
 	HudRenderer::HudRenderer(const ve::assets::AssetPaths& paths)
 		: _textures{
-			Utils::load_texture(paths.crosshairTexture.string().c_str()),
-			Utils::load_texture(paths.hotbarTexture.string().c_str()),
-			Utils::load_texture(paths.hotbarSelectionTexture.string().c_str()),
-			Utils::load_texture(paths.experienceBarTexture.string().c_str()),
-			Utils::load_texture(paths.healthTexture.string().c_str()),
-			Utils::load_texture(paths.hungerTexture.string().c_str()),
-			Utils::load_texture(paths.fontTexture.string().c_str()),
-			Utils::load_texture(paths.menuBackgroundTexture.string().c_str()),
-			Utils::load_texture(paths.menuButtonTexture.string().c_str()),
-			Utils::load_texture(paths.menuButtonHighlightedTexture.string().c_str()),
-			Utils::load_texture(paths.menuSliderTexture.string().c_str()),
-			Utils::load_texture(paths.menuSliderHandleTexture.string().c_str())
+			ve::rendering::LoadTexture(paths.crosshairTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.hotbarTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.hotbarSelectionTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.experienceBarTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.healthTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.hungerTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.fontTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.menuBackgroundTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.menuButtonTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.menuButtonHighlightedTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.menuSliderTexture.string().c_str()),
+			ve::rendering::LoadTexture(paths.menuSliderHandleTexture.string().c_str())
 		}
 	{
 	}

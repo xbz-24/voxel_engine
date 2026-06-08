@@ -13,7 +13,7 @@ void Engine::ConfigureOpenGLState()
 }
 
 /// Renders the visible 3D world and selection highlight.
-void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection)
+void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection)
 {
 	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 	ve::rendering::ApplyProjection(_projection3D);
@@ -25,7 +25,7 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 	renderDebugCoordinateSystemAxes();
 	if (selection.hasTarget)
 	{
-		drawBlockHighlight(selection.targetBlock, cube);
+		drawBlockHighlight(selection.targetBlock, selectionCube);
 	}
 }
 
