@@ -4,6 +4,7 @@
 #include "BlockRegistry.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
+#include "Logger.h"
 #include "Plane.h"
 #include "SkyBox.h"
 #include "Window.h"
@@ -32,18 +33,17 @@ Engine::~Engine() = default;
 int Engine::Run()
 {
 	Window window("Voxel Engine v1.0.0");
-	if (!window.Initialize())
+	if (!InitializeWindow(window))
 	{
 		return -1;
 	}
-	window.SetVSync(_runtimeSettings.isVSyncEnabled);
-
 	Camera camera;
 	CallbackContext callbackContext{ &camera, &_runtimeSettings.isSettingsMenuOpen, { 0.0, 0.0, true } };
 	ConfigureCallbacks(window, callbackContext);
 	ConfigureOpenGLState();
 
 	const ve::assets::AssetPaths assetPaths = ve::assets::ResolveFromSourceFile(_applicationSourceFilePath);
+	ConfigureRuntimeLogging(assetPaths);
 	SkyBox skyBox(assetPaths.environmentTexturesDirectory.string());
 	Cube cube(assetPaths.blockTexturesDirectory.string());
 	Plane plane((assetPaths.blockTexturesDirectory / "cobblestone.png").string());
@@ -59,48 +59,15 @@ int Engine::Run()
 
 	while (!window.ShouldClose())
 	{
-		if (window.GetWidth() != _currentWindowWidth || window.GetHeight() != _currentWindowHeight)
-		{
-			_currentWindowWidth = window.GetWidth();
-			_currentWindowHeight = window.GetHeight();
-			UpdateProjections(_currentWindowWidth, _currentWindowHeight);
-		}
-
+		UpdateProjectionIfWindowChanged(window);
 		frameTimer.Tick();
-		ProcessInput(window, world, blockRegistry, camera, frameTimer.DeltaSeconds());
-		if (_runtimeSettings.isSettingsMenuOpen)
-		{
-			currentSelection.hasTarget = false;
-		}
-		else
-		{
-			UpdateGameLogic(world, blockRegistry, camera, currentSelection);
-			ProcessGameplayInput(window, world, currentSelection);
-			UpdateGameLogic(world, blockRegistry, camera, currentSelection);
-		}
+		UpdateFrameGameplay(window, world, blockRegistry, camera, currentSelection, frameTimer.DeltaSeconds());
 		Render3DWorld(window, camera, skyBox, plane, cube, blockRegistry, world, currentSelection);
-
-		const ve::ui::HudFrameInfo hudFrame{
-			window,
-			camera,
-			frameTimer.DisplayedFps(),
-			currentSelection.targetBlock,
-			currentSelection.hasTarget,
-			blockRegistry,
-			_selectedPlacementBlock,
-			_runtimeSettings.showDebugOverlay,
-			_runtimeSettings.isFlying,
-			_runtimeSettings.renderDistanceChunks,
-			ve::gameplay::ToSettingsMenuState(_runtimeSettings)
-		};
-		hudRenderer.Draw(hudFrame);
+		hudRenderer.Draw(CreateHudFrame(window, camera, frameTimer, currentSelection, blockRegistry));
 		window.Update();
 	}
 
-	if (_cloudDisplayListID != 0)
-	{
-		glDeleteLists(_cloudDisplayListID, 1);
-		_cloudDisplayListID = 0;
-	}
+	ReleaseRenderCaches();
+	VE_LOG_INFO("Engine runtime stopped");
 	return 0;
 }

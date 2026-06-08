@@ -30,7 +30,9 @@ add_executable(main
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
     Builds/EngineDebugRender.cpp
+    Builds/EngineFrame.cpp
     Builds/EngineGameplay.cpp
+    Builds/EngineLifecycle.cpp
     Builds/EngineMouse.cpp
     Builds/EngineMovement.cpp
     Builds/EnginePhysics.cpp
@@ -43,6 +45,7 @@ add_executable(main
     Builds/HudSurvival.cpp
     Builds/HudText.cpp
     Builds/LevelSpawn.cpp
+    Builds/LogFormatter.cpp
     Builds/Logger.cpp
     Builds/Plane.cpp
     Builds/Render2D.cpp
@@ -51,6 +54,7 @@ add_executable(main
     Builds/SkyBox.cpp
     Builds/Utilities.cpp
     Builds/Window.cpp
+    Builds/WindowRuntime.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
     Builds/WorldCoordinates.cpp

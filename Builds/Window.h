@@ -2,8 +2,9 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <string>
 #include <GL/glew.h>
+#include <string>
+
 class Window
 {
 public:
@@ -13,115 +14,68 @@ public:
 		void* userData;
 	};
 
-	/**
-	 * Creates a window wrapper with a title.
-	 *
-	 * @param title Window title.
-	 */
+	/// Creates a window wrapper with a title.
 	explicit Window(const char* title);
 
-	/**
-	 * Creates a window wrapper with a title.
-	 *
-	 * @param title Window title.
-	 */
+	/// Creates a window wrapper with a title.
 	explicit Window(std::string title);
 
-	/**
-	 * Destroys the native GLFW window and terminates GLFW.
-	 */
+	/// Destroys the native GLFW window and terminates GLFW.
 	~Window();
 
-	/**
-	 * Initializes GLFW, creates the native window, and initializes GLEW.
-	 *
-	 * @return true when initialization succeeds, false otherwise.
-	 */
+	/// Initializes GLFW, creates the native window, and initializes GLEW.
 	bool Initialize();
 
-	/**
-	 * Enables or disables vertical synchronization for buffer swaps.
-	 *
-	 * @param isEnabled true to wait for monitor refresh, false to uncap swaps.
-	 */
+	/// Enables or disables vertical synchronization for buffer swaps.
 	void SetVSync(bool isEnabled);
 
-	/**
-	 * Returns whether vertical synchronization is enabled.
-	 *
-	 * @return true when swaps are synchronized to monitor refresh.
-	 */
+	/// Returns whether vertical synchronization is enabled.
 	bool IsVSyncEnabled() const noexcept;
 
-	/**
-	 * Swaps buffers and polls window events.
-	 */
+	/// Swaps buffers and polls window events.
 	void Update();
 
-	/**
-	 * Checks whether GLFW requested the window to close.
-	 *
-	 * @return true when the window should close.
-	 */
+	/// Checks whether GLFW requested the window to close.
 	bool ShouldClose() const;
 
-	/**
-	 * Requests that the window closes.
-	 */
+	/// Requests that the window closes.
 	void Close();
 
-	/**
-	 * Returns the current framebuffer width.
-	 *
-	 * @return Width in pixels.
-	 */
+	/// Returns the current framebuffer width.
 	int GetWidth() const;
 
-	/**
-	 * Returns the current framebuffer height.
-	 *
-	 * @return Height in pixels, clamped to at least 1.
-	 */
+	/// Returns the current framebuffer height, clamped to at least 1.
 	int GetHeight() const;
 
-	/**
-	 * Returns the current framebuffer aspect ratio.
-	 *
-	 * @return Width divided by height.
-	 */
+	/// Returns the current framebuffer aspect ratio.
 	float GetAspectRatio() const;
 
-	/**
-	 * Returns the native GLFW window pointer.
-	 *
-	 * @return Native GLFWwindow pointer.
-	 */
+	/// Returns the native GLFW window pointer.
 	GLFWwindow* GetNativeWindow() const;
 
-	/**
-	 * Stores user data reachable from GLFW callbacks.
-	 *
-	 * @param userData Opaque pointer owned by the caller.
-	 */
+	/// Stores user data reachable from GLFW callbacks.
 	void SetCallbackUserData(void* userData);
 
-	/**
-	 * Reads user data from a native GLFW window callback context.
-	 *
-	 * @param window Native GLFW window carrying a CallbackContext.
-	 * @return Opaque user data pointer, or nullptr when unavailable.
-	 */
+	/// Reads user data from a native GLFW window callback context.
 	static void* GetCallbackUserData(GLFWwindow* window);
 
-	/**
-	 * Updates stored framebuffer dimensions after a GLFW resize event.
-	 *
-	 * @param window Native GLFW window carrying this Window as user pointer.
-	 * @param width New framebuffer width.
-	 * @param height New framebuffer height.
-	 */
+	/// Updates stored framebuffer dimensions after a GLFW resize event.
 	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+
 private:
+	/// Starts GLFW and reports whether initialization succeeded.
+	bool InitializeGlfw();
+	/// Reads the primary monitor video mode and updates window dimensions.
+	const GLFWvidmode* ReadPrimaryMonitorMode();
+	/// Applies GLFW window hints from a video mode.
+	void ApplyWindowHints(const GLFWvidmode& videoMode);
+	/// Creates the native GLFW window.
+	bool CreateNativeWindow();
+	/// Wires GLFW user data, callbacks and current context.
+	void ConfigureNativeCallbacks();
+	/// Initializes GLEW after the OpenGL context exists.
+	bool InitializeOpenGLLoader();
+
 	GLFWwindow* _window;
 	int _width;
 	int _height;
@@ -129,4 +83,3 @@ private:
 	std::string _title;
 	CallbackContext _callbackContext;
 };
-

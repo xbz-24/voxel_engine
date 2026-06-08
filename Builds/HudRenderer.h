@@ -11,9 +11,6 @@
 
 namespace ve::ui
 {
-	/**
-	 * Immutable data needed to draw the complete frame HUD.
-	 */
 	struct HudFrameInfo
 	{
 		const Window& window;
@@ -29,24 +26,13 @@ namespace ve::ui
 		SettingsMenuState settingsMenu;
 	};
 
-	/**
-	 * Owns texture ids and draw logic for the in-game HUD.
-	 */
 	class HudRenderer
 	{
 	public:
-		/**
-		 * Loads all HUD textures from resolved asset paths.
-		 *
-		 * @param paths Resolved engine asset paths.
-		 */
+		/// Loads all HUD textures from resolved asset paths.
 		explicit HudRenderer(const ve::assets::AssetPaths& paths);
 
-		/**
-		 * Draws the HUD overlay for the current frame.
-		 *
-		 * @param frame Immutable data for the current HUD frame.
-		 */
+		/// Draws the HUD overlay for the current frame.
 		void Draw(const HudFrameInfo& frame);
 
 	private:
@@ -66,58 +52,19 @@ namespace ve::ui
 			GLuint menuSliderHandle;
 		};
 
-		/**
-		 * Draws a screen-space row of icons.
-		 *
-		 * @param texture OpenGL texture id used by each icon.
-		 * @param startX X position of the first icon.
-		 * @param y Y position shared by every icon.
-		 * @param iconSize Icon width and height in pixels.
-		 * @param spacing Distance in pixels between icon origins.
-		 * @param count Number of icons to draw.
-		 * @param direction Horizontal direction, usually 1.0f or -1.0f.
-		 */
+		/// Draws a screen-space row of icons.
 		void DrawIconRow(GLuint texture, float startX, float y, float iconSize, float spacing, int count, float direction);
 
-		/**
-		 * Draws the fixed Minecraft-like HUD widgets.
-		 *
-		 * @param window Window used for screen-space positioning.
-		 * @param blockRegistry Registry used to draw block icons.
-		 * @param selectedPlacementBlock Currently selected hotbar block.
-		 */
+		/// Draws the fixed Minecraft-like HUD widgets.
 		void DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
 
-		/**
-		 * Draws debug text readouts.
-		 *
-		 * @param camera Camera used by position readouts.
-		 * @param displayedFps Last sampled FPS value.
-		 * @param targetBlock Currently selected block coordinate.
-		 * @param isBlockSelected Whether selectedBlock is valid.
-		 * @param blockRegistry Registry used to display block names.
-		 * @param selectedPlacementBlock Block currently selected for placement.
-		 * @param showDebugOverlay Whether debug text should be visible.
-		 * @param isFlying Whether player movement is currently in fly mode.
-		 * @param renderDistanceChunks Current chunk render radius.
-		 */
+		/// Draws debug text readouts.
 		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
 
-		/**
-		 * Draws the settings menu overlay.
-		 *
-		 * @param frame Immutable data for the current HUD frame.
-		 */
+		/// Draws the settings menu overlay.
 		void DrawSettingsMenu(const HudFrameInfo& frame);
 
-		/**
-		 * Draws text using the loaded bitmap font.
-		 *
-		 * @param text Text to draw.
-		 * @param x Left screen coordinate.
-		 * @param y Top screen coordinate.
-		 * @param scale Glyph scale multiplier.
-		 */
+		/// Draws text using the loaded bitmap font.
 		void DrawText(const std::string& text, float x, float y, float scale);
 
 		Textures _textures;

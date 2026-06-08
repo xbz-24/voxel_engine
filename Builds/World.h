@@ -12,17 +12,10 @@ namespace ve::world
 	using ChunkAllocator = std::pmr::polymorphic_allocator<Chunk>;
 	using ChunkList = std::vector<Chunk, ChunkAllocator>;
 
-	/**
-	 * Owns world chunks and the level-lifetime memory arena used by them.
-	 */
 	class World
 	{
 	public:
-		/**
-		 * Creates an empty world with enough arena memory for the requested chunks.
-		 *
-		 * @param chunkCount Number of chunks expected to be spawned.
-		 */
+		/// Creates an empty world with enough arena memory for the requested chunks.
 		explicit World(std::size_t chunkCount);
 
 		World(const World&) = delete;
@@ -30,88 +23,32 @@ namespace ve::world
 		World(World&&) = delete;
 		World& operator=(World&&) = delete;
 
-		/**
-		 * Spawns a square grid of generated chunks.
-		 *
-		 * @param worldSize Number of chunks on the X and Z axes.
-		 */
+		/// Spawns a square grid of generated chunks.
 		void SpawnFlatGrid(int worldSize);
 
-		/**
-		 * Draws all chunks in the world.
-		 *
-		 * @param blockRegistry Registry used by chunk meshes.
-		 * @param cameraPosition Current camera world position.
-		 * @param cameraForward Current camera forward vector used for coarse visibility.
-		 * @param renderDistanceChunks Radius in chunks around the camera.
-		 */
+		/// Draws chunks around the camera after coarse visibility culling.
 		void Draw(const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& cameraPosition, const glm::vec3& cameraForward, int renderDistanceChunks);
 
-		/**
-		 * Reads a block from world coordinates.
-		 *
-		 * @param globalX World X block coordinate.
-		 * @param globalY World Y block coordinate.
-		 * @param globalZ World Z block coordinate.
-		 * @return Block id at the coordinate, or Air when outside loaded chunks.
-		 */
+		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
 
-		/**
-		 * Reads a block from world coordinates.
-		 *
-		 * @param position World block coordinate.
-		 * @return Block id at the coordinate, or Air when outside loaded chunks.
-		 */
+		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(const glm::ivec3& position) const;
 
-		/**
-		 * Writes a block in world coordinates and marks affected chunks dirty.
-		 *
-		 * @param globalX World X block coordinate.
-		 * @param globalY World Y block coordinate.
-		 * @param globalZ World Z block coordinate.
-		 * @param blockId New block id.
-		 * @return true when the block changed.
-		 */
+		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(int globalX, int globalY, int globalZ, ve::blocks::BlockId blockId);
 
-		/**
-		 * Writes a block in world coordinates and marks affected chunks dirty.
-		 *
-		 * @param position World block coordinate.
-		 * @param blockId New block id.
-		 * @return true when the block changed.
-		 */
+		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
 
 	private:
-		/**
-		 * Returns the chunk that contains a chunk-grid coordinate.
-		 *
-		 * @param chunkX Chunk-grid X coordinate.
-		 * @param chunkZ Chunk-grid Z coordinate.
-		 * @return Mutable chunk pointer, or nullptr when not loaded.
-		 */
+		/// Returns the chunk that contains a chunk-grid coordinate.
 		Chunk* FindChunk(int chunkX, int chunkZ);
 
-		/**
-		 * Returns the chunk that contains a chunk-grid coordinate.
-		 *
-		 * @param chunkX Chunk-grid X coordinate.
-		 * @param chunkZ Chunk-grid Z coordinate.
-		 * @return Const chunk pointer, or nullptr when not loaded.
-		 */
+		/// Returns the chunk that contains a chunk-grid coordinate.
 		const Chunk* FindChunk(int chunkX, int chunkZ) const;
 
-		/**
-		 * Marks neighbor chunks dirty when a changed local block touches a border.
-		 *
-		 * @param chunkX Changed chunk-grid X coordinate.
-		 * @param chunkZ Changed chunk-grid Z coordinate.
-		 * @param localX Local X block coordinate.
-		 * @param localZ Local Z block coordinate.
-		 */
+		/// Marks neighbor chunks dirty when a changed local block touches a border.
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
 
 		LevelSpawn _levelSpawn;

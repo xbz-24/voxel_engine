@@ -1,6 +1,7 @@
-#include <utility>
 #include "Logger.h"
 #include "Window.h"
+
+#include <utility>
 
 Window::Window(std::string title)
 	: _window(nullptr),
@@ -13,7 +14,6 @@ Window::Window(std::string title)
 }
 
 Window::Window(const char* title) : Window(std::string(title)) {}
-
 Window::~Window()
 {
 	if (_window)
@@ -23,116 +23,74 @@ Window::~Window()
 	glfwTerminate();
 }
 
-bool Window::Initialize()
+/// Starts GLFW and reports whether initialization succeeded.
+bool Window::InitializeGlfw()
 {
-	if (glfwInit() != GLFW_TRUE)
+	if (glfwInit() == GLFW_TRUE)
 	{
-		ve::log::Error("Failed to initialize GLFW");
-		return false;
+		return true;
 	}
+	VE_LOG_ERROR("Failed to initialize GLFW");
+	return false;
+}
 
+/// Reads the primary monitor video mode and updates window dimensions.
+const GLFWvidmode* Window::ReadPrimaryMonitorMode()
+{
 	GLFWmonitor* primaryDisplayMonitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode* currentVideoDisplayMode = glfwGetVideoMode(primaryDisplayMonitor);
+	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryDisplayMonitor);
+	_width = videoMode->width;
+	_height = videoMode->height;
+	return videoMode;
+}
 
-
-	_width = currentVideoDisplayMode->width;
-	_height = currentVideoDisplayMode->height;
-
+/// Applies GLFW window hints from a video mode.
+void Window::ApplyWindowHints(const GLFWvidmode& videoMode)
+{
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	glfwWindowHint(GLFW_RED_BITS, currentVideoDisplayMode->redBits);
-	glfwWindowHint(GLFW_GREEN_BITS, currentVideoDisplayMode->greenBits);
-	glfwWindowHint(GLFW_BLUE_BITS, currentVideoDisplayMode->blueBits);
-	glfwWindowHint(GLFW_REFRESH_RATE, currentVideoDisplayMode->refreshRate);
+	glfwWindowHint(GLFW_RED_BITS, videoMode.redBits);
+	glfwWindowHint(GLFW_GREEN_BITS, videoMode.greenBits);
+	glfwWindowHint(GLFW_BLUE_BITS, videoMode.blueBits);
+	glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+}
 
-	_window = glfwCreateWindow(_width, _height, _title.c_str(), NULL, NULL);
-	if (!_window)
-	{
-		ve::log::Error("Failed to create GLFW window");
-		glfwTerminate();
-		return false;
-	}
+/// Creates the native GLFW window.
+bool Window::CreateNativeWindow()
+{
+	_window = glfwCreateWindow(_width, _height, _title.c_str(), nullptr, nullptr);
+	if (_window) return true;
+	VE_LOG_ERROR("Failed to create GLFW window");
+	glfwTerminate();
+	return false;
+}
 
+/// Wires GLFW user data, callbacks and current context.
+void Window::ConfigureNativeCallbacks()
+{
 	glfwSetWindowUserPointer(_window, &_callbackContext);
 	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
 	glfwMakeContextCurrent(_window);
+}
+
+/// Initializes GLEW after the OpenGL context exists.
+bool Window::InitializeOpenGLLoader()
+{
 	glewExperimental = GL_TRUE;
-
-	if (glewInit() != GLEW_OK)
-	{
-		ve::log::Error("Failed to initialize GLEW");
-		return false;
-	}
-
-	return true;
+	if (glewInit() == GLEW_OK) return true;
+	VE_LOG_ERROR("Failed to initialize GLEW");
+	return false;
 }
 
-void Window::SetVSync(bool isEnabled)
+/// Initializes the native window and OpenGL loader.
+bool Window::Initialize()
 {
-	_isVSyncEnabled = isEnabled;
-	glfwSwapInterval(isEnabled ? 1 : 0);
-}
-
-bool Window::IsVSyncEnabled() const noexcept
-{
-	return _isVSyncEnabled;
-}
-
-void Window::Update()
-{
-	glfwSwapBuffers(_window);
-	glfwPollEvents();
-}
-
-bool Window::ShouldClose() const
-{
-	return static_cast<bool>(glfwWindowShouldClose(_window));
-}
-
-void Window::Close()
-{
-	glfwSetWindowShouldClose(_window, GLFW_TRUE);
-}
-
-int Window::GetWidth() const
-{
-	return _width;
-}
-
-int Window::GetHeight() const
-{
-	return _height == 0 ? 1 : _height; 
-}
-
-float Window::GetAspectRatio() const 
-{
-	return static_cast<float>(_width) / static_cast<float>(_height);
-}
-
-GLFWwindow* Window::GetNativeWindow() const
-{
-	return _window;
-}
-
-void Window::SetCallbackUserData(void* userData)
-{
-	_callbackContext.userData = userData;
-}
-
-void* Window::GetCallbackUserData(GLFWwindow* window)
-{
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
-	return context ? context->userData : nullptr;
-}
-
-void Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
-	if (context && context->window)
-	{
-		context->window->_width = width;
-		context->window->_height = height;
-	}
+	if (!InitializeGlfw()) return false;
+	const GLFWvidmode* videoMode = ReadPrimaryMonitorMode();
+	ApplyWindowHints(*videoMode);
+	if (!CreateNativeWindow()) return false;
+	ConfigureNativeCallbacks();
+	return InitializeOpenGLLoader();
 }
