@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AssetPaths.h"
+#include "BlockRegistry.h"
 #include "Camera.h"
 #include "Window.h"
 
@@ -28,10 +29,14 @@ namespace ve::ui
 		 * @param window Window used for screen-space dimensions.
 		 * @param camera Camera used by debug readouts.
 		 * @param displayedFps Last sampled FPS value.
-		 * @param selectedBlock Currently selected block coordinate.
+		 * @param targetBlock Currently selected block coordinate.
 		 * @param isBlockSelected Whether selectedBlock is valid.
+		 * @param blockRegistry Registry used to display block names.
+		 * @param selectedPlacementBlock Block currently selected for placement.
+		 * @param showDebugOverlay Whether debug text should be visible.
+		 * @param isFlying Whether player movement is currently in fly mode.
 		 */
-		void Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& selectedBlock, bool isBlockSelected);
+		void Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying);
 
 	private:
 		struct Textures
@@ -69,10 +74,14 @@ namespace ve::ui
 		 *
 		 * @param camera Camera used by position readouts.
 		 * @param displayedFps Last sampled FPS value.
-		 * @param selectedBlock Currently selected block coordinate.
+		 * @param targetBlock Currently selected block coordinate.
 		 * @param isBlockSelected Whether selectedBlock is valid.
+		 * @param blockRegistry Registry used to display block names.
+		 * @param selectedPlacementBlock Block currently selected for placement.
+		 * @param showDebugOverlay Whether debug text should be visible.
+		 * @param isFlying Whether player movement is currently in fly mode.
 		 */
-		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& selectedBlock, bool isBlockSelected);
+		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying);
 
 		/**
 		 * Draws text using the loaded bitmap font.
@@ -87,4 +96,3 @@ namespace ve::ui
 		Textures _textures;
 	};
 }
-

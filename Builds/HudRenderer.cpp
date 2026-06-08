@@ -52,7 +52,7 @@ namespace ve::ui
 	{
 	}
 
-	void HudRenderer::Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& selectedBlock, bool isBlockSelected)
+	void HudRenderer::Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying)
 	{
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -68,7 +68,7 @@ namespace ve::ui
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		DrawSurvivalHud(window);
-		DrawDebugOverlay(camera, displayedFps, selectedBlock, isBlockSelected);
+		DrawDebugOverlay(camera, displayedFps, targetBlock, isBlockSelected, blockRegistry, selectedPlacementBlock, showDebugOverlay, isFlying);
 
 		glEnable(GL_DEPTH_TEST);
 		glDisable(GL_BLEND);
@@ -124,14 +124,24 @@ namespace ve::ui
 		DrawIconRow(_textures.hunger, experienceBarAnchorScreenPosX + experienceBarRenderWidth - iconSize, iconsStartY, iconSize, guiIconHorizontalSpacingOffset, 10, -1.0f);
 	}
 
-	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& selectedBlock, bool isBlockSelected)
+	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying)
 	{
-		const glm::vec3 cameraPosition = camera.GetPosition();
-		DrawText(std::to_string(displayedFps) + " FPS", 10.0f, 10.0f, 2.0f);
-		DrawText("XYZ " + FormatVec3(cameraPosition), 10.0f, 32.0f, 1.4f);
+		const std::string selectedPlacementName(blockRegistry.Get(selectedPlacementBlock).name);
+		DrawText("Block " + selectedPlacementName + "  1 Grass 2 Dirt 3 Stone 4 Cobble", 10.0f, 10.0f, 1.2f);
+		DrawText("LMB break  RMB place  Space jump  F fly  F3 debug", 10.0f, 26.0f, 1.2f);
 
-		const std::string selectedText = isBlockSelected ? "Target " + FormatIvec3(selectedBlock) : "Target none";
-		DrawText(selectedText, 10.0f, 50.0f, 1.4f);
+		if (!showDebugOverlay)
+		{
+			return;
+		}
+
+		const glm::vec3 cameraPosition = camera.GetPosition();
+		DrawText(std::to_string(displayedFps) + " FPS", 10.0f, 50.0f, 1.6f);
+		DrawText("XYZ " + FormatVec3(cameraPosition), 10.0f, 70.0f, 1.2f);
+		DrawText(std::string("Mode ") + (isFlying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
+
+		const std::string selectedText = isBlockSelected ? "Target " + FormatIvec3(targetBlock) : "Target none";
+		DrawText(selectedText, 10.0f, 102.0f, 1.2f);
 	}
 
 	void HudRenderer::DrawText(const std::string& text, float x, float y, float scale)

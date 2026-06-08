@@ -15,6 +15,7 @@ find_package(Stb REQUIRED)
 add_executable(main
     main.cpp
     Builds/AssetPaths.cpp
+    Builds/BlockRegistry.cpp
     Builds/Camera.cpp
     Builds/Chunk.cpp
     Builds/Cube.cpp

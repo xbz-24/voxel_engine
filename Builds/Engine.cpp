@@ -1,6 +1,7 @@
 #include <cmath>
 #include <filesystem>
 #include "AssetPaths.h"
+#include "BlockRegistry.h"
 #include "Chunk.h"
 #include "Engine.h"
 #include "HudRenderer.h"
@@ -10,7 +11,18 @@
 #include "Window.h"
 #include "World.h"
 
-Engine::Engine() : _currentWindowHeight(0), _currentWindowWidth(0)
+Engine::Engine()
+	: _currentWindowHeight(0),
+	  _currentWindowWidth(0),
+	  _wasLeftMouseButtonPressed(false),
+	  _wasRightMouseButtonPressed(false),
+	  _wasDebugTogglePressed(false),
+	  _wasFlyTogglePressed(false),
+	  _isDebugOverlayVisible(true),
+	  _isFlying(false),
+	  _isGrounded(false),
+	  _verticalVelocity(0.0f),
+	  _selectedPlacementBlock(ve::blocks::BlockId::Cobblestone)
 {
 	_applicationSourceFilePath = std::filesystem::absolute(__FILE__);
 }
@@ -38,6 +50,7 @@ int Engine::Run()
 	SkyBox skyBox(assetPaths.environmentTexturesDirectory.string());
 	Cube cube(assetPaths.blockTexturesDirectory.string());
 	Plane plane((assetPaths.blockTexturesDirectory / "cobblestone.png").string());
+	ve::blocks::BlockRegistry blockRegistry(assetPaths);
 	
 	const int worldSize = 10;
 	const std::size_t expectedChunkCount = static_cast<std::size_t>(worldSize * worldSize);
@@ -47,8 +60,7 @@ int Engine::Run()
 	ve::ui::HudRenderer hudRenderer(assetPaths);
 	ve::time::FrameTimer frameTimer;
 	
-	bool isBlockSelected = false;
-	glm::ivec3 currentlySelectedBlockCoordinates;
+	BlockSelection currentSelection{ false, glm::ivec3(0), glm::ivec3(0) };
 
 	while (!window.ShouldClose())
 	{
@@ -61,13 +73,15 @@ int Engine::Run()
 
 		frameTimer.Tick();
 
-		ProcessInput(window, camera, frameTimer.DeltaSeconds());
+		ProcessInput(window, world, blockRegistry, camera, frameTimer.DeltaSeconds());
 
-		UpdateGameLogic(camera, currentlySelectedBlockCoordinates, isBlockSelected);
+		UpdateGameLogic(world, blockRegistry, camera, currentSelection);
+		ProcessGameplayInput(window, world, currentSelection);
+		UpdateGameLogic(world, blockRegistry, camera, currentSelection);
 
-		Render3DWorld(window, camera, skyBox, plane, cube, world, currentlySelectedBlockCoordinates, isBlockSelected);
+		Render3DWorld(window, camera, skyBox, plane, cube, blockRegistry, world, currentSelection);
 
-		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentlySelectedBlockCoordinates, isBlockSelected);
+		hudRenderer.Draw(window, camera, frameTimer.DisplayedFps(), currentSelection.targetBlock, currentSelection.hasTarget, blockRegistry, _selectedPlacementBlock, _isDebugOverlayVisible, _isFlying);
 
 		window.Update();
 	}
@@ -135,38 +149,116 @@ void Engine::renderDebugCoordinateSystemAxes()
 	glEnd();
 }
 
-void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, Camera& camera, double frameDeltaTimeSeconds)
+void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameDeltaTimeSeconds)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	const bool isFlyTogglePressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
+	if (isFlyTogglePressed && !_wasFlyTogglePressed)
+	{
+		_isFlying = !_isFlying;
+		_verticalVelocity = 0.0f;
+	}
+	_wasFlyTogglePressed = isFlyTogglePressed;
 
 	float playerMovementVelocityScalar = 5.0f * static_cast<float>(frameDeltaTimeSeconds);
+	glm::vec3 forward = camera.GetForward();
+	forward.y = 0.0f;
+	if (glm::length(forward) > 0.0f)
+	{
+		forward = glm::normalize(forward);
+	}
+
+	glm::vec3 right = camera.GetRight();
+	right.y = 0.0f;
+	if (glm::length(right) > 0.0f)
+	{
+		right = glm::normalize(right);
+	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camera.Move(camera.GetForward(), playerMovementVelocityScalar);
+		camera.Move(forward, playerMovementVelocityScalar);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		camera.Move(camera.GetForward(), -playerMovementVelocityScalar);
+		camera.Move(forward, -playerMovementVelocityScalar);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camera.Move(camera.GetRight(), -playerMovementVelocityScalar);
+		camera.Move(right, -playerMovementVelocityScalar);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camera.Move(camera.GetRight(), playerMovementVelocityScalar);
+		camera.Move(right, playerMovementVelocityScalar);
 	}
+
+	if (_isFlying)
+	{
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		{
+			camera.Move(glm::vec3(0.0f, 1.0f, 0.0f), playerMovementVelocityScalar);
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		{
+			camera.Move(glm::vec3(0.0f, -1.0f, 0.0f), playerMovementVelocityScalar);
+		}
+	}
+	else if (_isGrounded && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		_verticalVelocity = 7.0f;
+	}
+
+	ApplyPlayerPhysics(world, blockRegistry, camera, frameDeltaTimeSeconds);
 }	
 
-bool Engine::performRaycastToFindTargetBlock(Camera& camera, glm::ivec3& out_hitPos)
+void Engine::ApplyPlayerPhysics(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameDeltaTimeSeconds)
+{
+	if (_isFlying)
+	{
+		_verticalVelocity = 0.0f;
+		_isGrounded = false;
+		return;
+	}
+
+	constexpr float gravityBlocksPerSecond = 22.0f;
+	constexpr float playerEyeHeight = 1.7f;
+	glm::vec3 position = camera.GetPosition();
+	_verticalVelocity -= gravityBlocksPerSecond * static_cast<float>(frameDeltaTimeSeconds);
+	position.y += _verticalVelocity * static_cast<float>(frameDeltaTimeSeconds);
+
+	const int footBlockX = static_cast<int>(std::floor(position.x));
+	const int footBlockY = static_cast<int>(std::floor(position.y - playerEyeHeight));
+	const int footBlockZ = static_cast<int>(std::floor(position.z));
+
+	if (_verticalVelocity <= 0.0f && blockRegistry.IsSolid(world.GetBlock(footBlockX, footBlockY, footBlockZ)))
+	{
+		position.y = static_cast<float>(footBlockY) + 1.0f + playerEyeHeight;
+		_verticalVelocity = 0.0f;
+		_isGrounded = true;
+	}
+	else
+	{
+		_isGrounded = false;
+	}
+
+	camera.MoveTo(position);
+}
+
+bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& out_selection)
 {
 	glm::vec3 rayPos = camera.GetPosition();
 	glm::vec3 rayDir = camera.GetForward();
 
 	float stepSize = 0.05f;
 	float maxReach = 8.0f;
+	glm::ivec3 previousAirBlock(
+		static_cast<int>(std::floor(rayPos.x)),
+		static_cast<int>(std::floor(rayPos.y)),
+		static_cast<int>(std::floor(rayPos.z)));
 
 	for (float distance = 0.0f; distance < maxReach; distance += stepSize)
 	{
@@ -175,14 +267,20 @@ bool Engine::performRaycastToFindTargetBlock(Camera& camera, glm::ivec3& out_hit
 		int blockX = static_cast<int>(std::floor(currentPos.x));
 		int blockY = static_cast<int>(std::floor(currentPos.y));
 		int blockZ = static_cast<int>(std::floor(currentPos.z));
+		glm::ivec3 currentBlock(blockX, blockY, blockZ);
 
-		if (blockX == 0 && blockY == 0 && blockZ == 0)
+		if (blockRegistry.IsSolid(world.GetBlock(currentBlock)))
 		{
-			out_hitPos = glm::ivec3(blockX, blockY, blockZ);
+			out_selection.hasTarget = true;
+			out_selection.targetBlock = currentBlock;
+			out_selection.placementBlock = previousAirBlock;
 			return true;
 		}
+
+		previousAirBlock = currentBlock;
 	}
 
+	out_selection.hasTarget = false;
 	return false;
 }
 
@@ -212,17 +310,62 @@ void Engine::drawBlockHighlight(glm::ivec3 blockPos, Cube& cube)
 	glPopMatrix();
 }
 
-void Engine::ProcessInput(Window& window, Camera& camera, double frameTimeDeltaSeconds)
+void Engine::ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds)
 {
-	handlePlayerMovementAndWindowInput(window.GetNativeWindow(), camera, frameTimeDeltaSeconds);
+	handlePlayerMovementAndWindowInput(window.GetNativeWindow(), world, blockRegistry, camera, frameTimeDeltaSeconds);
 }
 
-void Engine::UpdateGameLogic(Camera& camera, glm::ivec3& currentlySelectedBlockCoordinates, bool& isBlockSelected)
+void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const BlockSelection& selection)
 {
-	isBlockSelected = performRaycastToFindTargetBlock(camera, currentlySelectedBlockCoordinates);
+	GLFWwindow* nativeWindow = window.GetNativeWindow();
+
+	if (glfwGetKey(nativeWindow, GLFW_KEY_1) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::blocks::BlockId::Grass;
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_2) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::blocks::BlockId::Dirt;
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_3) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::blocks::BlockId::Stone;
+	}
+	if (glfwGetKey(nativeWindow, GLFW_KEY_4) == GLFW_PRESS)
+	{
+		_selectedPlacementBlock = ve::blocks::BlockId::Cobblestone;
+	}
+
+	const bool isDebugTogglePressed = glfwGetKey(nativeWindow, GLFW_KEY_F3) == GLFW_PRESS;
+	if (isDebugTogglePressed && !_wasDebugTogglePressed)
+	{
+		_isDebugOverlayVisible = !_isDebugOverlayVisible;
+	}
+	_wasDebugTogglePressed = isDebugTogglePressed;
+
+	const bool isLeftMousePressed = glfwGetMouseButton(nativeWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	const bool isRightMousePressed = glfwGetMouseButton(nativeWindow, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+
+	if (selection.hasTarget && isLeftMousePressed && !_wasLeftMouseButtonPressed)
+	{
+		world.SetBlock(selection.targetBlock, ve::blocks::BlockId::Air);
+	}
+
+	if (selection.hasTarget && isRightMousePressed && !_wasRightMouseButtonPressed)
+	{
+		world.SetBlock(selection.placementBlock, _selectedPlacementBlock);
+	}
+
+	_wasLeftMouseButtonPressed = isLeftMousePressed;
+	_wasRightMouseButtonPressed = isRightMousePressed;
 }
 
-void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, ve::world::World& world, const glm::ivec3& selectedBlock, bool isBlockSelected)
+void Engine::UpdateGameLogic(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& selection)
+{
+	performRaycastToFindTargetBlock(world, blockRegistry, camera, selection);
+}
+
+void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, Cube& cube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const BlockSelection& selection)
 {
 		glClearColor(0.541f, 0.694f, 0.976f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -240,13 +383,13 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 		//plane.draw();
 		//cube.draw();
 		RenderClouds();
-		world.Draw(cube);
+		world.Draw(blockRegistry);
 
 		renderDebugCoordinateSystemAxes();
 		
-		if (isBlockSelected)
+		if (selection.hasTarget)
 		{
-			drawBlockHighlight(selectedBlock, cube);
+			drawBlockHighlight(selection.targetBlock, cube);
 		}
 }
 
