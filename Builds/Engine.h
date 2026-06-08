@@ -239,6 +239,7 @@ private:
 	bool _wasRenderDistanceDecreasePressed;
 	bool _wasRenderDistanceIncreasePressed;
 	bool _isSettingsMenuOpen;
+	bool _isVSyncEnabled;
 	bool _isDebugOverlayVisible;
 	bool _isFlying;
 	bool _isGrounded;

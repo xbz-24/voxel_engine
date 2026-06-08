@@ -71,6 +71,10 @@ void Engine::ApplySettingsAdjustment(Window& window, int direction)
 	case ve::ui::SettingsMenuOption::RenderDistance:
 		_renderDistanceChunks = std::clamp(_renderDistanceChunks + direction, 1, 6);
 		break;
+	case ve::ui::SettingsMenuOption::VSync:
+		_isVSyncEnabled = !_isVSyncEnabled;
+		window.SetVSync(_isVSyncEnabled);
+		break;
 	case ve::ui::SettingsMenuOption::DebugOverlay:
 		_isDebugOverlayVisible = !_isDebugOverlayVisible;
 		break;
@@ -79,11 +83,7 @@ void Engine::ApplySettingsAdjustment(Window& window, int direction)
 		_verticalVelocity = 0.0f;
 		break;
 	case ve::ui::SettingsMenuOption::Resume:
-		SetSettingsMenuOpen(window, false);
-		break;
 	case ve::ui::SettingsMenuOption::Quit:
-		glfwSetWindowShouldClose(window.GetNativeWindow(), true);
-		break;
 	case ve::ui::SettingsMenuOption::Count:
 		break;
 	}
@@ -91,5 +91,15 @@ void Engine::ApplySettingsAdjustment(Window& window, int direction)
 
 void Engine::ActivateSettingsOption(Window& window)
 {
+	if (_selectedSettingsMenuOption == ve::ui::SettingsMenuOption::Resume)
+	{
+		SetSettingsMenuOpen(window, false);
+		return;
+	}
+	if (_selectedSettingsMenuOption == ve::ui::SettingsMenuOption::Quit)
+	{
+		glfwSetWindowShouldClose(window.GetNativeWindow(), true);
+		return;
+	}
 	ApplySettingsAdjustment(window, 1);
 }

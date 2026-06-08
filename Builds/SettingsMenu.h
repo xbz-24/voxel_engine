@@ -10,6 +10,7 @@ namespace ve::ui
 	enum class SettingsMenuOption : std::uint8_t
 	{
 		RenderDistance,
+		VSync,
 		DebugOverlay,
 		FlyMode,
 		Resume,
@@ -25,6 +26,7 @@ namespace ve::ui
 		bool isOpen;
 		SettingsMenuOption selectedOption;
 		int renderDistanceChunks;
+		bool isVSyncEnabled;
 		bool showDebugOverlay;
 		bool isFlying;
 	};

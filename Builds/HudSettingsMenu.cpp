@@ -17,6 +17,7 @@ namespace ve::ui
 
 		constexpr std::array<SettingsRow, static_cast<std::size_t>(SettingsMenuOption::Count)> Rows{{
 			{ SettingsMenuOption::RenderDistance, "Render Distance" },
+			{ SettingsMenuOption::VSync, "VSync" },
 			{ SettingsMenuOption::DebugOverlay, "Debug Overlay" },
 			{ SettingsMenuOption::FlyMode, "Fly Mode" },
 			{ SettingsMenuOption::Resume, "Resume Game" },
@@ -39,6 +40,7 @@ namespace ve::ui
 			switch (option)
 			{
 			case SettingsMenuOption::RenderDistance: return "< " + std::to_string(state.renderDistanceChunks) + " chunks >";
+			case SettingsMenuOption::VSync: return state.isVSyncEnabled ? "ON" : "OFF";
 			case SettingsMenuOption::DebugOverlay: return state.showDebugOverlay ? "ON" : "OFF";
 			case SettingsMenuOption::FlyMode: return state.isFlying ? "ON" : "OFF";
 			case SettingsMenuOption::Resume: return "Enter";
@@ -81,6 +83,6 @@ namespace ve::ui
 		const float handleX = sliderX + ((static_cast<float>(frame.settingsMenu.renderDistanceChunks - 1) / 5.0f) * (sliderWidth - 16.0f));
 		ve::rendering::DrawTexturedQuad(_textures.menuSlider, sliderX, sliderY + 18.0f, sliderWidth, 12.0f);
 		ve::rendering::DrawTexturedQuad(_textures.menuSliderHandle, handleX, sliderY + 10.0f, 18.0f, 28.0f);
-		DrawText("Selected: " + std::to_string(RowIndex(frame.settingsMenu.selectedOption) + 1), panelX + 198.0f, firstRowY + 256.0f, 1.1f);
+		DrawText("Selected: " + std::to_string(RowIndex(frame.settingsMenu.selectedOption) + 1), panelX + 198.0f, firstRowY + 304.0f, 1.1f);
 	}
 }

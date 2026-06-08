@@ -7,6 +7,7 @@ Window::Window(std::string title)
 	  _title(std::move(title)),
 	  _width(0),
 	  _height(0),
+	  _isVSyncEnabled(false),
 	  _callbackContext{ this, nullptr }
 {
 }
@@ -66,6 +67,17 @@ bool Window::Initialize()
 	}
 
 	return true;
+}
+
+void Window::SetVSync(bool isEnabled)
+{
+	_isVSyncEnabled = isEnabled;
+	glfwSwapInterval(isEnabled ? 1 : 0);
+}
+
+bool Window::IsVSyncEnabled() const noexcept
+{
+	return _isVSyncEnabled;
 }
 
 void Window::Update()

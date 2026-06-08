@@ -28,6 +28,7 @@ Engine::Engine()
 	  _wasRenderDistanceDecreasePressed(false),
 	  _wasRenderDistanceIncreasePressed(false),
 	  _isSettingsMenuOpen(false),
+	  _isVSyncEnabled(false),
 	  _isDebugOverlayVisible(true),
 	  _isFlying(false),
 	  _isGrounded(false),
@@ -48,6 +49,7 @@ int Engine::Run()
 	{
 		return -1;
 	}
+	window.SetVSync(_isVSyncEnabled);
 
 	Camera camera;
 	CallbackContext callbackContext{ &camera, &_isSettingsMenuOpen, { 0.0, 0.0, true } };
@@ -102,7 +104,7 @@ int Engine::Run()
 			_isDebugOverlayVisible,
 			_isFlying,
 			_renderDistanceChunks,
-			ve::ui::SettingsMenuState{ _isSettingsMenuOpen, _selectedSettingsMenuOption, _renderDistanceChunks, _isDebugOverlayVisible, _isFlying }
+			ve::ui::SettingsMenuState{ _isSettingsMenuOpen, _selectedSettingsMenuOption, _renderDistanceChunks, _isVSyncEnabled, _isDebugOverlayVisible, _isFlying }
 		};
 		hudRenderer.Draw(hudFrame);
 		window.Update();

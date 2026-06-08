@@ -40,6 +40,20 @@ public:
 	bool Initialize();
 
 	/**
+	 * Enables or disables vertical synchronization for buffer swaps.
+	 *
+	 * @param isEnabled true to wait for monitor refresh, false to uncap swaps.
+	 */
+	void SetVSync(bool isEnabled);
+
+	/**
+	 * Returns whether vertical synchronization is enabled.
+	 *
+	 * @return true when swaps are synchronized to monitor refresh.
+	 */
+	bool IsVSyncEnabled() const noexcept;
+
+	/**
 	 * Swaps buffers and polls window events.
 	 */
 	void Update();
@@ -111,6 +125,7 @@ private:
 	GLFWwindow* _window;
 	int _width;
 	int _height;
+	bool _isVSyncEnabled;
 	std::string _title;
 	CallbackContext _callbackContext;
 };
