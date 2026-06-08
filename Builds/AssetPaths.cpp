@@ -15,6 +15,11 @@ namespace ve::assets
 		paths.healthTexture = paths.rootDirectory / "assets/textures/gui/sprites/hud/heart/full.png";
 		paths.hungerTexture = paths.rootDirectory / "assets/textures/gui/sprites/hud/food_full.png";
 		paths.fontTexture = paths.rootDirectory / "assets/textures/font/ascii.png";
+		paths.menuBackgroundTexture = paths.rootDirectory / "assets/textures/gui/menu_background.png";
+		paths.menuButtonTexture = paths.rootDirectory / "assets/textures/gui/sprites/widget/button.png";
+		paths.menuButtonHighlightedTexture = paths.rootDirectory / "assets/textures/gui/sprites/widget/button_highlighted.png";
+		paths.menuSliderTexture = paths.rootDirectory / "assets/textures/gui/sprites/widget/slider.png";
+		paths.menuSliderHandleTexture = paths.rootDirectory / "assets/textures/gui/sprites/widget/slider_handle.png";
 		return paths;
 	}
 }

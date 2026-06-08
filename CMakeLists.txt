@@ -39,6 +39,7 @@ add_executable(main
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
     Builds/HudRenderer.cpp
+    Builds/HudSettingsMenu.cpp
     Builds/HudSurvival.cpp
     Builds/HudText.cpp
     Builds/LevelSpawn.cpp

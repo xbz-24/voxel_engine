@@ -19,6 +19,11 @@ namespace ve::assets
 		std::filesystem::path healthTexture;
 		std::filesystem::path hungerTexture;
 		std::filesystem::path fontTexture;
+		std::filesystem::path menuBackgroundTexture;
+		std::filesystem::path menuButtonTexture;
+		std::filesystem::path menuButtonHighlightedTexture;
+		std::filesystem::path menuSliderTexture;
+		std::filesystem::path menuSliderHandleTexture;
 	};
 
 	/**

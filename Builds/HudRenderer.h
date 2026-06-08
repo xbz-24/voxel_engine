@@ -3,6 +3,7 @@
 #include "AssetPaths.h"
 #include "BlockRegistry.h"
 #include "Camera.h"
+#include "SettingsMenu.h"
 #include "Window.h"
 
 #include <GL/glew.h>
@@ -10,6 +11,24 @@
 
 namespace ve::ui
 {
+	/**
+	 * Immutable data needed to draw the complete frame HUD.
+	 */
+	struct HudFrameInfo
+	{
+		const Window& window;
+		const Camera& camera;
+		int displayedFps;
+		glm::ivec3 targetBlock;
+		bool isBlockSelected;
+		const ve::blocks::BlockRegistry& blockRegistry;
+		ve::blocks::BlockId selectedPlacementBlock;
+		bool showDebugOverlay;
+		bool isFlying;
+		int renderDistanceChunks;
+		SettingsMenuState settingsMenu;
+	};
+
 	/**
 	 * Owns texture ids and draw logic for the in-game HUD.
 	 */
@@ -26,18 +45,9 @@ namespace ve::ui
 		/**
 		 * Draws the HUD overlay for the current frame.
 		 *
-		 * @param window Window used for screen-space dimensions.
-		 * @param camera Camera used by debug readouts.
-		 * @param displayedFps Last sampled FPS value.
-		 * @param targetBlock Currently selected block coordinate.
-		 * @param isBlockSelected Whether selectedBlock is valid.
-		 * @param blockRegistry Registry used to display block names.
-		 * @param selectedPlacementBlock Block currently selected for placement.
-		 * @param showDebugOverlay Whether debug text should be visible.
-		 * @param isFlying Whether player movement is currently in fly mode.
-		 * @param renderDistanceChunks Current chunk render radius.
+		 * @param frame Immutable data for the current HUD frame.
 		 */
-		void Draw(const Window& window, const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
+		void Draw(const HudFrameInfo& frame);
 
 	private:
 		struct Textures
@@ -49,6 +59,11 @@ namespace ve::ui
 			GLuint heart;
 			GLuint hunger;
 			GLuint font;
+			GLuint menuBackground;
+			GLuint menuButton;
+			GLuint menuButtonHighlighted;
+			GLuint menuSlider;
+			GLuint menuSliderHandle;
 		};
 
 		/**
@@ -87,6 +102,13 @@ namespace ve::ui
 		 * @param renderDistanceChunks Current chunk render radius.
 		 */
 		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
+
+		/**
+		 * Draws the settings menu overlay.
+		 *
+		 * @param frame Immutable data for the current HUD frame.
+		 */
+		void DrawSettingsMenu(const HudFrameInfo& frame);
 
 		/**
 		 * Draws text using the loaded bitmap font.
