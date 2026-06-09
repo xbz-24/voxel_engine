@@ -18,6 +18,7 @@ void SkyBox::draw()
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_TEXTURE_2D);
+    glDisable(GL_CULL_FACE);
     glColor3f(1.0f, 1.0f, 1.0f);
 
     // Front
