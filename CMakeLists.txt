@@ -9,6 +9,8 @@ option(VE_BUILD_API_DOCS "Build Doxygen API documentation when Doxygen is availa
 find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 find_package(Stb REQUIRED)
 
@@ -17,6 +19,9 @@ add_executable(main
     Builds/AsyncChunkMeshScheduler.cpp
     Builds/AsyncWorldGenerator.cpp
     Builds/AssetPaths.cpp
+    Builds/AssimpModelImporter.cpp
+    Builds/AssimpModelImporterMaterials.cpp
+    Builds/AssimpModelImporterMeshes.cpp
     Builds/AmbientOcclusionPass.cpp
     Builds/BackgroundTaskQueue.cpp
     Builds/BackgroundTaskQueueWorkers.cpp
@@ -62,6 +67,10 @@ add_executable(main
     Builds/EngineRun.cpp
     Builds/Entity.cpp
     Builds/EntityRegistry.cpp
+    Builds/EditorDemoState.cpp
+    Builds/EditorGui.cpp
+    Builds/EditorGuiPanel.cpp
+    Builds/EditorRuntimeController.cpp
     Builds/EcsWorld.cpp
     Builds/FrameTimer.cpp
     Builds/Frustum.cpp
@@ -87,6 +96,8 @@ add_executable(main
     Builds/Logger.cpp
     Builds/LoggerService.cpp
     Builds/MemoryArena.cpp
+    Builds/ModelAssetLibrary.cpp
+    Builds/ModelImporterRegistry.cpp
     Builds/MultiplayerClient.cpp
     Builds/MultiplayerClientMessages.cpp
     Builds/MultiplayerServer.cpp
@@ -152,6 +163,8 @@ target_link_libraries(main PRIVATE
     GLEW::GLEW 
     glfw 
     glm::glm
+    assimp::assimp
+    imgui::imgui
     ws2_32
 )
 

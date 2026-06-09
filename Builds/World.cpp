@@ -12,7 +12,10 @@ namespace ve::world
 		 */
 		std::size_t EstimateWorldArenaBytes(std::size_t chunkCount)
 		{
-			return chunkCount * sizeof(Chunk);
+			const std::size_t chunkBytes = chunkCount * sizeof(Chunk);
+			const std::size_t debugProxyAndAlignmentPadding = 64u * 1024u;
+			const std::size_t growthSlack = chunkBytes / 8u;
+			return chunkBytes + debugProxyAndAlignmentPadding + growthSlack;
 		}
 	}
 

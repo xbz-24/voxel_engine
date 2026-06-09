@@ -4,6 +4,7 @@
 #include "BlockRegistry.h"
 #include "BlockSelectionCube.h"
 #include "HudRenderer.h"
+#include "ModelAssetLibrary.h"
 #include "Plane.h"
 #include "SkyBox.h"
 
@@ -27,6 +28,8 @@ namespace ve::engine
 		Plane& MutablePlane() noexcept;
 		/** @return Block registry used by world rendering and HUD. */
 		ve::blocks::BlockRegistry& MutableBlockRegistry() noexcept;
+		/** @return Model importer library used by demos and tools. */
+		ve::assets::ModelAssetLibrary& MutableModelAssets() noexcept;
 		/** @return HUD renderer used for 2D overlays. */
 		ve::ui::HudRenderer& MutableHudRenderer() noexcept;
 
@@ -35,6 +38,7 @@ namespace ve::engine
 		BlockSelectionCube selection_cube_;
 		Plane plane_;
 		ve::blocks::BlockRegistry block_registry_;
+		ve::assets::ModelAssetLibrary model_asset_library_;
 		ve::ui::HudRenderer hud_renderer_;
 	};
 }

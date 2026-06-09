@@ -1,6 +1,7 @@
 #include "LinearMemoryResource.h"
 
 #include <new>
+#include <cstdint>
 
 namespace
 {
@@ -9,6 +10,12 @@ namespace
 	{
 		const std::size_t mask = alignment - 1;
 		return (address + mask) & ~mask;
+	}
+
+	/// Converts a pointer to an integer address for alignment math.
+	std::size_t AddressOf(std::byte* pointer) noexcept
+	{
+		return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(pointer));
 	}
 }
 
@@ -32,7 +39,9 @@ namespace ve::memory
 	/// Allocates aligned memory from the current linear cursor.
 	void* LinearMemoryResource::do_allocate(std::size_t bytes, std::size_t alignment)
 	{
-		const std::size_t aligned_offset = AlignForward(next_byte_, alignment);
+		const std::size_t base_address = AddressOf(backing_store_.data());
+		const std::size_t aligned_address = AlignForward(base_address + next_byte_, alignment);
+		const std::size_t aligned_offset = aligned_address - base_address;
 		const std::size_t next_offset = aligned_offset + bytes;
 		if (next_offset > backing_store_.size()) throw std::bad_alloc{};
 		next_byte_ = next_offset;

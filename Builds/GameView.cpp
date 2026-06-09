@@ -24,6 +24,9 @@ namespace ve::engine
 	/// Returns the block registry used by world rendering and HUD.
 	ve::blocks::BlockRegistry& GameView::MutableBlockRegistry() noexcept { return block_registry_; }
 
+	/// Returns the model importer library used by demos and tools.
+	ve::assets::ModelAssetLibrary& GameView::MutableModelAssets() noexcept { return model_asset_library_; }
+
 	/// Returns the HUD renderer used for 2D overlays.
 	ve::ui::HudRenderer& GameView::MutableHudRenderer() noexcept { return hud_renderer_; }
 }

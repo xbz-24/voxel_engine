@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include "AssetPaths.h"
+#include "EditorRuntimeController.h"
 #include "GameController.h"
 #include "GameModel.h"
 #include "GameView.h"
@@ -33,6 +34,7 @@ private:
 	std::unique_ptr<ve::engine::GameModel> model_;
 	std::unique_ptr<ve::engine::GameView> view_;
 	ve::engine::GameController controller_;
+	ve::editor::EditorRuntimeController editor_controller_;
 	ve::time::FrameTimer frame_timer_;
 };
 
@@ -63,6 +65,7 @@ bool Engine::RuntimeContext::Initialize(Engine& engine)
 	model_ = std::make_unique<ve::engine::GameModel>(kDefaultWorldSizeChunks);
 	callback_context_.camera = &model_->MutableCamera();
 	engine.ConfigureCallbacks(window_, callback_context_);
+	editor_controller_.Initialize(window_, engine._runtimeSettings);
 	LoadRuntimeAssets();
 	return true;
 }
@@ -78,14 +81,18 @@ void Engine::RuntimeContext::RunMainLoop(Engine& engine)
 	{
 		RunFrame(engine);
 	}
+	editor_controller_.Shutdown();
 }
 
 void Engine::RuntimeContext::RunFrame(Engine& engine)
 {
 	engine.UpdateProjectionIfWindowChanged(window_);
 	frame_timer_.Tick();
+	editor_controller_.BeginFrame();
 	controller_.Update(engine, window_, *model_, view_->MutableBlockRegistry(), frame_timer_.DeltaSeconds());
 	engine.Render3DWorld(window_, model_->MutableCamera(), view_->MutableSkyBox(), view_->MutablePlane(), view_->MutableSelectionCube(), view_->MutableBlockRegistry(), model_->MutableWorld(), model_->GetSelection());
 	view_->MutableHudRenderer().Draw(engine.CreateHudFrame(window_, model_->GetCamera(), frame_timer_, model_->GetSelection(), view_->MutableBlockRegistry(), model_->GetWorld()));
+	editor_controller_.DrawAndApply(window_, engine._runtimeSettings);
+	editor_controller_.Render();
 	window_.Update();
 }

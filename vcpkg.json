@@ -1,5 +1,15 @@
 {
   "name": "opengl-sandbox",
   "version": "1.0.0",
-  "dependencies": [ "glew", "glfw3", "glm", "stb" ]
+  "dependencies": [
+    "glew",
+    "glfw3",
+    "glm",
+    "stb",
+    "assimp",
+    {
+      "name": "imgui",
+      "features": [ "glfw-binding", "opengl3-binding" ]
+    }
+  ]
 }

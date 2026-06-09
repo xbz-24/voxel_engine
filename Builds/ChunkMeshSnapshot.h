@@ -1,8 +1,7 @@
 #pragma once
 
 #include "ChunkMeshInput.h"
-
-#include <array>
+#include "CoreTypes.h"
 
 class Chunk;
 
@@ -12,7 +11,7 @@ namespace ve::world::mesh
 	{
 		int chunkX;
 		int chunkZ;
-		std::array<ve::blocks::BlockId, ChunkBlockCount> blocks;
+		ve::core::DynamicArray<ve::blocks::BlockId> blocks;
 
 		/**
 		 * Creates a mesh input view over this owned snapshot.
