@@ -63,7 +63,7 @@ int Engine::Run()
 		frameTimer.Tick();
 		UpdateFrameGameplay(window, world, blockRegistry, camera, currentSelection, frameTimer.DeltaSeconds());
 		Render3DWorld(window, camera, skyBox, plane, selectionCube, blockRegistry, world, currentSelection);
-		hudRenderer.Draw(CreateHudFrame(window, camera, frameTimer, currentSelection, blockRegistry));
+		hudRenderer.Draw(CreateHudFrame(window, camera, frameTimer, currentSelection, blockRegistry, world));
 		window.Update();
 	}
 

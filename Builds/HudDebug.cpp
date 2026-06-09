@@ -28,23 +28,24 @@ namespace
 
 namespace ve::ui
 {
-	void HudRenderer::DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks)
+	void HudRenderer::DrawDebugOverlay(const HudFrameInfo& frame)
 	{
-		const std::string selectedPlacementName(blockRegistry.Get(selectedPlacementBlock).name);
+		const std::string selectedPlacementName(frame.blockRegistry.Get(frame.selectedPlacementBlock).name);
 		DrawText("Block " + selectedPlacementName + "  1-9 hotbar", 10.0f, 10.0f, 1.2f);
 		DrawText("LMB break  RMB place  Space jump  F fly  [] distance  F3 debug", 10.0f, 26.0f, 1.2f);
-		if (!showDebugOverlay)
+		if (!frame.showDebugOverlay)
 		{
 			return;
 		}
 
-		const glm::vec3 cameraPosition = camera.GetPosition();
-		DrawText(std::to_string(displayedFps) + " FPS", 10.0f, 50.0f, 1.6f);
+		const glm::vec3 cameraPosition = frame.camera.GetPosition();
+		DrawText(std::to_string(frame.displayedFps) + " FPS", 10.0f, 50.0f, 1.6f);
 		DrawText("XYZ " + FormatVec3(cameraPosition), 10.0f, 70.0f, 1.2f);
-		DrawText(std::string("Mode ") + (isFlying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
-		DrawText("Render distance " + std::to_string(renderDistanceChunks) + " chunks", 10.0f, 102.0f, 1.2f);
+		DrawText(std::string("Mode ") + (frame.isFlying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
+		DrawText("Render distance " + std::to_string(frame.renderDistanceChunks) + " chunks", 10.0f, 102.0f, 1.2f);
+		DrawText("World events " + std::to_string(frame.pendingWorldEvents), 10.0f, 118.0f, 1.2f);
 
-		const std::string selectedText = isBlockSelected ? "Target " + FormatIvec3(targetBlock) : "Target none";
-		DrawText(selectedText, 10.0f, 118.0f, 1.2f);
+		const std::string selectedText = frame.isBlockSelected ? "Target " + FormatIvec3(frame.targetBlock) : "Target none";
+		DrawText(selectedText, 10.0f, 134.0f, 1.2f);
 	}
 }

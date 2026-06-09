@@ -46,7 +46,7 @@ private:
 	/// Runs one frame of gameplay input and targeting.
 	void UpdateFrameGameplay(Window& window, ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& selection, double deltaSeconds);
 	/// Builds immutable HUD data for the current frame.
-	ve::ui::HudFrameInfo CreateHudFrame(const Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry) const;
+	ve::ui::HudFrameInfo CreateHudFrame(const Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry, const ve::world::World& world) const;
 	/// Releases cached OpenGL objects owned directly by the engine.
 	void ReleaseRenderCaches();
 	/// Draws debug X/Y/Z axes in world space.

@@ -7,6 +7,7 @@
 #include "Window.h"
 
 #include <GL/glew.h>
+#include <cstddef>
 #include <string>
 
 namespace ve::ui
@@ -23,6 +24,7 @@ namespace ve::ui
 		bool showDebugOverlay;
 		bool isFlying;
 		int renderDistanceChunks;
+		std::size_t pendingWorldEvents;
 		SettingsMenuState settingsMenu;
 	};
 
@@ -59,7 +61,7 @@ namespace ve::ui
 		void DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
 
 		/// Draws debug text readouts.
-		void DrawDebugOverlay(const Camera& camera, int displayedFps, const glm::ivec3& targetBlock, bool isBlockSelected, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock, bool showDebugOverlay, bool isFlying, int renderDistanceChunks);
+		void DrawDebugOverlay(const HudFrameInfo& frame);
 
 		/// Draws the settings menu overlay.
 		void DrawSettingsMenu(const HudFrameInfo& frame);

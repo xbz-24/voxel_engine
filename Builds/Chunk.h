@@ -3,6 +3,7 @@
 #include "Block.h"
 #include "BlockRegistry.h"
 #include "ChunkGpuMesh.h"
+#include "ChunkMeshInput.h"
 #include "ChunkMeshTypes.h"
 #include "ChunkTerrain.h"
 
@@ -40,12 +41,33 @@ public:
 	void BuildMesh(const ve::blocks::BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors);
 
 	/**
+	 * Uploads finished CPU mesh data to this chunk's GPU buffer.
+	 *
+	 * @param meshBuildResult CPU vertices and texture batches to move/upload.
+	 */
+	void UploadMesh(ve::world::mesh::ChunkMeshBuildResult meshBuildResult);
+
+	/**
 	 * Draws the chunk, building its mesh lazily on first use.
 	 *
 	 * @param blockRegistry Registry used to resolve texture ids.
 	 * @param neighbors Adjacent chunks used for border occlusion.
 	 */
 	void Draw(const ve::blocks::BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors);
+
+	/**
+	 * Returns a read-only mesh input view over this chunk's block storage.
+	 *
+	 * @return Non-owning view valid while this chunk is alive and unchanged.
+	 */
+	ve::world::mesh::ChunkMeshInput CreateMeshInput() const noexcept;
+
+	/**
+	 * Reports whether this chunk needs a fresh mesh.
+	 *
+	 * @return True when terrain/block changes invalidated the GPU mesh.
+	 */
+	bool NeedsMeshBuild() const noexcept;
 
 	/// Returns the chunk-grid X coordinate.
 	int GetChunkX() const noexcept;

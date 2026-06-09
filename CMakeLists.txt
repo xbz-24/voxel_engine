@@ -15,6 +15,8 @@ find_package(Stb REQUIRED)
 add_executable(main
     main.cpp
     Builds/AssetPaths.cpp
+    Builds/BackgroundTaskQueue.cpp
+    Builds/BackgroundTaskQueueWorkers.cpp
     Builds/BlockInteraction.cpp
     Builds/BlockRaycaster.cpp
     Builds/BlockRegistry.cpp
@@ -59,6 +61,7 @@ add_executable(main
     Builds/MultiplayerServer.cpp
     Builds/MultiplayerServerBroadcast.cpp
     Builds/MultiplayerServerConnections.cpp
+    Builds/NetworkBlockReplication.cpp
     Builds/NetworkPacketFraming.cpp
     Builds/NetworkPacketIO.cpp
     Builds/NetworkSerialization.cpp
@@ -83,6 +86,7 @@ add_executable(main
     Builds/WorldChunkLookup.cpp
     Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
+    Builds/WorldEvents.cpp
     Builds/WorldRender.cpp
     Builds/WorldVisibility.cpp
     Builds/WorldViewRange.cpp

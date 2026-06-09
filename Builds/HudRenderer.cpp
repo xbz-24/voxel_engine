@@ -46,7 +46,7 @@ namespace ve::ui
 		else
 		{
 			DrawSurvivalHud(frame.window, frame.blockRegistry, frame.selectedPlacementBlock);
-			DrawDebugOverlay(frame.camera, frame.displayedFps, frame.targetBlock, frame.isBlockSelected, frame.blockRegistry, frame.selectedPlacementBlock, frame.showDebugOverlay, frame.isFlying, frame.renderDistanceChunks);
+			DrawDebugOverlay(frame);
 		}
 
 		glEnable(GL_DEPTH_TEST);

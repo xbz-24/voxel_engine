@@ -4,6 +4,7 @@
 #include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
 #include "WorldConfiguration.h"
+#include "WorldEvent.h"
 #include "WorldRenderRequest.h"
 
 #include <glm/glm.hpp>
@@ -77,6 +78,20 @@ namespace ve::world
 		 */
 		WorldMetrics Metrics() const noexcept;
 
+		/**
+		 * Moves pending world events out of the world.
+		 *
+		 * @return Events emitted since the previous drain.
+		 */
+		std::vector<WorldEvent> DrainEvents();
+
+		/**
+		 * Reports pending events without draining them.
+		 *
+		 * @return Number of events waiting for consumers.
+		 */
+		std::size_t PendingEventCount() const noexcept;
+
 	private:
 		/// Returns the chunk that contains a chunk-grid coordinate.
 		Chunk* FindChunk(int chunkX, int chunkZ);
@@ -93,8 +108,15 @@ namespace ve::world
 		/// Collects neighboring chunks used to hide shared border faces.
 		ve::world::mesh::NeighborChunks FindNeighborChunks(int chunkX, int chunkZ) const;
 
+		/// Records a generated chunk event.
+		void RecordChunkGenerated(int chunkX, int chunkZ);
+
+		/// Records a block changed event.
+		void RecordBlockChanged(const glm::ivec3& position, ve::blocks::BlockId previousBlockId, ve::blocks::BlockId newBlockId);
+
 		LevelSpawn _levelSpawn;
 		ChunkList _chunks;
+		std::vector<WorldEvent> _pendingEvents;
 		int _worldSize;
 	};
 }

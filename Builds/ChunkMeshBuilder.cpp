@@ -1,9 +1,11 @@
 #include "ChunkMeshBuilder.h"
 
+#include "Chunk.h"
 #include "ChunkFaceEmitter.h"
 #include "ChunkMeshCollector.h"
 
 #include <algorithm>
+#include <optional>
 
 namespace ve::world::mesh
 {
@@ -33,10 +35,10 @@ namespace ve::world::mesh
 		}
 	}
 
-	ChunkMeshBuildResult BuildChunkMesh(const Chunk& chunk, const ve::blocks::BlockRegistry& blockRegistry, const NeighborChunks& neighbors)
+	ChunkMeshBuildResult BuildChunkMesh(const ChunkMeshInput& meshInput, const ve::blocks::BlockRegistry& blockRegistry, const NeighborMeshInputs& neighbors)
 	{
 		std::vector<MeshFace> faces;
-		CollectChunkFaces(chunk, blockRegistry, neighbors, faces);
+		CollectChunkFaces(meshInput, blockRegistry, neighbors, faces);
 		SortFacesByTexture(faces);
 
 		ChunkMeshBuildResult result;
@@ -60,5 +62,20 @@ namespace ve::world::mesh
 		}
 		AppendBatch(result, currentTexture, batchStart);
 		return result;
+	}
+
+	ChunkMeshBuildResult BuildChunkMesh(const Chunk& chunk, const ve::blocks::BlockRegistry& blockRegistry, const NeighborChunks& neighbors)
+	{
+		const ChunkMeshInput chunkInput = chunk.CreateMeshInput();
+		const std::optional<ChunkMeshInput> west = neighbors.west ? std::optional(neighbors.west->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> east = neighbors.east ? std::optional(neighbors.east->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> north = neighbors.north ? std::optional(neighbors.north->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> south = neighbors.south ? std::optional(neighbors.south->CreateMeshInput()) : std::nullopt;
+		return BuildChunkMesh(chunkInput, blockRegistry, NeighborMeshInputs{
+			west ? &*west : nullptr,
+			east ? &*east : nullptr,
+			north ? &*north : nullptr,
+			south ? &*south : nullptr
+		});
 	}
 }

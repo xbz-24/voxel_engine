@@ -37,12 +37,19 @@ namespace ve::world
 
 		const int localX = coordinates::PositiveMod(globalX, Chunk::CHUNK_WIDTH);
 		const int localZ = coordinates::PositiveMod(globalZ, Chunk::CHUNK_DEPTH);
+		const ve::blocks::BlockId previousBlockId = chunk->GetBlock(localX, globalY, localZ);
+		if (previousBlockId == blockId)
+		{
+			return true;
+		}
+
 		if (!chunk->SetBlock(localX, globalY, localZ, blockId))
 		{
 			return false;
 		}
 
 		MarkBorderNeighborsDirty(chunkX, chunkZ, localX, localZ);
+		RecordBlockChanged(glm::ivec3(globalX, globalY, globalZ), previousBlockId, blockId);
 		return true;
 	}
 

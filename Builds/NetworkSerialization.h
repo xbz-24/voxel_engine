@@ -59,4 +59,20 @@ namespace ve::network
 	 * @return Player name, or empty when the payload length is invalid.
 	 */
 	std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> payloadBytes);
+
+	/**
+	 * Decodes a PlayerSnapshot payload.
+	 *
+	 * @param payloadBytes Payload bytes from a PlayerSnapshot message.
+	 * @return Player snapshot data, or empty when the payload length is invalid.
+	 */
+	std::optional<PlayerSnapshotPayload> TryDeserializePlayerSnapshot(std::span<const std::byte> payloadBytes);
+
+	/**
+	 * Decodes a BlockMutation payload.
+	 *
+	 * @param payloadBytes Payload bytes from a BlockMutation message.
+	 * @return Block coordinate and target id, or empty when the payload length is invalid.
+	 */
+	std::optional<BlockMutationPayload> TryDeserializeBlockMutation(std::span<const std::byte> payloadBytes);
 }

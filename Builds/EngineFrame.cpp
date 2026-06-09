@@ -15,7 +15,7 @@ void Engine::UpdateFrameGameplay(Window& window, ve::world::World& world, const 
 }
 
 /// Builds immutable HUD data for the current frame.
-ve::ui::HudFrameInfo Engine::CreateHudFrame(const Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry) const
+ve::ui::HudFrameInfo Engine::CreateHudFrame(const Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry, const ve::world::World& world) const
 {
-	return ve::ui::HudFrameInfo{ window, camera, frameTimer.DisplayedFps(), selection.targetBlock, selection.hasTarget, blockRegistry, _selectedPlacementBlock, _runtimeSettings.showDebugOverlay, _runtimeSettings.isFlying, _runtimeSettings.renderDistanceChunks, ve::gameplay::ToSettingsMenuState(_runtimeSettings) };
+	return ve::ui::HudFrameInfo{ window, camera, frameTimer.DisplayedFps(), selection.targetBlock, selection.hasTarget, blockRegistry, _selectedPlacementBlock, _runtimeSettings.showDebugOverlay, _runtimeSettings.isFlying, _runtimeSettings.renderDistanceChunks, world.PendingEventCount(), ve::gameplay::ToSettingsMenuState(_runtimeSettings) };
 }

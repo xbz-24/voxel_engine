@@ -63,6 +63,7 @@ namespace ve::world
 			for (int z = 0; z < settings.worldSizeChunks; z++)
 			{
 				_chunks.emplace_back(x, z);
+				RecordChunkGenerated(x, z);
 			}
 		}
 	}

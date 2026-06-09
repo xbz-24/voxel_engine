@@ -1,6 +1,5 @@
 #include "Chunk.h"
 
-#include "ChunkMeshBuilder.h"
 #include "ChunkTerrain.h"
 
 #include <algorithm>
@@ -42,23 +41,6 @@ void Chunk::Generate()
 {
 	ve::world::terrain::GenerateChunkTerrain(_chunkX, _chunkZ, blocks);
 	MarkDirty();
-}
-void Chunk::BuildMesh(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
-{
-	ve::world::mesh::ChunkMeshBuildResult mesh = ve::world::mesh::BuildChunkMesh(
-		*this,
-		blockRegistry,
-		neighbors);
-	_mesh.Upload(mesh.vertices, std::move(mesh.batches));
-	_isMeshBuilt = true;
-}
-void Chunk::Draw(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
-{
-	if (!_isMeshBuilt)
-	{
-		BuildMesh(blockRegistry, neighbors);
-	}
-	_mesh.Draw();
 }
 int Chunk::GetChunkX() const noexcept
 {
