@@ -32,4 +32,13 @@ namespace ve::world::mesh
 	 * @return Chunk coordinates plus mesh data ready for main-thread upload.
 	 */
 	ChunkMeshBuildOutput BuildChunkMeshOutput(const ChunkMeshBuildRequest& request, const ve::blocks::BlockRegistry& blockRegistry);
+
+	/**
+	 * Captures a snapshot-backed build request from loaded chunks.
+	 *
+	 * @param chunk Center chunk copied into the request.
+	 * @param neighbors Optional loaded neighbors copied for border culling.
+	 * @return Request safe to move into a background mesh worker.
+	 */
+	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(const Chunk& chunk, const NeighborChunks& neighbors);
 }

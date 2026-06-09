@@ -4,6 +4,17 @@
 
 namespace ve::world::mesh
 {
+	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(const Chunk& chunk, const NeighborChunks& neighbors)
+	{
+		return ChunkMeshBuildRequest{
+			CaptureChunkMeshSnapshot(chunk),
+			neighbors.west ? std::optional(CaptureChunkMeshSnapshot(*neighbors.west)) : std::nullopt,
+			neighbors.east ? std::optional(CaptureChunkMeshSnapshot(*neighbors.east)) : std::nullopt,
+			neighbors.north ? std::optional(CaptureChunkMeshSnapshot(*neighbors.north)) : std::nullopt,
+			neighbors.south ? std::optional(CaptureChunkMeshSnapshot(*neighbors.south)) : std::nullopt
+		};
+	}
+
 	ChunkMeshBuildOutput BuildChunkMeshOutput(const ChunkMeshBuildRequest& request, const ve::blocks::BlockRegistry& blockRegistry)
 	{
 		const ChunkMeshInput chunkInput = request.chunk.CreateInput();
