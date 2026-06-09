@@ -27,22 +27,22 @@ void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 /// Updates projection matrices only when the window dimensions changed.
 void Engine::UpdateProjectionIfWindowChanged(const Window& window)
 {
-	if (window.GetWidth() == _currentWindowWidth && window.GetHeight() == _currentWindowHeight)
+	if (window.GetWidth() == _window_state.current_width && window.GetHeight() == _window_state.current_height)
 	{
 		return;
 	}
-	_currentWindowWidth = window.GetWidth();
-	_currentWindowHeight = window.GetHeight();
-	UpdateProjections(_currentWindowWidth, _currentWindowHeight);
+	_window_state.current_width = window.GetWidth();
+	_window_state.current_height = window.GetHeight();
+	UpdateProjections(_window_state.current_width, _window_state.current_height);
 }
 
 /// Releases cached OpenGL resources owned directly by the engine.
 void Engine::ReleaseRenderCaches()
 {
-	if (_cloudDisplayListID == 0)
+	if (_render_cache_state.cloud_display_list_id == 0)
 	{
 		return;
 	}
-	glDeleteLists(_cloudDisplayListID, 1);
-	_cloudDisplayListID = 0;
+	glDeleteLists(_render_cache_state.cloud_display_list_id, 1);
+	_render_cache_state.cloud_display_list_id = 0;
 }

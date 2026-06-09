@@ -1,6 +1,9 @@
 #include "Engine.h"
 
 #include "AssetPaths.h"
+#include "GameController.h"
+#include "GameModel.h"
+#include "GameView.h"
 #include "Logger.h"
 
 #include <memory>
@@ -13,17 +16,12 @@ namespace
 struct Engine::RuntimeContext
 {
 	Window window{ "Voxel Engine v1.0.0" };
-	Camera camera;
-	CallbackContext callbackContext{ &camera, nullptr, { 0.0, 0.0, true } };
+	CallbackContext callbackContext{ nullptr, nullptr, { 0.0, 0.0, true } };
 	ve::assets::AssetPaths assetPaths;
-	std::unique_ptr<SkyBox> skyBox;
-	std::unique_ptr<BlockSelectionCube> selectionCube;
-	std::unique_ptr<Plane> plane;
-	std::unique_ptr<ve::blocks::BlockRegistry> blockRegistry;
-	std::unique_ptr<ve::world::World> world;
-	std::unique_ptr<ve::ui::HudRenderer> hudRenderer;
+	std::unique_ptr<ve::engine::GameModel> model;
+	std::unique_ptr<ve::engine::GameView> view;
+	ve::engine::GameController controller;
 	ve::time::FrameTimer frameTimer;
-	BlockSelection currentSelection{ false, glm::ivec3(0), glm::ivec3(0) };
 };
 
 /// Starts the engine and returns a process-style status code.
@@ -51,10 +49,12 @@ std::unique_ptr<Engine::RuntimeContext> Engine::CreateRuntimeContext()
 		return nullptr;
 	}
 
-	ConfigureCallbacks(runtime->window, runtime->callbackContext);
 	ConfigureOpenGLState();
 	runtime->assetPaths = ve::assets::ResolveFromSourceFile(_applicationSourceFilePath);
 	ConfigureRuntimeLogging(runtime->assetPaths);
+	runtime->model = std::make_unique<ve::engine::GameModel>(DefaultWorldSizeChunks);
+	runtime->callbackContext.camera = &runtime->model->MutableCamera();
+	ConfigureCallbacks(runtime->window, runtime->callbackContext);
 	LoadRuntimeAssets(*runtime);
 	return runtime;
 }
@@ -62,13 +62,7 @@ std::unique_ptr<Engine::RuntimeContext> Engine::CreateRuntimeContext()
 /// Loads OpenGL-backed assets after a window context exists.
 void Engine::LoadRuntimeAssets(RuntimeContext& runtime)
 {
-	runtime.skyBox = std::make_unique<SkyBox>(runtime.assetPaths.environmentTexturesDirectory.string());
-	runtime.selectionCube = std::make_unique<BlockSelectionCube>(runtime.assetPaths.blockTexturesDirectory.string());
-	runtime.plane = std::make_unique<Plane>((runtime.assetPaths.blockTexturesDirectory / "cobblestone.png").string());
-	runtime.blockRegistry = std::make_unique<ve::blocks::BlockRegistry>(runtime.assetPaths);
-	runtime.world = std::make_unique<ve::world::World>(ve::world::CreateInfoForSquareWorld(DefaultWorldSizeChunks));
-	runtime.world->SpawnFlatGrid(ve::world::FlatWorldSpawnSettings{ DefaultWorldSizeChunks });
-	runtime.hudRenderer = std::make_unique<ve::ui::HudRenderer>(runtime.assetPaths);
+	runtime.view = std::make_unique<ve::engine::GameView>(runtime.assetPaths);
 }
 
 /// Runs the frame loop until the active window closes.
@@ -85,8 +79,8 @@ void Engine::RunFrame(RuntimeContext& runtime)
 {
 	UpdateProjectionIfWindowChanged(runtime.window);
 	runtime.frameTimer.Tick();
-	UpdateFrameGameplay(runtime.window, *runtime.world, *runtime.blockRegistry, runtime.camera, runtime.currentSelection, runtime.frameTimer.DeltaSeconds());
-	Render3DWorld(runtime.window, runtime.camera, *runtime.skyBox, *runtime.plane, *runtime.selectionCube, *runtime.blockRegistry, *runtime.world, runtime.currentSelection);
-	runtime.hudRenderer->Draw(CreateHudFrame(runtime.window, runtime.camera, runtime.frameTimer, runtime.currentSelection, *runtime.blockRegistry, *runtime.world));
+	runtime.controller.Update(*this, runtime.window, *runtime.model, runtime.view->MutableBlockRegistry(), runtime.frameTimer.DeltaSeconds());
+	Render3DWorld(runtime.window, runtime.model->MutableCamera(), runtime.view->MutableSkyBox(), runtime.view->MutablePlane(), runtime.view->MutableSelectionCube(), runtime.view->MutableBlockRegistry(), runtime.model->MutableWorld(), runtime.model->GetSelection());
+	runtime.view->MutableHudRenderer().Draw(CreateHudFrame(runtime.window, runtime.model->GetCamera(), runtime.frameTimer, runtime.model->GetSelection(), runtime.view->MutableBlockRegistry(), runtime.model->GetWorld()));
 	runtime.window.Update();
 }

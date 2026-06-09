@@ -9,21 +9,21 @@
 #include <optional>
 
 /// Casts from the camera to find the currently selected block.
-bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& out_selection)
+bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, ve::gameplay::BlockSelection& out_selection)
 {
 	constexpr float maxReach = 8.0f;
 	const std::optional<ve::gameplay::BlockRaycastHit> hit = ve::gameplay::RaycastBlocks(world, blockRegistry, camera.GetPosition(), camera.GetForward(), maxReach);
-	out_selection.hasTarget = hit.has_value();
+	out_selection.has_target = hit.has_value();
 	if (hit)
 	{
-		out_selection.targetBlock = hit->targetBlock;
-		out_selection.placementBlock = hit->placementBlock;
+		out_selection.target_block = hit->targetBlock;
+		out_selection.placement_block = hit->placementBlock;
 	}
-	return out_selection.hasTarget;
+	return out_selection.has_target;
 }
 
 /// Applies hotbar, debug, and block interaction input for one frame.
-void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const BlockSelection& selection)
+void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
 	if (_runtimeSettings.isSettingsMenuOpen)
 	{
@@ -37,23 +37,23 @@ void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const
 		_selectedPlacementBlock = blocks[*selectedSlot];
 	}
 
-	if (ve::gameplay::ConsumeDebugToggle(nativeWindow, _wasDebugTogglePressed))
+	if (ve::gameplay::ConsumeDebugToggle(nativeWindow, _input_state.was_debug_toggle_pressed))
 	{
 		_runtimeSettings.showDebugOverlay = !_runtimeSettings.showDebugOverlay;
 	}
 
-	if (selection.hasTarget && ve::gameplay::ConsumeBlockBreak(nativeWindow, _wasLeftMouseButtonPressed))
+	if (selection.has_target && ve::gameplay::ConsumeBlockBreak(nativeWindow, _input_state.was_left_mouse_button_pressed))
 	{
-		ve::gameplay::BreakBlock(world, selection.targetBlock);
+		ve::gameplay::BreakBlock(world, selection.target_block);
 	}
-	if (selection.hasTarget && ve::gameplay::ConsumeBlockPlace(nativeWindow, _wasRightMouseButtonPressed))
+	if (selection.has_target && ve::gameplay::ConsumeBlockPlace(nativeWindow, _input_state.was_right_mouse_button_pressed))
 	{
-		ve::gameplay::PlaceBlock(world, selection.placementBlock, _selectedPlacementBlock);
+		ve::gameplay::PlaceBlock(world, selection.placement_block, _selectedPlacementBlock);
 	}
 }
 
 /// Updates target selection for the current frame.
-void Engine::UpdateGameLogic(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, BlockSelection& selection)
+void Engine::UpdateGameLogic(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, ve::gameplay::BlockSelection& selection)
 {
 	performRaycastToFindTargetBlock(world, blockRegistry, camera, selection);
 }

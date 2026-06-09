@@ -7,6 +7,7 @@
 #include "BlockRegistry.h"
 #include "Camera.h"
 #include "BlockSelectionCube.h"
+#include "EngineState.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
 #include "RuntimeSettings.h"
@@ -91,17 +92,9 @@ private:
 	/// Builds the cached cloud display list.
 	void BuildCloudDisplayList();
 	std::filesystem::path _applicationSourceFilePath;
-	glm::mat4 _projection3D;
-	int _currentWindowWidth;
-	int _currentWindowHeight;
-	GLuint _cloudDisplayListID;
-	bool _wasLeftMouseButtonPressed;
-	bool _wasRightMouseButtonPressed;
-	bool _wasDebugTogglePressed;
-	bool _wasFlyTogglePressed;
-	bool _wasRenderDistanceDecreasePressed;
-	bool _wasRenderDistanceIncreasePressed;
-	bool _isGrounded;
+	EngineRenderCacheState _render_cache_state;
+	EngineWindowState _window_state;
+	EngineInputState _input_state;
 	ve::gameplay::RuntimeSettings _runtimeSettings;
 	ve::gameplay::SettingsMenuController _settingsMenuController;
 	ve::blocks::BlockId _selectedPlacementBlock;

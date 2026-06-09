@@ -52,6 +52,9 @@ add_executable(main
     Builds/EngineRender.cpp
     Builds/EngineRun.cpp
     Builds/FrameTimer.cpp
+    Builds/GameController.cpp
+    Builds/GameModel.cpp
+    Builds/GameView.cpp
     Builds/GameplayInput.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
@@ -84,6 +87,7 @@ add_executable(main
     Builds/Plane.cpp
     Builds/PlayerMovementInput.cpp
     Builds/Render2D.cpp
+    Builds/RenderPrimitives3D.cpp
     Builds/RenderState.cpp
     Builds/RuntimeSettings.cpp
     Builds/SettingsMenuActions.cpp

@@ -4,17 +4,17 @@
 
 void Engine::RenderClouds()
 {
-	if (_cloudDisplayListID == 0)
+	if (_render_cache_state.cloud_display_list_id == 0)
 	{
 		BuildCloudDisplayList();
 	}
-	glCallList(_cloudDisplayListID);
+	glCallList(_render_cache_state.cloud_display_list_id);
 }
 
 void Engine::BuildCloudDisplayList()
 {
-	_cloudDisplayListID = glGenLists(1);
-	glNewList(_cloudDisplayListID, GL_COMPILE);
+	_render_cache_state.cloud_display_list_id = glGenLists(1);
+	glNewList(_render_cache_state.cloud_display_list_id, GL_COMPILE);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

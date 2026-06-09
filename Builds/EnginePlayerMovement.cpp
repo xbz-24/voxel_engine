@@ -48,9 +48,9 @@ void Engine::ProcessInput(Window& window, const ve::world::World& world, const v
 /// Reads gameplay shortcuts, moves the camera, and advances player physics.
 void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameDeltaTimeSeconds)
 {
-	ConsumeFlyToggle(window, _runtimeSettings, _wasFlyTogglePressed);
-	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::LeftBracket, -1, _wasRenderDistanceDecreasePressed);
-	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::RightBracket, 1, _wasRenderDistanceIncreasePressed);
+	ConsumeFlyToggle(window, _runtimeSettings, _input_state.was_fly_toggle_pressed);
+	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::LeftBracket, -1, _input_state.was_render_distance_decrease_pressed);
+	ConsumeRenderDistanceAdjustment(window, _runtimeSettings, ve::input::Key::RightBracket, 1, _input_state.was_render_distance_increase_pressed);
 	const float speed = 5.0f * static_cast<float>(frameDeltaTimeSeconds);
 	const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window);
 	ve::gameplay::ApplyPlanarMovement(intent, camera, speed);
@@ -58,7 +58,7 @@ void Engine::handlePlayerMovementAndWindowInput(GLFWwindow* window, const ve::wo
 	{
 		ve::gameplay::ApplyFlyingMovement(intent, camera, speed);
 	}
-	else if (_isGrounded && ve::gameplay::WantsJump(intent))
+	else if (_input_state.is_grounded && ve::gameplay::WantsJump(intent))
 	{
 		_runtimeSettings.verticalVelocity = 7.0f;
 	}

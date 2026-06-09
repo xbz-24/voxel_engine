@@ -20,12 +20,12 @@ namespace ve::gameplay
 		void ProcessInput(Window& window, RuntimeSettings& settings);
 
 	private:
-		bool _wasTogglePressed = false;
-		bool _wasUpPressed = false;
-		bool _wasDownPressed = false;
-		bool _wasLeftPressed = false;
-		bool _wasRightPressed = false;
-		bool _wasConfirmPressed = false;
+		bool was_toggle_pressed_ = false;
+		bool was_up_pressed_ = false;
+		bool was_down_pressed_ = false;
+		bool was_left_pressed_ = false;
+		bool was_right_pressed_ = false;
+		bool was_confirm_pressed_ = false;
 
 		/**
 		 * Opens or closes the menu when the toggle key is pressed.

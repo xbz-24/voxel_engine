@@ -7,7 +7,7 @@ void Engine::ApplyPlayerPhysics(const ve::world::World& world, const ve::blocks:
 	if (_runtimeSettings.isFlying)
 	{
 		_runtimeSettings.verticalVelocity = 0.0f;
-		_isGrounded = false;
+		_input_state.is_grounded = false;
 		return;
 	}
 
@@ -24,11 +24,11 @@ void Engine::ApplyPlayerPhysics(const ve::world::World& world, const ve::blocks:
 	{
 		position.y = static_cast<float>(footBlockY) + 1.0f + playerEyeHeight;
 		_runtimeSettings.verticalVelocity = 0.0f;
-		_isGrounded = true;
+		_input_state.is_grounded = true;
 	}
 	else
 	{
-		_isGrounded = false;
+		_input_state.is_grounded = false;
 	}
 
 	camera.MoveTo(position);
