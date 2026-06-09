@@ -6,7 +6,6 @@
 #include <utility>
 
 using ve::blocks::BlockId;
-using ve::blocks::BlockRegistry;
 Chunk::Chunk(int chunkX, int chunkZ)
 	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false)
 {
