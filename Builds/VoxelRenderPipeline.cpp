@@ -34,6 +34,12 @@ namespace ve::rendering
 	/// Returns the deferred G-buffer pass.
 	DeferredRenderer& VoxelRenderPipeline::Deferred() noexcept { return deferred_; }
 
+	/// Returns the frame graph used to schedule render passes.
+	FrameGraph& VoxelRenderPipeline::Graph() noexcept { return frame_graph_; }
+
+	/// Returns the GPU-driven indirect draw submission API.
+	GpuDrivenRenderer& VoxelRenderPipeline::GpuDriven() noexcept { return gpu_driven_; }
+
 	/// Returns the screen-space ambient occlusion pass.
 	AmbientOcclusionPass& VoxelRenderPipeline::AmbientOcclusion() noexcept { return ambient_occlusion_; }
 

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 project(VoxelEngine)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_definitions(_WIN32_WINNT=0x0A00 NOMINMAX)
 
 option(VE_BUILD_API_DOCS "Build Doxygen API documentation when Doxygen is available" ON)
 
@@ -10,7 +11,10 @@ find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
+find_package(doctest CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 find_package(Stb REQUIRED)
 
@@ -73,6 +77,10 @@ add_executable(main
     Builds/EditorRuntimeController.cpp
     Builds/EcsWorld.cpp
     Builds/FrameTimer.cpp
+    Builds/FrameGraph.cpp
+    Builds/FrameGraphBuilder.cpp
+    Builds/FabrikInverseKinematicsPasses.cpp
+    Builds/FabrikInverseKinematicsSolver.cpp
     Builds/Frustum.cpp
     Builds/GameController.cpp
     Builds/GameModel.cpp
@@ -81,6 +89,8 @@ add_executable(main
     Builds/GreedyChunkMesher.cpp
     Builds/GreedyChunkMesherCollect.cpp
     Builds/GpuOcclusionQuery.cpp
+    Builds/GpuDrivenDrawBuffer.cpp
+    Builds/GpuDrivenRenderer.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
     Builds/HudRenderer.cpp
@@ -90,6 +100,7 @@ add_executable(main
     Builds/HudText.cpp
     Builds/Input.cpp
     Builds/InputMappings.cpp
+    Builds/InverseKinematicsChain.cpp
     Builds/LevelSpawn.cpp
     Builds/LinearMemoryResource.cpp
     Builds/LogFormatter.cpp
@@ -111,6 +122,7 @@ add_executable(main
     Builds/PhysicsOctreeInsert.cpp
     Builds/PhysicsOctreeQuery.cpp
     Builds/NetworkBlockReplication.cpp
+    Builds/NetworkAsioRuntime.cpp
     Builds/NetworkPacketFraming.cpp
     Builds/NetworkPacketIO.cpp
     Builds/NetworkSerialization.cpp
@@ -126,11 +138,16 @@ add_executable(main
     Builds/Render2D.cpp
     Builds/RenderPrimitives3D.cpp
     Builds/RenderState.cpp
+    Builds/RigidBody.cpp
+    Builds/RigidBodyForces.cpp
+    Builds/RigidBodyWorld.cpp
+    Builds/RigidBodyWorldIntegration.cpp
     Builds/RuntimeSettings.cpp
     Builds/SettingsMenuActions.cpp
     Builds/SettingsMenuController.cpp
     Builds/ScreenStack.cpp
     Builds/SkyBox.cpp
+    Builds/SpdlogLoggerBackend.cpp
     Builds/TemporalAntiAliasingPass.cpp
     Builds/TemporalAntiAliasingState.cpp
     Builds/TextureLoader.cpp
@@ -164,7 +181,9 @@ target_link_libraries(main PRIVATE
     glfw 
     glm::glm
     assimp::assimp
+    asio::asio
     imgui::imgui
+    spdlog::spdlog
     ws2_32
 )
 
@@ -187,4 +206,24 @@ if (VE_BUILD_API_DOCS)
     else()
         message(STATUS "Doxygen was not found; API documentation target will be skipped.")
     endif()
+endif()
+
+option(VE_BUILD_TESTS "Build engine smoke tests" ON)
+if (VE_BUILD_TESTS)
+    add_executable(engine_tests
+        Tests/EngineSmokeTests.cpp
+        Builds/Entity.cpp
+        Builds/EntityRegistry.cpp
+        Builds/EcsWorld.cpp
+        Builds/FabrikInverseKinematicsPasses.cpp
+        Builds/FabrikInverseKinematicsSolver.cpp
+        Builds/InverseKinematicsChain.cpp
+        Builds/PhysicsBounds.cpp
+        Builds/RigidBody.cpp
+        Builds/RigidBodyForces.cpp
+        Builds/RigidBodyWorld.cpp
+        Builds/RigidBodyWorldIntegration.cpp
+    )
+    target_include_directories(engine_tests PRIVATE Builds)
+    target_link_libraries(engine_tests PRIVATE doctest::doctest glm::glm)
 endif()

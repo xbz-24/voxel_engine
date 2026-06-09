@@ -3,6 +3,8 @@
 #include "AmbientOcclusionPass.h"
 #include "CascadedShadowMap.h"
 #include "DeferredRenderer.h"
+#include "FrameGraph.h"
+#include "GpuDrivenRenderer.h"
 #include "TemporalAntiAliasingPass.h"
 #include "VolumetricRaymarcher.h"
 #include "VoxelConeTracing.h"
@@ -35,6 +37,12 @@ namespace ve::rendering
 		/** @return Deferred G-buffer pass. */
 		[[nodiscard]] DeferredRenderer& Deferred() noexcept;
 
+		/** @return Frame graph used to schedule render passes. */
+		[[nodiscard]] FrameGraph& Graph() noexcept;
+
+		/** @return GPU-driven indirect draw submission API. */
+		[[nodiscard]] GpuDrivenRenderer& GpuDriven() noexcept;
+
 		/** @return Screen-space ambient occlusion pass. */
 		[[nodiscard]] AmbientOcclusionPass& AmbientOcclusion() noexcept;
 
@@ -52,6 +60,8 @@ namespace ve::rendering
 
 	private:
 		DeferredRenderer deferred_;
+		FrameGraph frame_graph_;
+		GpuDrivenRenderer gpu_driven_;
 		AmbientOcclusionPass ambient_occlusion_;
 		TemporalAntiAliasingPass temporal_anti_aliasing_;
 		CascadedShadowMap shadows_;

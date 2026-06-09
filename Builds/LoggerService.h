@@ -1,8 +1,8 @@
 #pragma once
 
 #include "LoggerConfiguration.h"
+#include "SpdlogLoggerBackend.h"
 
-#include <fstream>
 #include <mutex>
 #include <string_view>
 
@@ -41,11 +41,8 @@ namespace ve::log
 
 	private:
 		LoggerService() = default;
-		bool IsEnabled(Level level) const;
 
 		std::mutex mutex_;
-		Level minimum_level_ = Level::Info;
-		bool console_enabled_ = true;
-		std::ofstream file_;
+		SpdlogLoggerBackend backend_;
 	};
 }
