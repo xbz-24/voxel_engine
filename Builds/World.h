@@ -2,6 +2,7 @@
 
 #include "Chunk.h"
 #include "AsyncWorldGenerator.h"
+#include "ChunkMeshPipeline.h"
 #include "ChunkMeshRequest.h"
 #include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
@@ -74,6 +75,12 @@ namespace ve::world
 
 		/** @param output Completed CPU mesh output. @return True when it matched a loaded chunk. */
 		bool TryUploadChunkMeshOutput(ve::world::mesh::ChunkMeshBuildOutput output);
+
+		/** @param meshPipeline Async mesh pipeline receiving visible chunk work. */
+		void UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline);
+
+		/** @param blockRegistry Block metadata. @param meshPipeline Async mesh pipeline. @param cameraPosition Camera world position. @param renderDistanceChunks Chunk radius. */
+		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks);
 
 	private:
 		/// Returns the chunk that contains a chunk-grid coordinate.

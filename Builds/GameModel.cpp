@@ -7,7 +7,8 @@ namespace ve::engine
 	/// Creates world and player-facing gameplay state.
 	GameModel::GameModel(int world_size_chunks)
 		: world_(ve::world::CreateInfoForSquareWorld(world_size_chunks)),
-		  world_generator_(ve::tasks::DefaultWorkerCount())
+		  world_generator_(ve::tasks::DefaultWorkerCount()),
+		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
 	{
 		const ve::world::FlatWorldSpawnSettings settings{ world_size_chunks };
 		world_.SpawnEmptyGrid(settings);
@@ -39,5 +40,12 @@ namespace ve::engine
 		{
 			world_.ApplyGeneratedChunk(result);
 		}
+	}
+
+	/// Uploads ready meshes and queues visible chunks that need meshing.
+	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& block_registry, int render_distance_chunks)
+	{
+		world_.UploadReadyChunkMeshes(mesh_pipeline_);
+		world_.ScheduleVisibleChunkMeshes(block_registry, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
 	}
 }

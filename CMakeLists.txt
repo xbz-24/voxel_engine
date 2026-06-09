@@ -119,6 +119,7 @@ add_executable(main
     Builds/WorkerPolicy.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
+    Builds/WorldChunkMeshScheduling.cpp
     Builds/WorldChunkMeshing.cpp
     Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
