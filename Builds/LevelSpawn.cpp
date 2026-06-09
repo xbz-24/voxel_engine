@@ -6,8 +6,7 @@
  * @param byteCapacity Number of bytes reserved for level-lifetime allocations.
  */
 LevelSpawn::LevelSpawn(std::size_t byteCapacity)
-	: _backingStore(byteCapacity),
-	  _memoryResource(_backingStore.data(), _backingStore.size())
+	: _arena(byteCapacity)
 {
 }
 
@@ -18,6 +17,5 @@ LevelSpawn::LevelSpawn(std::size_t byteCapacity)
  */
 std::pmr::memory_resource& LevelSpawn::MemoryResource() noexcept
 {
-	return _memoryResource;
+	return _arena.Resource();
 }
-

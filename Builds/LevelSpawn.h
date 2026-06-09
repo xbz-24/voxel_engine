@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MemoryArena.h"
+
 #include <cstddef>
 #include <memory_resource>
-#include <vector>
 
 /**
  * Owns the memory arena used while a level is alive.
@@ -34,7 +35,5 @@ public:
 	std::pmr::memory_resource& MemoryResource() noexcept;
 
 private:
-	std::vector<std::byte> _backingStore;
-	std::pmr::monotonic_buffer_resource _memoryResource;
+	ve::memory::MemoryArena _arena;
 };
-

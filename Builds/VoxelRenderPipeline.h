@@ -3,6 +3,7 @@
 #include "AmbientOcclusionPass.h"
 #include "CascadedShadowMap.h"
 #include "DeferredRenderer.h"
+#include "TemporalAntiAliasingPass.h"
 #include "VolumetricRaymarcher.h"
 #include "VoxelConeTracing.h"
 
@@ -37,6 +38,9 @@ namespace ve::rendering
 		/** @return Screen-space ambient occlusion pass. */
 		[[nodiscard]] AmbientOcclusionPass& AmbientOcclusion() noexcept;
 
+		/** @return Temporal anti-aliasing resolve pass. */
+		[[nodiscard]] TemporalAntiAliasingPass& TemporalAntiAliasing() noexcept;
+
 		/** @return Cascaded shadow map pass. */
 		[[nodiscard]] CascadedShadowMap& Shadows() noexcept;
 
@@ -49,6 +53,7 @@ namespace ve::rendering
 	private:
 		DeferredRenderer deferred_;
 		AmbientOcclusionPass ambient_occlusion_;
+		TemporalAntiAliasingPass temporal_anti_aliasing_;
 		CascadedShadowMap shadows_;
 		VoxelConeTracing global_illumination_;
 		VolumetricRaymarcher volumetrics_;

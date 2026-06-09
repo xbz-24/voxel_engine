@@ -60,6 +60,9 @@ add_executable(main
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
     Builds/EngineRun.cpp
+    Builds/Entity.cpp
+    Builds/EntityRegistry.cpp
+    Builds/EcsWorld.cpp
     Builds/FrameTimer.cpp
     Builds/Frustum.cpp
     Builds/GameController.cpp
@@ -79,15 +82,23 @@ add_executable(main
     Builds/Input.cpp
     Builds/InputMappings.cpp
     Builds/LevelSpawn.cpp
+    Builds/LinearMemoryResource.cpp
     Builds/LogFormatter.cpp
     Builds/Logger.cpp
     Builds/LoggerService.cpp
+    Builds/MemoryArena.cpp
     Builds/MultiplayerClient.cpp
     Builds/MultiplayerClientMessages.cpp
     Builds/MultiplayerServer.cpp
     Builds/MultiplayerServerBroadcast.cpp
     Builds/MultiplayerServerConnections.cpp
     Builds/PbrMaterial.cpp
+    Builds/PhysicsBvh.cpp
+    Builds/PhysicsBvhQuery.cpp
+    Builds/PhysicsBounds.cpp
+    Builds/PhysicsOctree.cpp
+    Builds/PhysicsOctreeInsert.cpp
+    Builds/PhysicsOctreeQuery.cpp
     Builds/NetworkBlockReplication.cpp
     Builds/NetworkPacketFraming.cpp
     Builds/NetworkPacketIO.cpp
@@ -109,6 +120,8 @@ add_executable(main
     Builds/SettingsMenuController.cpp
     Builds/ScreenStack.cpp
     Builds/SkyBox.cpp
+    Builds/TemporalAntiAliasingPass.cpp
+    Builds/TemporalAntiAliasingState.cpp
     Builds/TextureLoader.cpp
     Builds/VolumetricRaymarcher.cpp
     Builds/VoxelConeTracing.cpp
