@@ -29,6 +29,7 @@ namespace ve::log
 	struct Record
 	{
 		Level level;
+		std::string_view category;
 		std::string_view message;
 		SourceLocation source;
 		std::chrono::system_clock::time_point timestamp;

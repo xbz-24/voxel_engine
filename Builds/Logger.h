@@ -1,6 +1,8 @@
 #pragma once
 
+#include "LogCategory.h"
 #include "LogRecord.h"
+#include "LoggerConfiguration.h"
 
 #include <filesystem>
 #include <string_view>
@@ -13,6 +15,13 @@ namespace ve::log
 	 * @param level Lowest severity that should be written.
 	 */
 	void SetMinimumLevel(Level level);
+
+	/**
+	 * Applies logger settings in one call.
+	 *
+	 * @param configuration Minimum level plus enabled sinks.
+	 */
+	void ApplyConfiguration(const LoggerConfiguration& configuration);
 
 	/**
 	 * Returns the current minimum accepted severity.
@@ -51,57 +60,32 @@ namespace ve::log
 	void Write(Level level, std::string_view message, SourceLocation source = {});
 
 	/**
-	 * Writes a trace-level diagnostic message.
+	 * Writes a structured category message with a selected severity.
 	 *
+	 * @param level Severity assigned to the record.
+	 * @param category Subsystem or feature that produced the record.
 	 * @param message Human-readable message body.
 	 * @param source Optional source location captured by logging macros.
 	 */
+	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source = {});
+
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Trace(std::string_view message, SourceLocation source = {});
 
-	/**
-	 * Writes a debug-level diagnostic message.
-	 *
-	 * @param message Human-readable message body.
-	 * @param source Optional source location captured by logging macros.
-	 */
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Debug(std::string_view message, SourceLocation source = {});
 
-	/**
-	 * Writes an informational message.
-	 *
-	 * @param message Human-readable message body.
-	 * @param source Optional source location captured by logging macros.
-	 */
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Info(std::string_view message, SourceLocation source = {});
 
-	/**
-	 * Writes a warning message.
-	 *
-	 * @param message Human-readable message body.
-	 * @param source Optional source location captured by logging macros.
-	 */
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Warning(std::string_view message, SourceLocation source = {});
 
-	/**
-	 * Writes an error message.
-	 *
-	 * @param message Human-readable message body.
-	 * @param source Optional source location captured by logging macros.
-	 */
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Error(std::string_view message, SourceLocation source = {});
 
-	/**
-	 * Writes a fatal message.
-	 *
-	 * @param message Human-readable message body.
-	 * @param source Optional source location captured by logging macros.
-	 */
+	/** @param message Human-readable message body. @param source Optional source location. */
 	void Fatal(std::string_view message, SourceLocation source = {});
 }
 
-#define VE_LOG_TRACE(message) ::ve::log::Trace((message), { __FILE__, __FUNCTION__, __LINE__ })
-#define VE_LOG_DEBUG(message) ::ve::log::Debug((message), { __FILE__, __FUNCTION__, __LINE__ })
-#define VE_LOG_INFO(message) ::ve::log::Info((message), { __FILE__, __FUNCTION__, __LINE__ })
-#define VE_LOG_WARNING(message) ::ve::log::Warning((message), { __FILE__, __FUNCTION__, __LINE__ })
-#define VE_LOG_ERROR(message) ::ve::log::Error((message), { __FILE__, __FUNCTION__, __LINE__ })
-#define VE_LOG_FATAL(message) ::ve::log::Fatal((message), { __FILE__, __FUNCTION__, __LINE__ })
+#include "LogMacros.h"

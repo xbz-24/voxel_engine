@@ -34,44 +34,68 @@ namespace ve::log
 {
 	void SetMinimumLevel(Level level)
 	{
-		std::lock_guard<std::mutex> lock(State().mutex);
-		State().minimumLevel = level;
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		state.minimumLevel = level;
+	}
+
+	void ApplyConfiguration(const LoggerConfiguration& configuration)
+	{
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		state.minimumLevel = configuration.minimumLevel;
+		state.consoleEnabled = configuration.consoleEnabled;
+		state.file.close();
+		if (configuration.fileOutputPath)
+		{
+			state.file.open(*configuration.fileOutputPath, std::ios::app);
+		}
 	}
 
 	Level MinimumLevel()
 	{
-		std::lock_guard<std::mutex> lock(State().mutex);
-		return State().minimumLevel;
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		return state.minimumLevel;
 	}
 
 	void SetConsoleEnabled(bool isEnabled)
 	{
-		std::lock_guard<std::mutex> lock(State().mutex);
-		State().consoleEnabled = isEnabled;
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		state.consoleEnabled = isEnabled;
 	}
 
 	bool SetFileOutput(const std::filesystem::path& path)
 	{
-		std::lock_guard<std::mutex> lock(State().mutex);
-		State().file.close();
-		State().file.open(path, std::ios::app);
-		return State().file.is_open();
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		state.file.close();
+		state.file.open(path, std::ios::app);
+		return state.file.is_open();
 	}
 
 	void ClearFileOutput()
 	{
-		std::lock_guard<std::mutex> lock(State().mutex);
-		State().file.close();
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		state.file.close();
 	}
 
 	void Write(Level level, std::string_view message, SourceLocation source)
 	{
-		Record record{ level, message, source, std::chrono::system_clock::now(), std::this_thread::get_id() };
+		Write(level, category::General, message, source);
+	}
+
+	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
+	{
+		LoggerState& state = State();
+		std::lock_guard<std::mutex> lock(state.mutex);
+		if (!IsEnabled(level, state.minimumLevel)) return;
+		Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id() };
 		const std::string line = FormatRecord(record);
-		std::lock_guard<std::mutex> lock(State().mutex);
-		if (!IsEnabled(level, State().minimumLevel)) return;
-		if (State().consoleEnabled) (level >= Level::Error ? std::cerr : std::cout) << line << '\n';
-		if (State().file.is_open()) State().file << line << '\n';
+		if (state.consoleEnabled) (level >= Level::Error ? std::cerr : std::cout) << line << '\n';
+		if (state.file.is_open()) state.file << line << '\n';
 	}
 
 	void Trace(std::string_view message, SourceLocation source) { Write(Level::Trace, message, source); }

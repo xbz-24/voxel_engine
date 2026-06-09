@@ -16,8 +16,12 @@ bool Engine::InitializeWindow(Window& window)
 /// Initializes logger outputs that need the resolved project root.
 void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
-	ve::log::SetFileOutput(assetPaths.rootDirectory / "logs/engine.log");
-	VE_LOG_INFO("Engine runtime started");
+	ve::log::ApplyConfiguration(ve::log::LoggerConfiguration{
+		ve::log::Level::Info,
+		true,
+		assetPaths.rootDirectory / "logs/engine.log"
+	});
+	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");
 }
 
 /// Updates projection matrices only when the window dimensions changed.

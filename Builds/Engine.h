@@ -16,6 +16,7 @@
 #include "World.h"
 
 #include <filesystem>
+#include <memory>
 #include <string>
 
 class Engine
@@ -31,8 +32,17 @@ private:
 	struct MouseState { double previousX, previousY; bool isFirstInputEvent; };
 	struct CallbackContext { Camera* camera; const bool* isSettingsMenuOpen; MouseState mouse; };
 	struct BlockSelection { bool hasTarget; glm::ivec3 targetBlock, placementBlock; };
+	struct RuntimeContext;
 	/// Receives GLFW mouse movement and applies it to the camera.
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	/// Builds all runtime systems needed by the main loop.
+	std::unique_ptr<RuntimeContext> CreateRuntimeContext();
+	/// Loads OpenGL-backed assets after a window context exists.
+	void LoadRuntimeAssets(RuntimeContext& runtime);
+	/// Runs the frame loop until the active window closes.
+	void RunMainLoop(RuntimeContext& runtime);
+	/// Updates gameplay, renders, and presents one frame.
+	void RunFrame(RuntimeContext& runtime);
 	/// Configures GLFW callbacks and callback state for engine-owned systems.
 	void ConfigureCallbacks(Window& window, CallbackContext& context);
 	/// Configures global OpenGL state used by the current renderer.

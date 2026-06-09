@@ -27,6 +27,10 @@ namespace ve::log
 
 		std::ostringstream stream;
 		stream << std::put_time(&localTime, "%H:%M:%S") << " [" << LevelName(record.level) << "] ";
+		if (!record.category.empty())
+		{
+			stream << '[' << record.category << "] ";
+		}
 		stream << "[thread " << record.threadId << "] " << record.message;
 		if (!record.source.file.empty())
 		{

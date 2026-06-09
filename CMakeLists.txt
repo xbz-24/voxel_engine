@@ -50,6 +50,7 @@ add_executable(main
     Builds/EnginePlayerMovement.cpp
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
+    Builds/EngineRun.cpp
     Builds/FrameTimer.cpp
     Builds/GameplayInput.cpp
     Builds/Hotbar.cpp
@@ -73,6 +74,8 @@ add_executable(main
     Builds/NetworkPacketFraming.cpp
     Builds/NetworkPacketIO.cpp
     Builds/NetworkSerialization.cpp
+    Builds/NetworkSession.cpp
+    Builds/NetworkSessionPump.cpp
     Builds/NetworkSocketLibrary.cpp
     Builds/NetworkTcpSocket.cpp
     Builds/NetworkTcpSocketConnect.cpp
@@ -85,6 +88,7 @@ add_executable(main
     Builds/RuntimeSettings.cpp
     Builds/SettingsMenuActions.cpp
     Builds/SettingsMenuController.cpp
+    Builds/ScreenStack.cpp
     Builds/SkyBox.cpp
     Builds/TextureLoader.cpp
     Builds/Window.cpp
