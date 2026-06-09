@@ -21,7 +21,7 @@ void Engine::Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox,
 	ve::rendering::ApplyView(view);
 	ve::rendering::UseSolidFillMode();
 	RenderClouds();
-	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _runtimeSettings.renderDistanceChunks });
+	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, _runtimeSettings.renderDistanceChunks });
 	renderDebugCoordinateSystemAxes();
 	if (selection.has_target)
 	{

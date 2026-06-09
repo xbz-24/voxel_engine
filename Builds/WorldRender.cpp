@@ -1,7 +1,7 @@
 #include "World.h"
 
+#include "ChunkVisibilityCuller.h"
 #include "WorldViewRange.h"
-#include "WorldVisibility.h"
 
 namespace ve::world
 {
@@ -18,11 +18,15 @@ namespace ve::world
 			return;
 		}
 
+		const visibility::ChunkVisibilityCuller culler(request);
 		for (int chunkX = range.minChunkX; chunkX <= range.maxChunkX; chunkX++)
 		{
 			for (int chunkZ = range.minChunkZ; chunkZ <= range.maxChunkZ; chunkZ++)
 			{
-				DrawVisibleChunk(request, chunkX, chunkZ);
+				if (culler.IsChunkVisible(chunkX, chunkZ))
+				{
+					DrawVisibleChunk(request, chunkX, chunkZ);
+				}
 			}
 		}
 	}
@@ -36,11 +40,6 @@ namespace ve::world
 	 */
 	void World::DrawVisibleChunk(const WorldRenderRequest& request, int chunkX, int chunkZ)
 	{
-		if (!visibility::IsChunkInView(request.cameraPosition, request.cameraForward, chunkX, chunkZ))
-		{
-			return;
-		}
-
 		Chunk* chunk = FindChunk(chunkX, chunkZ);
 		if (chunk)
 		{

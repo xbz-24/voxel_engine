@@ -1,23 +1,41 @@
 #include "ChunkFaceEmitter.h"
 
-#include <array>
+#include "ChunkFaceOffsets.h"
 
 namespace ve::world::mesh
 {
 	namespace
 	{
-		constexpr float BlockHalfSize = 0.5f;
-
-		struct FaceVertexOffset
+		/**
+		 * Scales one unit-face offset by a greedy merged face size.
+		 *
+		 * @param face Source face containing width and height.
+		 * @param offset Unit face offset to scale.
+		 * @return Offset expanded to the merged rectangle dimensions.
+		 */
+		FaceVertexOffset ScaleOffset(const MeshFace& face, FaceVertexOffset offset)
 		{
-			float x;
-			float y;
-			float z;
-			float u;
-			float v;
-		};
-
-		using FaceOffsets = std::array<FaceVertexOffset, 4>;
+			const float width = static_cast<float>(face.width);
+			const float height = static_cast<float>(face.height);
+			if (face.direction == MeshFaceDirection::Top || face.direction == MeshFaceDirection::Bottom)
+			{
+				offset.x *= width;
+				offset.z *= height;
+			}
+			else if (face.direction == MeshFaceDirection::Front || face.direction == MeshFaceDirection::Back)
+			{
+				offset.x *= width;
+				offset.y *= height;
+			}
+			else
+			{
+				offset.z *= width;
+				offset.y *= height;
+			}
+			offset.u *= width;
+			offset.v *= height;
+			return offset;
+		}
 
 		/**
 		 * Writes four offsets as concrete render vertices.
@@ -30,12 +48,13 @@ namespace ve::world::mesh
 		{
 			for (const FaceVertexOffset& offset : offsets)
 			{
+				const FaceVertexOffset scaledOffset = ScaleOffset(face, offset);
 				vertices.push_back(ve::rendering::ChunkVertex{
-					face.x + offset.x,
-					face.y + offset.y,
-					face.z + offset.z,
-					offset.u,
-					offset.v,
+					face.x + scaledOffset.x,
+					face.y + scaledOffset.y,
+					face.z + scaledOffset.z,
+					scaledOffset.u,
+					scaledOffset.v,
 					face.r,
 					face.g,
 					face.b
@@ -44,53 +63,14 @@ namespace ve::world::mesh
 		}
 	}
 
+	/**
+	 * Expands one collected cube face into four textured chunk vertices.
+	 *
+	 * @param face Face to expand.
+	 * @param vertices Destination vertex buffer.
+	 */
 	void AppendFaceVertices(const MeshFace& face, std::vector<ve::rendering::ChunkVertex>& vertices)
 	{
-		static constexpr FaceOffsets Top{{
-			{-BlockHalfSize, BlockHalfSize, -BlockHalfSize, 0.0f, 0.0f},
-			{-BlockHalfSize, BlockHalfSize, BlockHalfSize, 0.0f, 1.0f},
-			{BlockHalfSize, BlockHalfSize, BlockHalfSize, 1.0f, 1.0f},
-			{BlockHalfSize, BlockHalfSize, -BlockHalfSize, 1.0f, 0.0f}
-		}};
-		static constexpr FaceOffsets Bottom{{
-			{-BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 0.0f, 0.0f},
-			{BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 1.0f, 0.0f},
-			{BlockHalfSize, -BlockHalfSize, BlockHalfSize, 1.0f, 1.0f},
-			{-BlockHalfSize, -BlockHalfSize, BlockHalfSize, 0.0f, 1.0f}
-		}};
-		static constexpr FaceOffsets Front{{
-			{-BlockHalfSize, -BlockHalfSize, BlockHalfSize, 0.0f, 0.0f},
-			{BlockHalfSize, -BlockHalfSize, BlockHalfSize, 1.0f, 0.0f},
-			{BlockHalfSize, BlockHalfSize, BlockHalfSize, 1.0f, 1.0f},
-			{-BlockHalfSize, BlockHalfSize, BlockHalfSize, 0.0f, 1.0f}
-		}};
-		static constexpr FaceOffsets Back{{
-			{-BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 1.0f, 0.0f},
-			{-BlockHalfSize, BlockHalfSize, -BlockHalfSize, 1.0f, 1.0f},
-			{BlockHalfSize, BlockHalfSize, -BlockHalfSize, 0.0f, 1.0f},
-			{BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 0.0f, 0.0f}
-		}};
-		static constexpr FaceOffsets Right{{
-			{BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 1.0f, 0.0f},
-			{BlockHalfSize, BlockHalfSize, -BlockHalfSize, 1.0f, 1.0f},
-			{BlockHalfSize, BlockHalfSize, BlockHalfSize, 0.0f, 1.0f},
-			{BlockHalfSize, -BlockHalfSize, BlockHalfSize, 0.0f, 0.0f}
-		}};
-		static constexpr FaceOffsets Left{{
-			{-BlockHalfSize, -BlockHalfSize, -BlockHalfSize, 0.0f, 0.0f},
-			{-BlockHalfSize, -BlockHalfSize, BlockHalfSize, 1.0f, 0.0f},
-			{-BlockHalfSize, BlockHalfSize, BlockHalfSize, 1.0f, 1.0f},
-			{-BlockHalfSize, BlockHalfSize, -BlockHalfSize, 0.0f, 1.0f}
-		}};
-
-		switch (face.direction)
-		{
-		case MeshFaceDirection::Top: AppendOffsets(face, Top, vertices); break;
-		case MeshFaceDirection::Bottom: AppendOffsets(face, Bottom, vertices); break;
-		case MeshFaceDirection::Front: AppendOffsets(face, Front, vertices); break;
-		case MeshFaceDirection::Back: AppendOffsets(face, Back, vertices); break;
-		case MeshFaceDirection::Right: AppendOffsets(face, Right, vertices); break;
-		case MeshFaceDirection::Left: AppendOffsets(face, Left, vertices); break;
-		}
+		AppendOffsets(face, OffsetsForDirection(face.direction), vertices);
 	}
 }

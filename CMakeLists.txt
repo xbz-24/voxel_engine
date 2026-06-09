@@ -29,6 +29,7 @@ add_executable(main
     Builds/Chunk.cpp
     Builds/ChunkDecorations.cpp
     Builds/ChunkFaceEmitter.cpp
+    Builds/ChunkFaceOffsets.cpp
     Builds/ChunkGpuMesh.cpp
     Builds/ChunkMeshInput.cpp
     Builds/ChunkMeshBuilder.cpp
@@ -40,6 +41,7 @@ add_executable(main
     Builds/ChunkMeshUploadQueue.cpp
     Builds/ChunkMeshing.cpp
     Builds/ChunkTerrain.cpp
+    Builds/ChunkVisibilityCuller.cpp
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
     Builds/EngineDebugRender.cpp
@@ -52,10 +54,13 @@ add_executable(main
     Builds/EngineRender.cpp
     Builds/EngineRun.cpp
     Builds/FrameTimer.cpp
+    Builds/Frustum.cpp
     Builds/GameController.cpp
     Builds/GameModel.cpp
     Builds/GameView.cpp
     Builds/GameplayInput.cpp
+    Builds/GreedyChunkMesher.cpp
+    Builds/GreedyChunkMesherCollect.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
     Builds/HudRenderer.cpp

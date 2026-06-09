@@ -46,6 +46,8 @@ namespace ve::world::mesh
 		float r;
 		float g;
 		float b;
+		int width = 1;
+		int height = 1;
 	};
 
 	/**
