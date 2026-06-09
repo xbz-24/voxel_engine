@@ -24,6 +24,7 @@
 namespace ve::engine
 {
 	class GameController;
+	class EngineRuntime;
 }
 
 class Engine
@@ -37,14 +38,12 @@ public:
 	int Run();
 private:
 	friend class ve::engine::GameController;
+	friend class ve::engine::EngineRuntime;
 
 	struct MouseState { double previousX, previousY; bool isFirstInputEvent; };
 	struct CallbackContext { Camera* camera; const bool* isSettingsMenuOpen; MouseState mouse; };
-	struct RuntimeContext;
 	/// Receives GLFW mouse movement and applies it to the camera.
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	/// Builds all runtime systems needed by the main loop.
-	std::unique_ptr<RuntimeContext> CreateRuntimeContext();
 	/// Configures GLFW callbacks and callback state for engine-owned systems.
 	void ConfigureCallbacks(Window& window, CallbackContext& context);
 	/// Configures global OpenGL state used by the current renderer.

@@ -1,11 +1,16 @@
 #include "Engine.h"
 
 #include "Logger.h"
+#include "RenderBackendSelector.h"
 
 /// Initializes the native window and applies runtime window options.
 bool Engine::InitializeWindow(Window& window)
 {
-	if (!window.Initialize())
+	constexpr bool legacy_opengl_renderer_required = true;
+	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
+		_runtimeSettings.renderBackendConfiguration, legacy_opengl_renderer_required);
+	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, ve::rendering::RenderBackendSelector::Name(graphics_api));
+	if (!window.Initialize(graphics_api))
 	{
 		return false;
 	}

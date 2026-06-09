@@ -15,6 +15,10 @@ find_package(asio CONFIG REQUIRED)
 find_package(doctest CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(volk CONFIG REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(xsimd CONFIG REQUIRED)
 
 find_package(Stb REQUIRED)
 
@@ -58,6 +62,7 @@ add_executable(main
     Builds/ComputeTerrainGenerator.cpp
     Builds/CascadedShadowMap.cpp
     Builds/DeferredRenderer.cpp
+    Builds/DirectX12Backend.cpp
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
     Builds/EngineDebugRender.cpp
@@ -69,6 +74,8 @@ add_executable(main
     Builds/EnginePhysics.cpp
     Builds/EngineRender.cpp
     Builds/EngineRun.cpp
+    Builds/EngineRuntime.cpp
+    Builds/EngineRuntimeFrame.cpp
     Builds/Entity.cpp
     Builds/EntityRegistry.cpp
     Builds/EditorDemoState.cpp
@@ -79,6 +86,8 @@ add_executable(main
     Builds/FrameTimer.cpp
     Builds/FrameGraph.cpp
     Builds/FrameGraphBuilder.cpp
+    Builds/FluidGrid.cpp
+    Builds/FluidGridSampling.cpp
     Builds/FabrikInverseKinematicsPasses.cpp
     Builds/FabrikInverseKinematicsSolver.cpp
     Builds/Frustum.cpp
@@ -133,9 +142,20 @@ add_executable(main
     Builds/NetworkTcpSocketConnect.cpp
     Builds/NetworkTcpSocketListen.cpp
     Builds/NetworkTcpSocketTransfer.cpp
+    Builds/NavierStokesFluidAdvection.cpp
+    Builds/NavierStokesFluidProjection.cpp
+    Builds/NavierStokesFluidSimulation.cpp
+    Builds/OpenGLCompatibilityBackend.cpp
     Builds/Plane.cpp
+    Builds/PathTracingIntersection.cpp
+    Builds/PathTracingRandom.cpp
+    Builds/PathTracingScene.cpp
     Builds/PlayerMovementInput.cpp
     Builds/Render2D.cpp
+    Builds/RenderBackend.cpp
+    Builds/RenderBackendCatalog.cpp
+    Builds/RenderBackendFactory.cpp
+    Builds/RenderBackendSelector.cpp
     Builds/RenderPrimitives3D.cpp
     Builds/RenderState.cpp
     Builds/RigidBody.cpp
@@ -146,16 +166,29 @@ add_executable(main
     Builds/SettingsMenuActions.cpp
     Builds/SettingsMenuController.cpp
     Builds/ScreenStack.cpp
+    Builds/SimdFloat4.cpp
     Builds/SkyBox.cpp
     Builds/SpdlogLoggerBackend.cpp
     Builds/TemporalAntiAliasingPass.cpp
     Builds/TemporalAntiAliasingState.cpp
     Builds/TextureLoader.cpp
     Builds/VolumetricRaymarcher.cpp
+    Builds/MonteCarloPathTracer.cpp
+    Builds/MonteCarloPathTracingIntegrator.cpp
+    Builds/VulkanBackend.cpp
+    Builds/VulkanContext.cpp
+    Builds/VulkanDevice.cpp
+    Builds/VulkanMemoryAllocator.cpp
+    Builds/VulkanPhysicalDevice.cpp
+    Builds/VulkanSurface.cpp
+    Builds/VulkanSwapchain.cpp
+    Builds/VulkanSwapchainChoices.cpp
+    Builds/VulkanSwapchainSupport.cpp
     Builds/VoxelConeTracing.cpp
     Builds/VoxelRenderPipeline.cpp
     Builds/Window.cpp
     Builds/WindowCursor.cpp
+    Builds/WindowInitialization.cpp
     Builds/WindowRuntime.cpp
     Builds/WorkerPolicy.cpp
     Builds/WorldBlockAccess.cpp
@@ -184,6 +217,11 @@ target_link_libraries(main PRIVATE
     asio::asio
     imgui::imgui
     spdlog::spdlog
+    volk::volk
+    volk::volk_headers
+    Vulkan::Headers
+    GPUOpen::VulkanMemoryAllocator
+    xsimd
     ws2_32
 )
 
@@ -212,18 +250,44 @@ option(VE_BUILD_TESTS "Build engine smoke tests" ON)
 if (VE_BUILD_TESTS)
     add_executable(engine_tests
         Tests/EngineSmokeTests.cpp
+        Tests/RenderBackendTests.cpp
         Builds/Entity.cpp
         Builds/EntityRegistry.cpp
         Builds/EcsWorld.cpp
+        Builds/DirectX12Backend.cpp
         Builds/FabrikInverseKinematicsPasses.cpp
         Builds/FabrikInverseKinematicsSolver.cpp
+        Builds/FluidGrid.cpp
+        Builds/FluidGridSampling.cpp
         Builds/InverseKinematicsChain.cpp
+        Builds/MonteCarloPathTracer.cpp
+        Builds/MonteCarloPathTracingIntegrator.cpp
+        Builds/NavierStokesFluidAdvection.cpp
+        Builds/NavierStokesFluidProjection.cpp
+        Builds/NavierStokesFluidSimulation.cpp
+        Builds/OpenGLCompatibilityBackend.cpp
+        Builds/PathTracingIntersection.cpp
+        Builds/PathTracingRandom.cpp
+        Builds/PathTracingScene.cpp
         Builds/PhysicsBounds.cpp
+        Builds/RenderBackend.cpp
+        Builds/RenderBackendCatalog.cpp
+        Builds/RenderBackendFactory.cpp
+        Builds/RenderBackendSelector.cpp
+        Builds/VulkanBackend.cpp
+        Builds/VulkanContext.cpp
+        Builds/VulkanDevice.cpp
+        Builds/VulkanPhysicalDevice.cpp
+        Builds/VulkanSurface.cpp
+        Builds/VulkanSwapchain.cpp
+        Builds/VulkanSwapchainSupport.cpp
         Builds/RigidBody.cpp
         Builds/RigidBodyForces.cpp
         Builds/RigidBodyWorld.cpp
         Builds/RigidBodyWorldIntegration.cpp
+        Builds/SimdFloat4.cpp
+        Builds/VulkanSwapchainChoices.cpp
     )
     target_include_directories(engine_tests PRIVATE Builds)
-    target_link_libraries(engine_tests PRIVATE doctest::doctest glm::glm)
+    target_link_libraries(engine_tests PRIVATE doctest::doctest glm::glm volk::volk volk::volk_headers Vulkan::Headers xsimd)
 endif()

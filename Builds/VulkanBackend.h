@@ -1,0 +1,63 @@
+#pragma once
+
+#include "RenderBackend.h"
+#include "VulkanContext.h"
+#include "VulkanDevice.h"
+#include "VulkanPhysicalDevice.h"
+#include "VulkanSurface.h"
+#include "VulkanSwapchain.h"
+
+class Window;
+
+namespace ve::rendering
+{
+	struct VulkanBackendSettings
+	{
+		VulkanContextSettings context{};
+	};
+
+	/** High-level object that owns Vulkan startup state for the renderer. */
+	class VulkanBackend final : public RenderBackend
+	{
+	public:
+		/** @param settings Vulkan instance settings for context-only tools. @return True when startup succeeds. */
+		[[nodiscard]] bool Initialize(const VulkanContextSettings& settings);
+
+		/** @param settings Vulkan backend settings. @param window Presentation window. @return True when full backend startup succeeds. */
+		[[nodiscard]] bool Initialize(const VulkanBackendSettings& settings, Window& window);
+
+		/** Releases all Vulkan backend state. */
+		void Release();
+
+		/** @return Render backend capabilities exposed to high-level systems. */
+		[[nodiscard]] RenderBackendCapabilities Capabilities() const noexcept override;
+
+		/** @return API represented by this backend. */
+		[[nodiscard]] GraphicsApi Api() const noexcept override;
+
+		/** @return Vulkan context owned by the backend. */
+		[[nodiscard]] VulkanContext& Context() noexcept;
+
+		/** @return Vulkan surface owned by the backend. */
+		[[nodiscard]] VulkanSurface& Surface() noexcept;
+
+		/** @return Selected physical device. */
+		[[nodiscard]] VulkanPhysicalDevice& PhysicalDevice() noexcept;
+
+		/** @return Logical Vulkan device. */
+		[[nodiscard]] VulkanDevice& Device() noexcept;
+
+		/** @return Vulkan swapchain used for presentation. */
+		[[nodiscard]] VulkanSwapchain& Swapchain() noexcept;
+
+		/** @return True when the backend owns a Vulkan instance. */
+		[[nodiscard]] bool IsInitialized() const noexcept;
+
+	private:
+		VulkanContext context_;
+		VulkanSurface surface_;
+		VulkanPhysicalDevice physical_device_;
+		VulkanDevice device_;
+		VulkanSwapchain swapchain_;
+	};
+}

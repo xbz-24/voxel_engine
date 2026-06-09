@@ -1,9 +1,11 @@
 #include "Window.h"
 
+#include <cstdint>
+
 void Window::SetVSync(bool isEnabled)
 {
 	_isVSyncEnabled = isEnabled;
-	glfwSwapInterval(isEnabled ? 1 : 0);
+	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapInterval(isEnabled ? 1 : 0);
 }
 
 bool Window::IsVSyncEnabled() const noexcept
@@ -13,7 +15,7 @@ bool Window::IsVSyncEnabled() const noexcept
 
 void Window::Update()
 {
-	glfwSwapBuffers(_window);
+	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapBuffers(_window);
 	glfwPollEvents();
 }
 
@@ -45,6 +47,19 @@ float Window::GetAspectRatio() const
 GLFWwindow* Window::GetNativeWindow() const
 {
 	return _window;
+}
+
+ve::rendering::GraphicsApi Window::GraphicsApi() const noexcept
+{
+	return _graphicsApi;
+}
+
+std::vector<const char*> Window::RequiredVulkanInstanceExtensions() const
+{
+	std::uint32_t extension_count = 0;
+	const char** extensions = glfwGetRequiredInstanceExtensions(&extension_count);
+	if (extensions == nullptr) return {};
+	return { extensions, extensions + extension_count };
 }
 
 void Window::SetCallbackUserData(void* userData)

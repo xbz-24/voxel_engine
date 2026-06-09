@@ -1,5 +1,5 @@
 {
-  "name": "opengl-sandbox",
+  "name": "voxel-engine",
   "version": "1.0.0",
   "dependencies": [
     "glew",
@@ -10,6 +10,10 @@
     "asio",
     "doctest",
     "spdlog",
+    "volk",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    "xsimd",
     {
       "name": "imgui",
       "features": [ "glfw-binding", "opengl3-binding" ]

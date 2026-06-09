@@ -10,9 +10,10 @@
 namespace ve::editor
 {
 	/// Initializes ImGui for the engine window.
-	bool EditorGui::Initialize(Window& window)
-	{
-		IMGUI_CHECKVERSION();
+bool EditorGui::Initialize(Window& window)
+{
+	if (window.GraphicsApi() != ve::rendering::GraphicsApi::OpenGLCompatibility) return false;
+	IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;

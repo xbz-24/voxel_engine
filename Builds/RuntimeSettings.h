@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderApi.h"
 #include "SettingsMenu.h"
 
 namespace ve::gameplay
@@ -15,6 +16,7 @@ namespace ve::gameplay
 		bool isFlying = false;
 		float verticalVelocity = 0.0f;
 		int renderDistanceChunks = 2;
+		ve::rendering::RenderBackendConfiguration renderBackendConfiguration{};
 		ve::ui::SettingsMenuOption selectedSettingsMenuOption = ve::ui::SettingsMenuOption::RenderDistance;
 	};
 

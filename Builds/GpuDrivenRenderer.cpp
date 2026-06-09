@@ -8,13 +8,20 @@ namespace ve::rendering
 		draw_buffer_.Upload(commands);
 	}
 
-	/// Submits commands through multi-draw indirect when available.
-	void GpuDrivenRenderer::DrawIndexedIndirect(GLenum index_type) const
+	/// Records Vulkan indexed draw commands into the provided command buffer.
+	void GpuDrivenRenderer::RecordIndexedIndirect(VkCommandBuffer command_buffer) const
 	{
 		if (draw_buffer_.CommandCount() == 0) return;
-		draw_buffer_.Bind();
-		glMultiDrawElementsIndirect(GL_TRIANGLES, index_type, nullptr, static_cast<GLsizei>(draw_buffer_.CommandCount()), 0);
-		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+		if (draw_buffer_.DeviceBuffer() != VK_NULL_HANDLE)
+		{
+			vkCmdDrawIndexedIndirect(command_buffer, draw_buffer_.DeviceBuffer(), 0,
+				static_cast<std::uint32_t>(draw_buffer_.CommandCount()), sizeof(VkDrawIndexedIndirectCommand));
+			return;
+		}
+		for (const VkDrawIndexedIndirectCommand& command : draw_buffer_.Commands())
+		{
+			vkCmdDrawIndexed(command_buffer, command.indexCount, command.instanceCount, command.firstIndex, command.vertexOffset, command.firstInstance);
+		}
 	}
 
 	/// Returns uploaded command count.

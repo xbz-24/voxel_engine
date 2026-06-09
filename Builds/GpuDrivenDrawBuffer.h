@@ -2,42 +2,46 @@
 
 #include "CoreTypes.h"
 
-#include <GL/glew.h>
+#include <volk.h>
+#include <cstdint>
 #include <span>
 
 namespace ve::rendering
 {
-	/** OpenGL-compatible indirect draw command for glMultiDrawElementsIndirect. */
+	/** Vulkan-compatible indirect draw command for vkCmdDrawIndexedIndirect. */
 	struct GpuDrawElementsCommand
 	{
-		GLuint index_count = 0;
-		GLuint instance_count = 1;
-		GLuint first_index = 0;
-		GLuint base_vertex = 0;
-		GLuint base_instance = 0;
+		std::uint32_t index_count = 0;
+		std::uint32_t instance_count = 1;
+		std::uint32_t first_index = 0;
+		std::int32_t vertex_offset = 0;
+		std::uint32_t first_instance = 0;
 	};
 
-	/** Owns the GPU buffer containing indirect draw commands. */
+	/** Owns Vulkan indirect draw commands before they are uploaded or recorded. */
 	class GpuDrivenDrawBuffer
 	{
 	public:
-		/** Releases the OpenGL indirect buffer. */
-		~GpuDrivenDrawBuffer();
-
-		/** @param commands Draw commands uploaded to GL_DRAW_INDIRECT_BUFFER. */
+		/** @param commands Draw commands converted to Vulkan indirect commands. */
 		void Upload(std::span<const GpuDrawElementsCommand> commands);
 
-		/** Binds the indirect draw command buffer. */
-		void Bind() const;
-
-		/** Releases the OpenGL indirect buffer. */
+		/** Clears CPU-side commands and drops the optional Vulkan buffer handle. */
 		void Release();
 
-		/** @return Number of commands available for GPU-driven submission. */
+		/** @param buffer Vulkan buffer containing the uploaded command stream. */
+		void SetDeviceBuffer(VkBuffer buffer) noexcept;
+
+		/** @return Vulkan buffer used for vkCmdDrawIndexedIndirect, or null. */
+		[[nodiscard]] VkBuffer DeviceBuffer() const noexcept;
+
+		/** @return CPU-side commands used by fallback command recording. */
+		[[nodiscard]] std::span<const VkDrawIndexedIndirectCommand> Commands() const noexcept;
+
+		/** @return Number of indirect commands available for submission. */
 		[[nodiscard]] ve::core::Index CommandCount() const noexcept;
 
 	private:
-		GLuint buffer_ = 0;
-		ve::core::Index command_count_ = 0;
+		VkBuffer device_buffer_ = VK_NULL_HANDLE;
+		ve::core::DynamicArray<VkDrawIndexedIndirectCommand> commands_;
 	};
 }
