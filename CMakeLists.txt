@@ -14,6 +14,7 @@ find_package(Stb REQUIRED)
 
 add_executable(main
     main.cpp
+    Builds/AsyncChunkMeshScheduler.cpp
     Builds/AssetPaths.cpp
     Builds/BackgroundTaskQueue.cpp
     Builds/BackgroundTaskQueueWorkers.cpp
@@ -29,8 +30,15 @@ add_executable(main
     Builds/ChunkDecorations.cpp
     Builds/ChunkFaceEmitter.cpp
     Builds/ChunkGpuMesh.cpp
+    Builds/ChunkMeshInput.cpp
     Builds/ChunkMeshBuilder.cpp
     Builds/ChunkMeshCollector.cpp
+    Builds/ChunkMeshPipeline.cpp
+    Builds/ChunkMeshRequest.cpp
+    Builds/ChunkMeshSnapshot.cpp
+    Builds/ChunkMeshUploader.cpp
+    Builds/ChunkMeshUploadQueue.cpp
+    Builds/ChunkMeshing.cpp
     Builds/ChunkTerrain.cpp
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
@@ -84,6 +92,7 @@ add_executable(main
     Builds/WindowRuntime.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
+    Builds/WorldChunkMeshing.cpp
     Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
     Builds/WorldEvents.cpp

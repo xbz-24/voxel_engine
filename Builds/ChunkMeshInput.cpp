@@ -22,6 +22,7 @@ namespace
 
 namespace ve::world::mesh
 {
+	/// Reads a local block from a flattened chunk snapshot.
 	ve::blocks::BlockId ChunkMeshInput::GetBlock(int x, int y, int z) const
 	{
 		if (!IsInsideChunk(x, y, z) || ToBlockIndex(x, y, z) >= blocks.size())

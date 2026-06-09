@@ -6,11 +6,13 @@
 
 namespace ve::world::mesh
 {
+	/// Creates a mesh input view over this owned snapshot.
 	ChunkMeshInput ChunkMeshSnapshot::CreateInput() const noexcept
 	{
 		return ChunkMeshInput{ chunkX, chunkZ, blocks };
 	}
 
+	/// Copies a chunk's current block data into an immutable snapshot.
 	ChunkMeshSnapshot CaptureChunkMeshSnapshot(const Chunk& chunk)
 	{
 		const ChunkMeshInput chunkInput = chunk.CreateMeshInput();

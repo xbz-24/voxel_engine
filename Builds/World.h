@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chunk.h"
+#include "ChunkMeshRequest.h"
 #include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
 #include "WorldConfiguration.h"
@@ -9,6 +10,7 @@
 
 #include <glm/glm.hpp>
 #include <memory_resource>
+#include <optional>
 #include <vector>
 
 namespace ve::world
@@ -19,18 +21,10 @@ namespace ve::world
 	class World
 	{
 	public:
-		/**
-		 * Creates an empty world from explicit memory settings.
-		 *
-		 * @param createInfo Chunk capacity and arena sizing data.
-		 */
+		/** @param createInfo Chunk capacity and arena sizing data. */
 		explicit World(const WorldCreateInfo& createInfo);
 
-		/**
-		 * Creates an empty world with enough arena memory for the requested chunks.
-		 *
-		 * @param chunkCount Number of chunks to reserve in the level arena.
-		 */
+		/** @param chunkCount Number of chunks to reserve in the level arena. */
 		explicit World(std::size_t chunkCount);
 
 		World(const World&) = delete;
@@ -38,25 +32,13 @@ namespace ve::world
 		World(World&&) = delete;
 		World& operator=(World&&) = delete;
 
-		/**
-		 * Spawns a square grid of generated chunks.
-		 *
-		 * @param worldSize Number of chunks along each world side.
-		 */
+		/** @param worldSize Number of chunks along each world side. */
 		void SpawnFlatGrid(int worldSize);
 
-		/**
-		 * Spawns a square grid of generated chunks.
-		 *
-		 * @param settings Spawn settings containing the world size in chunks.
-		 */
+		/** @param settings Spawn settings containing the world size in chunks. */
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
 
-		/**
-		 * Draws chunks described by a render request after visibility culling.
-		 *
-		 * @param request Camera and render data used to submit visible chunks.
-		 */
+		/** @param request Camera and render data used to submit visible chunks. */
 		void Draw(const WorldRenderRequest& request);
 
 		/// Reads a block from world coordinates.
@@ -71,26 +53,20 @@ namespace ve::world
 		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
 
-		/**
-		 * Returns loaded chunk and capacity diagnostics.
-		 *
-		 * @return Snapshot of world size and chunk storage counts.
-		 */
+		/** @return Snapshot of world size and chunk storage counts. */
 		WorldMetrics Metrics() const noexcept;
 
-		/**
-		 * Moves pending world events out of the world.
-		 *
-		 * @return Events emitted since the previous drain.
-		 */
+		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
 
-		/**
-		 * Reports pending events without draining them.
-		 *
-		 * @return Number of events waiting for consumers.
-		 */
+		/** @return Number of events waiting for consumers. */
 		std::size_t PendingEventCount() const noexcept;
+
+		/** @param chunkX Chunk-grid X coordinate. @param chunkZ Chunk-grid Z coordinate. @return Snapshot request, or empty for missing chunks. */
+		std::optional<ve::world::mesh::ChunkMeshBuildRequest> CaptureChunkMeshBuildRequest(int chunkX, int chunkZ) const;
+
+		/** @param output Completed CPU mesh output. @return True when it matched a loaded chunk. */
+		bool TryUploadChunkMeshOutput(ve::world::mesh::ChunkMeshBuildOutput output);
 
 	private:
 		/// Returns the chunk that contains a chunk-grid coordinate.

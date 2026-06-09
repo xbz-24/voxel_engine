@@ -4,6 +4,7 @@
 
 namespace ve::world::mesh
 {
+	/// Captures a snapshot-backed build request from loaded chunks.
 	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(const Chunk& chunk, const NeighborChunks& neighbors)
 	{
 		return ChunkMeshBuildRequest{
@@ -15,6 +16,7 @@ namespace ve::world::mesh
 		};
 	}
 
+	/// Builds CPU mesh output from owned chunk snapshots.
 	ChunkMeshBuildOutput BuildChunkMeshOutput(const ChunkMeshBuildRequest& request, const ve::blocks::BlockRegistry& blockRegistry)
 	{
 		const ChunkMeshInput chunkInput = request.chunk.CreateInput();
