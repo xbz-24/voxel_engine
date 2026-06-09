@@ -1,7 +1,9 @@
 #include "BlockRegistry.h"
 
 #include "BlockDefinitions.h"
+#include "BlockPbrMaterials.h"
 #include "BlockTextureCache.h"
+#include "CoreTypes.h"
 
 namespace ve::blocks
 {
@@ -12,7 +14,7 @@ namespace ve::blocks
 		 */
 		constexpr std::size_t IndexOf(BlockId id)
 		{
-			return static_cast<std::size_t>(id);
+			return ve::core::ToIndex(id);
 		}
 
 		/**
@@ -20,7 +22,7 @@ namespace ve::blocks
 		 */
 		constexpr std::size_t IndexOf(BlockFace face)
 		{
-			return static_cast<std::size_t>(face);
+			return ve::core::ToIndex(face);
 		}
 
 		/**
@@ -48,7 +50,8 @@ namespace ve::blocks
 				definition.id,
 				definition.name,
 				definition.isSolid,
-				LoadFaces(cache, definition.textures)
+				LoadFaces(cache, definition.textures),
+				DefaultPbrMaterialForBlock(definition.id)
 			};
 		}
 	}
@@ -71,5 +74,10 @@ namespace ve::blocks
 	GLuint BlockRegistry::TextureFor(BlockId id, BlockFace face) const
 	{
 		return Get(id).faceTextures[IndexOf(face)];
+	}
+
+	const ve::rendering::PbrMaterial& BlockRegistry::MaterialFor(BlockId id) const
+	{
+		return Get(id).material;
 	}
 }

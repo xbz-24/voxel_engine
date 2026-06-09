@@ -3,6 +3,8 @@
 #include "AmbientOcclusionPass.h"
 #include "CascadedShadowMap.h"
 #include "DeferredRenderer.h"
+#include "VolumetricRaymarcher.h"
+#include "VoxelConeTracing.h"
 
 #include <cstddef>
 
@@ -14,6 +16,7 @@ namespace ve::rendering
 		int height = 1;
 		std::size_t shadow_cascade_count = 4;
 		int shadow_resolution = 2048;
+		int vxgi_resolution = 128;
 	};
 
 	class VoxelRenderPipeline
@@ -37,9 +40,17 @@ namespace ve::rendering
 		/** @return Cascaded shadow map pass. */
 		[[nodiscard]] CascadedShadowMap& Shadows() noexcept;
 
+		/** @return Voxel cone tracing radiance volume. */
+		[[nodiscard]] VoxelConeTracing& GlobalIllumination() noexcept;
+
+		/** @return Volumetric raymarching pass. */
+		[[nodiscard]] VolumetricRaymarcher& Volumetrics() noexcept;
+
 	private:
 		DeferredRenderer deferred_;
 		AmbientOcclusionPass ambient_occlusion_;
 		CascadedShadowMap shadows_;
+		VoxelConeTracing global_illumination_;
+		VolumetricRaymarcher volumetrics_;
 	};
 }

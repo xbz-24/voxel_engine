@@ -6,17 +6,19 @@
 #include <utility>
 
 using ve::blocks::BlockId;
-Chunk::Chunk(int chunkX, int chunkZ)
-	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false)
+Chunk::Chunk(int chunkX, int chunkZ, ChunkGenerationMode generationMode)
+	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false), _isGenerated(false)
 {
-	Generate();
+	if (generationMode == ChunkGenerationMode::GenerateNow) Generate();
+	else std::fill(&blocks[0][0][0], &blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
 }
 Chunk::~Chunk() = default;
 Chunk::Chunk(Chunk&& other) noexcept
 	: _mesh(std::move(other._mesh)),
 	  _chunkX(other._chunkX),
 	  _chunkZ(other._chunkZ),
-	  _isMeshBuilt(other._isMeshBuilt)
+	  _isMeshBuilt(other._isMeshBuilt),
+	  _isGenerated(other._isGenerated)
 {
 	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
 	other._isMeshBuilt = false;
@@ -32,14 +34,10 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 	_chunkX = other._chunkX;
 	_chunkZ = other._chunkZ;
 	_isMeshBuilt = other._isMeshBuilt;
+	_isGenerated = other._isGenerated;
 	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
 	other._isMeshBuilt = false;
 	return *this;
-}
-void Chunk::Generate()
-{
-	ve::world::terrain::GenerateChunkTerrain(_chunkX, _chunkZ, blocks);
-	MarkDirty();
 }
 int Chunk::GetChunkX() const noexcept
 {

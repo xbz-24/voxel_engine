@@ -15,8 +15,9 @@ namespace ve::rendering
 		const bool deferred_ok = deferred_.Initialize({ settings.width, settings.height });
 		const bool ao_ok = ambient_occlusion_.Initialize({ settings.width, settings.height });
 		const bool shadows_ok = shadows_.Initialize(settings.shadow_cascade_count, settings.shadow_resolution);
-		if (!(deferred_ok && ao_ok && shadows_ok)) Release();
-		return deferred_ok && ao_ok && shadows_ok;
+		const bool vxgi_ok = global_illumination_.Initialize({ settings.vxgi_resolution, 256.0f });
+		if (!(deferred_ok && ao_ok && shadows_ok && vxgi_ok)) Release();
+		return deferred_ok && ao_ok && shadows_ok && vxgi_ok;
 	}
 
 	/// Releases all owned pass resources.
@@ -25,6 +26,7 @@ namespace ve::rendering
 		shadows_.Release();
 		ambient_occlusion_.Release();
 		deferred_.Release();
+		global_illumination_.Release();
 	}
 
 	/// Returns the deferred G-buffer pass.
@@ -35,4 +37,10 @@ namespace ve::rendering
 
 	/// Returns the cascaded shadow map pass.
 	CascadedShadowMap& VoxelRenderPipeline::Shadows() noexcept { return shadows_; }
+
+	/// Returns the voxel cone tracing radiance volume.
+	VoxelConeTracing& VoxelRenderPipeline::GlobalIllumination() noexcept { return global_illumination_; }
+
+	/// Returns the volumetric raymarching pass.
+	VolumetricRaymarcher& VoxelRenderPipeline::Volumetrics() noexcept { return volumetrics_; }
 }

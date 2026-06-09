@@ -15,11 +15,13 @@ find_package(Stb REQUIRED)
 add_executable(main
     main.cpp
     Builds/AsyncChunkMeshScheduler.cpp
+    Builds/AsyncWorldGenerator.cpp
     Builds/AssetPaths.cpp
     Builds/AmbientOcclusionPass.cpp
     Builds/BackgroundTaskQueue.cpp
     Builds/BackgroundTaskQueueWorkers.cpp
     Builds/BlockInteraction.cpp
+    Builds/BlockPbrMaterials.cpp
     Builds/BlockRaycaster.cpp
     Builds/BlockRegistry.cpp
     Builds/BlockSelectionCube.cpp
@@ -31,6 +33,7 @@ add_executable(main
     Builds/ChunkDecorations.cpp
     Builds/ChunkFaceEmitter.cpp
     Builds/ChunkFaceOffsets.cpp
+    Builds/ChunkGenerationState.cpp
     Builds/ChunkGpuMesh.cpp
     Builds/ChunkMeshInput.cpp
     Builds/ChunkMeshBuilder.cpp
@@ -84,6 +87,7 @@ add_executable(main
     Builds/MultiplayerServer.cpp
     Builds/MultiplayerServerBroadcast.cpp
     Builds/MultiplayerServerConnections.cpp
+    Builds/PbrMaterial.cpp
     Builds/NetworkBlockReplication.cpp
     Builds/NetworkPacketFraming.cpp
     Builds/NetworkPacketIO.cpp
@@ -106,18 +110,23 @@ add_executable(main
     Builds/ScreenStack.cpp
     Builds/SkyBox.cpp
     Builds/TextureLoader.cpp
+    Builds/VolumetricRaymarcher.cpp
+    Builds/VoxelConeTracing.cpp
     Builds/VoxelRenderPipeline.cpp
     Builds/Window.cpp
     Builds/WindowCursor.cpp
     Builds/WindowRuntime.cpp
+    Builds/WorkerPolicy.cpp
     Builds/WorldBlockAccess.cpp
     Builds/WorldChunkLookup.cpp
     Builds/WorldChunkMeshing.cpp
     Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
     Builds/WorldEvents.cpp
+    Builds/WorldGeneration.cpp
     Builds/WorldReplicationController.cpp
     Builds/WorldRender.cpp
+    Builds/WorldSpawn.cpp
     Builds/WorldVisibility.cpp
     Builds/WorldViewRange.cpp
     Builds/World.cpp

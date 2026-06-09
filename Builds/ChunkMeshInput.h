@@ -7,7 +7,7 @@
 
 namespace ve::world::mesh
 {
-	inline constexpr int ChunkBlockCount = terrain::ChunkWidth * terrain::ChunkHeight * terrain::ChunkDepth;
+	inline constexpr int ChunkBlockCount = terrain::ChunkBlockCount;
 
 	struct ChunkMeshInput
 	{

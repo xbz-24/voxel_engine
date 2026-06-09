@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chunk.h"
+#include "AsyncWorldGenerator.h"
 #include "ChunkMeshRequest.h"
 #include "ChunkMeshTypes.h"
 #include "LevelSpawn.h"
@@ -37,6 +38,12 @@ namespace ve::world
 
 		/** @param settings Spawn settings containing the world size in chunks. */
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
+
+		/** @param settings Spawn settings containing the world size in chunks. */
+		void SpawnEmptyGrid(const FlatWorldSpawnSettings& settings);
+
+		/** @param result Generated terrain result produced by a worker. @return True when applied. */
+		bool ApplyGeneratedChunk(const generation::ChunkGenerationResult& result);
 
 		/** @param request Camera and render data used to submit visible chunks. */
 		void Draw(const WorldRenderRequest& request);
@@ -89,6 +96,9 @@ namespace ve::world
 
 		/// Records a block changed event.
 		void RecordBlockChanged(const glm::ivec3& position, ve::blocks::BlockId previousBlockId, ve::blocks::BlockId newBlockId);
+
+		/// Marks a generated chunk and its direct neighbors dirty.
+		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
 		LevelSpawn _levelSpawn;
 		ChunkList _chunks;

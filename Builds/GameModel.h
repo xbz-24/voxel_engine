@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BlockSelection.h"
+#include "AsyncWorldGenerator.h"
 #include "Camera.h"
 #include "World.h"
 
@@ -28,10 +29,13 @@ namespace ve::engine
 		ve::gameplay::BlockSelection& MutableSelection() noexcept;
 		/** @return Read-only block selection state. */
 		const ve::gameplay::BlockSelection& GetSelection() const noexcept;
+		/** Applies completed async terrain chunks to the world. */
+		void PumpAsyncWorldGeneration();
 
 	private:
 		Camera camera_;
 		ve::world::World world_;
+		ve::world::generation::AsyncWorldGenerator world_generator_;
 		ve::gameplay::BlockSelection block_selection_;
 	};
 }

@@ -40,35 +40,6 @@ namespace ve::world
 	}
 
 	/**
-	 * Spawns a square grid of generated chunks.
-	 *
-	 * @param worldSize Number of chunks along each world side.
-	 */
-	void World::SpawnFlatGrid(int worldSize)
-	{
-		SpawnFlatGrid(FlatWorldSpawnSettings{ worldSize });
-	}
-
-	/**
-	 * Spawns a square grid of generated chunks.
-	 *
-	 * @param settings Spawn settings containing the world size in chunks.
-	 */
-	void World::SpawnFlatGrid(const FlatWorldSpawnSettings& settings)
-	{
-		_chunks.clear();
-		_worldSize = settings.worldSizeChunks;
-		for (int x = 0; x < settings.worldSizeChunks; x++)
-		{
-			for (int z = 0; z < settings.worldSizeChunks; z++)
-			{
-				_chunks.emplace_back(x, z);
-				RecordChunkGenerated(x, z);
-			}
-		}
-	}
-
-	/**
 	 * Returns loaded chunk and capacity diagnostics.
 	 *
 	 * @return Snapshot of world size and chunk storage counts.

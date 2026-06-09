@@ -1,0 +1,62 @@
+#include "AsyncWorldGenerator.h"
+
+namespace ve::world::generation
+{
+	namespace
+	{
+		/// Copies generated chunk storage into a flat result buffer.
+		void CopyStorage(const terrain::BlockStorage& storage, ChunkGenerationResult& result)
+		{
+			ve::core::Index write_index = 0;
+			for (int x = 0; x < terrain::ChunkWidth; x++)
+				for (int y = 0; y < terrain::ChunkHeight; y++)
+					for (int z = 0; z < terrain::ChunkDepth; z++)
+						result.blocks[write_index++] = storage[x][y][z];
+		}
+
+		/// Generates one chunk result completely on a worker thread.
+		ChunkGenerationResult GenerateChunk(ChunkGenerationRequest request)
+		{
+			terrain::BlockStorage storage{};
+			terrain::GenerateChunkTerrain(request.chunk_x, request.chunk_z, storage);
+			ChunkGenerationResult result{ request.chunk_x, request.chunk_z, {} };
+			CopyStorage(storage, result);
+			return result;
+		}
+	}
+
+	/// Starts the async terrain generator.
+	AsyncWorldGenerator::AsyncWorldGenerator(ve::core::Index worker_count)
+		: background_tasks_(worker_count)
+	{
+	}
+
+	/// Queues one chunk coordinate for background generation.
+	bool AsyncWorldGenerator::RequestChunk(ChunkGenerationRequest request)
+	{
+		return background_tasks_.Enqueue([this, request]()
+		{
+			completed_chunks_.Push(GenerateChunk(request));
+		});
+	}
+
+	/// Queues every chunk in a square world for background generation.
+	void AsyncWorldGenerator::RequestGrid(const FlatWorldSpawnSettings& settings)
+	{
+		for (int x = 0; x < settings.worldSizeChunks; x++)
+			for (int z = 0; z < settings.worldSizeChunks; z++)
+				RequestChunk(ChunkGenerationRequest{ x, z });
+	}
+
+	/// Drains completed generated chunks without blocking the game thread.
+	ve::core::DynamicArray<ChunkGenerationResult> AsyncWorldGenerator::DrainCompletedChunks()
+	{
+		return completed_chunks_.Drain();
+	}
+
+	/// Reports terrain jobs waiting to start.
+	ve::core::Index AsyncWorldGenerator::PendingTaskCount() const
+	{
+		return background_tasks_.PendingTaskCount();
+	}
+}

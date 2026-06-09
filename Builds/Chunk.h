@@ -7,6 +7,14 @@
 #include "ChunkMeshTypes.h"
 #include "ChunkTerrain.h"
 
+#include <span>
+
+enum class ChunkGenerationMode
+{
+	GenerateNow,
+	Empty
+};
+
 class Chunk
 {
 public:
@@ -14,8 +22,8 @@ public:
 	static constexpr int CHUNK_HEIGHT = ve::world::terrain::ChunkHeight;
 	static constexpr int CHUNK_DEPTH = ve::world::terrain::ChunkDepth;
 
-	/// Creates and generates a chunk at chunk-grid coordinates.
-	Chunk(int chunkX, int chunkZ);
+	/// Creates a chunk at chunk-grid coordinates.
+	Chunk(int chunkX, int chunkZ, ChunkGenerationMode generationMode = ChunkGenerationMode::GenerateNow);
 
 	/// Releases the uploaded GPU mesh if one was built.
 	~Chunk();
@@ -31,6 +39,17 @@ public:
 
 	/// Fills block data using procedural terrain generation.
 	void Generate();
+
+	/**
+	 * Replaces all local block data with generated terrain.
+	 *
+	 * @param generatedBlocks Flat block data in chunk-local x/y/z order.
+	 * @return True when the input size matched this chunk.
+	 */
+	bool ReplaceBlocks(std::span<const ve::blocks::BlockId> generatedBlocks);
+
+	/** @return True when this chunk contains generated terrain data. */
+	bool IsGenerated() const noexcept;
 
 	/**
 	 * Builds a GPU mesh containing visible chunk faces.
@@ -90,6 +109,7 @@ private:
 	int _chunkX;
 	int _chunkZ;
 	bool _isMeshBuilt;
+	bool _isGenerated;
 
 	/// Checks if a local coordinate belongs to this chunk.
 	bool ContainsLocalBlock(int x, int y, int z) const;

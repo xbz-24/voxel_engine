@@ -2,6 +2,7 @@
 
 #include "AssetPaths.h"
 #include "Block.h"
+#include "PbrMaterial.h"
 
 #include <GL/glew.h>
 #include <array>
@@ -18,6 +19,7 @@ namespace ve::blocks
 		std::string_view name;
 		bool isSolid;
 		std::array<GLuint, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
+		ve::rendering::PbrMaterial material;
 	};
 
 	/**
@@ -66,8 +68,15 @@ namespace ve::blocks
 		 */
 		GLuint TextureFor(BlockId id, BlockFace face) const;
 
+		/**
+		 * Returns the physically based material used by a block.
+		 *
+		 * @param id Block id to inspect.
+		 * @return PBR material values for future shader-based rendering.
+		 */
+		const ve::rendering::PbrMaterial& MaterialFor(BlockId id) const;
+
 	private:
 		std::array<BlockType, static_cast<std::size_t>(BlockId::Count)> _blocks;
 	};
 }
-

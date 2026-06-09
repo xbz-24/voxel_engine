@@ -7,6 +7,7 @@ namespace ve::world::terrain
 	constexpr int ChunkWidth = 16;
 	constexpr int ChunkHeight = 128;
 	constexpr int ChunkDepth = 16;
+	inline constexpr int ChunkBlockCount = ChunkWidth * ChunkHeight * ChunkDepth;
 	using BlockStorage = ve::blocks::BlockId[ChunkWidth][ChunkHeight][ChunkDepth];
 
 	/**
@@ -18,4 +19,3 @@ namespace ve::world::terrain
 	 */
 	void GenerateChunkTerrain(int chunkX, int chunkZ, BlockStorage& blocks);
 }
-
