@@ -7,7 +7,7 @@
 
 using ve::blocks::BlockId;
 Chunk::Chunk(int chunkX, int chunkZ, ChunkGenerationMode generationMode)
-	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false), _isGenerated(false)
+	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false), _isGenerated(false), _isMeshBuildQueued(false)
 {
 	if (generationMode == ChunkGenerationMode::GenerateNow) Generate();
 	else std::fill(&blocks[0][0][0], &blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
@@ -18,7 +18,8 @@ Chunk::Chunk(Chunk&& other) noexcept
 	  _chunkX(other._chunkX),
 	  _chunkZ(other._chunkZ),
 	  _isMeshBuilt(other._isMeshBuilt),
-	  _isGenerated(other._isGenerated)
+	  _isGenerated(other._isGenerated),
+	  _isMeshBuildQueued(other._isMeshBuildQueued)
 {
 	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
 	other._isMeshBuilt = false;
@@ -35,6 +36,7 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 	_chunkZ = other._chunkZ;
 	_isMeshBuilt = other._isMeshBuilt;
 	_isGenerated = other._isGenerated;
+	_isMeshBuildQueued = other._isMeshBuildQueued;
 	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
 	other._isMeshBuilt = false;
 	return *this;
@@ -69,6 +71,7 @@ bool Chunk::SetBlock(int x, int y, int z, BlockId blockId)
 void Chunk::MarkDirty()
 {
 	_isMeshBuilt = false;
+	_isMeshBuildQueued = false;
 }
 bool Chunk::ContainsLocalBlock(int x, int y, int z) const
 {

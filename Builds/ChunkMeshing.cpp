@@ -18,15 +18,12 @@ void Chunk::UploadMesh(ve::world::mesh::ChunkMeshBuildResult meshBuildResult)
 {
 	_mesh.Upload(meshBuildResult.vertices, std::move(meshBuildResult.batches));
 	_isMeshBuilt = true;
+	_isMeshBuildQueued = false;
 }
 
 /// Draws the chunk, building its mesh lazily when needed.
 void Chunk::Draw(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
 {
-	if (NeedsMeshBuild())
-	{
-		BuildMesh(blockRegistry, neighbors);
-	}
 	_mesh.Draw();
 }
 
@@ -45,4 +42,16 @@ ve::world::mesh::ChunkMeshInput Chunk::CreateMeshInput() const noexcept
 bool Chunk::NeedsMeshBuild() const noexcept
 {
 	return !_isMeshBuilt;
+}
+
+/**
+ * Reserves this chunk for one async mesh task.
+ *
+ * @return True when the caller should enqueue a mesh build.
+ */
+bool Chunk::TryReserveMeshBuild() noexcept
+{
+	if (!NeedsMeshBuild() || _isMeshBuildQueued) return false;
+	_isMeshBuildQueued = true;
+	return true;
 }

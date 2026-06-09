@@ -51,6 +51,9 @@ public:
 	/** @return True when this chunk contains generated terrain data. */
 	bool IsGenerated() const noexcept;
 
+	/** @return True when this chunk was reserved for one async mesh task. */
+	bool TryReserveMeshBuild() noexcept;
+
 	/**
 	 * Builds a GPU mesh containing visible chunk faces.
 	 *
@@ -110,6 +113,7 @@ private:
 	int _chunkZ;
 	bool _isMeshBuilt;
 	bool _isGenerated;
+	bool _isMeshBuildQueued;
 
 	/// Checks if a local coordinate belongs to this chunk.
 	bool ContainsLocalBlock(int x, int y, int z) const;

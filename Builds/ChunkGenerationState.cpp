@@ -13,6 +13,7 @@ void Chunk::Generate()
 {
 	ve::world::terrain::GenerateChunkTerrain(_chunkX, _chunkZ, blocks);
 	_isGenerated = true;
+	_isMeshBuildQueued = false;
 	MarkDirty();
 }
 
@@ -27,6 +28,7 @@ bool Chunk::ReplaceBlocks(std::span<const BlockId> generatedBlocks)
 	if (generatedBlocks.size() != ve::world::terrain::ChunkBlockCount) return false;
 	std::copy(generatedBlocks.begin(), generatedBlocks.end(), &blocks[0][0][0]);
 	_isGenerated = true;
+	_isMeshBuildQueued = false;
 	MarkDirty();
 	return true;
 }
