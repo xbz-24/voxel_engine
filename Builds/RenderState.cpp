@@ -10,7 +10,6 @@ namespace ve::rendering
 	{
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
-		glDisable(GL_CULL_FACE);
 	}
 
 	/// Clears the frame using the configured sky color.
@@ -39,6 +38,14 @@ namespace ve::rendering
 	void UseSolidFillMode()
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	/// Enables back-face culling for opaque chunk rendering.
+	void UseBackFaceCulling()
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
 	}
 
 	/// Updates the OpenGL viewport.

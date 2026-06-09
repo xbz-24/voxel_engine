@@ -16,6 +16,7 @@ add_executable(main
     main.cpp
     Builds/AsyncChunkMeshScheduler.cpp
     Builds/AssetPaths.cpp
+    Builds/AmbientOcclusionPass.cpp
     Builds/BackgroundTaskQueue.cpp
     Builds/BackgroundTaskQueueWorkers.cpp
     Builds/BlockInteraction.cpp
@@ -42,6 +43,9 @@ add_executable(main
     Builds/ChunkMeshing.cpp
     Builds/ChunkTerrain.cpp
     Builds/ChunkVisibilityCuller.cpp
+    Builds/ComputeTerrainGenerator.cpp
+    Builds/CascadedShadowMap.cpp
+    Builds/DeferredRenderer.cpp
     Builds/Engine.cpp
     Builds/EngineClouds.cpp
     Builds/EngineDebugRender.cpp
@@ -61,6 +65,7 @@ add_executable(main
     Builds/GameplayInput.cpp
     Builds/GreedyChunkMesher.cpp
     Builds/GreedyChunkMesherCollect.cpp
+    Builds/GpuOcclusionQuery.cpp
     Builds/Hotbar.cpp
     Builds/HudDebug.cpp
     Builds/HudRenderer.cpp
@@ -101,6 +106,7 @@ add_executable(main
     Builds/ScreenStack.cpp
     Builds/SkyBox.cpp
     Builds/TextureLoader.cpp
+    Builds/VoxelRenderPipeline.cpp
     Builds/Window.cpp
     Builds/WindowCursor.cpp
     Builds/WindowRuntime.cpp

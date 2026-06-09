@@ -4,14 +4,6 @@
 
 namespace
 {
-	/// Returns the chunk dimension for a coordinate axis.
-	int DimensionForAxis(int axis)
-	{
-		if (axis == 0) return ve::world::terrain::ChunkWidth;
-		if (axis == 1) return ve::world::terrain::ChunkHeight;
-		return ve::world::terrain::ChunkDepth;
-	}
-
 	/// Writes one coordinate into an xyz array.
 	void SetAxisValue(std::array<int, 3>& coordinate, int axis, int value)
 	{

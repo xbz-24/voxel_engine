@@ -38,6 +38,11 @@ namespace ve::rendering
 	void UseSolidFillMode();
 
 	/**
+	 * Enables back-face culling for opaque chunk rendering.
+	 */
+	void UseBackFaceCulling();
+
+	/**
 	 * Updates the OpenGL viewport.
 	 *
 	 * @param width Framebuffer width in pixels.
