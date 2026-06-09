@@ -13,6 +13,25 @@ namespace ve::rendering
 		ColorRgba color;
 	};
 
+	class PrimitiveRenderer3D
+	{
+	public:
+		/**
+		 * Draws a filled axis-aligned cube using the fixed-function pipeline.
+		 *
+		 * @param request Cube center, size, and color.
+		 */
+		void DrawSolidCube(const CubeRequest& request) const;
+
+		/**
+		 * Draws an outlined axis-aligned cube using the fixed-function pipeline.
+		 *
+		 * @param request Cube center, size, and color.
+		 * @param line_width Outline width in pixels.
+		 */
+		void DrawWireCube(const CubeRequest& request, float line_width) const;
+	};
+
 	/**
 	 * Draws a filled axis-aligned cube using the fixed-function pipeline.
 	 *

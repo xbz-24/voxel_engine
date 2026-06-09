@@ -68,6 +68,7 @@ add_executable(main
     Builds/LevelSpawn.cpp
     Builds/LogFormatter.cpp
     Builds/Logger.cpp
+    Builds/LoggerService.cpp
     Builds/MultiplayerClient.cpp
     Builds/MultiplayerClientMessages.cpp
     Builds/MultiplayerServer.cpp
@@ -104,6 +105,7 @@ add_executable(main
     Builds/WorldConfiguration.cpp
     Builds/WorldCoordinates.cpp
     Builds/WorldEvents.cpp
+    Builds/WorldReplicationController.cpp
     Builds/WorldRender.cpp
     Builds/WorldVisibility.cpp
     Builds/WorldViewRange.cpp

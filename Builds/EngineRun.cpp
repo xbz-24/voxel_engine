@@ -10,77 +10,82 @@
 
 namespace
 {
-	constexpr int DefaultWorldSizeChunks = 10;
+	constexpr int kDefaultWorldSizeChunks = 10;
 }
 
-struct Engine::RuntimeContext
+class Engine::RuntimeContext
 {
-	Window window{ "Voxel Engine v1.0.0" };
-	CallbackContext callbackContext{ nullptr, nullptr, { 0.0, 0.0, true } };
-	ve::assets::AssetPaths assetPaths;
-	std::unique_ptr<ve::engine::GameModel> model;
-	std::unique_ptr<ve::engine::GameView> view;
-	ve::engine::GameController controller;
-	ve::time::FrameTimer frameTimer;
+public:
+	/** @param engine Engine services used to bootstrap runtime systems. @return True when ready. */
+	bool Initialize(Engine& engine);
+	/** @param engine Engine services used by per-frame systems. */
+	void RunMainLoop(Engine& engine);
+
+private:
+	/** @param engine Engine services used by one frame. */
+	void RunFrame(Engine& engine);
+	/** Loads OpenGL-backed assets after a window context exists. */
+	void LoadRuntimeAssets();
+
+	Window window_{ "Voxel Engine v1.0.0" };
+	CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
+	ve::assets::AssetPaths asset_paths_;
+	std::unique_ptr<ve::engine::GameModel> model_;
+	std::unique_ptr<ve::engine::GameView> view_;
+	ve::engine::GameController controller_;
+	ve::time::FrameTimer frame_timer_;
 };
 
-/// Starts the engine and returns a process-style status code.
 int Engine::Run()
 {
 	std::unique_ptr<RuntimeContext> runtime = CreateRuntimeContext();
-	if (!runtime)
-	{
-		return -1;
-	}
-
-	RunMainLoop(*runtime);
+	if (!runtime) return -1;
+	runtime->RunMainLoop(*this);
 	ReleaseRenderCaches();
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
 	return 0;
 }
 
-/// Builds all runtime systems needed by the main loop.
 std::unique_ptr<Engine::RuntimeContext> Engine::CreateRuntimeContext()
 {
 	auto runtime = std::make_unique<RuntimeContext>();
-	runtime->callbackContext.isSettingsMenuOpen = &_runtimeSettings.isSettingsMenuOpen;
-	if (!InitializeWindow(runtime->window))
-	{
-		return nullptr;
-	}
-
-	ConfigureOpenGLState();
-	runtime->assetPaths = ve::assets::ResolveFromSourceFile(_applicationSourceFilePath);
-	ConfigureRuntimeLogging(runtime->assetPaths);
-	runtime->model = std::make_unique<ve::engine::GameModel>(DefaultWorldSizeChunks);
-	runtime->callbackContext.camera = &runtime->model->MutableCamera();
-	ConfigureCallbacks(runtime->window, runtime->callbackContext);
-	LoadRuntimeAssets(*runtime);
+	if (!runtime->Initialize(*this)) return nullptr;
 	return runtime;
 }
 
-/// Loads OpenGL-backed assets after a window context exists.
-void Engine::LoadRuntimeAssets(RuntimeContext& runtime)
+bool Engine::RuntimeContext::Initialize(Engine& engine)
 {
-	runtime.view = std::make_unique<ve::engine::GameView>(runtime.assetPaths);
+	callback_context_.isSettingsMenuOpen = &engine._runtimeSettings.isSettingsMenuOpen;
+	if (!engine.InitializeWindow(window_)) return false;
+	engine.ConfigureOpenGLState();
+	asset_paths_ = ve::assets::ResolveFromSourceFile(engine._applicationSourceFilePath);
+	engine.ConfigureRuntimeLogging(asset_paths_);
+	model_ = std::make_unique<ve::engine::GameModel>(kDefaultWorldSizeChunks);
+	callback_context_.camera = &model_->MutableCamera();
+	engine.ConfigureCallbacks(window_, callback_context_);
+	LoadRuntimeAssets();
+	return true;
 }
 
-/// Runs the frame loop until the active window closes.
-void Engine::RunMainLoop(RuntimeContext& runtime)
+void Engine::RuntimeContext::LoadRuntimeAssets()
 {
-	while (!runtime.window.ShouldClose())
+	view_ = std::make_unique<ve::engine::GameView>(asset_paths_);
+}
+
+void Engine::RuntimeContext::RunMainLoop(Engine& engine)
+{
+	while (!window_.ShouldClose())
 	{
-		RunFrame(runtime);
+		RunFrame(engine);
 	}
 }
 
-/// Updates gameplay, renders, and presents one frame.
-void Engine::RunFrame(RuntimeContext& runtime)
+void Engine::RuntimeContext::RunFrame(Engine& engine)
 {
-	UpdateProjectionIfWindowChanged(runtime.window);
-	runtime.frameTimer.Tick();
-	runtime.controller.Update(*this, runtime.window, *runtime.model, runtime.view->MutableBlockRegistry(), runtime.frameTimer.DeltaSeconds());
-	Render3DWorld(runtime.window, runtime.model->MutableCamera(), runtime.view->MutableSkyBox(), runtime.view->MutablePlane(), runtime.view->MutableSelectionCube(), runtime.view->MutableBlockRegistry(), runtime.model->MutableWorld(), runtime.model->GetSelection());
-	runtime.view->MutableHudRenderer().Draw(CreateHudFrame(runtime.window, runtime.model->GetCamera(), runtime.frameTimer, runtime.model->GetSelection(), runtime.view->MutableBlockRegistry(), runtime.model->GetWorld()));
-	runtime.window.Update();
+	engine.UpdateProjectionIfWindowChanged(window_);
+	frame_timer_.Tick();
+	controller_.Update(engine, window_, *model_, view_->MutableBlockRegistry(), frame_timer_.DeltaSeconds());
+	engine.Render3DWorld(window_, model_->MutableCamera(), view_->MutableSkyBox(), view_->MutablePlane(), view_->MutableSelectionCube(), view_->MutableBlockRegistry(), model_->MutableWorld(), model_->GetSelection());
+	view_->MutableHudRenderer().Draw(engine.CreateHudFrame(window_, model_->GetCamera(), frame_timer_, model_->GetSelection(), view_->MutableBlockRegistry(), model_->GetWorld()));
+	window_.Update();
 }

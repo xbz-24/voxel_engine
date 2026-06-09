@@ -1,101 +1,29 @@
 #include "Logger.h"
 
-#include "LogFormatter.h"
-
-#include <fstream>
-#include <iostream>
-#include <mutex>
-
-namespace
-{
-	struct LoggerState
-	{
-		std::mutex mutex;
-		ve::log::Level minimumLevel = ve::log::Level::Info;
-		bool consoleEnabled = true;
-		std::ofstream file;
-	};
-
-	/// Returns the process-wide logger state.
-	LoggerState& State()
-	{
-		static LoggerState state;
-		return state;
-	}
-
-	/// Checks whether a severity passes the current filter.
-	bool IsEnabled(ve::log::Level level, ve::log::Level minimum)
-	{
-		return static_cast<int>(level) >= static_cast<int>(minimum);
-	}
-}
+#include "LoggerService.h"
 
 namespace ve::log
 {
-	void SetMinimumLevel(Level level)
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		state.minimumLevel = level;
-	}
+	void SetMinimumLevel(Level level) { LoggerService::Instance().SetMinimumLevel(level); }
 
-	void ApplyConfiguration(const LoggerConfiguration& configuration)
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		state.minimumLevel = configuration.minimumLevel;
-		state.consoleEnabled = configuration.consoleEnabled;
-		state.file.close();
-		if (configuration.fileOutputPath)
-		{
-			state.file.open(*configuration.fileOutputPath, std::ios::app);
-		}
-	}
+	void ApplyConfiguration(const LoggerConfiguration& configuration) { LoggerService::Instance().ApplyConfiguration(configuration); }
 
-	Level MinimumLevel()
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		return state.minimumLevel;
-	}
+	Level MinimumLevel() { return LoggerService::Instance().MinimumLevel(); }
 
-	void SetConsoleEnabled(bool isEnabled)
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		state.consoleEnabled = isEnabled;
-	}
+	void SetConsoleEnabled(bool is_enabled) { LoggerService::Instance().SetConsoleEnabled(is_enabled); }
 
-	bool SetFileOutput(const std::filesystem::path& path)
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		state.file.close();
-		state.file.open(path, std::ios::app);
-		return state.file.is_open();
-	}
+	bool SetFileOutput(const std::filesystem::path& path) { return LoggerService::Instance().SetFileOutput(path); }
 
-	void ClearFileOutput()
-	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		state.file.close();
-	}
+	void ClearFileOutput() { LoggerService::Instance().ClearFileOutput(); }
 
 	void Write(Level level, std::string_view message, SourceLocation source)
 	{
-		Write(level, category::General, message, source);
+		LoggerService::Instance().Write(level, category::General, message, source);
 	}
 
 	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
 	{
-		LoggerState& state = State();
-		std::lock_guard<std::mutex> lock(state.mutex);
-		if (!IsEnabled(level, state.minimumLevel)) return;
-		Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id() };
-		const std::string line = FormatRecord(record);
-		if (state.consoleEnabled) (level >= Level::Error ? std::cerr : std::cout) << line << '\n';
-		if (state.file.is_open()) state.file << line << '\n';
+		LoggerService::Instance().Write(level, category, message, source);
 	}
 
 	void Trace(std::string_view message, SourceLocation source) { Write(Level::Trace, message, source); }

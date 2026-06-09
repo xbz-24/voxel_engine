@@ -40,7 +40,7 @@ namespace
 
 namespace ve::rendering
 {
-	void DrawSolidCube(const CubeRequest& request)
+	void PrimitiveRenderer3D::DrawSolidCube(const CubeRequest& request) const
 	{
 		static constexpr std::array<std::size_t, 24> face_indices{
 			0, 1, 2, 3, 4, 7, 6, 5, 0, 4, 5, 1,
@@ -56,7 +56,7 @@ namespace ve::rendering
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
-	void DrawWireCube(const CubeRequest& request, float line_width)
+	void PrimitiveRenderer3D::DrawWireCube(const CubeRequest& request, float line_width) const
 	{
 		static constexpr std::array<std::size_t, 24> edge_indices{
 			0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6,
@@ -72,5 +72,15 @@ namespace ve::rendering
 		glLineWidth(1.0f);
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+
+	void DrawSolidCube(const CubeRequest& request)
+	{
+		PrimitiveRenderer3D{}.DrawSolidCube(request);
+	}
+
+	void DrawWireCube(const CubeRequest& request, float line_width)
+	{
+		PrimitiveRenderer3D{}.DrawWireCube(request, line_width);
 	}
 }

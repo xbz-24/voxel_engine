@@ -20,12 +20,7 @@ namespace ve::rendering
 		}
 	}
 
-	void DrawTexturedQuad(GLuint texture, float x, float y, float width, float height)
-	{
-		DrawTexturedQuad(TexturedQuadRequest{ texture, ScreenRect{ x, y, width, height }, ColorRgba{} });
-	}
-
-	void DrawTexturedQuad(const TexturedQuadRequest& request)
+	void Canvas2D::DrawTexturedQuad(const TexturedQuadRequest& request) const
 	{
 		glBindTexture(GL_TEXTURE_2D, request.texture);
 		ApplyColor(request.tint);
@@ -38,7 +33,7 @@ namespace ve::rendering
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
-	void DrawSolidRect(const ScreenRect& rect, const ColorRgba& color)
+	void Canvas2D::DrawSolidRect(const ScreenRect& rect, const ColorRgba& color) const
 	{
 		glDisable(GL_TEXTURE_2D);
 		ApplyColor(color);
@@ -48,7 +43,7 @@ namespace ve::rendering
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	void DrawRectOutline(const ScreenRect& rect, const ColorRgba& color, float line_width)
+	void Canvas2D::DrawRectOutline(const ScreenRect& rect, const ColorRgba& color, float line_width) const
 	{
 		glDisable(GL_TEXTURE_2D);
 		glLineWidth(line_width);
@@ -58,5 +53,25 @@ namespace ve::rendering
 		glEnd();
 		glLineWidth(1.0f);
 		glEnable(GL_TEXTURE_2D);
+	}
+
+	void DrawTexturedQuad(GLuint texture, float x, float y, float width, float height)
+	{
+		Canvas2D{}.DrawTexturedQuad(TexturedQuadRequest{ texture, ScreenRect{ x, y, width, height }, ColorRgba{} });
+	}
+
+	void DrawTexturedQuad(const TexturedQuadRequest& request)
+	{
+		Canvas2D{}.DrawTexturedQuad(request);
+	}
+
+	void DrawSolidRect(const ScreenRect& rect, const ColorRgba& color)
+	{
+		Canvas2D{}.DrawSolidRect(rect, color);
+	}
+
+	void DrawRectOutline(const ScreenRect& rect, const ColorRgba& color, float line_width)
+	{
+		Canvas2D{}.DrawRectOutline(rect, color, line_width);
 	}
 }
