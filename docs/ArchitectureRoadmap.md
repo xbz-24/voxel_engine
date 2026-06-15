@@ -22,6 +22,7 @@ The engine should move from one flat `Builds/` folder into feature folders:
 
 ## Immediate Refactors
 
+- Move files from `Builds/` into directories matching the CMake subsystem targets.
 - Move remaining frame gameplay code from `Engine` into `GameController`.
 - Move 3D/HUD draw orchestration from `Engine` into `GameView`.
 - Rename old member fields gradually to Google-style trailing underscore.

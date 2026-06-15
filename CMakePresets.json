@@ -20,7 +20,7 @@
       "configurePreset": "windows-vcpkg",
       "configuration": "Debug",
       "targets": [
-        "main"
+        "voxel_engine"
       ]
     },
     {

@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(VoxelEngine)
+project(VoxelEngine LANGUAGES C CXX)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_definitions(_WIN32_WINNT=0x0A00 NOMINMAX)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-option(VE_BUILD_API_DOCS "Build Doxygen API documentation when Doxygen is available" ON)
+option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
+option(VE_BUILD_TESTS "Build engine tests" ON)
 
 find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -24,206 +26,19 @@ if (NOT Stb_FOUND)
     find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${CMAKE_SOURCE_DIR} REQUIRED)
 endif()
 
-add_executable(main
-    main.cpp
-    Builds/AmbientOcclusionPass.cpp
-    Builds/AsyncChunkMeshScheduler.cpp
-    Builds/AsyncWorldGenerator.cpp
-    Builds/AssetPaths.cpp
-    Builds/AssimpModelImporter.cpp
-    Builds/AssimpModelImporterMaterials.cpp
-    Builds/AssimpModelImporterMeshes.cpp
-    Builds/BackgroundTaskQueue.cpp
-    Builds/BackgroundTaskQueueWorkers.cpp
-    Builds/BlockInteraction.cpp
-    Builds/BlockPbrMaterials.cpp
-    Builds/BlockRaycaster.cpp
-    Builds/BlockRegistry.cpp
-    Builds/BlockSelectionCube.cpp
-    Builds/BlockSelectionCubeFaces.cpp
-    Builds/BlockSelectionCubeSideFaces.cpp
-    Builds/BlockTextureCache.cpp
-    Builds/Camera.cpp
-    Builds/CascadedShadowMap.cpp
-    Builds/Chunk.cpp
-    Builds/ChunkDecorations.cpp
-    Builds/ChunkFaceEmitter.cpp
-    Builds/ChunkFaceOffsets.cpp
-    Builds/ChunkGenerationState.cpp
-    Builds/ChunkGpuMesh.cpp
-    Builds/ChunkMeshBuilder.cpp
-    Builds/ChunkMeshCollector.cpp
-    Builds/ChunkMeshInput.cpp
-    Builds/ChunkMeshPipeline.cpp
-    Builds/ChunkMeshRequest.cpp
-    Builds/ChunkMeshSnapshot.cpp
-    Builds/ChunkMeshUploader.cpp
-    Builds/ChunkMeshUploadQueue.cpp
-    Builds/ChunkMeshing.cpp
-    Builds/ChunkTerrain.cpp
-    Builds/ChunkVisibilityCuller.cpp
-    Builds/ComputeTerrainGenerator.cpp
-    Builds/DeferredRenderer.cpp
-    Builds/DirectX12Backend.cpp
-    Builds/EditorDemoState.cpp
-    Builds/EditorGui.cpp
-    Builds/EditorGuiPanel.cpp
-    Builds/EditorRuntimeController.cpp
-    Builds/EcsWorld.cpp
-    Builds/Engine.cpp
-    Builds/EngineCameraMouseInput.cpp
-    Builds/EngineClouds.cpp
-    Builds/EngineDebugRender.cpp
-    Builds/EngineFrame.cpp
-    Builds/EngineLifecycle.cpp
-    Builds/EnginePhysics.cpp
-    Builds/EnginePlayerBlockInput.cpp
-    Builds/EnginePlayerMovement.cpp
-    Builds/EngineRender.cpp
-    Builds/EngineRun.cpp
-    Builds/EngineRuntime.cpp
-    Builds/EngineRuntimeFrame.cpp
-    Builds/Entity.cpp
-    Builds/EntityRegistry.cpp
-    Builds/FabrikInverseKinematicsPasses.cpp
-    Builds/FabrikInverseKinematicsSolver.cpp
-    Builds/FluidGrid.cpp
-    Builds/FluidGridSampling.cpp
-    Builds/FrameGraph.cpp
-    Builds/FrameGraphBuilder.cpp
-    Builds/FrameTimer.cpp
-    Builds/Frustum.cpp
-    Builds/GameController.cpp
-    Builds/GameModel.cpp
-    Builds/GameView.cpp
-    Builds/GameplayInput.cpp
-    Builds/GeometryFactory.cpp
-    Builds/GraphicsFacade.cpp
-    Builds/GraphicsTypes.cpp
-    Builds/GreedyChunkMesher.cpp
-    Builds/GreedyChunkMesherCollect.cpp
-    Builds/GpuDrivenDrawBuffer.cpp
-    Builds/GpuDrivenRenderer.cpp
-    Builds/GpuOcclusionQuery.cpp
-    Builds/Hotbar.cpp
-    Builds/HudDebug.cpp
-    Builds/HudRenderer.cpp
-    Builds/HudSettingsMenu.cpp
-    Builds/HudSettingsMenuParts.cpp
-    Builds/HudSurvival.cpp
-    Builds/HudText.cpp
-    Builds/Input.cpp
-    Builds/InputMappings.cpp
-    Builds/InverseKinematicsChain.cpp
-    Builds/LevelSpawn.cpp
-    Builds/LinearMemoryResource.cpp
-    Builds/LogFormatter.cpp
-    Builds/Logger.cpp
-    Builds/LoggerService.cpp
-    Builds/MemoryArena.cpp
-    Builds/ModelAssetLibrary.cpp
-    Builds/ModelImporterRegistry.cpp
-    Builds/MonteCarloPathTracer.cpp
-    Builds/MonteCarloPathTracingIntegrator.cpp
-    Builds/MortonCode.cpp
-    Builds/MultiplayerClient.cpp
-    Builds/MultiplayerClientMessages.cpp
-    Builds/MultiplayerServer.cpp
-    Builds/MultiplayerServerBroadcast.cpp
-    Builds/MultiplayerServerConnections.cpp
-    Builds/NavierStokesFluidAdvection.cpp
-    Builds/NavierStokesFluidProjection.cpp
-    Builds/NavierStokesFluidSimulation.cpp
-    Builds/NetworkAsioRuntime.cpp
-    Builds/NetworkBlockReplication.cpp
-    Builds/NetworkPacketFraming.cpp
-    Builds/NetworkPacketIO.cpp
-    Builds/NetworkSerialization.cpp
-    Builds/NetworkSession.cpp
-    Builds/NetworkSessionPump.cpp
-    Builds/NetworkSocketLibrary.cpp
-    Builds/NetworkTcpSocket.cpp
-    Builds/NetworkTcpSocketConnect.cpp
-    Builds/NetworkTcpSocketListen.cpp
-    Builds/NetworkTcpSocketTransfer.cpp
-    Builds/OpenGLCompatibilityBackend.cpp
-    Builds/OpenGLRenderCommandExecutor.cpp
-    Builds/OpenGLRenderView.cpp
-    Builds/PathTracingIntersection.cpp
-    Builds/PathTracingRandom.cpp
-    Builds/PathTracingScene.cpp
-    Builds/PbrMaterial.cpp
-    Builds/PhysicsBounds.cpp
-    Builds/PhysicsBvh.cpp
-    Builds/PhysicsBvhQuery.cpp
-    Builds/PhysicsOctree.cpp
-    Builds/PhysicsOctreeInsert.cpp
-    Builds/PhysicsOctreeQuery.cpp
-    Builds/Plane.cpp
-    Builds/PlayerMovementInput.cpp
-    Builds/Render2D.cpp
-    Builds/RenderBackend.cpp
-    Builds/RenderBackendCatalog.cpp
-    Builds/RenderBackendFactory.cpp
-    Builds/RenderBackendSelector.cpp
-    Builds/RenderCommandList.cpp
-    Builds/RenderCommandSorter.cpp
-    Builds/RenderPrimitives3D.cpp
-    Builds/RenderState.cpp
-    Builds/RenderView.cpp
-    Builds/RenderViewFactory.cpp
-    Builds/RigidBody.cpp
-    Builds/RigidBodyForces.cpp
-    Builds/RigidBodyWorld.cpp
-    Builds/RigidBodyWorldIntegration.cpp
-    Builds/RuntimeSettings.cpp
-    Builds/ScreenStack.cpp
-    Builds/SettingsMenuActions.cpp
-    Builds/SettingsMenuController.cpp
-    Builds/SimdFloat4.cpp
-    Builds/SkyBox.cpp
-    Builds/SpdlogLoggerBackend.cpp
-    Builds/TemporalAntiAliasingPass.cpp
-    Builds/TemporalAntiAliasingState.cpp
-    Builds/TextureLoader.cpp
-    Builds/VolumetricRaymarcher.cpp
-    Builds/VoxelConeTracing.cpp
-    Builds/VoxelRenderPipeline.cpp
-    Builds/VulkanBackend.cpp
-    Builds/VulkanContext.cpp
-    Builds/VulkanDevice.cpp
-    Builds/VulkanMemoryAllocator.cpp
-    Builds/VulkanPhysicalDevice.cpp
-    Builds/VulkanRenderView.cpp
-    Builds/VulkanSurface.cpp
-    Builds/VulkanSwapchain.cpp
-    Builds/VulkanSwapchainChoices.cpp
-    Builds/VulkanSwapchainSupport.cpp
-    Builds/Window.cpp
-    Builds/WindowCursor.cpp
-    Builds/WindowInitialization.cpp
-    Builds/WindowRuntime.cpp
-    Builds/WorkerPolicy.cpp
-    Builds/World.cpp
-    Builds/WorldBlockAccess.cpp
-    Builds/WorldChunkLookup.cpp
-    Builds/WorldChunkMeshing.cpp
-    Builds/WorldChunkMeshScheduling.cpp
-    Builds/WorldConfiguration.cpp
-    Builds/WorldCoordinates.cpp
-    Builds/WorldEvents.cpp
-    Builds/WorldGeneration.cpp
-    Builds/WorldRender.cpp
-    Builds/WorldReplicationController.cpp
-    Builds/WorldSpawn.cpp
-    Builds/WorldViewRange.cpp
-    Builds/WorldVisibility.cpp
-    Builds/dependencies.cpp
+# Third-party usage requirements live in one place so subsystem targets stay small.
+add_library(ve_dependencies INTERFACE)
+target_compile_definitions(ve_dependencies INTERFACE
+    _WIN32_WINNT=0x0A00
+    NOMINMAX
+    ROOT_DIR="${CMAKE_SOURCE_DIR}"
 )
-
-target_compile_definitions(main PRIVATE ROOT_DIR="${CMAKE_SOURCE_DIR}")
-target_include_directories(main PRIVATE Builds ${Stb_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
-target_link_libraries(main PRIVATE
+target_include_directories(ve_dependencies INTERFACE
+    ${CMAKE_SOURCE_DIR}/Builds
+    ${Stb_INCLUDE_DIR}
+    ${GLEW_INCLUDE_DIRS}
+)
+target_link_libraries(ve_dependencies INTERFACE
     GLEW::GLEW
     glfw
     glm::glm
@@ -239,22 +54,128 @@ target_link_libraries(main PRIVATE
     ws2_32
 )
 
+# CONFIGURE_DEPENDS keeps newly added implementation files visible after CMake
+# regenerates. The classification below is the temporary boundary while files
+# are moved from Builds/ into feature directories.
+file(GLOB VE_ALL_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Builds/*.cpp")
+
+file(GLOB VE_CORE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/Builds/BackgroundTask*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Ecs*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Entity*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Fabrik*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Fluid*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/FrameTimer.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/InverseKinematics*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/LinearMemory*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Log*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Memory*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/NavierStokes*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Physics*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/RigidBody*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Simd*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/WorkerPolicy.cpp"
+)
+
+file(GLOB VE_NETWORK_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/Builds/Multiplayer*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Network*.cpp"
+)
+
+file(GLOB VE_WORLD_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/Builds/AsyncChunk*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/AsyncWorld*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Block*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Chunk*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/ComputeTerrain*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/GreedyChunk*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/LevelSpawn.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/World*.cpp"
+)
+
+file(GLOB VE_RENDER_BACKEND_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/Builds/DirectX12Backend.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/OpenGLCompatibilityBackend.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Vulkan*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/WindowRuntime.cpp"
+)
+
+file(GLOB VE_RENDER_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/Builds/AmbientOcclusion*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Assimp*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Camera.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/CascadedShadow*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/DeferredRenderer.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/FrameGraph*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Frustum.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/GeometryFactory.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Gpu*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Graphics*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/MonteCarlo*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/MortonCode.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/OpenGLRender*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/PathTracing*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/PbrMaterial.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Plane.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Render*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/SkyBox.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/TemporalAntiAliasing*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/TextureLoader.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/VolumetricRaymarcher.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/Voxel*.cpp"
+    "${CMAKE_SOURCE_DIR}/Builds/dependencies.cpp"
+)
+
+set(VE_APP_SOURCES ${VE_ALL_SOURCES})
+list(REMOVE_ITEM VE_APP_SOURCES
+    ${VE_CORE_SOURCES}
+    ${VE_NETWORK_SOURCES}
+    ${VE_WORLD_SOURCES}
+    ${VE_RENDER_BACKEND_SOURCES}
+    ${VE_RENDER_SOURCES}
+)
+
+function(ve_add_subsystem target folder)
+    add_library(${target} STATIC ${ARGN})
+    target_link_libraries(${target} PUBLIC ve_dependencies)
+    set_target_properties(${target} PROPERTIES FOLDER "Engine/${folder}")
+    source_group(TREE "${CMAKE_SOURCE_DIR}/Builds" PREFIX "Source Files" FILES ${ARGN})
+endfunction()
+
+ve_add_subsystem(ve_core Core ${VE_CORE_SOURCES})
+ve_add_subsystem(ve_render Render ${VE_RENDER_SOURCES})
+ve_add_subsystem(ve_render_backends Render ${VE_RENDER_BACKEND_SOURCES})
+ve_add_subsystem(ve_world World ${VE_WORLD_SOURCES})
+ve_add_subsystem(ve_network Network ${VE_NETWORK_SOURCES})
+ve_add_subsystem(ve_app App ${VE_APP_SOURCES})
+
+add_executable(voxel_engine main.cpp)
+target_link_libraries(voxel_engine PRIVATE
+    ve_app
+    ve_world
+    ve_network
+    ve_render
+    ve_render_backends
+    ve_core
+)
+set_target_properties(voxel_engine PROPERTIES FOLDER "Applications")
+
 if (VE_BUILD_API_DOCS)
     find_package(Doxygen QUIET)
     if (DOXYGEN_FOUND)
         configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
-        add_custom_target(engine_api_docs ALL
+        add_custom_target(engine_api_docs
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Generating VoxelEngine API documentation with Doxygen"
             VERBATIM
         )
+        set_target_properties(engine_api_docs PROPERTIES FOLDER "Documentation")
     else()
         message(STATUS "Doxygen was not found; API documentation target will be skipped.")
     endif()
 endif()
 
-option(VE_BUILD_TESTS "Build engine smoke tests" ON)
 if (VE_BUILD_TESTS)
     enable_testing()
     add_executable(engine_tests
@@ -262,61 +183,13 @@ if (VE_BUILD_TESTS)
         Tests/GraphicsCommandTests.cpp
         Tests/GraphicsGeometryTests.cpp
         Tests/RenderBackendTests.cpp
-        Builds/DirectX12Backend.cpp
-        Builds/EcsWorld.cpp
-        Builds/Entity.cpp
-        Builds/EntityRegistry.cpp
-        Builds/FabrikInverseKinematicsPasses.cpp
-        Builds/FabrikInverseKinematicsSolver.cpp
-        Builds/FluidGrid.cpp
-        Builds/FluidGridSampling.cpp
-        Builds/GeometryFactory.cpp
-        Builds/GraphicsFacade.cpp
-        Builds/GraphicsTypes.cpp
-        Builds/InverseKinematicsChain.cpp
-        Builds/MonteCarloPathTracer.cpp
-        Builds/MonteCarloPathTracingIntegrator.cpp
-        Builds/MortonCode.cpp
-        Builds/NavierStokesFluidAdvection.cpp
-        Builds/NavierStokesFluidProjection.cpp
-        Builds/NavierStokesFluidSimulation.cpp
-        Builds/OpenGLCompatibilityBackend.cpp
-        Builds/PathTracingIntersection.cpp
-        Builds/PathTracingRandom.cpp
-        Builds/PathTracingScene.cpp
-        Builds/PhysicsBounds.cpp
-        Builds/RenderBackend.cpp
-        Builds/RenderBackendCatalog.cpp
-        Builds/RenderBackendFactory.cpp
-        Builds/RenderBackendSelector.cpp
-        Builds/RenderCommandList.cpp
-        Builds/RenderCommandSorter.cpp
-        Builds/RenderView.cpp
-        Builds/RigidBody.cpp
-        Builds/RigidBodyForces.cpp
-        Builds/RigidBodyWorld.cpp
-        Builds/RigidBodyWorldIntegration.cpp
-        Builds/SimdFloat4.cpp
-        Builds/VulkanBackend.cpp
-        Builds/VulkanContext.cpp
-        Builds/VulkanDevice.cpp
-        Builds/VulkanPhysicalDevice.cpp
-        Builds/VulkanRenderView.cpp
-        Builds/VulkanSurface.cpp
-        Builds/VulkanSwapchain.cpp
-        Builds/VulkanSwapchainChoices.cpp
-        Builds/VulkanSwapchainSupport.cpp
-        Builds/WindowRuntime.cpp
     )
-    target_include_directories(engine_tests PRIVATE Builds)
     target_link_libraries(engine_tests PRIVATE
         doctest::doctest
-        glm::glm
-        glfw
-        volk::volk
-        volk::volk_headers
-        Vulkan::Headers
-        xsimd
+        ve_core
+        ve_render
+        ve_render_backends
     )
+    set_target_properties(engine_tests PROPERTIES FOLDER "Tests")
     add_test(NAME engine_tests COMMAND engine_tests)
 endif()
