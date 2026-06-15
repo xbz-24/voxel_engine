@@ -1,6 +1,10 @@
 #include "EngineRuntime.h"
 
 #include "Logger.h"
+#include "OpenGLRenderView.h"
+#include "RenderViewFactory.h"
+
+#include <cassert>
 
 namespace
 {
@@ -18,7 +22,11 @@ namespace ve::engine
 	/** Initializes, runs, and shuts down the runtime. */
 	int EngineRuntime::Execute()
 	{
-		if (!Initialize()) return -1;
+		if (!Initialize())
+		{
+			Shutdown();
+			return -1;
+		}
 		RunMainLoop();
 		Shutdown();
 		return 0;
@@ -31,8 +39,7 @@ namespace ve::engine
 		if (!engine_.InitializeWindow(window_)) return false;
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) engine_.ConfigureOpenGLState();
 		PrepareAssetsAndLogging();
-		CreateRuntimeSystems();
-		return true;
+		return CreateRuntimeSystems();
 	}
 
 	/** Resolves asset paths and configures logger sinks. */
@@ -43,13 +50,32 @@ namespace ve::engine
 	}
 
 	/** Creates model, callbacks, editor UI, and view resources. */
-	void EngineRuntime::CreateRuntimeSystems()
+	bool EngineRuntime::CreateRuntimeSystems()
 	{
 		model_ = std::make_unique<GameModel>(kDefaultWorldSizeChunks);
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
 		editor_controller_.Initialize(window_, engine_._runtimeSettings);
-		view_ = std::make_unique<GameView>(asset_paths_);
+		view_ = RenderViewFactory::Create({ window_.GraphicsApi(), &asset_paths_, nullptr });
+		if (view_ == nullptr)
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Render view creation failed");
+			return false;
+		}
+		if (TryRenderViewCast<OpenGLRenderView>(*view_) == nullptr)
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Legacy world renderer still requires an OpenGL render view");
+			return false;
+		}
+		return true;
+	}
+
+	/** Returns the OpenGL compatibility view after startup validation. */
+	OpenGLRenderView& EngineRuntime::LegacyOpenGLView() noexcept
+	{
+		OpenGLRenderView* legacy_view = view_ ? TryRenderViewCast<OpenGLRenderView>(*view_) : nullptr;
+		assert(legacy_view != nullptr);
+		return *legacy_view;
 	}
 
 	/** Runs frames until the window asks to close. */

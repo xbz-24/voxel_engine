@@ -6,12 +6,14 @@
 #include "FrameTimer.h"
 #include "GameController.h"
 #include "GameModel.h"
-#include "GameView.h"
+#include "RenderView.h"
 
 #include <memory>
 
 namespace ve::engine
 {
+	class OpenGLRenderView;
+
 	/** Owns runtime systems created by Engine::Run and keeps the frame loop readable. */
 	class EngineRuntime
 	{
@@ -29,14 +31,32 @@ namespace ve::engine
 		/** Resolves assets and configures runtime log sinks. */
 		void PrepareAssetsAndLogging();
 
-		/** Creates model, camera callbacks, editor UI, and view resources. */
-		void CreateRuntimeSystems();
+		/** @return True when model, callbacks, editor UI, and view resources are ready. */
+		[[nodiscard]] bool CreateRuntimeSystems();
+
+		/** @return Current OpenGL compatibility view required by the legacy renderer. */
+		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
 		/** Runs frames until the window requests shutdown. */
 		void RunMainLoop();
 
 		/** Runs one complete gameplay, render, UI, and present frame. */
 		void RunFrame();
+
+		/** Updates projection, frame timer, and editor frame state. */
+		void BeginRuntimeFrame();
+
+		/** @param legacy_view OpenGL view used by the current gameplay systems. */
+		void UpdateGameplay(OpenGLRenderView& legacy_view);
+
+		/** @param legacy_view OpenGL view used by the current world renderer. */
+		void RenderWorld(OpenGLRenderView& legacy_view);
+
+		/** @param legacy_view OpenGL view used by the current HUD renderer. */
+		void RenderHud(OpenGLRenderView& legacy_view);
+
+		/** Draws editor UI and presents the native window. */
+		void EndRuntimeFrame();
 
 		/** Releases editor and engine-owned render resources. */
 		void Shutdown();
@@ -46,7 +66,7 @@ namespace ve::engine
 		Engine::CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
-		std::unique_ptr<GameView> view_;
+		std::unique_ptr<RenderView> view_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;

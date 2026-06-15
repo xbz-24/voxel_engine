@@ -5,6 +5,7 @@
 #include "RenderBackendCatalog.h"
 #include "RenderBackendFactory.h"
 #include "RenderBackendSelector.h"
+#include "VulkanRenderView.h"
 #include "VulkanSwapchainChoices.h"
 
 #include <array>
@@ -78,4 +79,19 @@ TEST_CASE("vulkan swapchain choices prefer mailbox and srgb")
 
 	CHECK(ve::rendering::ChooseSwapchainSurfaceFormat(formats).format == VK_FORMAT_B8G8R8A8_SRGB);
 	CHECK(ve::rendering::ChooseSwapchainPresentMode(modes) == VK_PRESENT_MODE_MAILBOX_KHR);
+}
+
+TEST_CASE("vulkan render view exposes vulkan hpp handles")
+{
+	const vk::Extent2D extent{ 1280U, 720U };
+	const ve::engine::VulkanRenderView view({ vk::Device{}, vk::SwapchainKHR{}, extent });
+
+	CHECK(view.Api() == ve::rendering::GraphicsApi::Vulkan);
+	CHECK(view.Device() == vk::Device{});
+	CHECK(view.Swapchain() == vk::SwapchainKHR{});
+	CHECK(view.SwapchainExtent().width == 1280U);
+	CHECK(view.SwapchainExtent().height == 720U);
+	CHECK(view.AsVulkanRenderView() == &view);
+	CHECK(ve::engine::TryRenderViewCast<ve::engine::VulkanRenderView>(view) == &view);
+	CHECK(view.AsOpenGLRenderView() == nullptr);
 }

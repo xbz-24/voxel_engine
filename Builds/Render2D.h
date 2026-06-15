@@ -1,25 +1,11 @@
 #pragma once
 
+#include "GraphicsTypes.h"
+
 #include <GL/glew.h>
 
 namespace ve::rendering
 {
-	struct ColorRgba
-	{
-		float red = 1.0f;
-		float green = 1.0f;
-		float blue = 1.0f;
-		float alpha = 1.0f;
-	};
-
-	struct ScreenRect
-	{
-		float x = 0.0f;
-		float y = 0.0f;
-		float width = 0.0f;
-		float height = 0.0f;
-	};
-
 	struct TexturedQuadRequest
 	{
 		GLuint texture = 0;
@@ -36,6 +22,14 @@ namespace ve::rendering
 		 * @param request Texture id, rectangle, and tint.
 		 */
 		void DrawTexturedQuad(const TexturedQuadRequest& request) const;
+
+		/**
+		 * Draws a filled screen-space triangle.
+		 *
+		 * @param triangle Triangle coordinates in pixels.
+		 * @param color Fill color.
+		 */
+		void DrawSolidTriangle(const ScreenTriangle& triangle, const ColorRgba& color) const;
 
 		/**
 		 * Draws a filled screen-space rectangle.
@@ -72,6 +66,14 @@ namespace ve::rendering
 	 * @param request Texture id, rectangle, and tint.
 	 */
 	void DrawTexturedQuad(const TexturedQuadRequest& request);
+
+	/**
+	 * Draws a filled screen-space triangle.
+	 *
+	 * @param triangle Triangle coordinates in pixels.
+	 * @param color Fill color.
+	 */
+	void DrawSolidTriangle(const ScreenTriangle& triangle, const ColorRgba& color);
 
 	/**
 	 * Draws a filled screen-space rectangle.

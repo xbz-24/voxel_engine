@@ -18,6 +18,14 @@ namespace ve::rendering
 			glVertex2f(rect.x + rect.width, rect.y + rect.height);
 			glVertex2f(rect.x, rect.y + rect.height);
 		}
+
+		/// Emits one screen-space triangle without texture coordinates.
+		void EmitTriangleVertices(const ScreenTriangle& triangle)
+		{
+			glVertex2f(triangle.first.x, triangle.first.y);
+			glVertex2f(triangle.second.x, triangle.second.y);
+			glVertex2f(triangle.third.x, triangle.third.y);
+		}
 	}
 
 	void Canvas2D::DrawTexturedQuad(const TexturedQuadRequest& request) const
@@ -31,6 +39,16 @@ namespace ve::rendering
 		glTexCoord2f(0.0f, 0.0f); glVertex2f(request.rect.x, request.rect.y + request.rect.height);
 		glEnd();
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+
+	void Canvas2D::DrawSolidTriangle(const ScreenTriangle& triangle, const ColorRgba& color) const
+	{
+		glDisable(GL_TEXTURE_2D);
+		ApplyColor(color);
+		glBegin(GL_TRIANGLES);
+		EmitTriangleVertices(triangle);
+		glEnd();
+		glEnable(GL_TEXTURE_2D);
 	}
 
 	void Canvas2D::DrawSolidRect(const ScreenRect& rect, const ColorRgba& color) const
@@ -63,6 +81,11 @@ namespace ve::rendering
 	void DrawTexturedQuad(const TexturedQuadRequest& request)
 	{
 		Canvas2D{}.DrawTexturedQuad(request);
+	}
+
+	void DrawSolidTriangle(const ScreenTriangle& triangle, const ColorRgba& color)
+	{
+		Canvas2D{}.DrawSolidTriangle(triangle, color);
 	}
 
 	void DrawSolidRect(const ScreenRect& rect, const ColorRgba& color)
