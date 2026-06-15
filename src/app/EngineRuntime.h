@@ -105,22 +105,43 @@ namespace ve::engine
 		*/
 		void RunVulkanFrame();
 
-		/** Updates projection, frame timer, and editor frame state. */
+		/** 
+		* @brief Begins the frame state by calculating time deltas and consuming inputs.
+		* @details Separating the beginning (Begin) from the end (End) allows timing metrics, like \c FrameTimer, 
+		* to provide stable deltas (\c dt) throughout the entire logic update phase, preventing asynchronous desyncs.
+		*/
 		void BeginRuntimeFrame();
 
-		/** @param legacy_view OpenGL view used by the current gameplay systems. */
+		/** 
+		* @brief Updates the internal logic of the world and entities.
+		* @param legacy_view OpenGL view used by the current simulation and collision systems.
+		*/
 		void UpdateGameplay(OpenGLRenderView& legacy_view);
 
-		/** @param legacy_view OpenGL view used by the current world renderer. */
+		/** 
+		* @brief Sends the 3D world's meshes, matrices, and materials to the GPU.
+		* @param legacy_view OpenGL view onto which the renderer projects the world.
+		*/
 		void RenderWorld(OpenGLRenderView& legacy_view);
 
-		/** @param legacy_view OpenGL view used by the current HUD renderer. */
+		/** 
+		* @brief Renders the user interface in screen space (2D).
+		* @param legacy_view OpenGL view that controls the drawing state for the HUD.
+		* @details Drawn after the world to ensure the Z-buffer or painter's algorithm overlays the UI correctly.
+		*/
 		void RenderHud(OpenGLRenderView& legacy_view);
 
-		/** Draws editor UI and presents the native window. */
+		/** 
+		* @brief Draws the editor UI and performs the buffer swap.
+		* @details This phase blocks the thread if V-Sync is enabled and instructs the native window to present the back buffer.
+		*/
 		void EndRuntimeFrame();
 
-		/** Releases editor and engine-owned render resources. */
+		/**
+		* @brief Releases rendering resources and memory structures in reverse order of creation.
+		* @details Guarantees the GPU has finished all pending operations before destroying descriptors, 
+		* preventing validation warnings and VRAM memory leaks.
+		*/
 		void Shutdown();
 
 		Engine& engine_;
