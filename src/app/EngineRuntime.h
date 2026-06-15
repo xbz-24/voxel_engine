@@ -48,13 +48,20 @@ namespace ve::engine
 		[[nodiscard]] int Execute();
 
 	private:
+
 		/** 
 		* @brief Orchestrates the sequential startup of all required subsystems.
 		* @return \c true if all runtime systems are ready; \c false if a critical error occurred.
 		*/
+
 		[[nodiscard]] bool Initialize();
 
-		/** Resolves assets and configures runtime log sinks. */
+		/** 
+		* @brief Resolves asset paths and configures log event sinks.
+		* @details Executed before graphics backend creation to ensure any failure
+		* in loading shaders or textures can be properly written to the log files.
+		*/
+		
 		void PrepareAssetsAndLogging();
 
 		/** @return True when model, callbacks, editor UI, and view resources are ready. */
