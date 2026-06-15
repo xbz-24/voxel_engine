@@ -28,7 +28,12 @@ namespace ve::editor
 			return is_initialized_;
 	}
 
-	/// Starts a new ImGui frame.
+    /**
+    * @note The execution order here is strictly mandated by Dear ImGui's backend architecture.
+    * The graphics backend (OpenGL3) must prepare render state, followed by the platform backend
+    * (GLFW) updating inputs and delta time, before the core ImGui context is finally advanced.
+    */
+
 	void EditorGui::BeginFrame()
 	{
 		if (!is_initialized_) return;
