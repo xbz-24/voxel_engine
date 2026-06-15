@@ -23,7 +23,6 @@ namespace ve::engine
 	 * and prevent the base configuration object (\c Engine) from directly controlling the active window resources,
 	 * the game model, and the graphics pipeline. It transiently handles the compatibility between OpenGL and Vulkan.
 	 */
-
 	class EngineRuntime
 	{
 	public:
@@ -35,7 +34,6 @@ namespace ve::engine
 		 * can dispatch events or read global settings without resorting to global variables (Singletons).
 		
 		*/
-	
 		explicit EngineRuntime(Engine& engine) noexcept;
 
 		/** 
@@ -44,7 +42,6 @@ namespace ve::engine
 		* @details Acts as the main entry point for the calling thread. If systems fail to initialize,
 		* it safely aborts before entering the infinite loop, preventing segmentation faults.
 		*/
-		
 		[[nodiscard]] int Execute();
 
 	private:
@@ -53,7 +50,6 @@ namespace ve::engine
 		* @brief Orchestrates the sequential startup of all required subsystems.
 		* @return \c true if all runtime systems are ready; \c false if a critical error occurred.
 		*/
-
 		[[nodiscard]] bool Initialize();
 
 		/** 
@@ -61,14 +57,12 @@ namespace ve::engine
 		* @details Executed before graphics backend creation to ensure any failure
 		* in loading shaders or textures can be properly written to the log files.
 		*/
-		
 		void PrepareAssetsAndLogging();
 
 		/** 
 		* @brief Instantiates model logic, callbacks, editor UI, and view resources.
 		* @return \c true if the model and controllers were successfully built.
 		*/
-
 		[[nodiscard]] bool CreateRuntimeSystems();
 
 		/** 
@@ -77,7 +71,6 @@ namespace ve::engine
 		* @details Abstracts context initialization to support the multi-backend architecture
 		* (currently bridging the legacy voxel renderer and the new Vulkan implementation).
 		*/
-
 		[[nodiscard]] bool CreateRenderBackend();
 
 		/** 
@@ -86,7 +79,6 @@ namespace ve::engine
 		* @details This method is temporarily necessary because the original voxel engine requires 
 		* a direct OpenGL context. It encapsulates a dynamic/static cast to maintain type safety.
 		*/
-
 		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
 		/** 
@@ -94,7 +86,6 @@ namespace ve::engine
 		* @details Continuously polls the OS-managed window event state to determine 
 		* when to break the loop and proceed to \c Shutdown.
 		*/
-
 		void RunMainLoop();
 
 		/** 
@@ -102,13 +93,16 @@ namespace ve::engine
 		* @details Internally determines whether to route graphics work to the OpenGL compatibility path 
 		* or the native Vulkan pipeline.
 		*/
-
 		void RunFrame();
 
-		/** Runs the existing voxel renderer through the compatibility backend. */
+		/** 
+		* @brief Runs the existing voxel renderer through the compatibility backend.
+		*/
 		void RunOpenGLFrame();
 
-		/** Clears and presents one frame through the Vulkan backend. */
+		/** 
+		* @brief Clears buffers, issues draw commands, and presents the frame using the Vulkan backend.
+		*/
 		void RunVulkanFrame();
 
 		/** Updates projection, frame timer, and editor frame state. */
