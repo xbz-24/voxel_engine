@@ -2,12 +2,101 @@ cmake_minimum_required(VERSION 3.25)
 
 project(VoxelEngine LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
 option(VE_BUILD_TESTS "Build engine tests" ON)
+option(VE_ENABLE_STRICT_WARNINGS "Enable the project's extended compiler warning set" ON)
+option(VE_WARNINGS_AS_ERRORS "Treat project warnings as compilation errors" ON)
+option(VE_USE_LATEST_CXX "Use the newest C++ language mode exposed by the compiler" ON)
+
+add_library(ve_project_options INTERFACE)
+target_compile_features(ve_project_options INTERFACE cxx_std_23)
+
+if (MSVC)
+    target_compile_options(ve_project_options INTERFACE
+        /MP
+        /permissive-
+        /Zc:__cplusplus
+        /Zc:preprocessor
+        /Zc:throwingNew
+        /Zc:inline
+        /utf-8
+        /diagnostics:caret
+        /external:anglebrackets
+        /external:W0
+        /sdl
+    )
+    if (VE_USE_LATEST_CXX)
+        target_compile_options(ve_project_options INTERFACE /std:c++latest)
+    endif()
+    if (VE_ENABLE_STRICT_WARNINGS)
+        target_compile_options(ve_project_options INTERFACE
+            /Wall
+            /wd4514
+            /wd4625
+            /wd4626
+            /wd4710
+            /wd4711
+            /wd4820
+            /wd5026
+            /wd5027
+            /wd5045
+            /w14242
+            /w14254
+            /w14263
+            /w14265
+            /w14287
+            /we4289
+            /w14296
+            /w14311
+            /w14545
+            /w14546
+            /w14547
+            /w14549
+            /w14555
+            /w14619
+            /w14640
+            /w14826
+            /w14905
+            /w14906
+            /w14928
+        )
+    endif()
+    if (VE_WARNINGS_AS_ERRORS)
+        target_compile_options(ve_project_options INTERFACE /WX)
+    endif()
+else()
+    if (VE_USE_LATEST_CXX)
+        if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18)
+            target_compile_options(ve_project_options INTERFACE -std=c++2c)
+        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
+            target_compile_options(ve_project_options INTERFACE -std=c++2c)
+        endif()
+    endif()
+    if (VE_ENABLE_STRICT_WARNINGS)
+        target_compile_options(ve_project_options INTERFACE
+            -Wall
+            -Wextra
+            -Wpedantic
+            -Wconversion
+            -Wsign-conversion
+            -Wshadow
+            -Wnon-virtual-dtor
+            -Wold-style-cast
+            -Woverloaded-virtual
+            -Wnull-dereference
+            -Wdouble-promotion
+            -Wformat=2
+        )
+    endif()
+    if (VE_WARNINGS_AS_ERRORS)
+        target_compile_options(ve_project_options INTERFACE -Werror)
+    endif()
+endif()
 
 find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -33,124 +122,90 @@ target_compile_definitions(ve_dependencies INTERFACE
     NOMINMAX
     ROOT_DIR="${CMAKE_SOURCE_DIR}"
 )
-target_include_directories(ve_dependencies INTERFACE
-    ${CMAKE_SOURCE_DIR}/Builds
-    ${Stb_INCLUDE_DIR}
-    ${GLEW_INCLUDE_DIRS}
-)
-target_link_libraries(ve_dependencies INTERFACE
-    GLEW::GLEW
+
+set(VE_SOURCE_ROOT "${CMAKE_SOURCE_DIR}/src")
+
+function(ve_collect_subsystem directory prefix)
+    file(GLOB subsystem_sources CONFIGURE_DEPENDS "${directory}/*.cpp")
+    file(GLOB subsystem_headers CONFIGURE_DEPENDS "${directory}/*.h" "${directory}/*.inl")
+    set(${prefix}_SOURCES ${subsystem_sources} PARENT_SCOPE)
+    set(${prefix}_HEADERS ${subsystem_headers} PARENT_SCOPE)
+endfunction()
+
+ve_collect_subsystem("${VE_SOURCE_ROOT}/core" VE_CORE)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/render" VE_RENDER)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/render/backends" VE_RENDER_BACKENDS)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/world" VE_WORLD)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/network" VE_NETWORK)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/app" VE_APP)
+
+function(ve_add_subsystem target folder directory)
+    cmake_parse_arguments(SUBSYSTEM "" "" "SOURCES;HEADERS" ${ARGN})
+    add_library(${target} STATIC ${SUBSYSTEM_SOURCES} ${SUBSYSTEM_HEADERS})
+    target_include_directories(${target} PUBLIC ${directory})
+    target_link_libraries(${target} PUBLIC ve_dependencies PRIVATE ve_project_options)
+    set_target_properties(${target} PROPERTIES FOLDER "Engine/${folder}")
+    source_group(TREE ${directory} FILES ${SUBSYSTEM_SOURCES} ${SUBSYSTEM_HEADERS})
+endfunction()
+
+ve_add_subsystem(ve_core Core "${VE_SOURCE_ROOT}/core" SOURCES ${VE_CORE_SOURCES} HEADERS ${VE_CORE_HEADERS})
+ve_add_subsystem(ve_render Render "${VE_SOURCE_ROOT}/render" SOURCES ${VE_RENDER_SOURCES} HEADERS ${VE_RENDER_HEADERS})
+ve_add_subsystem(ve_render_backends Render "${VE_SOURCE_ROOT}/render/backends" SOURCES ${VE_RENDER_BACKENDS_SOURCES} HEADERS ${VE_RENDER_BACKENDS_HEADERS})
+ve_add_subsystem(ve_world World "${VE_SOURCE_ROOT}/world" SOURCES ${VE_WORLD_SOURCES} HEADERS ${VE_WORLD_HEADERS})
+ve_add_subsystem(ve_network Network "${VE_SOURCE_ROOT}/network" SOURCES ${VE_NETWORK_SOURCES} HEADERS ${VE_NETWORK_HEADERS})
+ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HEADERS ${VE_APP_HEADERS})
+
+target_link_libraries(ve_render PUBLIC ve_core)
+target_link_libraries(ve_render_backends PUBLIC ve_core ve_render ve_world)
+target_link_libraries(ve_world PUBLIC ve_core ve_render)
+target_link_libraries(ve_network PUBLIC ve_core ve_world)
+target_link_libraries(ve_app PUBLIC ve_core ve_render ve_render_backends ve_world ve_network)
+
+target_link_libraries(ve_core PUBLIC
+    glm::glm
     glfw
+    spdlog::spdlog
+    xsimd
+)
+
+target_include_directories(ve_render SYSTEM PUBLIC ${Stb_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS})
+target_link_libraries(ve_render PUBLIC
+    GLEW::GLEW
     glm::glm
     assimp::assimp
-    asio::asio
-    imgui::imgui
-    spdlog::spdlog
+    volk::volk_headers
+    Vulkan::Headers
+)
+
+target_link_libraries(ve_render_backends PUBLIC
+    GLEW::GLEW
+    glfw
     volk::volk
     volk::volk_headers
     Vulkan::Headers
     GPUOpen::VulkanMemoryAllocator
-    xsimd
+)
+
+target_link_libraries(ve_world PUBLIC
+    GLEW::GLEW
+    glm::glm
+)
+
+target_link_libraries(ve_network PUBLIC
+    asio::asio
     ws2_32
 )
 
-# CONFIGURE_DEPENDS keeps newly added implementation files visible after CMake
-# regenerates. The classification below is the temporary boundary while files
-# are moved from Builds/ into feature directories.
-file(GLOB VE_ALL_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Builds/*.cpp")
-
-file(GLOB VE_CORE_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/Builds/BackgroundTask*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Ecs*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Entity*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Fabrik*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Fluid*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/FrameTimer.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/InverseKinematics*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/LinearMemory*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Log*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Memory*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/NavierStokes*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Physics*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/RigidBody*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Simd*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/WorkerPolicy.cpp"
+target_link_libraries(ve_app PUBLIC
+    GLEW::GLEW
+    glfw
+    glm::glm
+    imgui::imgui
 )
 
-file(GLOB VE_NETWORK_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/Builds/Multiplayer*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Network*.cpp"
-)
-
-file(GLOB VE_WORLD_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/Builds/AsyncChunk*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/AsyncWorld*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Block*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Chunk*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/ComputeTerrain*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/GreedyChunk*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/LevelSpawn.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/World*.cpp"
-)
-
-file(GLOB VE_RENDER_BACKEND_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/Builds/DirectX12Backend.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/OpenGLCompatibilityBackend.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Vulkan*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/WindowRuntime.cpp"
-)
-
-file(GLOB VE_RENDER_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/Builds/AmbientOcclusion*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Assimp*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Camera.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/CascadedShadow*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/DeferredRenderer.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/FrameGraph*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Frustum.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/GeometryFactory.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Gpu*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Graphics*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/MonteCarlo*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/MortonCode.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/OpenGLRender*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/PathTracing*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/PbrMaterial.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Plane.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Render*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/SkyBox.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/TemporalAntiAliasing*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/TextureLoader.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/VolumetricRaymarcher.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/Voxel*.cpp"
-    "${CMAKE_SOURCE_DIR}/Builds/dependencies.cpp"
-)
-
-set(VE_APP_SOURCES ${VE_ALL_SOURCES})
-list(REMOVE_ITEM VE_APP_SOURCES
-    ${VE_CORE_SOURCES}
-    ${VE_NETWORK_SOURCES}
-    ${VE_WORLD_SOURCES}
-    ${VE_RENDER_BACKEND_SOURCES}
-    ${VE_RENDER_SOURCES}
-)
-
-function(ve_add_subsystem target folder)
-    add_library(${target} STATIC ${ARGN})
-    target_link_libraries(${target} PUBLIC ve_dependencies)
-    set_target_properties(${target} PROPERTIES FOLDER "Engine/${folder}")
-    source_group(TREE "${CMAKE_SOURCE_DIR}/Builds" PREFIX "Source Files" FILES ${ARGN})
-endfunction()
-
-ve_add_subsystem(ve_core Core ${VE_CORE_SOURCES})
-ve_add_subsystem(ve_render Render ${VE_RENDER_SOURCES})
-ve_add_subsystem(ve_render_backends Render ${VE_RENDER_BACKEND_SOURCES})
-ve_add_subsystem(ve_world World ${VE_WORLD_SOURCES})
-ve_add_subsystem(ve_network Network ${VE_NETWORK_SOURCES})
-ve_add_subsystem(ve_app App ${VE_APP_SOURCES})
-
-add_executable(voxel_engine main.cpp)
+add_executable(voxel_engine main.cpp "${VE_SOURCE_ROOT}/app/main.rc")
 target_link_libraries(voxel_engine PRIVATE
+    ve_project_options
     ve_app
     ve_world
     ve_network
@@ -159,6 +214,7 @@ target_link_libraries(voxel_engine PRIVATE
     ve_core
 )
 set_target_properties(voxel_engine PROPERTIES FOLDER "Applications")
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_engine)
 
 if (VE_BUILD_API_DOCS)
     find_package(Doxygen QUIET)
@@ -182,14 +238,22 @@ if (VE_BUILD_TESTS)
         Tests/EngineSmokeTests.cpp
         Tests/GraphicsCommandTests.cpp
         Tests/GraphicsGeometryTests.cpp
+        Tests/NetworkProtocolTests.cpp
         Tests/RenderBackendTests.cpp
+        Tests/WorldCoordinateTests.cpp
     )
     target_link_libraries(engine_tests PRIVATE
+        ve_project_options
         doctest::doctest
         ve_core
+        ve_network
         ve_render
         ve_render_backends
+        ve_world
     )
+    if (MSVC)
+        target_compile_options(engine_tests PRIVATE /wd4866)
+    endif()
     set_target_properties(engine_tests PROPERTIES FOLDER "Tests")
     add_test(NAME engine_tests COMMAND engine_tests)
 endif()

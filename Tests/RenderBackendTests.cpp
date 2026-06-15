@@ -11,23 +11,25 @@
 #include <array>
 #include <string>
 
-TEST_CASE("render backend selector keeps legacy renderer on opengl compatibility")
+TEST_CASE("render backend selector uses the explicitly requested compatibility backend")
 {
-	const ve::rendering::RenderBackendConfiguration configuration{};
+	const ve::rendering::RenderBackendConfiguration configuration{
+		.preferred_api = ve::rendering::GraphicsApi::OpenGLCompatibility
+	};
 
-	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration, true);
+	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration);
 
 	CHECK(selected_api == ve::rendering::GraphicsApi::OpenGLCompatibility);
-	CHECK(std::string{ ve::rendering::RenderBackendSelector::Name(configuration.preferred_api) } == "Vulkan");
 }
 
 TEST_CASE("render backend selector defaults to vulkan when legacy rendering is gone")
 {
 	const ve::rendering::RenderBackendConfiguration configuration{};
 
-	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration, false);
+	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration);
 
 	CHECK(selected_api == ve::rendering::GraphicsApi::Vulkan);
+	CHECK(!configuration.allow_opengl_compatibility_fallback);
 }
 
 TEST_CASE("render backend catalog exposes vulkan as the default api")

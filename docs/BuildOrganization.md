@@ -17,5 +17,25 @@ and display the engine as multiple projects instead of one large executable.
 Changing one implementation file now recompiles its owning library and relinks
 the affected executable. It does not compile every engine implementation again.
 
-The source files remain in `Builds/` temporarily. Their CMake target is the
-authoritative subsystem boundary while they are moved into feature directories.
+Source files live under `src/core`, `src/render`, `src/render/backends`,
+`src/world`, `src/network`, and `src/app`. Those physical directories are also
+the CMake and Visual Studio project boundaries.
+
+All project targets compile in the compiler's latest C++ mode. The default
+strict profile enables extended warnings, conforming MSVC behavior, SDL checks,
+parallel compilation, and treats every project warning as an error.
+
+Vulkan is the default runtime backend. The current Vulkan path initializes the
+window, instance, device, swapchain, and a minimal clear/present frame while the
+legacy voxel world renderer continues to live behind the explicit OpenGL
+compatibility backend.
+
+## Visual Studio
+
+Generate the Visual Studio solution with:
+
+```powershell
+cmake --preset windows-visual-studio
+```
+
+Then open `out/build/windows-visual-studio/VoxelEngine.slnx`.

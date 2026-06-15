@@ -11,6 +11,22 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true
       }
+    },
+    {
+      "name": "windows-visual-studio",
+      "displayName": "Visual Studio solution",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "C:/Users/renat/Developer/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_MANIFEST_MODE": false,
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/out/build/windows-vcpkg/vcpkg_installed",
+        "VE_BUILD_API_DOCS": false,
+        "VE_ENABLE_STRICT_WARNINGS": true,
+        "VE_WARNINGS_AS_ERRORS": true,
+        "VE_USE_LATEST_CXX": true
+      }
     }
   ],
   "buildPresets": [
@@ -29,6 +45,25 @@
       "configurePreset": "windows-vcpkg",
       "configuration": "Debug",
       "targets": [
+        "engine_tests"
+      ]
+    },
+    {
+      "name": "windows-visual-studio-build",
+      "displayName": "Build Visual Studio solution",
+      "configurePreset": "windows-visual-studio",
+      "configuration": "Debug",
+      "targets": [
+        "voxel_engine"
+      ]
+    },
+    {
+      "name": "windows-visual-studio-strict",
+      "displayName": "Strict Debug: latest C++ and warnings as errors",
+      "configurePreset": "windows-visual-studio",
+      "configuration": "Debug",
+      "targets": [
+        "voxel_engine",
         "engine_tests"
       ]
     }
