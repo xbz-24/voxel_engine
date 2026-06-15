@@ -64,16 +64,35 @@ namespace ve::engine
 		
 		void PrepareAssetsAndLogging();
 
-		/** @return True when model, callbacks, editor UI, and view resources are ready. */
+		/** 
+		* @brief Instantiates model logic, callbacks, editor UI, and view resources.
+		* @return \c true if the model and controllers were successfully built.
+		*/
+
 		[[nodiscard]] bool CreateRuntimeSystems();
 
-		/** @return True when the selected graphics backend is initialized. */
+		/** 
+		* @brief Initializes the underlying graphics API based on the active configuration.
+		* @return \c true when the selected graphics backend has been successfully initialized.
+		* @details Abstracts context initialization to support the multi-backend architecture
+		* (currently bridging the legacy voxel renderer and the new Vulkan implementation).
+		*/
+
 		[[nodiscard]] bool CreateRenderBackend();
 
-		/** @return Current OpenGL compatibility view required by the legacy renderer. */
+		/** * @brief Retrieves the OpenGL compatibility view.
+		* @brief Retrieves the OpenGL compatibility view.
+		* @details This method is temporarily necessary because the original voxel engine requires 
+		* a direct OpenGL context. It encapsulates a dynamic/static cast to maintain type safety.
+		*/
 		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
-		/** Runs frames until the window requests shutdown. */
+		/** 
+		* @brief Keeps the main thread trapped processing frames until a shutdown is requested.
+		* @details Continuously polls the OS-managed window event state to determine 
+		* when to break the loop and proceed to \c Shutdown.
+		*/
+
 		void RunMainLoop();
 
 		/** Runs one complete gameplay, render, UI, and present frame. */
