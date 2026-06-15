@@ -16,11 +16,26 @@ namespace ve::engine
 {
 	class OpenGLRenderView;
 
-	/** Owns runtime systems created by Engine::Run and keeps the frame loop readable. */
+	/**
+	 * @brief Manages the runtime systems created by Engine::Run and orchestrates the main loop.
+	 * @details This class isolates the execution lifecycle from the main \c Engine class.
+	 * The purpose of this separation is to maintain the readability of the frame loop
+	 * and prevent the base configuration object (\c Engine) from directly controlling the active window resources,
+	 * the game model, and the graphics pipeline. It transiently handles the compatibility between OpenGL and Vulkan.
+	 */
+
 	class EngineRuntime
 	{
 	public:
-		/** @param engine Engine facade that owns shared settings and callbacks. */
+		
+		/** 
+		 * @brief Initializes the runtime environment by linking it to the main engine instance.
+		 * @param engine Main engine facade that owns shared settings and callbacks.
+		 * @details Injecting the \c Engine dependency is required so that runtime controllers
+		 * can dispatch events or read global settings without resorting to global variables (Singletons).
+		
+		*/
+	
 		explicit EngineRuntime(Engine& engine) noexcept;
 
 		/** @return Process-style status code after running or failing startup. */
