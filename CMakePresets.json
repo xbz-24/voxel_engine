@@ -1,13 +1,46 @@
 {
-  "version": 3,
+  "version": 6,
   "configurePresets": [
     {
       "name": "windows-vcpkg",
+      "displayName": "Windows Debug (vcpkg)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "C:/Users/renat/Developer/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-vcpkg-build",
+      "displayName": "Build voxel engine",
+      "configurePreset": "windows-vcpkg",
+      "configuration": "Debug",
+      "targets": [
+        "main"
+      ]
+    },
+    {
+      "name": "windows-vcpkg-test-build",
+      "displayName": "Build voxel engine tests",
+      "configurePreset": "windows-vcpkg",
+      "configuration": "Debug",
+      "targets": [
+        "engine_tests"
+      ]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-vcpkg-tests",
+      "displayName": "Run voxel engine tests",
+      "configurePreset": "windows-vcpkg",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
       }
     }
   ]

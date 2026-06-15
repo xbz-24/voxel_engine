@@ -19,7 +19,10 @@ find_package(volk CONFIG REQUIRED)
 find_package(VulkanHeaders CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
-find_package(Stb REQUIRED)
+find_package(Stb QUIET)
+if (NOT Stb_FOUND)
+    find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${CMAKE_SOURCE_DIR} REQUIRED)
+endif()
 
 add_executable(main
     main.cpp
@@ -253,6 +256,7 @@ endif()
 
 option(VE_BUILD_TESTS "Build engine smoke tests" ON)
 if (VE_BUILD_TESTS)
+    enable_testing()
     add_executable(engine_tests
         Tests/EngineSmokeTests.cpp
         Tests/GraphicsCommandTests.cpp
@@ -314,4 +318,5 @@ if (VE_BUILD_TESTS)
         Vulkan::Headers
         xsimd
     )
+    add_test(NAME engine_tests COMMAND engine_tests)
 endif()
