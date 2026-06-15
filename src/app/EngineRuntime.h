@@ -38,11 +38,20 @@ namespace ve::engine
 	
 		explicit EngineRuntime(Engine& engine) noexcept;
 
-		/** @return Process-style status code after running or failing startup. */
+		/** 
+		* @brief Executes the complete lifecycle: initialization, main loop, and shutdown.
+    	* @return Process-style status code (e.g., 0 for success, non-zero for error) after running or failing startup.
+		* @details Acts as the main entry point for the calling thread. If systems fail to initialize,
+		* it safely aborts before entering the infinite loop, preventing segmentation faults.
+		*/
+		
 		[[nodiscard]] int Execute();
 
 	private:
-		/** @return True when all runtime systems are ready. */
+		/** 
+		* @brief Orchestrates the sequential startup of all required subsystems.
+		* @return \c true if all runtime systems are ready; \c false if a critical error occurred.
+		*/
 		[[nodiscard]] bool Initialize();
 
 		/** Resolves assets and configures runtime log sinks. */
