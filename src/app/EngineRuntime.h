@@ -97,7 +97,12 @@ namespace ve::engine
 
 		void RunMainLoop();
 
-		/** Runs one complete gameplay, render, UI, and present frame. */
+		/** 
+		* @brief Executes one complete frame: gameplay logic, rendering, UI, and screen presentation.
+		* @details Internally determines whether to route graphics work to the OpenGL compatibility path 
+		* or the native Vulkan pipeline.
+		*/
+
 		void RunFrame();
 
 		/** Runs the existing voxel renderer through the compatibility backend. */
