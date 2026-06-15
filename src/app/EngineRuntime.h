@@ -80,11 +80,13 @@ namespace ve::engine
 
 		[[nodiscard]] bool CreateRenderBackend();
 
-		/** * @brief Retrieves the OpenGL compatibility view.
+		/** 
+		* @brief Retrieves the OpenGL compatibility view.
 		* @brief Retrieves the OpenGL compatibility view.
 		* @details This method is temporarily necessary because the original voxel engine requires 
 		* a direct OpenGL context. It encapsulates a dynamic/static cast to maintain type safety.
 		*/
+
 		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
 		/** 
