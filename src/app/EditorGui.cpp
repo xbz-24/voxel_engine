@@ -10,9 +10,9 @@
 namespace ve::editor
 {
 	/**
-		* @note Enforces a strict hardware API check before initializing. This prevents fatal
-		* access violations if the engine is booted in a different graphics mode (e.g., Vulkan),
-		* as the ImGui_ImplOpenGL3 backend assumes a valid GL context is already current.
+	* @note Enforces a strict hardware API check before initializing. This prevents fatal
+	* access violations if the engine is booted in a different graphics mode (e.g., Vulkan),
+	* as the ImGui_ImplOpenGL3 backend assumes a valid GL context is already current.
 	*/
 
 	bool EditorGui::Initialize(Window& window)
@@ -43,9 +43,9 @@ namespace ve::editor
 	}
 
 	/**
-	 * @note Destruction strictly occurs in the reverse order of initialization to
-	 * prevent use-after-free conditions in the backends.
-	 */ 
+	* @note Destruction strictly occurs in the reverse order of initialization to
+	* prevent use-after-free conditions in the backends.
+	*/ 
 
 	void EditorGui::Shutdown()
 	{
@@ -56,7 +56,12 @@ namespace ve::editor
 		is_initialized_ = false;
 	}
 
-	/// Reports whether ImGui owns current mouse input.
+	/**
+	* @note Short-circuit evaluation guards against querying the ImGui IO structure when the
+	* context is dormant or destroyed. Relies on ImGui's internal `WantCaptureMouse` flag to
+	* seamlessly dictate when the core engine should suppress raycasting or camera logic.
+	*/
+
 	bool EditorGui::WantsMouseInput() const noexcept
 	{
 		return is_initialized_ && ImGui::GetIO().WantCaptureMouse;

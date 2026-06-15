@@ -7,7 +7,19 @@
 
 namespace
 {
-	/// Draws the demo selector combo box.
+	
+	/**
+	* @brief Renders the dropdown combo box for selecting the active demonstration.
+	*
+	* @note Located within an anonymous namespace to enforce internal linkage,
+	* preventing symbol collision across translation units. The demonstration array
+	* is defined as `static constexpr` to guarantee zero heap allocations during
+	* the per-frame UI traversal.
+	*
+	* @param state Mutable reference to the centralized editor state. Mutated directly
+	* if the user selects a new valid demonstration from the dropdown.
+	*/
+	
 	void DrawDemoSelector(ve::editor::EditorDemoState& state)
 	{
 		static constexpr ve::core::StaticArray<ve::editor::DemoGame, 3> demos{ {
@@ -29,7 +41,18 @@ namespace
 
 namespace ve::editor
 {
-	/// Draws the runtime demo panel.
+	/**
+	* @brief Constructs and submits the primary "Engine API Demo" control window.
+	*
+	* @note This function operates entirely in Immediate Mode, mutating the provided
+	* `state` struct in real-time via pointer mapping in ImGui's widget calls. Notice
+	* that the "Rebuild demo" button explicitly raises a deferred event flag rather than
+	* executing the rebuild inline. This guarantees the UI thread remains unblocked and
+	* responsive, offloading the heavy world generation to the main engine update loop.
+	*
+	* @param state Mutable reference to the engine's configuration payload.
+	*/
+
 	void EditorGui::DrawDemoPanel(EditorDemoState& state)
 	{
 		if (!is_initialized_) return;
