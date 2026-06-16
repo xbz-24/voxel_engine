@@ -72,8 +72,8 @@ namespace ve::rendering
 
 		Rgb SkyColor(float direction_y) noexcept
 		{
-			const float t = std::clamp((direction_y + 0.15f) * 0.75f, 0.0f, 1.0f);
-			return Mix({ 94, 133, 177 }, { 160, 205, 255 }, t);
+			const float t = std::clamp((direction_y + 0.20f) * 0.80f, 0.0f, 1.0f);
+			return Mix({ 78, 107, 150 }, { 166, 210, 255 }, t);
 		}
 
 		bool IsSolid(ve::blocks::BlockId block) noexcept
@@ -204,9 +204,16 @@ namespace ve::rendering
 		std::uint32_t SampleStepFor(VkExtent2D extent) noexcept
 		{
 			const std::uint64_t pixel_count = static_cast<std::uint64_t>(extent.width) * static_cast<std::uint64_t>(extent.height);
-			if (pixel_count > (1920ull * 1080ull)) return 5u;
-			if (pixel_count > (1280ull * 720ull)) return 4u;
+			if (pixel_count > (1920ull * 1080ull)) return 6u;
+			if (pixel_count > (1280ull * 720ull)) return 5u;
+			if (pixel_count > (960ull * 540ull)) return 3u;
 			return 2u;
+		}
+
+		bool NearlyEqual(const glm::vec3& left, const glm::vec3& right) noexcept
+		{
+			constexpr float kEpsilon = 0.0001f;
+			return glm::all(glm::lessThan(glm::abs(left - right), glm::vec3{ kEpsilon }));
 		}
 	}
 
@@ -216,22 +223,32 @@ namespace ve::rendering
 		if (extent_.width == extent.width && extent_.height == extent.height) return true;
 		extent_ = extent;
 		pixels_.assign(static_cast<std::size_t>(extent.width) * static_cast<std::size_t>(extent.height), 0u);
+		ray_cache_valid_ = false;
 		return true;
 	}
 
-	void VulkanSoftwareVoxelRasterizer::Render(const VulkanSoftwareVoxelRasterizerFrame& frame)
+	void VulkanSoftwareVoxelRasterizer::EnsureRayCache(const Camera& camera, std::uint32_t sample_step)
 	{
-		if (!Resize(frame.extent)) return;
+		const glm::vec3 forward = glm::normalize(camera.GetForward());
+		const glm::vec3 right = glm::normalize(camera.GetRight());
+		const glm::vec3 up = glm::normalize(camera.GetUp());
+		if (ray_cache_valid_ &&
+			cached_sample_step_ == sample_step &&
+			NearlyEqual(cached_forward_, forward) &&
+			NearlyEqual(cached_right_, right) &&
+			NearlyEqual(cached_up_, up))
+		{
+			return;
+		}
 
 		const float width = static_cast<float>(extent_.width);
 		const float height = static_cast<float>(extent_.height);
 		const float aspect = width / height;
 		const float tan_half_fov = std::tan(glm::radians(35.0f));
-		const glm::vec3 origin = FindAirCameraOrigin(frame.world, frame.camera.GetPosition());
-		const glm::vec3 forward = glm::normalize(frame.camera.GetForward());
-		const glm::vec3 right = glm::normalize(frame.camera.GetRight());
-		const glm::vec3 up = glm::normalize(frame.camera.GetUp());
-		const std::uint32_t sample_step = SampleStepFor(extent_);
+		ray_cache_.clear();
+		const std::size_t sample_columns = (extent_.width + sample_step - 1u) / sample_step;
+		const std::size_t sample_rows = (extent_.height + sample_step - 1u) / sample_step;
+		ray_cache_.reserve(sample_columns * sample_rows);
 
 		for (std::uint32_t y = 0; y < extent_.height; y += sample_step)
 		{
@@ -239,24 +256,43 @@ namespace ve::rendering
 			{
 				const float screen_x = ((static_cast<float>(x) + 0.5f) / width) * 2.0f - 1.0f;
 				const float screen_y = 1.0f - ((static_cast<float>(y) + 0.5f) / height) * 2.0f;
-				const glm::vec3 direction = glm::normalize(forward +
-					(right * screen_x * tan_half_fov * aspect) +
-					(up * screen_y * tan_half_fov));
-				const RayHit hit = TraceWorld(frame.world, origin, direction);
-				const Rgb color = hit.hit ? ShadeHit(hit, direction) : SkyColor(direction.y);
-				const std::uint32_t packed = PackColor(color, frame.format);
-				const std::uint32_t y_end = std::min(y + sample_step, extent_.height);
-				const std::uint32_t x_end = std::min(x + sample_step, extent_.width);
-				for (std::uint32_t fill_y = y; fill_y < y_end; ++fill_y)
-				{
-					std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(fill_y) * extent_.width);
-					for (std::uint32_t fill_x = x; fill_x < x_end; ++fill_x)
-					{
-						row[fill_x] = packed;
-					}
-				}
+				ray_cache_.push_back({
+					x,
+					y,
+					std::min(x + sample_step, extent_.width),
+					std::min(y + sample_step, extent_.height),
+					glm::normalize(forward + (right * screen_x * tan_half_fov * aspect) + (up * screen_y * tan_half_fov))
+				});
 			}
 		}
+
+		cached_forward_ = forward;
+		cached_right_ = right;
+		cached_up_ = up;
+		cached_sample_step_ = sample_step;
+		ray_cache_valid_ = true;
+	}
+
+	void VulkanSoftwareVoxelRasterizer::Render(const VulkanSoftwareVoxelRasterizerFrame& frame)
+	{
+		if (!Resize(frame.extent)) return;
+
+		const glm::vec3 origin = FindAirCameraOrigin(frame.world, frame.camera.GetPosition());
+		const std::uint32_t sample_step = SampleStepFor(extent_);
+		EnsureRayCache(frame.camera, sample_step);
+
+		for (const CachedSampleRay& sample : ray_cache_)
+		{
+			const RayHit hit = TraceWorld(frame.world, origin, sample.direction);
+			const Rgb color = hit.hit ? ShadeHit(hit, sample.direction) : SkyColor(sample.direction.y);
+			const std::uint32_t packed = PackColor(color, frame.format);
+			for (std::uint32_t fill_y = sample.y; fill_y < sample.y_end; ++fill_y)
+			{
+				std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(fill_y) * extent_.width);
+				std::fill(row + sample.x, row + sample.x_end, packed);
+			}
+		}
+		DrawDemoOverlay(frame.format);
 		DrawCrosshair(frame.format);
 	}
 
@@ -281,6 +317,28 @@ namespace ve::rendering
 			if (center_x >= offset) pixels_[(center_y * extent_.width) + center_x - offset] = crosshair;
 			if (center_y + offset < extent_.height) pixels_[((center_y + offset) * extent_.width) + center_x] = crosshair;
 			if (center_y >= offset) pixels_[((center_y - offset) * extent_.width) + center_x] = crosshair;
+		}
+	}
+
+	void VulkanSoftwareVoxelRasterizer::DrawDemoOverlay(VkFormat format)
+	{
+		const std::uint32_t sky_line = extent_.height / 2u;
+		const std::uint32_t horizon = PackColor({ 214, 225, 230 }, format);
+		for (std::uint32_t x = 0; x < extent_.width; x += 4u)
+		{
+			if (sky_line < extent_.height) pixels_[(sky_line * extent_.width) + x] = horizon;
+		}
+
+		const std::uint32_t accent = PackColor({ 87, 220, 180 }, format);
+		const std::uint32_t shadow = PackColor({ 18, 32, 44 }, format);
+		const std::uint32_t bar_width = std::min<std::uint32_t>(extent_.width / 5u, 260u);
+		const std::uint32_t bar_y = extent_.height > 32u ? 24u : 0u;
+		const std::uint32_t bar_x = std::min<std::uint32_t>(20u, extent_.width);
+		const std::uint32_t bar_end_x = std::min(bar_x + bar_width, extent_.width);
+		for (std::uint32_t y = bar_y; y < bar_y + 6u && y < extent_.height; ++y)
+		{
+			std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(y) * extent_.width);
+			std::fill(row + bar_x, row + bar_end_x, y == bar_y ? accent : shadow);
 		}
 	}
 }

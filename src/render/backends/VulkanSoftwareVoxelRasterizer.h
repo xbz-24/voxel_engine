@@ -6,6 +6,8 @@
 #include <span>
 #include <vector>
 
+#include <glm/glm.hpp>
+
 class Camera;
 
 namespace ve::world
@@ -45,9 +47,26 @@ namespace ve::rendering
 		[[nodiscard]] VkExtent2D Extent() const noexcept;
 
 	private:
+		struct CachedSampleRay
+		{
+			std::uint32_t x = 0;
+			std::uint32_t y = 0;
+			std::uint32_t x_end = 0;
+			std::uint32_t y_end = 0;
+			glm::vec3 direction{ 0.0f, 0.0f, -1.0f };
+		};
+
+		void EnsureRayCache(const Camera& camera, std::uint32_t sample_step);
 		void DrawCrosshair(VkFormat format);
+		void DrawDemoOverlay(VkFormat format);
 
 		VkExtent2D extent_{};
 		std::vector<std::uint32_t> pixels_;
+		std::vector<CachedSampleRay> ray_cache_;
+		glm::vec3 cached_forward_{ 0.0f, 0.0f, -1.0f };
+		glm::vec3 cached_right_{ 1.0f, 0.0f, 0.0f };
+		glm::vec3 cached_up_{ 0.0f, 1.0f, 0.0f };
+		std::uint32_t cached_sample_step_ = 0;
+		bool ray_cache_valid_ = false;
 	};
 }

@@ -1,10 +1,7 @@
 #include "EngineRuntime.h"
 
-#include "Input.h"
 #include "OpenGLRenderView.h"
-#include "PlayerMovementInput.h"
 
-#include <algorithm>
 #include <cassert>
 
 namespace ve::engine
@@ -36,12 +33,7 @@ namespace ve::engine
 	/** Presents the Vulkan migration frame. */
 	void EngineRuntime::RunVulkanFrame()
 	{
-		if (ve::input::IsPressed(window_.GetNativeWindow(), ve::input::Key::Escape)) window_.Close();
-		model_->PumpAsyncWorldGeneration();
-		const float speed = 18.0f * static_cast<float>(std::max(frame_timer_.DeltaSeconds(), 0.001));
-		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window_.GetNativeWindow());
-		ve::gameplay::ApplyPlanarMovement(intent, model_->MutableCamera(), speed);
-		ve::gameplay::ApplyFlyingMovement(intent, model_->MutableCamera(), speed);
+		controller_.UpdateVulkanDemo(window_, *model_, frame_timer_.DeltaSeconds());
 		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(), model_->GetCamera())) window_.Close();
 	}
 

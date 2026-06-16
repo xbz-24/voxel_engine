@@ -25,5 +25,14 @@ namespace ve::engine
 		 * @param delta_seconds Time elapsed since the previous frame.
 		 */
 		void Update(Engine& engine, Window& window, GameModel& model, const ve::blocks::BlockRegistry& block_registry, double delta_seconds);
+
+		/**
+		 * Updates the temporary Vulkan demo camera and async world state.
+		 *
+		 * @param window Runtime window used for input.
+		 * @param model Mutable gameplay model.
+		 * @param delta_seconds Time elapsed since the previous frame.
+		 */
+		void UpdateVulkanDemo(Window& window, GameModel& model, double delta_seconds);
 	};
 }

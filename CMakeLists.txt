@@ -24,6 +24,7 @@ if (MSVC)
         /Zc:preprocessor
         /Zc:throwingNew
         /Zc:inline
+        /EHsc
         /utf-8
         /diagnostics:caret
         /external:anglebrackets
