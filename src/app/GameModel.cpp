@@ -8,11 +8,15 @@
 namespace ve::engine
 {
 	/// Creates world and player-facing gameplay state.
-	GameModel::GameModel(int world_size_chunks)
+	GameModel::GameModel(int world_size_chunks, const ve::assets::AssetPaths* asset_paths)
 		: world_(ve::world::CreateInfoForSquareWorld(world_size_chunks)),
 		  world_generator_(ve::tasks::DefaultWorkerCount()),
 		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
 	{
+		if (asset_paths != nullptr)
+		{
+			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*asset_paths);
+		}
 		const ve::world::FlatWorldSpawnSettings settings{ world_size_chunks };
 		world_.SpawnEmptyGrid(settings);
 		world_generator_.RequestGrid(settings);
@@ -35,6 +39,12 @@ namespace ve::engine
 
 	/// Returns read-only block selection state.
 	const ve::gameplay::BlockSelection& GameModel::GetSelection() const noexcept { return block_selection_; }
+
+	/// Returns mutable block registry used by legacy gameplay/rendering.
+	ve::blocks::BlockRegistry* GameModel::MutableBlockRegistry() noexcept { return block_registry_.get(); }
+
+	/// Returns read-only block registry used by legacy gameplay/rendering.
+	const ve::blocks::BlockRegistry* GameModel::GetBlockRegistry() const noexcept { return block_registry_.get(); }
 
 	/// Applies completed async terrain chunks to the world.
 	void GameModel::PumpAsyncWorldGeneration()

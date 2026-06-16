@@ -67,7 +67,9 @@ namespace ve::engine
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Render view creation failed");
 			return false;
 		}
-		model_ = std::make_unique<GameModel>(kDefaultWorldSizeChunks);
+		const ve::assets::AssetPaths* block_registry_assets =
+			window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility ? &asset_paths_ : nullptr;
+		model_ = std::make_unique<GameModel>(kDefaultWorldSizeChunks, block_registry_assets);
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)

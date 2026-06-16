@@ -40,7 +40,7 @@ namespace ve::engine
 		void RunOpenGLFrame();
 		void RunVulkanFrame();
 		void BeginRuntimeFrame();
-		void UpdateGameplay(OpenGLRenderView& legacyView);
+		void UpdateGameplay();
 		void RenderWorld(OpenGLRenderView& legacyView);
 		void RenderHud(OpenGLRenderView& legacyView);
 		void EndRuntimeFrame();

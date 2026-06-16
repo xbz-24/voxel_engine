@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AssetPaths.h"
-#include "BlockRegistry.h"
 #include "BlockSelectionCube.h"
 #include "GraphicsFacade.h"
 #include "HudRenderer.h"
@@ -44,9 +43,6 @@ namespace ve::engine
 		/** @return Mutable ground/debug plane renderer. */
 		[[nodiscard]] Plane& MutablePlane() noexcept;
 
-		/** @return Block registry used by world rendering and HUD. */
-		[[nodiscard]] ve::blocks::BlockRegistry& MutableBlockRegistry() noexcept;
-
 		/** @return Model importer library used by demos and tools. */
 		[[nodiscard]] ve::assets::ModelAssetLibrary& MutableModelAssets() noexcept;
 
@@ -57,7 +53,6 @@ namespace ve::engine
 		SkyBox sky_box_;
 		BlockSelectionCube selection_cube_;
 		Plane plane_;
-		ve::blocks::BlockRegistry block_registry_;
 		ve::assets::ModelAssetLibrary model_asset_library_;
 		ve::ui::HudRenderer hud_renderer_;
 		ve::rendering::OpenGLRenderCommandExecutor primitive_command_executor_;

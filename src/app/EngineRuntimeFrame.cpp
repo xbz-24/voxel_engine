@@ -5,6 +5,7 @@
 #include "PlayerMovementInput.h"
 
 #include <algorithm>
+#include <cassert>
 
 namespace ve::engine
 {
@@ -27,7 +28,7 @@ namespace ve::engine
 	void EngineRuntime::RunOpenGLFrame()
 	{
 		OpenGLRenderView& legacy_view = LegacyOpenGLView();
-		UpdateGameplay(legacy_view);
+		UpdateGameplay();
 		RenderWorld(legacy_view);
 		RenderHud(legacy_view);
 	}
@@ -56,23 +57,29 @@ namespace ve::engine
 	}
 
 	/** Updates gameplay systems that still need the OpenGL block registry. */
-	void EngineRuntime::UpdateGameplay(OpenGLRenderView& legacy_view)
+	void EngineRuntime::UpdateGameplay()
 	{
-		controller_.Update(engine_, window_, *model_, legacy_view.MutableBlockRegistry(), frame_timer_.DeltaSeconds());
+		ve::blocks::BlockRegistry* block_registry = model_->MutableBlockRegistry();
+		assert(block_registry != nullptr);
+		controller_.Update(engine_, window_, *model_, *block_registry, frame_timer_.DeltaSeconds());
 	}
 
 	/** Renders the voxel world through the OpenGL compatibility path. */
 	void EngineRuntime::RenderWorld(OpenGLRenderView& legacy_view)
 	{
+		ve::blocks::BlockRegistry* block_registry = model_->MutableBlockRegistry();
+		assert(block_registry != nullptr);
 		engine_.Render3DWorld(window_, model_->MutableCamera(), legacy_view.MutableSkyBox(), legacy_view.MutablePlane(),
-			legacy_view.MutableSelectionCube(), legacy_view.MutableBlockRegistry(), model_->MutableWorld(), model_->GetSelection());
+			legacy_view.MutableSelectionCube(), *block_registry, model_->MutableWorld(), model_->GetSelection());
 	}
 
 	/** Renders the HUD through the OpenGL compatibility path. */
 	void EngineRuntime::RenderHud(OpenGLRenderView& legacy_view)
 	{
+		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
+		assert(block_registry != nullptr);
 		legacy_view.MutableHudRenderer().Draw(engine_.CreateHudFrame(window_, model_->GetCamera(), frame_timer_,
-			model_->GetSelection(), legacy_view.MutableBlockRegistry(), model_->GetWorld()));
+			model_->GetSelection(), *block_registry, model_->GetWorld()));
 	}
 
 	/** Renders editor panels and presents the native window. */
