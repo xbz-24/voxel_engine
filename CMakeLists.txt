@@ -112,6 +112,14 @@ find_package(volk CONFIG REQUIRED)
 find_package(VulkanHeaders CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(xsimd CONFIG REQUIRED)
+find_program(VE_GLSLC_EXECUTABLE glslc
+    HINTS
+        "$ENV{VULKAN_SDK}/Bin"
+        "C:/VulkanSDK/1.4.350.0/Bin"
+)
+if (NOT VE_GLSLC_EXECUTABLE)
+    message(FATAL_ERROR "glslc was not found; install the Vulkan SDK or add glslc to PATH.")
+endif()
 find_package(Stb QUIET)
 if (NOT Stb_FOUND)
     find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${CMAKE_SOURCE_DIR} REQUIRED)
@@ -156,6 +164,30 @@ ve_add_subsystem(ve_render_backends Render "${VE_SOURCE_ROOT}/render/backends" S
 ve_add_subsystem(ve_world World "${VE_SOURCE_ROOT}/world" SOURCES ${VE_WORLD_SOURCES} HEADERS ${VE_WORLD_HEADERS})
 ve_add_subsystem(ve_network Network "${VE_SOURCE_ROOT}/network" SOURCES ${VE_NETWORK_SOURCES} HEADERS ${VE_NETWORK_HEADERS})
 ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HEADERS ${VE_APP_HEADERS})
+
+set(VE_VULKAN_SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
+set(VE_VULKAN_SHADER_SOURCES
+    "${CMAKE_SOURCE_DIR}/shaders/vulkan/voxel_chunk.vert"
+    "${CMAKE_SOURCE_DIR}/shaders/vulkan/voxel_chunk.frag"
+)
+set(VE_VULKAN_SHADER_OUTPUTS)
+foreach(shader_source IN LISTS VE_VULKAN_SHADER_SOURCES)
+    get_filename_component(shader_name "${shader_source}" NAME)
+    set(shader_output "${VE_VULKAN_SHADER_OUTPUT_DIR}/${shader_name}.spv")
+    add_custom_command(
+        OUTPUT "${shader_output}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${VE_VULKAN_SHADER_OUTPUT_DIR}"
+        COMMAND "${VE_GLSLC_EXECUTABLE}" "${shader_source}" -o "${shader_output}"
+        DEPENDS "${shader_source}"
+        COMMENT "Compiling Vulkan shader ${shader_name}"
+        VERBATIM
+    )
+    list(APPEND VE_VULKAN_SHADER_OUTPUTS "${shader_output}")
+endforeach()
+add_custom_target(ve_vulkan_shaders DEPENDS ${VE_VULKAN_SHADER_OUTPUTS})
+set_target_properties(ve_vulkan_shaders PROPERTIES FOLDER "Engine/Render")
+add_dependencies(ve_render_backends ve_vulkan_shaders)
+target_compile_definitions(ve_render_backends PRIVATE VE_VULKAN_SHADER_DIR="${VE_VULKAN_SHADER_OUTPUT_DIR}")
 
 target_link_libraries(ve_render PUBLIC ve_core)
 target_link_libraries(ve_render_backends PUBLIC ve_core ve_render ve_world)

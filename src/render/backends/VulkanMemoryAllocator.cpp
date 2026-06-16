@@ -19,6 +19,9 @@ namespace ve::rendering
 		create_info.physicalDevice = physical_device;
 		create_info.device = device;
 		create_info.vulkanApiVersion = VK_API_VERSION_1_3;
+		VmaVulkanFunctions vulkan_functions{};
+		if (vmaImportVulkanFunctionsFromVolk(&create_info, &vulkan_functions) != VK_SUCCESS) return false;
+		create_info.pVulkanFunctions = &vulkan_functions;
 		return vmaCreateAllocator(&create_info, &allocator_) == VK_SUCCESS;
 	}
 
