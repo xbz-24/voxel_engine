@@ -3,6 +3,7 @@
 #include "RenderBackend.h"
 #include "VulkanContext.h"
 #include "VulkanDevice.h"
+#include "VulkanMemoryAllocator.h"
 #include "VulkanPhysicalDevice.h"
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
@@ -47,6 +48,9 @@ namespace ve::rendering
 		/** @return Logical Vulkan device. */
 		[[nodiscard]] VulkanDevice& Device() noexcept;
 
+		/** @return GPU memory allocator used by Vulkan render resources. */
+		[[nodiscard]] VulkanMemoryAllocator& Allocator() noexcept;
+
 		/** @return Vulkan swapchain used for presentation. */
 		[[nodiscard]] VulkanSwapchain& Swapchain() noexcept;
 
@@ -58,6 +62,7 @@ namespace ve::rendering
 		VulkanSurface surface_;
 		VulkanPhysicalDevice physical_device_;
 		VulkanDevice device_;
+		VulkanMemoryAllocator allocator_;
 		VulkanSwapchain swapchain_;
 	};
 }
