@@ -21,6 +21,7 @@ namespace ve::world
 				RecordChunkGenerated(x, z);
 			}
 		}
+		++_revision;
 	}
 
 	/// Spawns a square grid of air chunks ready for async generation.
@@ -31,5 +32,6 @@ namespace ve::world
 		for (int x = 0; x < settings.worldSizeChunks; x++)
 			for (int z = 0; z < settings.worldSizeChunks; z++)
 				_chunks.emplace_back(x, z, ChunkGenerationMode::Empty);
+		++_revision;
 	}
 }

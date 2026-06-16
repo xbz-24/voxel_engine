@@ -5,11 +5,14 @@
 #include "RenderBackendCatalog.h"
 #include "RenderBackendFactory.h"
 #include "RenderBackendSelector.h"
+#include "VulkanChunkMeshTranslator.h"
 #include "VulkanRenderView.h"
 #include "VulkanSwapchainChoices.h"
 
 #include <array>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 TEST_CASE("render backend selector uses the explicitly requested compatibility backend")
 {
@@ -96,4 +99,22 @@ TEST_CASE("vulkan render view exposes vulkan hpp handles")
 	CHECK(view.AsVulkanRenderView() == &view);
 	CHECK(ve::engine::TryRenderViewCast<ve::engine::VulkanRenderView>(view) == &view);
 	CHECK(view.AsOpenGLRenderView() == nullptr);
+}
+
+TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
+{
+	ve::world::mesh::ChunkMeshBuildResult mesh;
+	mesh.vertices = {
+		{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f },
+		{ 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
+		{ 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f }
+	};
+
+	const ve::rendering::VulkanChunkMeshPayload payload = ve::rendering::BuildVulkanChunkMeshPayload(mesh);
+
+	CHECK(payload.vertices.size() == 4u);
+	CHECK(payload.indices == std::vector<std::uint32_t>{ 0u, 1u, 2u, 0u, 2u, 3u });
+	CHECK(payload.draw.index_count == 6u);
+	CHECK(payload.draw.instance_count == 1u);
 }

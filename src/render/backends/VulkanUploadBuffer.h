@@ -28,5 +28,6 @@ namespace ve::rendering
 		VkBuffer buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory memory_ = VK_NULL_HANDLE;
 		VkDeviceSize size_ = 0;
+		void* mapped_memory_ = nullptr;
 	};
 }

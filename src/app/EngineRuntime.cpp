@@ -7,11 +7,30 @@
 #include "VulkanBackend.h"
 
 #include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <glm/glm.hpp>
 
 namespace
 {
 	constexpr int kDefaultWorldSizeChunks = 10;
+
+#if !defined(NDEBUG)
+	bool EnvironmentFlagEnabled(const char* name) noexcept
+	{
+#if defined(_MSC_VER)
+		char* value = nullptr;
+		std::size_t value_size = 0;
+		if (_dupenv_s(&value, &value_size, name) != 0 || value == nullptr) return false;
+		const bool enabled = std::strcmp(value, "1") == 0;
+		std::free(value);
+		return enabled;
+#else
+		const char* value = std::getenv(name);
+		return value != nullptr && std::strcmp(value, "1") == 0;
+#endif
+	}
+#endif
 }
 
 namespace ve::engine
@@ -100,16 +119,18 @@ namespace ve::engine
 		auto& vulkan_backend = static_cast<ve::rendering::VulkanBackend&>(*backend_);
 		ve::rendering::VulkanBackendSettings settings{};
 #if !defined(NDEBUG)
-		settings.context.enable_validation_layers = true;
-		settings.context.enable_debug_utils = true;
-		settings.context.enable_all_available_layers = true;
+		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
+		{
+			settings.context.enable_validation_layers = true;
+			settings.context.enable_debug_utils = true;
+		}
 #endif
 		if (!vulkan_backend.Initialize(settings, window_))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan backend initialization failed");
 			return false;
 		}
-		if (!vulkan_frame_renderer_.Initialize(vulkan_backend))
+		if (!vulkan_frame_renderer_.Initialize(vulkan_backend, asset_paths_.blockTexturesDirectory))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
 			return false;

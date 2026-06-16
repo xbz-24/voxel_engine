@@ -11,6 +11,7 @@
 #include "WorldRenderRequest.h"
 
 #include <glm/glm.hpp>
+#include <cstdint>
 #include <memory_resource>
 #include <optional>
 #include <vector>
@@ -64,6 +65,9 @@ namespace ve::world
 		/** @return Snapshot of world size and chunk storage counts. */
 		WorldMetrics Metrics() const noexcept;
 
+		/** @return Monotonic counter bumped whenever block storage changes. */
+		[[nodiscard]] std::uint64_t Revision() const noexcept;
+
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
 
@@ -111,5 +115,6 @@ namespace ve::world
 		ChunkList _chunks;
 		std::vector<WorldEvent> _pendingEvents;
 		int _worldSize;
+		std::uint64_t _revision;
 	};
 }

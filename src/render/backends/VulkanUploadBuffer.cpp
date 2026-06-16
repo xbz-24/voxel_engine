@@ -42,13 +42,30 @@ namespace ve::rendering
 		vkGetBufferMemoryRequirements(device, buffer_, &requirements);
 		const std::uint32_t memory_type = FindMemoryType(backend.PhysicalDevice().Handle(), requirements.memoryTypeBits,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		if (memory_type == UINT32_MAX) return false;
+		if (memory_type == UINT32_MAX)
+		{
+			Release(device);
+			return false;
+		}
 
 		VkMemoryAllocateInfo allocate_info{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		allocate_info.allocationSize = requirements.size;
 		allocate_info.memoryTypeIndex = memory_type;
-		if (vkAllocateMemory(device, &allocate_info, nullptr, &memory_) != VK_SUCCESS) return false;
-		if (vkBindBufferMemory(device, buffer_, memory_, 0) != VK_SUCCESS) return false;
+		if (vkAllocateMemory(device, &allocate_info, nullptr, &memory_) != VK_SUCCESS)
+		{
+			Release(device);
+			return false;
+		}
+		if (vkBindBufferMemory(device, buffer_, memory_, 0) != VK_SUCCESS)
+		{
+			Release(device);
+			return false;
+		}
+		if (vkMapMemory(device, memory_, 0, byte_size, 0, &mapped_memory_) != VK_SUCCESS)
+		{
+			Release(device);
+			return false;
+		}
 		size_ = byte_size;
 		return true;
 	}
@@ -63,20 +80,20 @@ namespace ve::rendering
 
 	bool VulkanUploadBuffer::CopyFrom(VkDevice device, const void* source, std::size_t byte_count) const
 	{
-		if (buffer_ == VK_NULL_HANDLE || memory_ == VK_NULL_HANDLE || byte_count > static_cast<std::size_t>(size_)) return false;
-		void* mapped_memory = nullptr;
-		if (vkMapMemory(device, memory_, 0, size_, 0, &mapped_memory) != VK_SUCCESS) return false;
-		std::memcpy(mapped_memory, source, byte_count);
-		vkUnmapMemory(device, memory_);
+		(void)device;
+		if (buffer_ == VK_NULL_HANDLE || memory_ == VK_NULL_HANDLE || mapped_memory_ == nullptr || byte_count > static_cast<std::size_t>(size_)) return false;
+		std::memcpy(mapped_memory_, source, byte_count);
 		return true;
 	}
 
 	void VulkanUploadBuffer::Release(VkDevice device)
 	{
+		if (device != VK_NULL_HANDLE && memory_ != VK_NULL_HANDLE && mapped_memory_ != nullptr) vkUnmapMemory(device, memory_);
 		if (device != VK_NULL_HANDLE && buffer_ != VK_NULL_HANDLE) vkDestroyBuffer(device, buffer_, nullptr);
 		if (device != VK_NULL_HANDLE && memory_ != VK_NULL_HANDLE) vkFreeMemory(device, memory_, nullptr);
 		buffer_ = VK_NULL_HANDLE;
 		memory_ = VK_NULL_HANDLE;
 		size_ = 0;
+		mapped_memory_ = nullptr;
 	}
 }

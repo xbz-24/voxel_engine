@@ -10,6 +10,7 @@
     "asio",
     "doctest",
     "spdlog",
+    "boost-container",
     "volk",
     "vulkan-headers",
     "vulkan-memory-allocator",

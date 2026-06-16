@@ -1,11 +1,26 @@
 #include "VulkanDevice.h"
 
+#include <algorithm>
 #include <array>
+#include <cstring>
+#include <vector>
 
 namespace ve::rendering
 {
 	namespace
 	{
+		bool DeviceSupportsExtension(VkPhysicalDevice physical_device, const char* extension_name)
+		{
+			std::uint32_t extension_count = 0;
+			if (vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, nullptr) != VK_SUCCESS) return false;
+			std::vector<VkExtensionProperties> extensions(extension_count);
+			if (extension_count > 0 && vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, extensions.data()) != VK_SUCCESS) return false;
+			return std::ranges::any_of(extensions, [extension_name](const VkExtensionProperties& extension)
+			{
+				return std::strcmp(extension.extensionName, extension_name) == 0;
+			});
+		}
+
 		/** @param queue_family Queue family index. @param priority Queue priority storage. @return Queue create info. */
 		VkDeviceQueueCreateInfo CreateQueueInfo(std::uint32_t queue_family, const float& priority) noexcept
 		{
@@ -27,7 +42,11 @@ namespace ve::rendering
 		const float queue_priority = 1.0f;
 		std::array queue_infos{ CreateQueueInfo(queues.graphics_family, queue_priority), CreateQueueInfo(queues.present_family, queue_priority) };
 		const bool same_queue = queues.graphics_family == queues.present_family;
-		const std::array extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		if (DeviceSupportsExtension(physical_device, "VK_KHR_portability_subset"))
+		{
+			extensions.push_back("VK_KHR_portability_subset");
+		}
 		VkDeviceCreateInfo create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		create_info.queueCreateInfoCount = same_queue ? 1u : 2u;
 		create_info.pQueueCreateInfos = queue_infos.data();

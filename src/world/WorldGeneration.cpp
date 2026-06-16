@@ -7,6 +7,7 @@ namespace ve::world
 	{
 		Chunk* chunk = FindChunk(result.chunk_x, result.chunk_z);
 		if (!chunk || !chunk->ReplaceBlocks(result.blocks)) return false;
+		++_revision;
 		MarkGeneratedChunkNeighborhoodDirty(result.chunk_x, result.chunk_z);
 		RecordChunkGenerated(result.chunk_x, result.chunk_z);
 		return true;

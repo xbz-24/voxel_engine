@@ -2,6 +2,7 @@
 
 #include "OpenGLRenderView.h"
 
+#include <algorithm>
 #include <cassert>
 
 namespace ve::engine
@@ -33,8 +34,26 @@ namespace ve::engine
 	/** Presents the Vulkan migration frame. */
 	void EngineRuntime::RunVulkanFrame()
 	{
+		static bool was_left_down = false;
 		controller_.UpdateVulkanDemo(window_, *model_, frame_timer_.DeltaSeconds());
-		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(), model_->GetCamera())) window_.Close();
+		double mouse_x = 0.0;
+		double mouse_y = 0.0;
+		int window_width = 1;
+		int window_height = 1;
+		GLFWwindow* native_window = window_.GetNativeWindow();
+		glfwGetCursorPos(native_window, &mouse_x, &mouse_y);
+		glfwGetWindowSize(native_window, &window_width, &window_height);
+		const double scale_x = static_cast<double>(window_.GetWidth()) / static_cast<double>(std::max(window_width, 1));
+		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));
+		const bool left_down = glfwGetMouseButton(native_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+		const ve::rendering::VulkanDemoInput input{
+			mouse_x * scale_x,
+			mouse_y * scale_y,
+			left_down,
+			left_down && !was_left_down
+		};
+		was_left_down = left_down;
+		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(), model_->GetCamera(), frame_timer_.DisplayedFps(), frame_timer_.DeltaSeconds(), input)) window_.Close();
 	}
 
 	/** Updates frame-scoped state before gameplay systems run. */

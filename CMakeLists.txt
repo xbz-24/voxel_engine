@@ -104,6 +104,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
+find_package(Boost CONFIG REQUIRED COMPONENTS container)
 find_package(doctest CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -179,6 +180,7 @@ target_link_libraries(ve_render PUBLIC
 )
 
 target_link_libraries(ve_render_backends PUBLIC
+    Boost::container
     GLEW::GLEW
     glfw
     volk::volk

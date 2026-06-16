@@ -37,7 +37,8 @@ namespace ve::world
 	World::World(std::size_t chunkCount)
 		: _levelSpawn(EstimateWorldArenaBytes(chunkCount)),
 		  _chunks(ChunkAllocator(&_levelSpawn.MemoryResource())),
-		  _worldSize(0)
+		  _worldSize(0),
+		  _revision(0)
 	{
 		_chunks.reserve(chunkCount);
 	}
@@ -50,5 +51,10 @@ namespace ve::world
 	WorldMetrics World::Metrics() const noexcept
 	{
 		return WorldMetrics{ _worldSize, _chunks.size(), _chunks.capacity() };
+	}
+
+	std::uint64_t World::Revision() const noexcept
+	{
+		return _revision;
 	}
 }
