@@ -14,6 +14,7 @@
 namespace
 {
 	constexpr int kDefaultWorldSizeChunks = 10;
+	constexpr int kVulkanDemoWorldSizeChunks = 8;
 
 #if !defined(NDEBUG)
 	bool EnvironmentFlagEnabled(const char* name) noexcept
@@ -88,13 +89,14 @@ namespace ve::engine
 		}
 		const ve::assets::AssetPaths* block_registry_assets =
 			window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility ? &asset_paths_ : nullptr;
-		model_ = std::make_unique<GameModel>(kDefaultWorldSizeChunks, block_registry_assets);
+		const int world_size_chunks = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan ? kVulkanDemoWorldSizeChunks : kDefaultWorldSizeChunks;
+		model_ = std::make_unique<GameModel>(world_size_chunks, block_registry_assets);
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
 		{
-			model_->MutableCamera().MoveTo(glm::vec3(80.0f, 53.5f, 116.0f));
-			model_->MutableCamera().TurnTo(glm::vec3(78.0f, 52.0f, 88.0f));
+			model_->MutableCamera().MoveTo(glm::vec3(90.0f, 58.0f, 124.0f));
+			model_->MutableCamera().TurnTo(glm::vec3(78.0f, 53.0f, 91.0f));
 			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Vulkan runtime is using the voxel world model");
 		}
 		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility)

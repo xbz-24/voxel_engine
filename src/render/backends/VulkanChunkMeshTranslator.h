@@ -9,12 +9,23 @@
 namespace ve::rendering
 {
 	/**
+	 * Texture/material range after the OpenGL quad batches have been converted to Vulkan triangles.
+	 */
+	struct VulkanChunkMeshBatch
+	{
+		TextureHandle texture = kInvalidTextureHandle;
+		std::uint32_t first_index = 0;
+		std::uint32_t index_count = 0;
+	};
+
+	/**
 	 * Backend-neutral payload shape needed before uploading chunk meshes to Vulkan buffers.
 	 */
 	struct VulkanChunkMeshPayload
 	{
 		std::vector<ChunkVertex> vertices;
 		std::vector<std::uint32_t> indices;
+		std::vector<VulkanChunkMeshBatch> batches;
 		GpuDrawElementsCommand draw{};
 	};
 

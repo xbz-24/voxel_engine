@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "WorkerPolicy.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 
@@ -79,6 +80,80 @@ namespace ve::engine
 			world.SetBlock(75, ground_y + 1, 85, BlockId::Bookshelf);
 		}
 
+		void BuildTerracedHill(ve::world::World& world, int ground_y)
+		{
+			for (int x = 88; x <= 105; ++x)
+			{
+				for (int z = 106; z <= 124; ++z)
+				{
+					const int distance = std::max(std::abs(x - 97), std::abs(z - 116));
+					const int height = distance <= 3 ? 8 : (distance <= 6 ? 5 : (distance <= 9 ? 2 : 0));
+					if (height == 0) continue;
+					FillBox(world, x, ground_y + 1, z, x, ground_y + height - 1, z, distance <= 4 ? BlockId::Stone : BlockId::Dirt);
+					world.SetBlock(x, ground_y + height, z, BlockId::Grass);
+					if (height >= 5 && (x + z) % 7 == 0) world.SetBlock(x, ground_y + height + 1, z, BlockId::MossBlock);
+				}
+			}
+
+			FillBox(world, 94, ground_y + 1, 106, 100, ground_y + 4, 110, BlockId::Air);
+			FillBox(world, 93, ground_y + 1, 106, 93, ground_y + 5, 110, BlockId::Blackstone);
+			FillBox(world, 101, ground_y + 1, 106, 101, ground_y + 5, 110, BlockId::Blackstone);
+			FillBox(world, 94, ground_y + 5, 106, 100, ground_y + 5, 110, BlockId::Basalt);
+			world.SetBlock(96, ground_y + 2, 111, BlockId::CoalOre);
+			world.SetBlock(98, ground_y + 3, 111, BlockId::IronOre);
+			world.SetBlock(100, ground_y + 2, 111, BlockId::CopperOre);
+			world.SetBlock(97, ground_y + 1, 110, BlockId::AmethystBlock);
+		}
+
+		void BuildGlassPond(ve::world::World& world, int ground_y)
+		{
+			for (int x = 58; x <= 69; ++x)
+			{
+				for (int z = 106; z <= 119; ++z)
+				{
+					const int dx = std::abs(x - 63);
+					const int dz = std::abs(z - 112);
+					if ((dx * dx) + (dz * dz) <= 45)
+					{
+						world.SetBlock(x, ground_y, z, BlockId::Glass);
+						world.SetBlock(x, ground_y - 1, z, BlockId::Sand);
+						if ((dx * dx) + (dz * dz) >= 34) world.SetBlock(x, ground_y + 1, z, BlockId::Sand);
+					}
+				}
+			}
+			FillBox(world, 69, ground_y, 111, 78, ground_y, 114, BlockId::Gravel);
+		}
+
+		void BuildWatchtower(ve::world::World& world, int ground_y)
+		{
+			FillBox(world, 102, ground_y + 1, 92, 102, ground_y + 9, 92, BlockId::OakLog);
+			FillBox(world, 99, ground_y + 7, 89, 105, ground_y + 7, 95, BlockId::OakPlanks);
+			FillBox(world, 99, ground_y + 8, 89, 99, ground_y + 9, 95, BlockId::OakPlanks);
+			FillBox(world, 105, ground_y + 8, 89, 105, ground_y + 9, 95, BlockId::OakPlanks);
+			FillBox(world, 99, ground_y + 8, 89, 105, ground_y + 9, 89, BlockId::OakPlanks);
+			FillBox(world, 99, ground_y + 8, 95, 105, ground_y + 9, 95, BlockId::OakPlanks);
+			FillBox(world, 100, ground_y + 10, 90, 104, ground_y + 10, 94, BlockId::Bricks);
+			world.SetBlock(102, ground_y + 11, 92, BlockId::AmethystBlock);
+			for (int y = ground_y + 1; y <= ground_y + 6; y += 2)
+			{
+				world.SetBlock(101, y, 92, BlockId::OakPlanks);
+				world.SetBlock(103, y + 1, 92, BlockId::OakPlanks);
+			}
+		}
+
+		void BuildOreGallery(ve::world::World& world, int ground_y)
+		{
+			FillBox(world, 57, ground_y + 1, 90, 57, ground_y + 5, 101, BlockId::Stone);
+			FillBox(world, 58, ground_y + 1, 91, 58, ground_y + 4, 100, BlockId::Air);
+			world.SetBlock(57, ground_y + 2, 91, BlockId::CoalOre);
+			world.SetBlock(57, ground_y + 3, 93, BlockId::IronOre);
+			world.SetBlock(57, ground_y + 2, 95, BlockId::CopperOre);
+			world.SetBlock(57, ground_y + 3, 97, BlockId::GoldOre);
+			world.SetBlock(57, ground_y + 2, 99, BlockId::DiamondOre);
+			FillBox(world, 59, ground_y + 1, 90, 64, ground_y + 1, 90, BlockId::MossyCobblestone);
+			FillBox(world, 59, ground_y + 2, 90, 64, ground_y + 2, 90, BlockId::Bookshelf);
+		}
+
 		void BuildMinecraftStyleShowcase(ve::world::World& world)
 		{
 			constexpr int ground_y = 50;
@@ -95,6 +170,10 @@ namespace ve::engine
 			}
 
 			BuildHouse(world, ground_y);
+			BuildTerracedHill(world, ground_y);
+			BuildGlassPond(world, ground_y);
+			BuildWatchtower(world, ground_y);
+			BuildOreGallery(world, ground_y);
 			PlaceTree(world, 62, ground_y, 80);
 			PlaceTree(world, 96, ground_y, 84);
 			PlaceTree(world, 98, ground_y, 116);

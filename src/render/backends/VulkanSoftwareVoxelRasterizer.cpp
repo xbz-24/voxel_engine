@@ -321,6 +321,8 @@ namespace ve::rendering
 			return requested;
 		}
 
+		constexpr std::size_t kSamplesPerBatch = 512u;
+
 		std::uint32_t CeilDiv(std::uint64_t numerator, std::uint32_t denominator) noexcept
 		{
 			return static_cast<std::uint32_t>((numerator + static_cast<std::uint64_t>(denominator) - 1ull) / denominator);
@@ -328,8 +330,8 @@ namespace ve::rendering
 
 		VkExtent2D InternalRenderExtentFor(VkExtent2D output_extent, const VulkanDemoSettings& settings) noexcept
 		{
-			const std::uint32_t max_width = std::clamp(settings.max_internal_width, 320u, 1280u);
-			const std::uint32_t max_height = std::clamp(settings.max_internal_height, 180u, 720u);
+			const std::uint32_t max_width = std::clamp(settings.max_internal_width, 320u, 1920u);
+			const std::uint32_t max_height = std::clamp(settings.max_internal_height, 180u, 1080u);
 			if (output_extent.width <= max_width && output_extent.height <= max_height)
 			{
 				return output_extent;
@@ -671,6 +673,11 @@ namespace ve::rendering
 			}
 			const Rgb color = hit.hit ? ShadeHit(hit, sample.direction, base_color, work.max_ray_distance, work.fog_strength) : base_color;
 			const std::uint32_t packed = PackColor(color, work.format);
+			if (sample.x_end == sample.x + 1u && sample.y_end == sample.y + 1u)
+			{
+				render_pixels_[(static_cast<std::size_t>(sample.y) * render_extent_.width) + sample.x] = packed;
+				continue;
+			}
 			for (std::uint32_t fill_y = sample.y; fill_y < sample.y_end; ++fill_y)
 			{
 				std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(fill_y) * render_extent_.width);
@@ -696,7 +703,6 @@ namespace ve::rendering
 			++work_generation_;
 		}
 		work_available_.notify_all();
-		constexpr std::size_t kSamplesPerBatch = 64u;
 		for (;;)
 		{
 			const std::size_t begin = next_sample_index_.fetch_add(kSamplesPerBatch);
@@ -723,7 +729,6 @@ namespace ve::rendering
 				work = current_work_;
 			}
 
-			constexpr std::size_t kSamplesPerBatch = 64u;
 			for (;;)
 			{
 				const std::size_t begin = next_sample_index_.fetch_add(kSamplesPerBatch);
@@ -823,6 +828,8 @@ namespace ve::rendering
 
 	void VulkanSoftwareVoxelRasterizer::Render(const VulkanSoftwareVoxelRasterizerFrame& frame)
 	{
+		if (frame.input.toggle_debug_overlay) frame.settings.show_debug_overlay = !frame.settings.show_debug_overlay;
+		if (frame.input.toggle_tuning_panel) frame.settings.show_tuning_panel = !frame.settings.show_tuning_panel;
 		if (!Resize(frame.extent, frame.settings)) return;
 
 		const std::uint64_t world_revision = frame.world.Revision();
@@ -1006,14 +1013,14 @@ namespace ve::rendering
 		float outline = frame.settings.outline_strength;
 		const std::uint32_t slider_x = panel_x + 12u;
 		const std::uint32_t slider_w = std::min<std::uint32_t>(220u, panel_width > 250u ? panel_width - 250u : 120u);
-		Slider(frame, "RES X", res_x, 320.0f, 1280.0f, slider_x, panel_y + 31u, slider_w);
-		Slider(frame, "RES Y", res_y, 180.0f, 720.0f, slider_x, panel_y + 49u, slider_w);
+		Slider(frame, "RES X", res_x, 320.0f, 1920.0f, slider_x, panel_y + 31u, slider_w);
+		Slider(frame, "RES Y", res_y, 180.0f, 1080.0f, slider_x, panel_y + 49u, slider_w);
 		Slider(frame, "PIXEL", pixel, 1.0f, 8.0f, slider_x, panel_y + 67u, slider_w);
 		Slider(frame, "RAY", ray, 32.0f, 144.0f, slider_x, panel_y + 85u, slider_w);
 		Slider(frame, "FOG", fog, 0.0f, 0.9f, slider_x, panel_y + 103u, slider_w);
 		Slider(frame, "OUTLINE", outline, 0.0f, 0.65f, slider_x, panel_y + 121u, slider_w);
-		frame.settings.max_internal_width = static_cast<std::uint32_t>(std::clamp(res_x, 320.0f, 1280.0f));
-		frame.settings.max_internal_height = static_cast<std::uint32_t>(std::clamp(res_y, 180.0f, 720.0f));
+		frame.settings.max_internal_width = static_cast<std::uint32_t>(std::clamp(res_x, 320.0f, 1920.0f));
+		frame.settings.max_internal_height = static_cast<std::uint32_t>(std::clamp(res_y, 180.0f, 1080.0f));
 		frame.settings.pixel_block_size = static_cast<std::uint32_t>(std::round(std::clamp(pixel, 1.0f, 8.0f)));
 		frame.settings.max_ray_distance = std::clamp(ray, 32.0f, 144.0f);
 		frame.settings.fog_strength = std::clamp(fog, 0.0f, 0.9f);

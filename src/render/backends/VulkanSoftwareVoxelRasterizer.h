@@ -41,14 +41,14 @@ namespace ve::rendering
 
 	struct VulkanDemoSettings
 	{
-		std::uint32_t max_internal_width = 1280;
-		std::uint32_t max_internal_height = 720;
+		std::uint32_t max_internal_width = 1600;
+		std::uint32_t max_internal_height = 900;
 		std::uint32_t pixel_block_size = 1;
-		float max_ray_distance = 72.0f;
-		float fog_strength = 0.45f;
-		float outline_strength = 0.12f;
-		bool adaptive_quality = false;
-		bool show_tuning_panel = true;
+		float max_ray_distance = 96.0f;
+		float fog_strength = 0.38f;
+		float outline_strength = 0.08f;
+		bool adaptive_quality = true;
+		bool show_tuning_panel = false;
 		bool show_debug_overlay = true;
 	};
 
@@ -58,6 +58,8 @@ namespace ve::rendering
 		double mouse_y = 0.0;
 		bool mouse_left_down = false;
 		bool mouse_left_pressed = false;
+		bool toggle_debug_overlay = false;
+		bool toggle_tuning_panel = false;
 	};
 
 	struct VulkanSoftwareVoxelRasterizerFrame
