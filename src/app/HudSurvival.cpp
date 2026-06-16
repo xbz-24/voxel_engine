@@ -41,7 +41,7 @@ namespace ve::ui
 		for (int slot = 0; slot < ve::gameplay::HotbarSlotCount; slot++)
 		{
 			const ve::blocks::BlockId blockId = hotbarBlocks[static_cast<std::size_t>(slot)];
-			ve::rendering::DrawTexturedQuad(blockRegistry.TextureFor(blockId, ve::blocks::BlockFace::Top), hotbarX + (static_cast<float>(slot) * slotSize) + blockIconInset, hotbarY + blockIconInset, blockIconSize, blockIconSize);
+			ve::rendering::DrawTexturedQuad(static_cast<GLuint>(blockRegistry.TextureFor(blockId, ve::blocks::BlockFace::Top)), hotbarX + (static_cast<float>(slot) * slotSize) + blockIconInset, hotbarY + blockIconInset, blockIconSize, blockIconSize);
 		}
 
 		const float experienceWidth = 182.0f * scale;

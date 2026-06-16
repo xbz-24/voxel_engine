@@ -41,7 +41,7 @@ namespace ve::world::mesh
 		struct MaskCell
 		{
 			bool visible = false;
-			GLuint texture = 0;
+			ve::rendering::TextureHandle texture = ve::rendering::kInvalidTextureHandle;
 			ve::blocks::BlockId block_id = ve::blocks::BlockId::Air;
 			float red = 1.0f;
 			float green = 1.0f;
