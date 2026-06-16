@@ -25,12 +25,12 @@ namespace ve::world::mesh
 		/**
 		 * Appends one texture batch to the result when the current range is non-empty.
 		 */
-		void AppendBatch(ChunkMeshBuildResult& result, GLuint texture, GLsizei firstVertex)
+		void AppendBatch(ChunkMeshBuildResult& result, ve::rendering::TextureHandle texture, std::uint32_t first_vertex)
 		{
-			const GLsizei vertexCount = static_cast<GLsizei>(result.vertices.size()) - firstVertex;
-			if (vertexCount > 0)
+			const std::uint32_t vertex_count = static_cast<std::uint32_t>(result.vertices.size()) - first_vertex;
+			if (vertex_count > 0)
 			{
-				result.batches.push_back(ve::rendering::ChunkMeshBatch{ texture, firstVertex, vertexCount });
+				result.batches.push_back(ve::rendering::ChunkMeshBatch{ texture, first_vertex, vertex_count });
 			}
 		}
 	}
@@ -48,15 +48,15 @@ namespace ve::world::mesh
 			return result;
 		}
 
-		GLuint currentTexture = faces.front().texture;
-		GLsizei batchStart = 0;
+		ve::rendering::TextureHandle currentTexture = faces.front().texture;
+		std::uint32_t batchStart = 0;
 		for (const MeshFace& face : faces)
 		{
 			if (face.texture != currentTexture)
 			{
 				AppendBatch(result, currentTexture, batchStart);
 				currentTexture = face.texture;
-				batchStart = static_cast<GLsizei>(result.vertices.size());
+				batchStart = static_cast<std::uint32_t>(result.vertices.size());
 			}
 			AppendFaceVertices(face, result.vertices);
 		}

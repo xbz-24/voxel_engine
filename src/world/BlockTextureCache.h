@@ -1,6 +1,7 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "GraphicsTypes.h"
+
 #include <filesystem>
 #include <string>
 #include <unordered_map>
@@ -18,15 +19,15 @@ namespace ve::blocks
 		explicit BlockTextureCache(const std::filesystem::path& blockTextureDirectory);
 
 		/**
-		 * Loads or returns an existing OpenGL texture.
+		 * Loads or returns an existing backend texture handle.
 		 *
 		 * @param fileName Texture file name, or nullptr for no texture.
-		 * @return OpenGL texture id.
+		 * @return Backend texture handle.
 		 */
-		GLuint Load(const char* fileName);
+		ve::rendering::TextureHandle Load(const char* fileName);
 
 	private:
 		std::filesystem::path _blockTextureDirectory;
-		std::unordered_map<std::string, GLuint> _textures;
+		std::unordered_map<std::string, ve::rendering::TextureHandle> _textures;
 	};
 }

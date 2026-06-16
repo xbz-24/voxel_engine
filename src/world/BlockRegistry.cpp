@@ -28,7 +28,7 @@ namespace ve::blocks
 		/**
 		 * Loads all face textures for a block definition.
 		 */
-		std::array<GLuint, static_cast<std::size_t>(BlockFace::Count)> LoadFaces(BlockTextureCache& cache, const FaceTextureFiles& files)
+		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> LoadFaces(BlockTextureCache& cache, const FaceTextureFiles& files)
 		{
 			return { {
 				cache.Load(files.top),
@@ -71,7 +71,7 @@ namespace ve::blocks
 		return Get(id).isSolid;
 	}
 
-	GLuint BlockRegistry::TextureFor(BlockId id, BlockFace face) const
+	ve::rendering::TextureHandle BlockRegistry::TextureFor(BlockId id, BlockFace face) const
 	{
 		return Get(id).faceTextures[IndexOf(face)];
 	}

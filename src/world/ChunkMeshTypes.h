@@ -1,8 +1,7 @@
 #pragma once
 
-#include "ChunkGpuMesh.h"
+#include "GraphicsTypes.h"
 
-#include <GL/glew.h>
 #include <vector>
 
 class Chunk;
@@ -38,7 +37,7 @@ namespace ve::world::mesh
 	 */
 	struct MeshFace
 	{
-		GLuint texture;
+		ve::rendering::TextureHandle texture = ve::rendering::kInvalidTextureHandle;
 		MeshFaceDirection direction;
 		float x;
 		float y;

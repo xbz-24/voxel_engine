@@ -2,8 +2,13 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
+
 namespace ve::rendering
 {
+	using TextureHandle = std::uint32_t;
+	inline constexpr TextureHandle kInvalidTextureHandle = 0;
+
 	struct ColorRgba
 	{
 		float red = 1.0f;
@@ -33,6 +38,20 @@ namespace ve::rendering
 		glm::vec3 normal{ 0.0f, 1.0f, 0.0f };
 		glm::vec2 uv{ 0.0f };
 		ColorRgba color{};
+	};
+
+	struct ChunkVertex
+	{
+		float x, y, z;
+		float u, v;
+		float r, g, b;
+	};
+
+	struct ChunkMeshBatch
+	{
+		TextureHandle texture = kInvalidTextureHandle;
+		std::uint32_t first_vertex = 0;
+		std::uint32_t vertex_count = 0;
 	};
 
 	struct GraphicsAabb

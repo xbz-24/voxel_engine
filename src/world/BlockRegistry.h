@@ -2,9 +2,9 @@
 
 #include "AssetPaths.h"
 #include "Block.h"
+#include "GraphicsTypes.h"
 #include "PbrMaterial.h"
 
-#include <GL/glew.h>
 #include <array>
 #include <string_view>
 
@@ -18,7 +18,7 @@ namespace ve::blocks
 		BlockId id;
 		std::string_view name;
 		bool isSolid;
-		std::array<GLuint, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
+		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
 		ve::rendering::PbrMaterial material;
 	};
 
@@ -64,9 +64,9 @@ namespace ve::blocks
 		 *
 		 * @param id Block id to inspect.
 		 * @param face Face whose texture is requested.
-		 * @return OpenGL texture id, or 0 for air/invalid data.
+		 * @return Backend-neutral texture handle, or zero for air/invalid data.
 		 */
-		GLuint TextureFor(BlockId id, BlockFace face) const;
+		ve::rendering::TextureHandle TextureFor(BlockId id, BlockFace face) const;
 
 		/**
 		 * Returns the physically based material used by a block.

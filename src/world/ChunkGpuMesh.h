@@ -1,24 +1,13 @@
 #pragma once
 
+#include "GraphicsTypes.h"
+
 #include <GL/glew.h>
+#include <cstdint>
 #include <vector>
 
 namespace ve::rendering
 {
-	struct ChunkVertex
-	{
-		float x, y, z;
-		float u, v;
-		float r, g, b;
-	};
-
-	struct ChunkMeshBatch
-	{
-		GLuint texture;
-		GLsizei firstVertex;
-		GLsizei vertexCount;
-	};
-
 	class ChunkGpuMesh
 	{
 	public:

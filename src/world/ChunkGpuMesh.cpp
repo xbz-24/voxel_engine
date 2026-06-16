@@ -66,8 +66,8 @@ namespace ve::rendering
 
 		for (const ChunkMeshBatch& batch : _batches)
 		{
-			glBindTexture(GL_TEXTURE_2D, batch.texture);
-			glDrawArrays(GL_QUADS, batch.firstVertex, batch.vertexCount);
+			glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(batch.texture));
+			glDrawArrays(GL_QUADS, static_cast<GLint>(batch.first_vertex), static_cast<GLsizei>(batch.vertex_count));
 		}
 
 		glDisableClientState(GL_COLOR_ARRAY);

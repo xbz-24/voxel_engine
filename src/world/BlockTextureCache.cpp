@@ -9,17 +9,18 @@ namespace ve::blocks
 	{
 	}
 
-	GLuint BlockTextureCache::Load(const char* fileName)
+	ve::rendering::TextureHandle BlockTextureCache::Load(const char* fileName)
 	{
 		if (fileName == nullptr)
 		{
-			return 0;
+			return ve::rendering::kInvalidTextureHandle;
 		}
 
-		auto [entry, inserted] = _textures.try_emplace(fileName, 0);
+		auto [entry, inserted] = _textures.try_emplace(fileName, ve::rendering::kInvalidTextureHandle);
 		if (inserted)
 		{
-			entry->second = ve::rendering::LoadTexture((_blockTextureDirectory / fileName).string().c_str());
+			entry->second = static_cast<ve::rendering::TextureHandle>(
+				ve::rendering::LoadTexture((_blockTextureDirectory / fileName).string().c_str()));
 		}
 		return entry->second;
 	}

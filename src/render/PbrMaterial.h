@@ -1,6 +1,7 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "GraphicsTypes.h"
+
 #include <glm/glm.hpp>
 
 namespace ve::rendering
@@ -16,12 +17,12 @@ namespace ve::rendering
 
 	struct PbrTextureSet
 	{
-		GLuint albedo = 0;
-		GLuint normal = 0;
-		GLuint roughness = 0;
-		GLuint metallic = 0;
-		GLuint ambient_occlusion = 0;
-		GLuint emissive = 0;
+		TextureHandle albedo = kInvalidTextureHandle;
+		TextureHandle normal = kInvalidTextureHandle;
+		TextureHandle roughness = kInvalidTextureHandle;
+		TextureHandle metallic = kInvalidTextureHandle;
+		TextureHandle ambient_occlusion = kInvalidTextureHandle;
+		TextureHandle emissive = kInvalidTextureHandle;
 	};
 
 	class PbrMaterial
