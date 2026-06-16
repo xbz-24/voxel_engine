@@ -21,6 +21,7 @@ namespace ve::engine
 	{
 		if (ve::input::IsPressed(window.GetNativeWindow(), ve::input::Key::Escape)) window.Close();
 		model.PumpAsyncWorldGeneration();
+		model.TryBuildVulkanDemoScene();
 		const float speed = 18.0f * static_cast<float>(std::max(delta_seconds, 0.001));
 		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window.GetNativeWindow());
 		ve::gameplay::ApplyPlanarMovement(intent, model.MutableCamera(), speed);

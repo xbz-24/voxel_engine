@@ -1,12 +1,118 @@
 #include "GameModel.h"
 
+#include "Block.h"
 #include "Logger.h"
 #include "WorkerPolicy.h"
 
+#include <cstdlib>
 #include <string>
 
 namespace ve::engine
 {
+	namespace
+	{
+		using ve::blocks::BlockId;
+
+		void FillBox(ve::world::World& world, int min_x, int min_y, int min_z, int max_x, int max_y, int max_z, BlockId block)
+		{
+			for (int x = min_x; x <= max_x; ++x)
+			{
+				for (int y = min_y; y <= max_y; ++y)
+				{
+					for (int z = min_z; z <= max_z; ++z)
+					{
+						world.SetBlock(x, y, z, block);
+					}
+				}
+			}
+		}
+
+		void PlaceTree(ve::world::World& world, int x, int ground_y, int z)
+		{
+			FillBox(world, x, ground_y + 1, z, x, ground_y + 5, z, BlockId::OakLog);
+			for (int lx = x - 2; lx <= x + 2; ++lx)
+			{
+				for (int lz = z - 2; lz <= z + 2; ++lz)
+				{
+					const int distance = std::abs(lx - x) + std::abs(lz - z);
+					if (distance <= 3) world.SetBlock(lx, ground_y + 6, lz, BlockId::OakLeaves);
+					if (distance <= 2) world.SetBlock(lx, ground_y + 5, lz, BlockId::OakLeaves);
+				}
+			}
+			world.SetBlock(x, ground_y + 6, z, BlockId::OakLeaves);
+		}
+
+		void BuildHouse(ve::world::World& world, int ground_y)
+		{
+			FillBox(world, 70, ground_y, 82, 84, ground_y, 96, BlockId::OakPlanks);
+			for (int y = ground_y + 1; y <= ground_y + 4; ++y)
+			{
+				for (int x = 70; x <= 84; ++x)
+				{
+					world.SetBlock(x, y, 82, BlockId::OakPlanks);
+					world.SetBlock(x, y, 96, BlockId::OakPlanks);
+				}
+				for (int z = 82; z <= 96; ++z)
+				{
+					world.SetBlock(70, y, z, BlockId::OakPlanks);
+					world.SetBlock(84, y, z, BlockId::OakPlanks);
+				}
+			}
+
+			FillBox(world, 70, ground_y + 1, 82, 70, ground_y + 5, 82, BlockId::OakLog);
+			FillBox(world, 84, ground_y + 1, 82, 84, ground_y + 5, 82, BlockId::OakLog);
+			FillBox(world, 70, ground_y + 1, 96, 70, ground_y + 5, 96, BlockId::OakLog);
+			FillBox(world, 84, ground_y + 1, 96, 84, ground_y + 5, 96, BlockId::OakLog);
+
+			FillBox(world, 69, ground_y + 5, 81, 85, ground_y + 5, 97, BlockId::Cobblestone);
+			FillBox(world, 71, ground_y + 6, 83, 83, ground_y + 6, 95, BlockId::Bricks);
+			FillBox(world, 73, ground_y + 7, 85, 81, ground_y + 7, 93, BlockId::Bricks);
+
+			FillBox(world, 77, ground_y + 1, 96, 78, ground_y + 3, 96, BlockId::Air);
+			world.SetBlock(76, ground_y + 2, 96, BlockId::Glass);
+			world.SetBlock(79, ground_y + 2, 96, BlockId::Glass);
+			world.SetBlock(70, ground_y + 2, 88, BlockId::Glass);
+			world.SetBlock(84, ground_y + 2, 90, BlockId::Glass);
+
+			world.SetBlock(73, ground_y + 1, 85, BlockId::CraftingTable);
+			world.SetBlock(74, ground_y + 1, 85, BlockId::Bookshelf);
+			world.SetBlock(75, ground_y + 1, 85, BlockId::Bookshelf);
+		}
+
+		void BuildMinecraftStyleShowcase(ve::world::World& world)
+		{
+			constexpr int ground_y = 50;
+			for (int x = 56; x <= 104; ++x)
+			{
+				for (int z = 72; z <= 124; ++z)
+				{
+					FillBox(world, x, ground_y + 1, z, x, ground_y + 11, z, BlockId::Air);
+					world.SetBlock(x, ground_y - 3, z, BlockId::Stone);
+					world.SetBlock(x, ground_y - 2, z, BlockId::Dirt);
+					world.SetBlock(x, ground_y - 1, z, BlockId::Dirt);
+					world.SetBlock(x, ground_y, z, BlockId::Grass);
+				}
+			}
+
+			BuildHouse(world, ground_y);
+			PlaceTree(world, 62, ground_y, 80);
+			PlaceTree(world, 96, ground_y, 84);
+			PlaceTree(world, 98, ground_y, 116);
+
+			FillBox(world, 78, ground_y, 97, 81, ground_y, 118, BlockId::Gravel);
+			FillBox(world, 76, ground_y, 100, 83, ground_y, 103, BlockId::Gravel);
+			FillBox(world, 58, ground_y + 1, 112, 63, ground_y + 3, 117, BlockId::HayBlock);
+			world.SetBlock(66, ground_y + 1, 104, BlockId::Pumpkin);
+			world.SetBlock(67, ground_y + 1, 104, BlockId::Pumpkin);
+			world.SetBlock(68, ground_y + 1, 104, BlockId::Melon);
+			world.SetBlock(90, ground_y + 1, 104, BlockId::CraftingTable);
+			world.SetBlock(92, ground_y + 1, 104, BlockId::Bookshelf);
+			world.SetBlock(93, ground_y + 1, 104, BlockId::Bookshelf);
+			FillBox(world, 88, ground_y + 1, 114, 92, ground_y + 4, 114, BlockId::MossyCobblestone);
+			world.SetBlock(90, ground_y + 5, 114, BlockId::AmethystBlock);
+		}
+	}
+
 	/// Creates world and player-facing gameplay state.
 	GameModel::GameModel(int world_size_chunks, const ve::assets::AssetPaths* asset_paths)
 		: world_(ve::world::CreateInfoForSquareWorld(world_size_chunks)),
@@ -58,6 +164,15 @@ namespace ve::engine
 		{
 			VE_LOG_CATEGORY_DEBUG(ve::log::category::World, std::string("Applied generated chunks: ") + std::to_string(applied_count));
 		}
+	}
+
+	void GameModel::TryBuildVulkanDemoScene()
+	{
+		if (vulkan_demo_scene_built_) return;
+		if (world_generator_.PendingTaskCount() != 0) return;
+		BuildMinecraftStyleShowcase(world_);
+		vulkan_demo_scene_built_ = true;
+		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Built Vulkan Minecraft-style showcase scene");
 	}
 
 	/// Uploads ready meshes and queues visible chunks that need meshing.

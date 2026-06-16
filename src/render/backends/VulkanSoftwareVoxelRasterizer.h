@@ -41,13 +41,13 @@ namespace ve::rendering
 
 	struct VulkanDemoSettings
 	{
-		std::uint32_t max_internal_width = 640;
-		std::uint32_t max_internal_height = 360;
-		std::uint32_t pixel_block_size = 2;
+		std::uint32_t max_internal_width = 1280;
+		std::uint32_t max_internal_height = 720;
+		std::uint32_t pixel_block_size = 1;
 		float max_ray_distance = 72.0f;
 		float fog_strength = 0.45f;
-		float outline_strength = 0.18f;
-		bool adaptive_quality = true;
+		float outline_strength = 0.12f;
+		bool adaptive_quality = false;
 		bool show_tuning_panel = true;
 		bool show_debug_overlay = true;
 	};
@@ -118,6 +118,8 @@ namespace ve::rendering
 
 		[[nodiscard]] std::span<const std::uint32_t> Pixels() const noexcept;
 		[[nodiscard]] VkExtent2D Extent() const noexcept;
+		[[nodiscard]] std::span<const std::uint32_t> RenderPixels() const noexcept;
+		[[nodiscard]] VkExtent2D RenderExtent() const noexcept;
 		[[nodiscard]] const VulkanFrameTiming& LastTiming() const noexcept;
 
 	private:
@@ -155,6 +157,12 @@ namespace ve::rendering
 			float fog_strength = 0.45f;
 		};
 
+		struct UpscaleRange
+		{
+			std::uint32_t begin = 0;
+			std::uint32_t end = 0;
+		};
+
 		void CaptureWorldSnapshot(const ve::world::World& world);
 		[[nodiscard]] const CpuTexture& TextureFor(ve::blocks::BlockId block, ve::blocks::BlockFace face) const noexcept;
 		void EnsureWorkers();
@@ -185,8 +193,8 @@ namespace ve::rendering
 		std::vector<std::uint32_t> pixels_;
 		std::vector<std::uint32_t> render_pixels_;
 		std::vector<std::uint32_t> outline_pixels_;
-		std::vector<std::uint32_t> upscale_x_lookup_;
-		std::vector<std::uint32_t> upscale_y_lookup_;
+		std::vector<UpscaleRange> upscale_x_ranges_;
+		std::vector<UpscaleRange> upscale_y_ranges_;
 		std::vector<CachedSampleRay> ray_cache_;
 		FrameWorldSnapshot world_snapshot_;
 		glm::vec3 cached_forward_{ 0.0f, 0.0f, -1.0f };

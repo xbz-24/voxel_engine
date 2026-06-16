@@ -93,8 +93,8 @@ namespace ve::engine
 		engine_.ConfigureCallbacks(window_, callback_context_);
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
 		{
-			model_->MutableCamera().MoveTo(glm::vec3(80.0f, 76.0f, 130.0f));
-			model_->MutableCamera().TurnTo(glm::vec3(80.0f, 58.0f, 80.0f));
+			model_->MutableCamera().MoveTo(glm::vec3(80.0f, 53.5f, 116.0f));
+			model_->MutableCamera().TurnTo(glm::vec3(78.0f, 52.0f, 88.0f));
 			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Vulkan runtime is using the voxel world model");
 		}
 		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility)

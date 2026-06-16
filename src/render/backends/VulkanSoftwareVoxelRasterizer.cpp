@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <limits>
 #include <memory>
@@ -320,6 +321,11 @@ namespace ve::rendering
 			return requested;
 		}
 
+		std::uint32_t CeilDiv(std::uint64_t numerator, std::uint32_t denominator) noexcept
+		{
+			return static_cast<std::uint32_t>((numerator + static_cast<std::uint64_t>(denominator) - 1ull) / denominator);
+		}
+
 		VkExtent2D InternalRenderExtentFor(VkExtent2D output_extent, const VulkanDemoSettings& settings) noexcept
 		{
 			const std::uint32_t max_width = std::clamp(settings.max_internal_width, 320u, 1280u);
@@ -553,8 +559,8 @@ namespace ve::rendering
 		pixels_.clear();
 		render_pixels_.clear();
 		outline_pixels_.clear();
-		upscale_x_lookup_.clear();
-		upscale_y_lookup_.clear();
+		upscale_x_ranges_.clear();
+		upscale_y_ranges_.clear();
 		ray_cache_.clear();
 		world_snapshot_ = {};
 		extent_ = {};
@@ -737,16 +743,22 @@ namespace ve::rendering
 
 	void VulkanSoftwareVoxelRasterizer::RebuildUpscaleLookup()
 	{
-		upscale_x_lookup_.resize(extent_.width);
-		for (std::uint32_t x = 0; x < extent_.width; ++x)
+		upscale_x_ranges_.resize(render_extent_.width);
+		for (std::uint32_t x = 0; x < render_extent_.width; ++x)
 		{
-			upscale_x_lookup_[x] = static_cast<std::uint32_t>((static_cast<std::uint64_t>(x) * render_extent_.width) / extent_.width);
+			upscale_x_ranges_[x] = {
+				CeilDiv(static_cast<std::uint64_t>(x) * extent_.width, render_extent_.width),
+				CeilDiv(static_cast<std::uint64_t>(x + 1u) * extent_.width, render_extent_.width)
+			};
 		}
 
-		upscale_y_lookup_.resize(extent_.height);
-		for (std::uint32_t y = 0; y < extent_.height; ++y)
+		upscale_y_ranges_.resize(render_extent_.height);
+		for (std::uint32_t y = 0; y < render_extent_.height; ++y)
 		{
-			upscale_y_lookup_[y] = static_cast<std::uint32_t>((static_cast<std::uint64_t>(y) * render_extent_.height) / extent_.height);
+			upscale_y_ranges_[y] = {
+				CeilDiv(static_cast<std::uint64_t>(y) * extent_.height, render_extent_.height),
+				CeilDiv(static_cast<std::uint64_t>(y + 1u) * extent_.height, render_extent_.height)
+			};
 		}
 	}
 
@@ -757,17 +769,31 @@ namespace ve::rendering
 			std::copy(render_pixels_.begin(), render_pixels_.end(), pixels_.begin());
 			return;
 		}
-		if (upscale_x_lookup_.size() != extent_.width || upscale_y_lookup_.size() != extent_.height)
+		if (upscale_x_ranges_.size() != render_extent_.width || upscale_y_ranges_.size() != render_extent_.height)
 		{
 			RebuildUpscaleLookup();
 		}
-		for (std::uint32_t y = 0; y < extent_.height; ++y)
+		const std::size_t row_bytes = static_cast<std::size_t>(extent_.width) * sizeof(std::uint32_t);
+		for (std::uint32_t source_y = 0; source_y < render_extent_.height; ++source_y)
 		{
-			const std::uint32_t* source_row = render_pixels_.data() + (static_cast<std::size_t>(upscale_y_lookup_[y]) * render_extent_.width);
-			std::uint32_t* destination_row = pixels_.data() + (static_cast<std::size_t>(y) * extent_.width);
-			for (std::uint32_t x = 0; x < extent_.width; ++x)
+			const UpscaleRange y_range = upscale_y_ranges_[source_y];
+			if (y_range.begin >= y_range.end) continue;
+
+			const std::uint32_t* source_row = render_pixels_.data() + (static_cast<std::size_t>(source_y) * render_extent_.width);
+			std::uint32_t* first_destination_row = pixels_.data() + (static_cast<std::size_t>(y_range.begin) * extent_.width);
+			for (std::uint32_t source_x = 0; source_x < render_extent_.width; ++source_x)
 			{
-				destination_row[x] = source_row[upscale_x_lookup_[x]];
+				const UpscaleRange x_range = upscale_x_ranges_[source_x];
+				if (x_range.begin < x_range.end)
+				{
+					std::fill(first_destination_row + x_range.begin, first_destination_row + x_range.end, source_row[source_x]);
+				}
+			}
+
+			for (std::uint32_t destination_y = y_range.begin + 1u; destination_y < y_range.end; ++destination_y)
+			{
+				std::uint32_t* destination_row = pixels_.data() + (static_cast<std::size_t>(destination_y) * extent_.width);
+				std::memcpy(destination_row, first_destination_row, row_bytes);
 			}
 		}
 	}
@@ -815,19 +841,17 @@ namespace ve::rendering
 		RenderSamplesMultithreaded(work);
 		const auto raster_end = std::chrono::steady_clock::now();
 		ApplyVoxelOutlines(frame.format, frame.settings.outline_strength);
-		UpscaleRenderPixels();
-		const auto upscale_end = std::chrono::steady_clock::now();
-
-		last_timing_.snapshot_cpu_ms = std::chrono::duration<double, std::milli>(snapshot_end - snapshot_start).count();
-		last_timing_.raster_cpu_ms = std::chrono::duration<double, std::milli>(raster_end - raster_start).count();
-		last_timing_.upscale_cpu_ms = std::chrono::duration<double, std::milli>(upscale_end - raster_end).count();
-		last_timing_.worker_count = static_cast<std::uint32_t>(workers_.size() + 1u);
-		last_timing_.sample_step = sample_step;
-		last_timing_.render_extent = render_extent_;
-
 		if (frame.settings.show_debug_overlay) DrawDemoOverlay(frame);
 		if (frame.settings.show_tuning_panel) DrawTuningPanel(frame);
 		DrawCrosshair(frame.format);
+		const auto overlay_end = std::chrono::steady_clock::now();
+
+		last_timing_.snapshot_cpu_ms = std::chrono::duration<double, std::milli>(snapshot_end - snapshot_start).count();
+		last_timing_.raster_cpu_ms = std::chrono::duration<double, std::milli>(raster_end - raster_start).count();
+		last_timing_.upscale_cpu_ms = std::chrono::duration<double, std::milli>(overlay_end - raster_end).count();
+		last_timing_.worker_count = static_cast<std::uint32_t>(workers_.size() + 1u);
+		last_timing_.sample_step = sample_step;
+		last_timing_.render_extent = render_extent_;
 	}
 
 	std::span<const std::uint32_t> VulkanSoftwareVoxelRasterizer::Pixels() const noexcept
@@ -840,6 +864,16 @@ namespace ve::rendering
 		return extent_;
 	}
 
+	std::span<const std::uint32_t> VulkanSoftwareVoxelRasterizer::RenderPixels() const noexcept
+	{
+		return render_pixels_;
+	}
+
+	VkExtent2D VulkanSoftwareVoxelRasterizer::RenderExtent() const noexcept
+	{
+		return render_extent_;
+	}
+
 	const VulkanFrameTiming& VulkanSoftwareVoxelRasterizer::LastTiming() const noexcept
 	{
 		return last_timing_;
@@ -847,15 +881,15 @@ namespace ve::rendering
 
 	void VulkanSoftwareVoxelRasterizer::DrawCrosshair(VkFormat format)
 	{
-		const std::uint32_t center_x = extent_.width / 2u;
-		const std::uint32_t center_y = extent_.height / 2u;
+		const std::uint32_t center_x = render_extent_.width / 2u;
+		const std::uint32_t center_y = render_extent_.height / 2u;
 		const std::uint32_t crosshair = PackColor({ 235, 235, 235 }, format);
 		for (std::uint32_t offset = 0; offset < 8u; ++offset)
 		{
-			if (center_x + offset < extent_.width) pixels_[(center_y * extent_.width) + center_x + offset] = crosshair;
-			if (center_x >= offset) pixels_[(center_y * extent_.width) + center_x - offset] = crosshair;
-			if (center_y + offset < extent_.height) pixels_[((center_y + offset) * extent_.width) + center_x] = crosshair;
-			if (center_y >= offset) pixels_[((center_y - offset) * extent_.width) + center_x] = crosshair;
+			if (center_x + offset < render_extent_.width) render_pixels_[(center_y * render_extent_.width) + center_x + offset] = crosshair;
+			if (center_x >= offset) render_pixels_[(center_y * render_extent_.width) + center_x - offset] = crosshair;
+			if (center_y + offset < render_extent_.height) render_pixels_[((center_y + offset) * render_extent_.width) + center_x] = crosshair;
+			if (center_y >= offset) render_pixels_[((center_y - offset) * render_extent_.width) + center_x] = crosshair;
 		}
 	}
 
@@ -877,28 +911,28 @@ namespace ve::rendering
 					const std::uint32_t pixel_y = y + (static_cast<std::uint32_t>(row_index) * scale);
 					for (std::uint32_t dy = 0; dy < scale; ++dy)
 					{
-						if (pixel_y + dy >= extent_.height) continue;
-						std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(pixel_y + dy) * extent_.width);
+						if (pixel_y + dy >= render_extent_.height) continue;
+						std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(pixel_y + dy) * render_extent_.width);
 						for (std::uint32_t dx = 0; dx < scale; ++dx)
 						{
-							if (pixel_x + dx < extent_.width) row[pixel_x + dx] = color;
+							if (pixel_x + dx < render_extent_.width) row[pixel_x + dx] = color;
 						}
 					}
 				}
 			}
 			cursor_x += 6u * scale;
-			if (cursor_x >= extent_.width) return;
+			if (cursor_x >= render_extent_.width) return;
 		}
 	}
 
 	void VulkanSoftwareVoxelRasterizer::DrawFilledRect(std::uint32_t x, std::uint32_t y, std::uint32_t width, std::uint32_t height, std::uint32_t color)
 	{
-		if (x >= extent_.width || y >= extent_.height || width == 0u || height == 0u) return;
-		const std::uint32_t end_x = std::min(x + width, extent_.width);
-		const std::uint32_t end_y = std::min(y + height, extent_.height);
+		if (x >= render_extent_.width || y >= render_extent_.height || width == 0u || height == 0u) return;
+		const std::uint32_t end_x = std::min(x + width, render_extent_.width);
+		const std::uint32_t end_y = std::min(y + height, render_extent_.height);
 		for (std::uint32_t row_y = y; row_y < end_y; ++row_y)
 		{
-			std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(row_y) * extent_.width);
+			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(row_y) * render_extent_.width);
 			std::fill(row + x, row + end_x, color);
 		}
 	}
@@ -919,13 +953,13 @@ namespace ve::rendering
 		DrawText(label, x, y, 1u, text);
 		const std::uint32_t rail_x = x + 104u;
 		const std::uint32_t rail_y = y + 2u;
-		const std::uint32_t rail_width = std::min(width, extent_.width > rail_x ? extent_.width - rail_x : 0u);
+		const std::uint32_t rail_width = std::min(width, render_extent_.width > rail_x ? render_extent_.width - rail_x : 0u);
 		if (rail_width == 0u) return false;
 		DrawFilledRect(rail_x, rail_y + 4u, rail_width, 5u, rail);
 
 		const float range = std::max(max_value - min_value, 0.001f);
-		const double mouse_x = frame.input.mouse_x;
-		const double mouse_y = frame.input.mouse_y;
+		const double mouse_x = extent_.width == 0u ? 0.0 : frame.input.mouse_x * (static_cast<double>(render_extent_.width) / static_cast<double>(extent_.width));
+		const double mouse_y = extent_.height == 0u ? 0.0 : frame.input.mouse_y * (static_cast<double>(render_extent_.height) / static_cast<double>(extent_.height));
 		const bool hovered = mouse_x >= rail_x && mouse_x <= static_cast<double>(rail_x + rail_width) &&
 			mouse_y >= rail_y && mouse_y <= static_cast<double>(rail_y + 14u);
 		bool changed = false;
@@ -950,10 +984,10 @@ namespace ve::rendering
 
 	void VulkanSoftwareVoxelRasterizer::DrawTuningPanel(const VulkanSoftwareVoxelRasterizerFrame& frame)
 	{
-		const std::uint32_t panel_width = std::min<std::uint32_t>(520u, extent_.width > 24u ? extent_.width - 24u : extent_.width);
+		const std::uint32_t panel_width = std::min<std::uint32_t>(520u, render_extent_.width > 24u ? render_extent_.width - 24u : render_extent_.width);
 		const std::uint32_t panel_height = 150u;
-		const std::uint32_t panel_x = extent_.width > panel_width + 20u ? extent_.width - panel_width - 20u : 0u;
-		const std::uint32_t panel_y = extent_.height > panel_height + 20u ? 20u : 0u;
+		const std::uint32_t panel_x = render_extent_.width > panel_width + 20u ? render_extent_.width - panel_width - 20u : 0u;
+		const std::uint32_t panel_y = render_extent_.height > panel_height + 20u ? 20u : 0u;
 		const std::uint32_t bg = PackColor({ 16, 24, 32 }, frame.format);
 		const std::uint32_t border = PackColor({ 87, 220, 180 }, frame.format);
 		const std::uint32_t text = PackColor({ 232, 248, 244 }, frame.format);
@@ -988,36 +1022,30 @@ namespace ve::rendering
 
 	void VulkanSoftwareVoxelRasterizer::DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame)
 	{
-		const std::uint32_t sky_line = extent_.height / 2u;
-		const std::uint32_t horizon = PackColor({ 214, 225, 230 }, frame.format);
-		for (std::uint32_t x = 0; x < extent_.width; x += 4u)
-		{
-			if (sky_line < extent_.height) pixels_[(sky_line * extent_.width) + x] = horizon;
-		}
-
 		const std::uint32_t accent = PackColor({ 87, 220, 180 }, frame.format);
 		const std::uint32_t shadow = PackColor({ 18, 32, 44 }, frame.format);
 		const std::uint32_t text = PackColor({ 232, 248, 244 }, frame.format);
-		const std::uint32_t desired_bar_width = extent_.width > 480u ? std::min<std::uint32_t>(extent_.width / 3u, 430u) : extent_.width;
-		const std::uint32_t bar_y = extent_.height > 32u ? 14u : 0u;
-		const std::uint32_t bar_x = std::min<std::uint32_t>(20u, extent_.width);
-		const std::uint32_t bar_width = std::min(desired_bar_width, extent_.width - bar_x);
-		const std::uint32_t bar_end_x = std::min(bar_x + bar_width, extent_.width);
-		for (std::uint32_t y = bar_y; y < bar_y + 96u && y < extent_.height; ++y)
+		const std::uint32_t desired_bar_width = render_extent_.width > 480u ? std::min<std::uint32_t>(render_extent_.width / 3u, 430u) : render_extent_.width;
+		const std::uint32_t bar_y = render_extent_.height > 32u ? 14u : 0u;
+		const std::uint32_t bar_x = std::min<std::uint32_t>(20u, render_extent_.width);
+		const std::uint32_t bar_width = std::min(desired_bar_width, render_extent_.width - bar_x);
+		const std::uint32_t bar_end_x = std::min(bar_x + bar_width, render_extent_.width);
+		for (std::uint32_t y = bar_y; y < bar_y + 96u && y < render_extent_.height; ++y)
 		{
-			std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(y) * extent_.width);
+			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, shadow);
 		}
-		for (std::uint32_t y = bar_y; y < bar_y + 4u && y < extent_.height; ++y)
+		for (std::uint32_t y = bar_y; y < bar_y + 4u && y < render_extent_.height; ++y)
 		{
-			std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(y) * extent_.width);
+			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, accent);
 		}
 
 		std::array<char, 64> fps_line{};
 		std::array<char, 64> cpu_line{};
 		std::array<char, 64> vk_line{};
-		std::array<char, 64> internal_line{};
+		std::array<char, 64> resolution_line{};
+		std::array<char, 64> sampling_line{};
 		const double milliseconds = std::max(frame.delta_seconds, 0.0) * 1000.0;
 		if (frame.displayed_fps > 0)
 		{
@@ -1027,15 +1055,18 @@ namespace ve::rendering
 		{
 			std::snprintf(fps_line.data(), fps_line.size(), "FPS --   %.1f MS", milliseconds);
 		}
-		std::snprintf(cpu_line.data(), cpu_line.size(), "SNAP %.1f RAST %.1f UP %.1f", frame.previous_timing.snapshot_cpu_ms, frame.previous_timing.raster_cpu_ms, frame.previous_timing.upscale_cpu_ms);
+		std::snprintf(cpu_line.data(), cpu_line.size(), "SNAP %.1f RAST %.1f UI %.1f", frame.previous_timing.snapshot_cpu_ms, frame.previous_timing.raster_cpu_ms, frame.previous_timing.upscale_cpu_ms);
 		std::snprintf(vk_line.data(), vk_line.size(), "COPY %.1f VK %.1f", frame.previous_timing.upload_cpu_ms, frame.previous_timing.present_cpu_ms);
-		std::snprintf(internal_line.data(), internal_line.size(), "IN %uX%u STEP %u TH %u",
+		std::snprintf(resolution_line.data(), resolution_line.size(), "OUT %uX%u IN %uX%u",
+			extent_.width,
+			extent_.height,
 			frame.previous_timing.render_extent.width,
-			frame.previous_timing.render_extent.height,
+			frame.previous_timing.render_extent.height);
+		std::snprintf(sampling_line.data(), sampling_line.size(), "STEP %u TH %u",
 			frame.previous_timing.sample_step,
 			frame.previous_timing.worker_count);
 
-		DrawText("VULKAN CPU RAYCAST DEMO", bar_x + 8u, bar_y + 9u, 1u, text);
+		DrawText("VULKAN VOXEL DEMO", bar_x + 8u, bar_y + 9u, 1u, text);
 		DrawText(fps_line.data(), bar_x + 8u, bar_y + 23u, 1u, text);
 		DrawText(cpu_line.data(), bar_x + 8u, bar_y + 37u, 1u, text);
 		DrawText(vk_line.data(), bar_x + 8u, bar_y + 51u, 1u, text);
@@ -1049,6 +1080,7 @@ namespace ve::rendering
 		{
 			DrawText("GPU COPY --", bar_x + 8u, bar_y + 65u, 1u, text);
 		}
-		DrawText(internal_line.data(), bar_x + 8u, bar_y + 79u, 1u, text);
+		DrawText(resolution_line.data(), bar_x + 8u, bar_y + 79u, 1u, text);
+		DrawText(sampling_line.data(), bar_x + 8u, bar_y + 93u, 1u, text);
 	}
 }

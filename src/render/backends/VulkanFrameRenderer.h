@@ -47,9 +47,12 @@ namespace ve::rendering
 		[[nodiscard]] bool CreateSynchronization();
 		[[nodiscard]] bool CreateTimestampQueries();
 		[[nodiscard]] bool EnsureFrameBuffer(VkExtent2D extent);
-		[[nodiscard]] bool UploadFramePixels(VulkanFrameTiming& timing);
+		[[nodiscard]] bool EnsureIntermediateImages(VkExtent2D extent, VkFormat format);
+		[[nodiscard]] bool UploadFramePixels(VulkanFrameTiming& timing, std::size_t frame_index);
 		[[nodiscard]] bool RecordCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index);
 		void CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const;
+		void ReleaseIntermediateImages();
+		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		static constexpr std::size_t kFramesInFlight = 2;
 		VulkanBackend* backend_ = nullptr;
@@ -58,10 +61,16 @@ namespace ve::rendering
 		VkQueryPool timestamp_query_pool_ = VK_NULL_HANDLE;
 		float timestamp_period_ns_ = 0.0f;
 		std::array<bool, kFramesInFlight> timestamp_query_valid_{};
-		VulkanUploadBuffer upload_buffer_;
+		std::array<VulkanUploadBuffer, kFramesInFlight> upload_buffers_{};
+		std::array<VkImage, kFramesInFlight> intermediate_images_{};
+		std::array<VkDeviceMemory, kFramesInFlight> intermediate_image_memory_{};
+		std::array<VkImageLayout, kFramesInFlight> intermediate_image_layouts_{};
 		VulkanSoftwareVoxelRasterizer rasterizer_;
 		VulkanFrameTiming previous_frame_timing_{};
 		VulkanDemoSettings demo_settings_{};
+		VkExtent2D intermediate_extent_{};
+		VkFormat intermediate_format_ = VK_FORMAT_UNDEFINED;
+		VkFilter upscale_filter_ = VK_FILTER_NEAREST;
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
 		std::array<VkCommandBuffer, kFramesInFlight> command_buffers_{};
 		std::array<VkSemaphore, kFramesInFlight> image_available_semaphores_{};
