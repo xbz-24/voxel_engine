@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreTypes.h"
+#include "VulkanSoftwareVoxelRasterizer.h"
+#include "VulkanUploadBuffer.h"
 
 #include <volk.h>
 
@@ -20,7 +22,7 @@ namespace ve::rendering
 {
 	class VulkanBackend;
 
-	/** Presents the Vulkan path by copying a software voxel frame into the swapchain. */
+	/** Presents Vulkan frames by copying a rasterized frame image into the swapchain. */
 	class VulkanFrameRenderer
 	{
 	public:
@@ -39,21 +41,15 @@ namespace ve::rendering
 		[[nodiscard]] bool CreateCommandResources();
 		[[nodiscard]] bool CreateSynchronization();
 		[[nodiscard]] bool EnsureFrameBuffer(VkExtent2D extent);
-		[[nodiscard]] bool CreateUploadBuffer(VkDeviceSize byte_size);
 		[[nodiscard]] bool UploadFramePixels();
 		[[nodiscard]] bool RecordCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index);
-		void DestroyUploadBuffer();
-		void RenderSoftwareWorld(const ve::world::World& world, const Camera& camera);
 
 		static constexpr std::size_t kFramesInFlight = 2;
 		VulkanBackend* backend_ = nullptr;
 		VkDevice device_ = VK_NULL_HANDLE;
 		VkCommandPool command_pool_ = VK_NULL_HANDLE;
-		VkBuffer upload_buffer_ = VK_NULL_HANDLE;
-		VkDeviceMemory upload_memory_ = VK_NULL_HANDLE;
-		VkDeviceSize upload_buffer_size_ = 0;
-		VkExtent2D pixel_extent_{};
-		std::vector<std::uint32_t> pixels_;
+		VulkanUploadBuffer upload_buffer_;
+		VulkanSoftwareVoxelRasterizer rasterizer_;
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
 		std::array<VkCommandBuffer, kFramesInFlight> command_buffers_{};
 		std::array<VkSemaphore, kFramesInFlight> image_available_semaphores_{};

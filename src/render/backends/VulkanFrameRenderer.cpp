@@ -1,221 +1,17 @@
 #include "VulkanFrameRenderer.h"
 
-#include "BlockDefinitions.h"
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
 #include "World.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include <limits>
+#include <span>
 #include <string>
 
 namespace ve::rendering
 {
 	namespace
 	{
-		struct Rgb
-		{
-			std::uint8_t r;
-			std::uint8_t g;
-			std::uint8_t b;
-		};
-
-		struct RayHit
-		{
-			bool hit = false;
-			ve::blocks::BlockId block = ve::blocks::BlockId::Air;
-			glm::ivec3 normal{ 0, 1, 0 };
-			float distance = 0.0f;
-		};
-
-		constexpr float kMaxRayDistance = 150.0f;
-		constexpr int kMaxRaySteps = 256;
-
-		bool IsBgraFormat(VkFormat format) noexcept
-		{
-			return format == VK_FORMAT_B8G8R8A8_UNORM ||
-				format == VK_FORMAT_B8G8R8A8_SRGB ||
-				format == VK_FORMAT_B8G8R8A8_SNORM;
-		}
-
-		std::uint32_t PackColor(Rgb color, VkFormat format) noexcept
-		{
-			constexpr std::uint32_t alpha = 255u;
-			if (IsBgraFormat(format))
-			{
-				return (alpha << 24u) |
-					(static_cast<std::uint32_t>(color.r) << 16u) |
-					(static_cast<std::uint32_t>(color.g) << 8u) |
-					static_cast<std::uint32_t>(color.b);
-			}
-			return (alpha << 24u) |
-				(static_cast<std::uint32_t>(color.b) << 16u) |
-				(static_cast<std::uint32_t>(color.g) << 8u) |
-				static_cast<std::uint32_t>(color.r);
-		}
-
-		std::uint8_t Scale(std::uint8_t value, float amount) noexcept
-		{
-			const float scaled = std::clamp(static_cast<float>(value) * amount, 0.0f, 255.0f);
-			return static_cast<std::uint8_t>(scaled);
-		}
-
-		Rgb Mix(Rgb left, Rgb right, float amount) noexcept
-		{
-			const float t = std::clamp(amount, 0.0f, 1.0f);
-			const auto lerp = [t](std::uint8_t a, std::uint8_t b)
-			{
-				return static_cast<std::uint8_t>((static_cast<float>(a) * (1.0f - t)) + (static_cast<float>(b) * t));
-			};
-			return { lerp(left.r, right.r), lerp(left.g, right.g), lerp(left.b, right.b) };
-		}
-
-		Rgb SkyColor(float direction_y) noexcept
-		{
-			const float t = std::clamp((direction_y + 0.15f) * 0.75f, 0.0f, 1.0f);
-			return Mix({ 94, 133, 177 }, { 160, 205, 255 }, t);
-		}
-
-		bool IsSolid(ve::blocks::BlockId block) noexcept
-		{
-			const auto index = static_cast<std::size_t>(block);
-			return index < static_cast<std::size_t>(ve::blocks::BlockId::Count) &&
-				ve::blocks::BuiltInBlockDefinitions[index].isSolid;
-		}
-
-		Rgb BaseBlockColor(ve::blocks::BlockId block) noexcept
-		{
-			using enum ve::blocks::BlockId;
-			if (block == Grass) return { 92, 159, 74 };
-			if (block == Dirt) return { 112, 76, 45 };
-			if (block == Stone) return { 124, 124, 124 };
-			if (block == Cobblestone) return { 105, 105, 105 };
-			if (block == OakLog || block == BirchLog || block == SpruceLog) return { 123, 89, 50 };
-			if (block == OakPlanks || block == BirchPlanks || block == SprucePlanks) return { 174, 134, 82 };
-			if (block == Sand) return { 214, 198, 129 };
-			if (block == Bricks) return { 151, 74, 60 };
-			if (block == DiamondOre) return { 92, 196, 211 };
-			if (block == CoalOre) return { 54, 54, 54 };
-			if (block == IronOre) return { 216, 170, 130 };
-			if (block == Obsidian) return { 42, 32, 65 };
-			if (block == OakLeaves || block == BirchLeaves) return { 67, 137, 58 };
-			if (block == Snow) return { 235, 242, 246 };
-			if (block == MossBlock) return { 73, 126, 58 };
-			if (block == Pumpkin) return { 198, 112, 33 };
-			if (block == Melon) return { 104, 158, 53 };
-			if (block == HayBlock) return { 203, 174, 63 };
-			if (block == AmethystBlock) return { 137, 89, 178 };
-			if (block == Glass) return { 148, 214, 219 };
-			return { 132, 132, 132 };
-		}
-
-		int FloorToInt(float value) noexcept
-		{
-			return static_cast<int>(std::floor(value));
-		}
-
-		float InitialAxisDistance(float origin, float direction) noexcept
-		{
-			if (direction > 0.0f) return (std::floor(origin) + 1.0f - origin) / direction;
-			if (direction < 0.0f) return (origin - std::floor(origin)) / -direction;
-			return std::numeric_limits<float>::infinity();
-		}
-
-		float AxisDelta(float direction) noexcept
-		{
-			return direction == 0.0f ? std::numeric_limits<float>::infinity() : std::abs(1.0f / direction);
-		}
-
-		glm::vec3 FindAirCameraOrigin(const ve::world::World& world, glm::vec3 origin)
-		{
-			for (int attempts = 0; attempts < 32; ++attempts)
-			{
-				const auto block = world.GetBlock(FloorToInt(origin.x), FloorToInt(origin.y), FloorToInt(origin.z));
-				if (!IsSolid(block)) return origin;
-				origin.y += 1.0f;
-			}
-			return origin;
-		}
-
-		RayHit TraceWorld(const ve::world::World& world, const glm::vec3& origin, const glm::vec3& direction)
-		{
-			glm::ivec3 block{ FloorToInt(origin.x), FloorToInt(origin.y), FloorToInt(origin.z) };
-			const glm::ivec3 step{
-				direction.x > 0.0f ? 1 : (direction.x < 0.0f ? -1 : 0),
-				direction.y > 0.0f ? 1 : (direction.y < 0.0f ? -1 : 0),
-				direction.z > 0.0f ? 1 : (direction.z < 0.0f ? -1 : 0)
-			};
-			glm::vec3 max_distance{
-				InitialAxisDistance(origin.x, direction.x),
-				InitialAxisDistance(origin.y, direction.y),
-				InitialAxisDistance(origin.z, direction.z)
-			};
-			const glm::vec3 delta{
-				AxisDelta(direction.x),
-				AxisDelta(direction.y),
-				AxisDelta(direction.z)
-			};
-			glm::ivec3 normal{ 0, 1, 0 };
-			float distance = 0.0f;
-
-			for (int ray_step = 0; ray_step < kMaxRaySteps && distance <= kMaxRayDistance; ++ray_step)
-			{
-				const ve::blocks::BlockId block_id = world.GetBlock(block);
-				if (IsSolid(block_id)) return { true, block_id, normal, distance };
-
-				if (max_distance.x < max_distance.y && max_distance.x < max_distance.z)
-				{
-					block.x += step.x;
-					distance = max_distance.x;
-					max_distance.x += delta.x;
-					normal = { -step.x, 0, 0 };
-				}
-				else if (max_distance.y < max_distance.z)
-				{
-					block.y += step.y;
-					distance = max_distance.y;
-					max_distance.y += delta.y;
-					normal = { 0, -step.y, 0 };
-				}
-				else
-				{
-					block.z += step.z;
-					distance = max_distance.z;
-					max_distance.z += delta.z;
-					normal = { 0, 0, -step.z };
-				}
-			}
-			return {};
-		}
-
-		Rgb ShadeHit(const RayHit& hit, const glm::vec3& direction) noexcept
-		{
-			float shade = 0.72f;
-			if (hit.normal.y > 0) shade = 1.05f;
-			else if (hit.normal.y < 0) shade = 0.45f;
-			else if (hit.normal.x != 0) shade = 0.78f;
-
-			Rgb color = BaseBlockColor(hit.block);
-			color = { Scale(color.r, shade), Scale(color.g, shade), Scale(color.b, shade) };
-			const float fog = std::clamp(hit.distance / kMaxRayDistance, 0.0f, 1.0f);
-			return Mix(color, SkyColor(direction.y), fog * 0.55f);
-		}
-
-		std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
-		{
-			VkPhysicalDeviceMemoryProperties memory_properties{};
-			vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
-			for (std::uint32_t index = 0; index < memory_properties.memoryTypeCount; ++index)
-			{
-				const bool is_allowed = (type_filter & (1u << index)) != 0;
-				const bool has_properties = (memory_properties.memoryTypes[index].propertyFlags & properties) == properties;
-				if (is_allowed && has_properties) return index;
-			}
-			return UINT32_MAX;
-		}
 	}
 
 	VulkanFrameRenderer::~VulkanFrameRenderer() { Release(); }
@@ -232,7 +28,7 @@ namespace ve::rendering
 			return false;
 		}
 		image_layouts_.assign(backend.Swapchain().Images().size(), VK_IMAGE_LAYOUT_UNDEFINED);
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan software voxel frame renderer initialized");
+		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan voxel frame renderer initialized");
 		return true;
 	}
 
@@ -269,52 +65,22 @@ namespace ve::rendering
 
 	bool VulkanFrameRenderer::EnsureFrameBuffer(VkExtent2D extent)
 	{
-		if (extent.width == 0 || extent.height == 0) return false;
+		if (!rasterizer_.Resize(extent)) return false;
 		const VkDeviceSize byte_size = static_cast<VkDeviceSize>(extent.width) * static_cast<VkDeviceSize>(extent.height) * sizeof(std::uint32_t);
-		if (pixel_extent_.width == extent.width && pixel_extent_.height == extent.height && upload_buffer_ != VK_NULL_HANDLE)
+		const VkDeviceSize previous_size = upload_buffer_.Size();
+		if (!upload_buffer_.Ensure(*backend_, byte_size)) return false;
+		if (previous_size != byte_size)
 		{
-			return true;
+			VE_LOG_CATEGORY_INFO(ve::log::category::Render, std::string("Allocated Vulkan CPU upload framebuffer: ") +
+				std::to_string(extent.width) + "x" + std::to_string(extent.height));
 		}
-
-		DestroyUploadBuffer();
-		pixel_extent_ = extent;
-		pixels_.assign(static_cast<std::size_t>(extent.width) * static_cast<std::size_t>(extent.height), 0u);
-		if (!CreateUploadBuffer(byte_size)) return false;
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, std::string("Allocated Vulkan CPU upload framebuffer: ") +
-			std::to_string(extent.width) + "x" + std::to_string(extent.height));
-		return true;
-	}
-
-	bool VulkanFrameRenderer::CreateUploadBuffer(VkDeviceSize byte_size)
-	{
-		VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		buffer_info.size = byte_size;
-		buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		if (vkCreateBuffer(device_, &buffer_info, nullptr, &upload_buffer_) != VK_SUCCESS) return false;
-
-		VkMemoryRequirements requirements{};
-		vkGetBufferMemoryRequirements(device_, upload_buffer_, &requirements);
-		const std::uint32_t memory_type = FindMemoryType(backend_->PhysicalDevice().Handle(), requirements.memoryTypeBits,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		if (memory_type == UINT32_MAX) return false;
-
-		VkMemoryAllocateInfo allocate_info{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-		allocate_info.allocationSize = requirements.size;
-		allocate_info.memoryTypeIndex = memory_type;
-		if (vkAllocateMemory(device_, &allocate_info, nullptr, &upload_memory_) != VK_SUCCESS) return false;
-		if (vkBindBufferMemory(device_, upload_buffer_, upload_memory_, 0) != VK_SUCCESS) return false;
-		upload_buffer_size_ = byte_size;
 		return true;
 	}
 
 	bool VulkanFrameRenderer::UploadFramePixels()
 	{
-		void* mapped_memory = nullptr;
-		if (vkMapMemory(device_, upload_memory_, 0, upload_buffer_size_, 0, &mapped_memory) != VK_SUCCESS) return false;
-		std::memcpy(mapped_memory, pixels_.data(), pixels_.size() * sizeof(std::uint32_t));
-		vkUnmapMemory(device_, upload_memory_);
-		return true;
+		const std::span<const std::uint32_t> pixels = rasterizer_.Pixels();
+		return upload_buffer_.CopyFrom(device_, pixels.data(), pixels.size_bytes());
 	}
 
 	bool VulkanFrameRenderer::RecordCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index)
@@ -336,11 +102,12 @@ namespace ve::rendering
 		vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			0, 0, nullptr, 0, nullptr, 1, &to_transfer);
 
+		const VkExtent2D extent = rasterizer_.Extent();
 		VkBufferImageCopy copy_region{};
 		copy_region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		copy_region.imageSubresource.layerCount = 1;
-		copy_region.imageExtent = { pixel_extent_.width, pixel_extent_.height, 1 };
-		vkCmdCopyBufferToImage(command_buffer, upload_buffer_, backend_->Swapchain().Images()[image_index],
+		copy_region.imageExtent = { extent.width, extent.height, 1 };
+		vkCmdCopyBufferToImage(command_buffer, upload_buffer_.Buffer(), backend_->Swapchain().Images()[image_index],
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
 		VkImageMemoryBarrier to_present{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
@@ -360,64 +127,12 @@ namespace ve::rendering
 		return true;
 	}
 
-	void VulkanFrameRenderer::RenderSoftwareWorld(const ve::world::World& world, const Camera& camera)
-	{
-		const VkFormat format = backend_->Swapchain().ImageFormat();
-		const float width = static_cast<float>(pixel_extent_.width);
-		const float height = static_cast<float>(pixel_extent_.height);
-		const float aspect = width / height;
-		const float tan_half_fov = std::tan(glm::radians(35.0f));
-		const glm::vec3 origin = FindAirCameraOrigin(world, camera.GetPosition());
-		const glm::vec3 forward = glm::normalize(camera.GetForward());
-		const glm::vec3 right = glm::normalize(camera.GetRight());
-		const glm::vec3 up = glm::normalize(camera.GetUp());
-		const std::uint64_t pixel_count = static_cast<std::uint64_t>(pixel_extent_.width) * static_cast<std::uint64_t>(pixel_extent_.height);
-		std::uint32_t sample_step = 2u;
-		if (pixel_count > (1920ull * 1080ull)) sample_step = 5u;
-		else if (pixel_count > (1280ull * 720ull)) sample_step = 4u;
-
-		for (std::uint32_t y = 0; y < pixel_extent_.height; y += sample_step)
-		{
-			for (std::uint32_t x = 0; x < pixel_extent_.width; x += sample_step)
-			{
-				const float screen_x = ((static_cast<float>(x) + 0.5f) / width) * 2.0f - 1.0f;
-				const float screen_y = 1.0f - ((static_cast<float>(y) + 0.5f) / height) * 2.0f;
-				const glm::vec3 direction = glm::normalize(forward +
-					(right * screen_x * tan_half_fov * aspect) +
-					(up * screen_y * tan_half_fov));
-				const RayHit hit = TraceWorld(world, origin, direction);
-				const Rgb color = hit.hit ? ShadeHit(hit, direction) : SkyColor(direction.y);
-				const std::uint32_t packed = PackColor(color, format);
-				const std::uint32_t y_end = std::min(y + sample_step, pixel_extent_.height);
-				const std::uint32_t x_end = std::min(x + sample_step, pixel_extent_.width);
-				for (std::uint32_t fill_y = y; fill_y < y_end; ++fill_y)
-				{
-					std::uint32_t* row = pixels_.data() + (static_cast<std::size_t>(fill_y) * pixel_extent_.width);
-					for (std::uint32_t fill_x = x; fill_x < x_end; ++fill_x)
-					{
-						row[fill_x] = packed;
-					}
-				}
-			}
-		}
-
-		const std::uint32_t center_x = pixel_extent_.width / 2u;
-		const std::uint32_t center_y = pixel_extent_.height / 2u;
-		const std::uint32_t crosshair = PackColor({ 235, 235, 235 }, format);
-		for (std::uint32_t offset = 0; offset < 8u; ++offset)
-		{
-			if (center_x + offset < pixel_extent_.width) pixels_[(center_y * pixel_extent_.width) + center_x + offset] = crosshair;
-			if (center_x >= offset) pixels_[(center_y * pixel_extent_.width) + center_x - offset] = crosshair;
-			if (center_y + offset < pixel_extent_.height) pixels_[((center_y + offset) * pixel_extent_.width) + center_x] = crosshair;
-			if (center_y >= offset) pixels_[((center_y - offset) * pixel_extent_.width) + center_x] = crosshair;
-		}
-	}
-
 	bool VulkanFrameRenderer::DrawFrame(const ve::world::World& world, const Camera& camera)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
-		if (!EnsureFrameBuffer(backend_->Swapchain().Extent())) return false;
-		RenderSoftwareWorld(world, camera);
+		const VkExtent2D extent = backend_->Swapchain().Extent();
+		if (!EnsureFrameBuffer(extent)) return false;
+		rasterizer_.Render(VulkanSoftwareVoxelRasterizerFrame{ world, camera, extent, backend_->Swapchain().ImageFormat() });
 		if (!UploadFramePixels()) return false;
 
 		const VkFence fence = in_flight_fences_[current_frame_];
@@ -464,19 +179,10 @@ namespace ve::rendering
 		return present_result == VK_SUCCESS || present_result == VK_SUBOPTIMAL_KHR;
 	}
 
-	void VulkanFrameRenderer::DestroyUploadBuffer()
-	{
-		if (upload_buffer_ != VK_NULL_HANDLE) vkDestroyBuffer(device_, upload_buffer_, nullptr);
-		if (upload_memory_ != VK_NULL_HANDLE) vkFreeMemory(device_, upload_memory_, nullptr);
-		upload_buffer_ = VK_NULL_HANDLE;
-		upload_memory_ = VK_NULL_HANDLE;
-		upload_buffer_size_ = 0;
-	}
-
 	void VulkanFrameRenderer::Release()
 	{
 		if (device_ != VK_NULL_HANDLE) vkDeviceWaitIdle(device_);
-		DestroyUploadBuffer();
+		upload_buffer_.Release(device_);
 		for (VkFence& fence : in_flight_fences_)
 		{
 			if (fence != VK_NULL_HANDLE) vkDestroyFence(device_, fence, nullptr);
@@ -496,8 +202,7 @@ namespace ve::rendering
 		command_pool_ = VK_NULL_HANDLE;
 		command_buffers_.fill(VK_NULL_HANDLE);
 		image_layouts_.clear();
-		pixels_.clear();
-		pixel_extent_ = {};
+		rasterizer_ = {};
 		device_ = VK_NULL_HANDLE;
 		backend_ = nullptr;
 		current_frame_ = 0;
