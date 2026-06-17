@@ -3,16 +3,16 @@
 #include "Logger.h"
 #include "Window.h"
 
-void Engine::ConfigureCallbacks(Window& window, CallbackContext& context)
+void Engine::ConfigureCallbacks(ve::engine::Window& window, CallbackContext& context)
 {
 	window.SetCallbackUserData(&context);
 	glfwSetCursorPosCallback(window.GetNativeWindow(), mouse_callback);
-	window.SetCursorMode(Window::CursorMode::Captured);
+	window.SetCursorMode(ve::engine::Window::CursorMode::Captured);
 }
 
 void Engine::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, double currentMouseCursorPosY) noexcept
 {
-	CallbackContext* context = static_cast<CallbackContext*>(Window::GetCallbackUserData(window));
+	CallbackContext* context = static_cast<CallbackContext*>(ve::engine::Window::GetCallbackUserData(window));
 	if (!context || !context->camera)
 	{
 		ve::log::Error("Camera pointer is null in mouse callback");

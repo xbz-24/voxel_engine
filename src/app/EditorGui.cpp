@@ -15,7 +15,7 @@ namespace ve::editor
 	* as the ImGui_ImplOpenGL3 backend assumes a valid GL context is already current.
 	*/
 
-	bool EditorGui::Initialize(Window& window)
+	bool EditorGui::Initialize(ve::engine::Window& window)
 	{
 		if (window.GraphicsApi() != ve::rendering::GraphicsApi::OpenGLCompatibility) return false;
 		IMGUI_CHECKVERSION();

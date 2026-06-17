@@ -82,7 +82,12 @@ namespace ve::blocks
 		{ BlockId::Melon, "Melon", true, TopBottomSide("melon_top.png", "melon_top.png", "melon_side.png") },
 		{ BlockId::HayBlock, "Hay Bale", true, TopBottomSide("hay_block_top.png", "hay_block_top.png", "hay_block_side.png") },
 		{ BlockId::AmethystBlock, "Amethyst", true, Same("amethyst_block.png") },
-		{ BlockId::Glass, "Glass", true, Same("glass.png") }
+		{ BlockId::Glass, "Glass", false, Same("glass.png") },
+		{ BlockId::Water, "Water", false, Same("water_still.png") },
+		{ BlockId::SeaLantern, "Sea Lantern", true, Same("sea_lantern.png") },
+		{ BlockId::CherryLog, "Cherry Log", true, TopBottomSide("cherry_log_top.png", "cherry_log_top.png", "cherry_log.png") },
+		{ BlockId::CherryPlanks, "Cherry Planks", true, Same("cherry_planks.png") },
+		{ BlockId::CherryLeaves, "Cherry Leaves", true, Same("cherry_leaves.png") }
 	};
 
 	static_assert((sizeof(BuiltInBlockDefinitions) / sizeof(BuiltInBlockDefinitions[0])) == static_cast<std::size_t>(BlockId::Count), "Every BlockId must have one built-in definition.");

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "CoreTypes.h"
+#include "VulkanGpuChunkRenderer.h"
+#include "VulkanImGuiOverlay.h"
+#include "VulkanMinecraftDemoSettings.h"
 #include "VulkanSoftwareVoxelRasterizer.h"
 #include "VulkanUploadBuffer.h"
 
@@ -13,6 +16,7 @@
 #include <vector>
 
 class Camera;
+namespace ve::engine { class Window; }
 
 namespace ve::world
 {
@@ -30,17 +34,20 @@ namespace ve::rendering
 		~VulkanFrameRenderer();
 
 		/** @param backend Initialized Vulkan backend. @return True when frame resources are ready. */
-		[[nodiscard]] bool Initialize(VulkanBackend& backend, const std::filesystem::path& block_texture_directory);
+		[[nodiscard]] bool Initialize(VulkanBackend& backend, ve::engine::Window& window, const std::filesystem::path& block_texture_directory);
 
 		/** @return True when the voxel world was copied to the swapchain and presented. */
 		[[nodiscard]] bool DrawFrame(const ve::world::World& world,
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
-			const VulkanDemoInput& input);
+			const VulkanDemoInput& input,
+			VulkanMinecraftDemoSettings& minecraft_demo_settings);
 
 		/** Waits for the device and releases frame resources. */
 		void Release();
+
+		[[nodiscard]] bool WantsMouseInput() const noexcept;
 
 	private:
 		[[nodiscard]] bool CreateCommandResources();
@@ -49,7 +56,18 @@ namespace ve::rendering
 		[[nodiscard]] bool EnsureFrameBuffer(VkExtent2D extent);
 		[[nodiscard]] bool EnsureIntermediateImages(VkExtent2D extent, VkFormat format);
 		[[nodiscard]] bool UploadFramePixels(VulkanFrameTiming& timing, std::size_t frame_index);
-		[[nodiscard]] bool RecordCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index);
+		[[nodiscard]] bool RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index);
+		[[nodiscard]] bool RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera);
+		[[nodiscard]] bool DrawGpuFrame(const ve::world::World& world,
+			const Camera& camera,
+			int displayed_fps,
+			double delta_seconds,
+			VulkanMinecraftDemoSettings& minecraft_demo_settings);
+		[[nodiscard]] bool DrawSoftwareFrame(const ve::world::World& world,
+			const Camera& camera,
+			int displayed_fps,
+			double delta_seconds,
+			const VulkanDemoInput& input);
 		void CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const;
 		void ReleaseIntermediateImages();
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
@@ -65,6 +83,8 @@ namespace ve::rendering
 		std::array<VkImage, kFramesInFlight> intermediate_images_{};
 		std::array<VkDeviceMemory, kFramesInFlight> intermediate_image_memory_{};
 		std::array<VkImageLayout, kFramesInFlight> intermediate_image_layouts_{};
+		VulkanGpuChunkRenderer gpu_chunk_renderer_;
+		VulkanImGuiOverlay imgui_overlay_;
 		VulkanSoftwareVoxelRasterizer rasterizer_;
 		VulkanFrameTiming previous_frame_timing_{};
 		VulkanDemoSettings demo_settings_{};

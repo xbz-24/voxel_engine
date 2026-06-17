@@ -33,7 +33,7 @@ namespace
 }
 
 /// Processes player movement input unless the settings menu owns input.
-void Engine::ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds)
+void Engine::ProcessInput(ve::engine::Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds)
 {
 	const bool wasMenuOpen = _runtimeSettings.isSettingsMenuOpen;
 	_settingsMenuController.ProcessInput(window, _runtimeSettings);

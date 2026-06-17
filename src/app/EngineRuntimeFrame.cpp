@@ -34,34 +34,45 @@ namespace ve::engine
 	/** Presents the Vulkan migration frame. */
 	void EngineRuntime::RunVulkanFrame()
 	{
-		static bool was_left_down = false;
-		static bool was_f1_down = false;
-		static bool was_f2_down = false;
-		controller_.UpdateVulkanDemo(window_, *model_, frame_timer_.DeltaSeconds());
+		const bool ui_captures_input = vulkan_demo_settings_.show_controls || vulkan_frame_renderer_.WantsMouseInput();
+		engine_._runtimeSettings.isSettingsMenuOpen = ui_captures_input;
+
+		controller_.UpdateVulkanDemo(window_, *model_, vulkan_demo_settings_, frame_timer_.DeltaSeconds(), ui_captures_input);
+
 		double mouse_x = 0.0;
 		double mouse_y = 0.0;
 		int window_width = 1;
 		int window_height = 1;
 		GLFWwindow* native_window = window_.GetNativeWindow();
+
 		glfwGetCursorPos(native_window, &mouse_x, &mouse_y);
 		glfwGetWindowSize(native_window, &window_width, &window_height);
+
 		const double scale_x = static_cast<double>(window_.GetWidth()) / static_cast<double>(std::max(window_width, 1));
 		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));
-		const bool left_down = glfwGetMouseButton(native_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-		const bool f1_down = glfwGetKey(native_window, GLFW_KEY_F1) == GLFW_PRESS;
-		const bool f2_down = glfwGetKey(native_window, GLFW_KEY_F2) == GLFW_PRESS;
+
+		vulkan_input_.Update(native_window);
+
 		const ve::rendering::VulkanDemoInput input{
 			mouse_x * scale_x,
 			mouse_y * scale_y,
-			left_down,
-			left_down && !was_left_down,
-			f1_down && !was_f1_down,
-			f2_down && !was_f2_down
+			vulkan_input_.IsDown(VulkanInputController::Action::LeftClick),
+			vulkan_input_.IsJustPressed(VulkanInputController::Action::LeftClick),
+			vulkan_input_.IsJustPressed(VulkanInputController::Action::F1),
+			vulkan_input_.IsJustPressed(VulkanInputController::Action::F2)
 		};
-		was_left_down = left_down;
-		was_f1_down = f1_down;
-		was_f2_down = f2_down;
-		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(), model_->GetCamera(), frame_timer_.DisplayedFps(), frame_timer_.DeltaSeconds(), input)) window_.Close();
+
+		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(),
+			model_->GetCamera(),
+			frame_timer_.DisplayedFps(),
+			frame_timer_.DeltaSeconds(),
+			input,
+			vulkan_demo_settings_))
+		{
+			window_.Close();
+		}
+
+		window_.SetCursorMode(vulkan_demo_settings_.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
 	}
 
 	/** Updates frame-scoped state before gameplay systems run. */

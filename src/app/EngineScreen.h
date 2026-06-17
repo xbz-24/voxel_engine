@@ -5,7 +5,7 @@ namespace ve::time
 	class FrameTimer;
 }
 
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::engine
 {

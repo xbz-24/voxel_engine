@@ -8,7 +8,7 @@
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
 
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
@@ -21,11 +21,11 @@ namespace ve::rendering
 	class VulkanBackend final : public RenderBackend
 	{
 	public:
-		/** @param settings Vulkan instance settings for context-only tools. @return True when startup succeeds. */
-		[[nodiscard]] bool Initialize(const VulkanContextSettings& settings);
+		/** Initializes with default Vulkan backend settings. */
+		[[nodiscard]] bool Initialize(ve::engine::Window& window);
 
 		/** @param settings Vulkan backend settings. @param window Presentation window. @return True when full backend startup succeeds. */
-		[[nodiscard]] bool Initialize(const VulkanBackendSettings& settings, Window& window);
+		[[nodiscard]] bool Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window);
 
 		/** Releases all Vulkan backend state. */
 		void Release();

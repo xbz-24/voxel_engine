@@ -6,14 +6,14 @@
 namespace ve::rendering
 {
 	/** Initializes Vulkan startup state. */
-	bool VulkanBackend::Initialize(const VulkanContextSettings& settings)
+	bool VulkanBackend::Initialize(ve::engine::Window& window)
 	{
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Initializing Vulkan context");
-		return context_.Initialize(settings);
+		VulkanBackendSettings settings{};
+		return Initialize(settings, window);
 	}
 
 	/** Initializes Vulkan instance, surface, physical device and logical device. */
-	bool VulkanBackend::Initialize(const VulkanBackendSettings& settings, Window& window)
+	bool VulkanBackend::Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window)
 	{
 		VulkanContextSettings context_settings = settings.context;
 		context_settings.required_extensions = window.RequiredVulkanInstanceExtensions();

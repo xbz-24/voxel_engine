@@ -14,7 +14,7 @@ namespace ve::ui
 		}
 	}
 
-	void HudRenderer::DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock)
+	void HudRenderer::DrawSurvivalHud(const ve::engine::Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock)
 	{
 		const float windowWidth = static_cast<float>(window.GetWidth());
 		const float windowHeight = static_cast<float>(window.GetHeight());

@@ -50,6 +50,11 @@ namespace ve::blocks
 		HayBlock,
 		AmethystBlock,
 		Glass,
+		Water,
+		SeaLantern,
+		CherryLog,
+		CherryPlanks,
+		CherryLeaves,
 		Count
 	};
 

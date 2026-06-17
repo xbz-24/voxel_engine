@@ -8,7 +8,6 @@ namespace ve::rendering
 	class RenderBackend
 	{
 	public:
-		/** Releases backend resources through the concrete implementation. */
 		virtual ~RenderBackend() = default;
 
 		/** @return Graphics API represented by this backend. */

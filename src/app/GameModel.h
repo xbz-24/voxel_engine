@@ -6,9 +6,11 @@
 #include "AsyncWorldGenerator.h"
 #include "Camera.h"
 #include "ChunkMeshPipeline.h"
+#include "VulkanMinecraftDemoSettings.h"
 #include "World.h"
 
 #include <memory>
+#include <optional>
 
 namespace ve::engine
 {
@@ -41,8 +43,8 @@ namespace ve::engine
 		const ve::blocks::BlockRegistry* GetBlockRegistry() const noexcept;
 		/** Applies completed async terrain chunks to the world. */
 		void PumpAsyncWorldGeneration();
-		/** Builds a curated first-person Vulkan showcase once the generated world is ready. */
-		void TryBuildVulkanDemoScene();
+		/** Builds or refreshes the editable first-person Vulkan showcase. */
+		void UpdateVulkanDemoScene(const ve::rendering::VulkanMinecraftDemoSceneConfig& scene_config, bool force_rebuild = false);
 		/** @param block_registry Block metadata. @param render_distance_chunks Chunk radius around the camera. */
 		void PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& block_registry, int render_distance_chunks);
 
@@ -53,6 +55,6 @@ namespace ve::engine
 		ve::world::mesh::ChunkMeshPipeline mesh_pipeline_;
 		ve::gameplay::BlockSelection block_selection_;
 		std::unique_ptr<ve::blocks::BlockRegistry> block_registry_;
-		bool vulkan_demo_scene_built_ = false;
+		std::optional<ve::rendering::VulkanMinecraftDemoSceneConfig> active_vulkan_demo_config_;
 	};
 }

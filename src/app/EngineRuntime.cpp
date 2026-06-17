@@ -132,7 +132,7 @@ namespace ve::engine
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan backend initialization failed");
 			return false;
 		}
-		if (!vulkan_frame_renderer_.Initialize(vulkan_backend, asset_paths_.blockTexturesDirectory))
+		if (!vulkan_frame_renderer_.Initialize(vulkan_backend, window_, asset_paths_.blockTexturesDirectory))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
 			return false;
@@ -168,5 +168,22 @@ namespace ve::engine
 		backend_.reset();
 		model_.reset();
 		VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
+	}
+void VulkanInputController::Update(GLFWwindow* window)
+	{
+		previous_state_ = current_state_;
+
+		current_state_.set(static_cast<size_t>(Action::LeftClick), glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+		current_state_.set(static_cast<size_t>(Action::F1), glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS);
+		current_state_.set(static_cast<size_t>(Action::F2), glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS);
+	}
+bool VulkanInputController::IsDown(Action action) const
+	{
+		return current_state_[static_cast<size_t>(action)];
+	}
+
+	bool VulkanInputController::IsJustPressed(Action action) const
+	{
+		return current_state_[static_cast<size_t>(action)] && !previous_state_[static_cast<size_t>(action)];
 	}
 }

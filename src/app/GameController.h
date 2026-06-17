@@ -1,9 +1,10 @@
 #pragma once
 
 #include "GameModel.h"
+#include "VulkanMinecraftDemoSettings.h"
 
 class Engine;
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::blocks
 {
@@ -33,6 +34,10 @@ namespace ve::engine
 		 * @param model Mutable gameplay model.
 		 * @param delta_seconds Time elapsed since the previous frame.
 		 */
-		void UpdateVulkanDemo(Window& window, GameModel& model, double delta_seconds);
+		void UpdateVulkanDemo(Window& window,
+			GameModel& model,
+			ve::rendering::VulkanMinecraftDemoSettings& demo_settings,
+			double delta_seconds,
+			bool ui_captures_input);
 	};
 }

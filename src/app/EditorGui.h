@@ -2,7 +2,7 @@
 
 #include "EditorDemoState.h"
 
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::editor
 {
@@ -26,7 +26,7 @@ namespace ve::editor
 		 * the window's graphics API is unsupported or initialization fails.
 		 */
 
-		bool Initialize(Window& window);
+		bool Initialize(ve::engine::Window& window);
 
 		/** 
 		 * @brief Prepares the internal ImGui state for a new frame.

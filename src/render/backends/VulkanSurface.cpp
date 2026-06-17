@@ -11,7 +11,7 @@ namespace ve::rendering
 	VulkanSurface::~VulkanSurface() { Release(); }
 
 	/** Creates a Vulkan surface from the GLFW window. */
-	bool VulkanSurface::Create(VkInstance instance, Window& window)
+	bool VulkanSurface::Create(VkInstance instance, ve::engine::Window& window)
 	{
 		Release();
 		instance_ = instance;

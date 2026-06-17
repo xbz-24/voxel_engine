@@ -14,7 +14,7 @@ namespace ve::ui
 {
 	struct HudFrameInfo
 	{
-		HudFrameInfo(const Window& frame_window,
+		HudFrameInfo(const ve::engine::Window& frame_window,
 			const Camera& frame_camera,
 			int fps,
 			glm::ivec3 selected_target_block,
@@ -41,7 +41,7 @@ namespace ve::ui
 		{
 		}
 
-		const Window& window;
+		const ve::engine::Window& window;
 		const Camera& camera;
 		int displayedFps;
 		glm::ivec3 targetBlock;
@@ -85,7 +85,7 @@ namespace ve::ui
 		void DrawIconRow(GLuint texture, float startX, float y, float iconSize, float spacing, int count, float direction);
 
 		/// Draws the fixed Minecraft-like HUD widgets.
-		void DrawSurvivalHud(const Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
+		void DrawSurvivalHud(const ve::engine::Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
 
 		/// Draws debug text readouts.
 		void DrawDebugOverlay(const HudFrameInfo& frame);

@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 
 /// Starts GLFW and reports whether initialization succeeded.
-bool Window::InitializeGlfw()
+bool ve::engine::Window::InitializeGlfw()
 {
 	if (glfwInit() == GLFW_TRUE) return true;
 	VE_LOG_ERROR("Failed to initialize GLFW");
@@ -12,7 +12,7 @@ bool Window::InitializeGlfw()
 }
 
 /// Reads the primary monitor video mode and updates window dimensions.
-const GLFWvidmode* Window::ReadPrimaryMonitorMode()
+const GLFWvidmode* ve::engine::Window::ReadPrimaryMonitorMode()
 {
 	GLFWmonitor* primaryDisplayMonitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryDisplayMonitor);
@@ -22,7 +22,7 @@ const GLFWvidmode* Window::ReadPrimaryMonitorMode()
 }
 
 /// Applies GLFW window hints from a video mode.
-void Window::ApplyWindowHints(const GLFWvidmode& videoMode)
+void ve::engine::Window::ApplyWindowHints(const GLFWvidmode& videoMode)
 {
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	glfwWindowHint(GLFW_RED_BITS, videoMode.redBits);
@@ -33,7 +33,7 @@ void Window::ApplyWindowHints(const GLFWvidmode& videoMode)
 }
 
 /// Applies API-specific window hints.
-void Window::ApplyGraphicsApiHints()
+void ve::engine::Window::ApplyGraphicsApiHints()
 {
 	if (_graphicsApi == ve::rendering::GraphicsApi::Vulkan || _graphicsApi == ve::rendering::GraphicsApi::DirectX12)
 	{
@@ -46,7 +46,7 @@ void Window::ApplyGraphicsApiHints()
 }
 
 /// Creates the native GLFW window.
-bool Window::CreateNativeWindow()
+bool ve::engine::Window::CreateNativeWindow()
 {
 	_window = glfwCreateWindow(_width, _height, _title.c_str(), nullptr, nullptr);
 	if (_window) return true;
@@ -56,7 +56,7 @@ bool Window::CreateNativeWindow()
 }
 
 /// Wires GLFW user data, callbacks and current context.
-void Window::ConfigureNativeCallbacks()
+void ve::engine::Window::ConfigureNativeCallbacks()
 {
 	glfwSetWindowUserPointer(_window, &_callbackContext);
 	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
@@ -64,23 +64,24 @@ void Window::ConfigureNativeCallbacks()
 }
 
 /// Initializes GLEW after the OpenGL context exists.
-bool Window::InitializeOpenGLLoader()
+//la borro por completo
+/*bool ve::engine::Window::InitializeOpenGLLoader()
 {
 	if (_graphicsApi != ve::rendering::GraphicsApi::OpenGLCompatibility) return true;
 	glewExperimental = GL_TRUE;
 	if (glewInit() == GLEW_OK) return true;
 	VE_LOG_ERROR("Failed to initialize GLEW");
 	return false;
-}
+}*/
 
 /// Initializes the native window with the default Vulkan backend.
-bool Window::Initialize()
+bool ve::engine::Window::Initialize()
 {
 	return Initialize(ve::rendering::GraphicsApi::Vulkan);
 }
 
 /// Initializes the native window for the requested graphics API.
-bool Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
+bool ve::engine::Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
 {
 	if (!InitializeGlfw()) return false;
 	_graphicsApi = graphicsApi;
@@ -88,5 +89,5 @@ bool Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
 	ApplyWindowHints(*videoMode);
 	if (!CreateNativeWindow()) return false;
 	ConfigureNativeCallbacks();
-	return InitializeOpenGLLoader();
+	return true;
 }

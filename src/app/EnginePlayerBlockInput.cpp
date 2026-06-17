@@ -23,7 +23,7 @@ bool Engine::performRaycastToFindTargetBlock(const ve::world::World& world, cons
 }
 
 /// Applies hotbar, debug, and block interaction input for one frame.
-void Engine::ProcessGameplayInput(Window& window, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
+void Engine::ProcessGameplayInput(ve::engine::Window& window, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
 	if (_runtimeSettings.isSettingsMenuOpen)
 	{

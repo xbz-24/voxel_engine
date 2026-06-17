@@ -60,25 +60,25 @@ private:
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos) noexcept;
 
 	/** Connects GLFW callbacks to engine-owned input state. */
-	void ConfigureCallbacks(Window& window, CallbackContext& context);
+	void ConfigureCallbacks(ve::engine::Window& window, CallbackContext& context);
 
 	/** Configures global state used only by the OpenGL compatibility renderer. */
 	void ConfigureOpenGLState();
 
 	/** Initializes the window for the selected graphics backend. */
-	bool InitializeWindow(Window& window);
+	bool InitializeWindow(ve::engine::Window& window);
 
 	/** Configures console and file logging after asset paths are resolved. */
 	void ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths);
 
 	/** Rebuilds cached projection matrices when the framebuffer size changes. */
-	void UpdateProjectionIfWindowChanged(const Window& window);
+	void UpdateProjectionIfWindowChanged(const ve::engine::Window& window);
 
 	/** Runs one OpenGL gameplay tick, including movement, targeting, and block edits. */
-	void UpdateFrameGameplay(Window& window, ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, ve::gameplay::BlockSelection& selection, double deltaSeconds);
+	void UpdateFrameGameplay(ve::engine::Window& window, ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, ve::gameplay::BlockSelection& selection, double deltaSeconds);
 
 	/** Builds immutable HUD data for the current OpenGL frame. */
-	ve::ui::HudFrameInfo CreateHudFrame(const Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const ve::gameplay::BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry, const ve::world::World& world) const;
+	ve::ui::HudFrameInfo CreateHudFrame(const ve::engine::Window& window, const Camera& camera, const ve::time::FrameTimer& frameTimer, const ve::gameplay::BlockSelection& selection, const ve::blocks::BlockRegistry& blockRegistry, const ve::world::World& world) const;
 
 	/** Releases OpenGL objects still owned directly by Engine. */
 	void ReleaseRenderCaches();
@@ -99,16 +99,16 @@ private:
 	void drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube);
 
 	/** Routes movement and menu input for the OpenGL compatibility path. */
-	void ProcessInput(Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds);
+	void ProcessInput(ve::engine::Window& window, const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, double frameTimeDeltaSeconds);
 
 	/** Handles block break/place actions for the selected target. */
-	void ProcessGameplayInput(Window& window, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
+	void ProcessGameplayInput(ve::engine::Window& window, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
 
 	/** Refreshes selection state for the current frame. */
 	void UpdateGameLogic(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, Camera& camera, ve::gameplay::BlockSelection& selection);
 
 	/** Renders the legacy OpenGL 3D scene. */
-	void Render3DWorld(const Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
+	void Render3DWorld(const ve::engine::Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
 
 	/** Rebuilds 3D and 2D projection matrices after window size changes. */
 	void UpdateProjections(int width, int height);

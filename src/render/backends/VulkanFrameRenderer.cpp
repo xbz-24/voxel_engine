@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
+#include "Window.h"
 #include "World.h"
 
 #include <chrono>
@@ -21,21 +22,41 @@ namespace ve::rendering
 			range.layerCount = 1;
 			return range;
 		}
+
+		void RecordImguiOverlay(VkCommandBuffer command_buffer, void* user_data)
+		{
+			if (user_data == nullptr) return;
+			static_cast<VulkanImGuiOverlay*>(user_data)->Record(command_buffer);
+		}
 	}
 
 	VulkanFrameRenderer::~VulkanFrameRenderer() { Release(); }
 
-	bool VulkanFrameRenderer::Initialize(VulkanBackend& backend, const std::filesystem::path& block_texture_directory)
+	bool VulkanFrameRenderer::Initialize(VulkanBackend& backend, ve::engine::Window& window, const std::filesystem::path& block_texture_directory)
 	{
 		Release();
 		backend_ = &backend;
 		device_ = backend.Device().Handle();
 		if (device_ == VK_NULL_HANDLE) return false;
-		rasterizer_.LoadBlockTextures(block_texture_directory);
 		if (!CreateCommandResources() || !CreateSynchronization() || !CreateTimestampQueries())
 		{
 			Release();
 			return false;
+		}
+		const std::filesystem::path shader_directory =
+#if defined(VE_VULKAN_SHADER_DIR)
+			VE_VULKAN_SHADER_DIR;
+#else
+			{};
+#endif
+		if (!gpu_chunk_renderer_.Initialize(backend, command_pool_, block_texture_directory, shader_directory))
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan GPU chunk renderer failed; falling back to CPU voxel rasterizer");
+			rasterizer_.LoadBlockTextures(block_texture_directory);
+		}
+		else if (!imgui_overlay_.Initialize(backend, window, gpu_chunk_renderer_.RenderPass()))
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan ImGui overlay failed; continuing without live demo controls");
 		}
 		image_layouts_.assign(backend.Swapchain().Images().size(), VK_IMAGE_LAYOUT_UNDEFINED);
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan voxel frame renderer initialized");
@@ -215,7 +236,7 @@ namespace ve::rendering
 		return copied;
 	}
 
-	bool VulkanFrameRenderer::RecordCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index)
+	bool VulkanFrameRenderer::RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index)
 	{
 		if (frame_index >= intermediate_images_.size() || intermediate_images_[frame_index] == VK_NULL_HANDLE) return false;
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -317,6 +338,28 @@ namespace ve::rendering
 		return true;
 	}
 
+	bool VulkanFrameRenderer::RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera)
+	{
+		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS) return false;
+
+		const std::uint32_t first_query = static_cast<std::uint32_t>(frame_index * 2u);
+		if (timestamp_query_pool_ != VK_NULL_HANDLE)
+		{
+			vkCmdResetQueryPool(command_buffer, timestamp_query_pool_, first_query, 2u);
+			vkCmdWriteTimestamp(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, timestamp_query_pool_, first_query);
+		}
+		const VulkanOverlayRecordCallback overlay_callback = imgui_overlay_.IsInitialized() ? RecordImguiOverlay : nullptr;
+		void* overlay_user_data = imgui_overlay_.IsInitialized() ? &imgui_overlay_ : nullptr;
+		if (!gpu_chunk_renderer_.Record(command_buffer, image_index, camera, overlay_callback, overlay_user_data)) return false;
+		if (timestamp_query_pool_ != VK_NULL_HANDLE)
+		{
+			vkCmdWriteTimestamp(command_buffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, timestamp_query_pool_, first_query + 1u);
+		}
+		return vkEndCommandBuffer(command_buffer) == VK_SUCCESS;
+	}
+
 	void VulkanFrameRenderer::CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const
 	{
 		if (timestamp_query_pool_ == VK_NULL_HANDLE || timestamp_period_ns_ <= 0.0f) return;
@@ -337,6 +380,100 @@ namespace ve::rendering
 	}
 
 	bool VulkanFrameRenderer::DrawFrame(const ve::world::World& world,
+		const Camera& camera,
+		int displayed_fps,
+		double delta_seconds,
+		const VulkanDemoInput& input,
+		VulkanMinecraftDemoSettings& minecraft_demo_settings)
+	{
+		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, camera, displayed_fps, delta_seconds, minecraft_demo_settings);
+		return DrawSoftwareFrame(world, camera, displayed_fps, delta_seconds, input);
+	}
+
+	bool VulkanFrameRenderer::DrawGpuFrame(const ve::world::World& world,
+		const Camera& camera,
+		int displayed_fps,
+		double delta_seconds,
+		VulkanMinecraftDemoSettings& minecraft_demo_settings)
+	{
+		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
+		const VkFence fence = in_flight_fences_[current_frame_];
+		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
+		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
+		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
+		if (!gpu_chunk_renderer_.EnsureWorldMesh(world)) return false;
+		imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
+			displayed_fps,
+			delta_seconds,
+			completed_frame_timing.gpu_copy_ms,
+			completed_frame_timing.present_cpu_ms,
+			gpu_chunk_renderer_.IndexCount(),
+			world.Revision(),
+			completed_frame_timing.has_gpu_copy_timing,
+			true
+		});
+
+		std::uint32_t image_index = 0;
+		const auto present_start = std::chrono::steady_clock::now();
+		const VkResult acquire_result = vkAcquireNextImageKHR(device_, backend_->Swapchain().Handle(), UINT64_MAX,
+			image_available_semaphores_[current_frame_], VK_NULL_HANDLE, &image_index);
+		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR) return false;
+		if (image_index >= render_finished_semaphores_.size()) return false;
+
+		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS) return false;
+		VkCommandBuffer command_buffer = command_buffers_[current_frame_];
+		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS || !RecordGpuCommandBuffer(command_buffer, image_index, current_frame_, camera))
+		{
+			return false;
+		}
+
+		const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		const VkSemaphore image_available = image_available_semaphores_[current_frame_];
+		const VkSemaphore render_finished = render_finished_semaphores_[image_index];
+		VkSubmitInfo submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submit_info.waitSemaphoreCount = 1u;
+		submit_info.pWaitSemaphores = &image_available;
+		submit_info.pWaitDstStageMask = &wait_stage;
+		submit_info.commandBufferCount = 1u;
+		submit_info.pCommandBuffers = &command_buffer;
+		submit_info.signalSemaphoreCount = 1u;
+		submit_info.pSignalSemaphores = &render_finished;
+		if (vkQueueSubmit(backend_->Device().GraphicsQueue(), 1u, &submit_info, fence) != VK_SUCCESS) return false;
+
+		VkPresentInfoKHR present_info{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		present_info.waitSemaphoreCount = 1u;
+		present_info.pWaitSemaphores = &render_finished;
+		const VkSwapchainKHR swapchain = backend_->Swapchain().Handle();
+		present_info.swapchainCount = 1u;
+		present_info.pSwapchains = &swapchain;
+		present_info.pImageIndices = &image_index;
+		const VkResult present_result = vkQueuePresentKHR(backend_->Device().PresentQueue(), &present_info);
+		const auto present_end = std::chrono::steady_clock::now();
+
+		VulkanFrameTiming current_timing{};
+		current_timing.gpu_copy_ms = completed_frame_timing.gpu_copy_ms;
+		current_timing.has_gpu_copy_timing = completed_frame_timing.has_gpu_copy_timing;
+		current_timing.present_cpu_ms = std::chrono::duration<double, std::milli>(present_end - present_start).count();
+		current_timing.render_extent = backend_->Swapchain().Extent();
+		current_timing.sample_step = 1u;
+		current_timing.worker_count = 0u;
+		if (timestamp_query_pool_ != VK_NULL_HANDLE) timestamp_query_valid_[current_frame_] = true;
+		previous_frame_timing_ = current_timing;
+		current_frame_ = (current_frame_ + 1u) % kFramesInFlight;
+		if (!logged_first_frame_)
+		{
+			VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Presented first Vulkan GPU chunk frame");
+			logged_first_frame_ = true;
+		}
+		return present_result == VK_SUCCESS || present_result == VK_SUBOPTIMAL_KHR;
+	}
+
+	bool VulkanFrameRenderer::WantsMouseInput() const noexcept
+	{
+		return imgui_overlay_.WantsMouseInput();
+	}
+
+	bool VulkanFrameRenderer::DrawSoftwareFrame(const ve::world::World& world,
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
@@ -366,7 +503,7 @@ namespace ve::rendering
 
 		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS) return false;
 		VkCommandBuffer command_buffer = command_buffers_[current_frame_];
-		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS || !RecordCommandBuffer(command_buffer, image_index, current_frame_))
+		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS || !RecordSoftwareCommandBuffer(command_buffer, image_index, current_frame_))
 		{
 			return false;
 		}
@@ -452,6 +589,8 @@ namespace ve::rendering
 		command_pool_ = VK_NULL_HANDLE;
 		command_buffers_.fill(VK_NULL_HANDLE);
 		image_layouts_.clear();
+		imgui_overlay_.Release();
+		gpu_chunk_renderer_.Release();
 		rasterizer_.Release();
 		previous_frame_timing_ = {};
 		demo_settings_ = {};

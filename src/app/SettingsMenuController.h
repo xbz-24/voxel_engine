@@ -17,7 +17,7 @@ namespace ve::gameplay
 		 * @param window Window used for input, cursor state, VSync, and quit.
 		 * @param settings Runtime settings mutated by menu rows.
 		 */
-		void ProcessInput(Window& window, RuntimeSettings& settings);
+		void ProcessInput(ve::engine::Window& window, RuntimeSettings& settings);
 
 	private:
 		bool was_toggle_pressed_ = false;
@@ -30,17 +30,17 @@ namespace ve::gameplay
 		/**
 		 * Opens or closes the menu when the toggle key is pressed.
 		 */
-		void ToggleMenuFromInput(Window& window, RuntimeSettings& settings);
+		void ToggleMenuFromInput(ve::engine::Window& window, RuntimeSettings& settings);
 
 		/**
 		 * Processes navigation and activation while the menu is open.
 		 */
-		void ProcessOpenMenuInput(Window& window, RuntimeSettings& settings);
+		void ProcessOpenMenuInput(ve::engine::Window& window, RuntimeSettings& settings);
 
 		/**
 		 * Opens or closes the settings menu and updates cursor mode.
 		 */
-		void SetOpen(Window& window, RuntimeSettings& settings, bool isOpen);
+		void SetOpen(ve::engine::Window& window, RuntimeSettings& settings, bool isOpen);
 
 		/**
 		 * Moves the selected menu row.
@@ -50,7 +50,7 @@ namespace ve::gameplay
 		/**
 		 * Applies left/right changes to configurable rows.
 		 */
-		void ApplyAdjustment(Window& window, RuntimeSettings& settings, int direction);
+		void ApplyAdjustment(ve::engine::Window& window, RuntimeSettings& settings, int direction);
 
 		/**
 		 * Adjusts render distance within the supported range.
@@ -60,7 +60,7 @@ namespace ve::gameplay
 		/**
 		 * Toggles VSync and applies it to the native window.
 		 */
-		void ToggleVSync(Window& window, RuntimeSettings& settings);
+		void ToggleVSync(ve::engine::Window& window, RuntimeSettings& settings);
 
 		/**
 		 * Toggles debug overlay visibility.
@@ -75,6 +75,6 @@ namespace ve::gameplay
 		/**
 		 * Activates the currently selected row.
 		 */
-		void Activate(Window& window, RuntimeSettings& settings);
+		void Activate(ve::engine::Window& window, RuntimeSettings& settings);
 	};
 }

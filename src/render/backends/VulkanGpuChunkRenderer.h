@@ -21,6 +21,7 @@ namespace ve::world
 namespace ve::rendering
 {
 	class VulkanBackend;
+	using VulkanOverlayRecordCallback = void (*)(VkCommandBuffer command_buffer, void* user_data);
 
 	class VulkanGpuChunkRenderer
 	{
@@ -30,11 +31,16 @@ namespace ve::rendering
 			const std::filesystem::path& block_texture_directory,
 			const std::filesystem::path& shader_directory);
 		[[nodiscard]] bool EnsureWorldMesh(const ve::world::World& world);
-		[[nodiscard]] bool Record(VkCommandBuffer command_buffer, std::uint32_t image_index, const Camera& camera);
+		[[nodiscard]] bool Record(VkCommandBuffer command_buffer,
+			std::uint32_t image_index,
+			const Camera& camera,
+			VulkanOverlayRecordCallback overlay_callback = nullptr,
+			void* overlay_user_data = nullptr);
 		void Release();
 
 		[[nodiscard]] bool IsInitialized() const noexcept;
 		[[nodiscard]] std::uint32_t IndexCount() const noexcept;
+		[[nodiscard]] VkRenderPass RenderPass() const noexcept;
 
 	private:
 		struct VoxelVertex
@@ -56,7 +62,17 @@ namespace ve::rendering
 		[[nodiscard]] bool CreateDepthResources();
 		[[nodiscard]] bool CreateFramebuffers();
 		[[nodiscard]] bool UploadMeshBuffers(std::span<const VoxelVertex> vertices, std::span<const std::uint32_t> indices);
+		[[nodiscard]] bool CreateBuffer(VkDeviceSize byte_size,
+			VkBufferUsageFlags usage,
+			VkMemoryPropertyFlags properties,
+			VkBuffer& buffer,
+			VkDeviceMemory& memory) const;
 		[[nodiscard]] bool CreateHostBuffer(VkDeviceSize byte_size, VkBufferUsageFlags usage, VkBuffer& buffer, VkDeviceMemory& memory) const;
+		[[nodiscard]] bool UploadDeviceLocalBuffer(const void* source,
+			VkDeviceSize byte_size,
+			VkBufferUsageFlags usage,
+			VkBuffer& buffer,
+			VkDeviceMemory& memory) const;
 		[[nodiscard]] bool CreateDeviceImage(VkImageCreateInfo image_info, VkDeviceMemory& memory, VkImage& image) const;
 		[[nodiscard]] bool CopyToDeviceBuffer(VkDeviceMemory memory, const void* source, VkDeviceSize byte_size) const;
 		[[nodiscard]] bool RunImmediateCommands(void (*record)(VkCommandBuffer, void*), void* user_data) const;

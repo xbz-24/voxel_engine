@@ -3,7 +3,7 @@
 #include <volk.h>
 #include <vulkan/vulkan.hpp>
 
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
@@ -15,7 +15,7 @@ namespace ve::rendering
 		~VulkanSurface();
 
 		/** @param instance Vulkan instance. @param window Engine window used for presentation. @return True when surface creation succeeds. */
-		[[nodiscard]] bool Create(VkInstance instance, Window& window);
+		[[nodiscard]] bool Create(VkInstance instance, ve::engine::Window& window);
 
 		/** Destroys the surface and resets the handle. */
 		void Release();

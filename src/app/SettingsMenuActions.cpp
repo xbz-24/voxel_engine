@@ -11,7 +11,7 @@ namespace ve::gameplay
 	}
 
 	/// Toggles VSync and applies it to the native window.
-	void SettingsMenuController::ToggleVSync(Window& window, RuntimeSettings& settings)
+	void SettingsMenuController::ToggleVSync(ve::engine::Window& window, RuntimeSettings& settings)
 	{
 		settings.isVSyncEnabled = !settings.isVSyncEnabled;
 		window.SetVSync(settings.isVSyncEnabled);

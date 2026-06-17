@@ -3,7 +3,7 @@
 #include "EditorDemoState.h"
 #include "EditorGui.h"
 
-class Window;
+namespace ve::engine { class Window; }
 
 namespace ve::gameplay
 {
@@ -16,13 +16,13 @@ namespace ve::editor
 	{
 	public:
 		/** @param window Engine window used by ImGui. @param settings Runtime settings copied into editor state. @return True when initialized. */
-		bool Initialize(Window& window, const ve::gameplay::RuntimeSettings& settings);
+		bool Initialize(ve::engine::Window& window, const ve::gameplay::RuntimeSettings& settings);
 
 		/** Starts a new editor UI frame. */
 		void BeginFrame();
 
 		/** @param window Runtime window updated by editor settings. @param settings Runtime settings modified by editor controls. */
-		void DrawAndApply(Window& window, ve::gameplay::RuntimeSettings& settings);
+		void DrawAndApply(ve::engine::Window& window, ve::gameplay::RuntimeSettings& settings);
 
 		/** Presents the editor UI. */
 		void Render();

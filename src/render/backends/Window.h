@@ -2,86 +2,72 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include "RenderApi.h"
+
 #include <string>
+#include <string_view>
 #include <vector>
 
-class Window
+namespace ve::engine
 {
-public:
-	/** Cursor modes exposed by the engine window API. */
-	enum class CursorMode { Normal, Captured };
-
-	/** Callback data stored inside GLFW user pointer. */
-	struct CallbackContext
+	class Window
 	{
-		Window* window;
-		void* userData;
+	public:
+		enum class CursorMode { Normal, Captured };
+
+		struct CallbackContext
+		{
+			Window* window;
+			void* userData;
+		};
+
+		explicit Window(std::string_view title);
+		~Window();
+
+		Window(const Window&) = delete;
+		Window& operator=(const Window&) = delete;
+		Window(Window&&) = delete;
+		Window& operator=(Window&&) = delete;
+
+		bool Initialize();
+		bool Initialize(ve::rendering::GraphicsApi graphicsApi);
+
+		void SetVSync(bool isEnabled);
+		[[nodiscard]] bool IsVSyncEnabled() const noexcept;
+
+		void SetCursorMode(CursorMode mode);
+		void Update();
+
+		[[nodiscard]] bool ShouldClose() const;
+		void Close();
+
+		[[nodiscard]] int GetWidth() const;
+		[[nodiscard]] int GetHeight() const;
+		[[nodiscard]] float GetAspectRatio() const;
+		[[nodiscard]] GLFWwindow* GetNativeWindow() const;
+
+		[[nodiscard]] ve::rendering::GraphicsApi GraphicsApi() const noexcept;
+		[[nodiscard]] std::vector<const char*> RequiredVulkanInstanceExtensions() const;
+
+		void SetCallbackUserData(void* userData);
+		static void* GetCallbackUserData(GLFWwindow* window);
+		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
+
+	private:
+		bool InitializeGlfw();
+		const GLFWvidmode* ReadPrimaryMonitorMode();
+		void ApplyWindowHints(const GLFWvidmode& videoMode);
+		void ApplyGraphicsApiHints();
+		bool CreateNativeWindow();
+		void ConfigureNativeCallbacks();
+
+		GLFWwindow* _window = nullptr;
+		int _width = 0;
+		int _height = 0;
+		bool _isVSyncEnabled = false;
+		ve::rendering::GraphicsApi _graphicsApi = ve::rendering::GraphicsApi::Vulkan;
+		std::string _title;
+		CallbackContext _callbackContext{};
 	};
-
-	/// Creates a window wrapper with a title.
-	explicit Window(const char* title);
-	/// Creates a window wrapper with a title.
-	explicit Window(std::string title);
-	/// Destroys the native GLFW window and terminates GLFW.
-	~Window();
-	/// Initializes the window with the default Vulkan backend.
-	bool Initialize();
-	/** @param graphicsApi Graphics API that controls native window hints and context setup. @return True when ready. */
-	bool Initialize(ve::rendering::GraphicsApi graphicsApi);
-	/// Enables or disables vertical synchronization for buffer swaps.
-	void SetVSync(bool isEnabled);
-	/// Returns whether vertical synchronization is enabled.
-	bool IsVSyncEnabled() const noexcept;
-	/// Applies the cursor mode used by menus and first-person camera control.
-	void SetCursorMode(CursorMode mode);
-	/// Swaps buffers and polls window events.
-	void Update();
-	/// Checks whether GLFW requested the window to close.
-	bool ShouldClose() const;
-	/// Requests that the window closes.
-	void Close();
-	/// Returns the current framebuffer width.
-	int GetWidth() const;
-	/// Returns the current framebuffer height, clamped to at least 1.
-	int GetHeight() const;
-	/// Returns the current framebuffer aspect ratio.
-	float GetAspectRatio() const;
-	/// Returns the native GLFW window pointer.
-	GLFWwindow* GetNativeWindow() const;
-	/** @return Graphics API used to initialize this window. */
-	/// Returns the graphics API used to initialize this window.
-	[[nodiscard]] ve::rendering::GraphicsApi GraphicsApi() const noexcept;
-	/// Returns required Vulkan instance extensions reported by GLFW.
-	[[nodiscard]] std::vector<const char*> RequiredVulkanInstanceExtensions() const;
-	/// Stores user data reachable from GLFW callbacks.
-	void SetCallbackUserData(void* userData);
-	/// Reads user data from a native GLFW window callback context.
-	static void* GetCallbackUserData(GLFWwindow* window);
-	/// Updates stored framebuffer dimensions after a GLFW resize event.
-	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
-
-private:
-	/// Starts GLFW and reports whether initialization succeeded.
-	bool InitializeGlfw();
-	/// Reads the primary monitor video mode and updates window dimensions.
-	const GLFWvidmode* ReadPrimaryMonitorMode();
-	/// Applies GLFW window hints from a video mode.
-	void ApplyWindowHints(const GLFWvidmode& videoMode);
-	/// Applies graphics API specific GLFW hints.
-	void ApplyGraphicsApiHints();
-	/// Creates the native GLFW window.
-	bool CreateNativeWindow();
-	/// Wires GLFW user data, callbacks and current context.
-	void ConfigureNativeCallbacks();
-	/// Initializes GLEW after the OpenGL context exists.
-	bool InitializeOpenGLLoader();
-
-	GLFWwindow* _window;
-	int _width;
-	int _height;
-	bool _isVSyncEnabled;
-	ve::rendering::GraphicsApi _graphicsApi;
-	std::string _title;
-	CallbackContext _callbackContext;
-};
+}

@@ -4,7 +4,7 @@
 #include "RenderBackendSelector.h"
 
 /// Initializes the native window and applies runtime window options.
-bool Engine::InitializeWindow(Window& window)
+bool Engine::InitializeWindow(ve::engine::Window& window)
 {
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
 		_runtimeSettings.renderBackendConfiguration);
@@ -35,7 +35,7 @@ void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 }
 
 /// Updates projection matrices only when the window dimensions changed.
-void Engine::UpdateProjectionIfWindowChanged(const Window& window)
+void Engine::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
 {
 	if (window.GetWidth() == _window_state.current_width && window.GetHeight() == _window_state.current_height)
 	{

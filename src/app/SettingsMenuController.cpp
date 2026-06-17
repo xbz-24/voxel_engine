@@ -5,7 +5,7 @@
 namespace ve::gameplay
 {
 	/// Processes one frame of settings menu input.
-	void SettingsMenuController::ProcessInput(Window& window, RuntimeSettings& settings)
+	void SettingsMenuController::ProcessInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
 		ToggleMenuFromInput(window, settings);
 		if (settings.isSettingsMenuOpen)
@@ -15,7 +15,7 @@ namespace ve::gameplay
 	}
 
 	/// Opens or closes the menu when the toggle key is pressed.
-	void SettingsMenuController::ToggleMenuFromInput(Window& window, RuntimeSettings& settings)
+	void SettingsMenuController::ToggleMenuFromInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
 		if (ve::input::WasPressed(window.GetNativeWindow(), ve::input::Key::Escape, was_toggle_pressed_))
 		{
@@ -24,7 +24,7 @@ namespace ve::gameplay
 	}
 
 	/// Processes navigation and activation while the menu is open.
-	void SettingsMenuController::ProcessOpenMenuInput(Window& window, RuntimeSettings& settings)
+	void SettingsMenuController::ProcessOpenMenuInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
 		GLFWwindow* nativeWindow = window.GetNativeWindow();
 		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Up, was_up_pressed_)) MoveSelection(settings, -1);
@@ -35,10 +35,10 @@ namespace ve::gameplay
 	}
 
 	/// Opens or closes the settings menu and updates cursor mode.
-	void SettingsMenuController::SetOpen(Window& window, RuntimeSettings& settings, bool isOpen)
+	void SettingsMenuController::SetOpen(ve::engine::Window& window, RuntimeSettings& settings, bool isOpen)
 	{
 		settings.isSettingsMenuOpen = isOpen;
-		window.SetCursorMode(isOpen ? Window::CursorMode::Normal : Window::CursorMode::Captured);
+		window.SetCursorMode(isOpen ? ve::engine::Window::CursorMode::Normal : ve::engine::Window::CursorMode::Captured);
 	}
 
 	/// Moves the selected menu row.
@@ -50,7 +50,7 @@ namespace ve::gameplay
 	}
 
 	/// Applies left/right changes to configurable rows.
-	void SettingsMenuController::ApplyAdjustment(Window& window, RuntimeSettings& settings, int direction)
+	void SettingsMenuController::ApplyAdjustment(ve::engine::Window& window, RuntimeSettings& settings, int direction)
 	{
 		switch (settings.selectedSettingsMenuOption)
 		{
@@ -74,7 +74,7 @@ namespace ve::gameplay
 	}
 
 	/// Activates the currently selected row.
-	void SettingsMenuController::Activate(Window& window, RuntimeSettings& settings)
+	void SettingsMenuController::Activate(ve::engine::Window& window, RuntimeSettings& settings)
 	{
 		if (settings.selectedSettingsMenuOption == ve::ui::SettingsMenuOption::Resume)
 		{
