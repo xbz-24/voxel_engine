@@ -41,6 +41,13 @@ namespace ve::rendering
 				settings.scene.tower_height = 14;
 				settings.scene.lantern_count = 12;
 				settings.scene.ore_richness = 14;
+				settings.scene.market_stall_count = 4;
+				settings.scene.floating_island_count = 3;
+				settings.scene.ruin_count = 3;
+				settings.scene.market = true;
+				settings.scene.floating_islands = true;
+				settings.scene.ruins = true;
+				settings.scene.beacon = true;
 				settings.scene.stress_blocks = false;
 				break;
 			case VulkanMinecraftDemoPreset::QuarryOutpost:
@@ -52,6 +59,13 @@ namespace ve::rendering
 				settings.scene.tower_height = 19;
 				settings.scene.lantern_count = 18;
 				settings.scene.ore_richness = 28;
+				settings.scene.market_stall_count = 2;
+				settings.scene.floating_island_count = 1;
+				settings.scene.ruin_count = 5;
+				settings.scene.market = false;
+				settings.scene.floating_islands = true;
+				settings.scene.ruins = true;
+				settings.scene.beacon = true;
 				settings.scene.stress_blocks = false;
 				break;
 			case VulkanMinecraftDemoPreset::ForestFarm:
@@ -63,6 +77,13 @@ namespace ve::rendering
 				settings.scene.tower_height = 12;
 				settings.scene.lantern_count = 8;
 				settings.scene.ore_richness = 8;
+				settings.scene.market_stall_count = 3;
+				settings.scene.floating_island_count = 4;
+				settings.scene.ruin_count = 2;
+				settings.scene.market = true;
+				settings.scene.floating_islands = true;
+				settings.scene.ruins = false;
+				settings.scene.beacon = false;
 				settings.scene.stress_blocks = false;
 				break;
 			case VulkanMinecraftDemoPreset::StressTown:
@@ -74,6 +95,13 @@ namespace ve::rendering
 				settings.scene.tower_height = 24;
 				settings.scene.lantern_count = 28;
 				settings.scene.ore_richness = 32;
+				settings.scene.market_stall_count = 8;
+				settings.scene.floating_island_count = 5;
+				settings.scene.ruin_count = 6;
+				settings.scene.market = true;
+				settings.scene.floating_islands = true;
+				settings.scene.ruins = true;
+				settings.scene.beacon = true;
 				settings.scene.stress_blocks = true;
 				break;
 			}
@@ -118,6 +146,9 @@ namespace ve::rendering
 			changed |= ImGui::DragInt("Tower height", &settings.scene.tower_height, 0.25f, 6, 28);
 			changed |= ImGui::DragInt("Lanterns", &settings.scene.lantern_count, 0.35f, 0, 32);
 			changed |= ImGui::DragInt("Ore blocks", &settings.scene.ore_richness, 0.35f, 0, 32);
+			changed |= ImGui::DragInt("Market stalls", &settings.scene.market_stall_count, 0.15f, 0, 8);
+			changed |= ImGui::DragInt("Floating islands", &settings.scene.floating_island_count, 0.15f, 0, 6);
+			changed |= ImGui::DragInt("Ruins", &settings.scene.ruin_count, 0.15f, 0, 8);
 			changed |= ImGui::Checkbox("Village", &settings.scene.village);
 			ImGui::SameLine();
 			changed |= ImGui::Checkbox("Farms", &settings.scene.farms);
@@ -128,6 +159,13 @@ namespace ve::rendering
 			changed |= ImGui::Checkbox("Trees", &settings.scene.trees);
 			ImGui::SameLine();
 			changed |= ImGui::Checkbox("Lights", &settings.scene.lights);
+			changed |= ImGui::Checkbox("Market", &settings.scene.market);
+			ImGui::SameLine();
+			changed |= ImGui::Checkbox("Islands", &settings.scene.floating_islands);
+			ImGui::SameLine();
+			changed |= ImGui::Checkbox("Ruins", &settings.scene.ruins);
+			changed |= ImGui::Checkbox("Beacon", &settings.scene.beacon);
+			ImGui::SameLine();
 			changed |= ImGui::Checkbox("Stress blocks", &settings.scene.stress_blocks);
 			if (changed) settings.request_scene_rebuild = true;
 

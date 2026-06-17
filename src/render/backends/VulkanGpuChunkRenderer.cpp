@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -162,6 +163,16 @@ namespace ve::rendering
 			copy.size = context.byte_size;
 			vkCmdCopyBuffer(command_buffer, context.source, context.destination, 1u, &copy);
 		}
+
+		void AppendQuadIndices(std::vector<std::uint32_t>& indices, std::uint32_t base)
+		{
+			indices.push_back(base);
+			indices.push_back(base + 1u);
+			indices.push_back(base + 2u);
+			indices.push_back(base);
+			indices.push_back(base + 2u);
+			indices.push_back(base + 3u);
+		}
 	}
 
 	bool VulkanGpuChunkRenderer::Initialize(VulkanBackend& backend,
@@ -212,6 +223,8 @@ namespace ve::rendering
 		VkDeviceMemory& memory) const
 	{
 		VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		buffer = VK_NULL_HANDLE;
+		memory = VK_NULL_HANDLE;
 		buffer_info.size = byte_size;
 		buffer_info.usage = usage;
 		buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -220,13 +233,31 @@ namespace ve::rendering
 		VkMemoryRequirements requirements{};
 		vkGetBufferMemoryRequirements(device_, buffer, &requirements);
 		const std::uint32_t memory_type = FindMemoryType(physical_device_, requirements.memoryTypeBits, properties);
-		if (memory_type == UINT32_MAX) return false;
+		if (memory_type == UINT32_MAX)
+		{
+			vkDestroyBuffer(device_, buffer, nullptr);
+			buffer = VK_NULL_HANDLE;
+			return false;
+		}
 
 		VkMemoryAllocateInfo allocate_info{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		allocate_info.allocationSize = requirements.size;
 		allocate_info.memoryTypeIndex = memory_type;
-		return vkAllocateMemory(device_, &allocate_info, nullptr, &memory) == VK_SUCCESS &&
-			vkBindBufferMemory(device_, buffer, memory, 0) == VK_SUCCESS;
+		if (vkAllocateMemory(device_, &allocate_info, nullptr, &memory) != VK_SUCCESS)
+		{
+			vkDestroyBuffer(device_, buffer, nullptr);
+			buffer = VK_NULL_HANDLE;
+			return false;
+		}
+		if (vkBindBufferMemory(device_, buffer, memory, 0) != VK_SUCCESS)
+		{
+			vkFreeMemory(device_, memory, nullptr);
+			vkDestroyBuffer(device_, buffer, nullptr);
+			memory = VK_NULL_HANDLE;
+			buffer = VK_NULL_HANDLE;
+			return false;
+		}
+		return true;
 	}
 
 	bool VulkanGpuChunkRenderer::CreateHostBuffer(VkDeviceSize byte_size, VkBufferUsageFlags usage, VkBuffer& buffer, VkDeviceMemory& memory) const
@@ -273,16 +304,36 @@ namespace ve::rendering
 
 	bool VulkanGpuChunkRenderer::CreateDeviceImage(VkImageCreateInfo image_info, VkDeviceMemory& memory, VkImage& image) const
 	{
+		memory = VK_NULL_HANDLE;
+		image = VK_NULL_HANDLE;
 		if (vkCreateImage(device_, &image_info, nullptr, &image) != VK_SUCCESS) return false;
 		VkMemoryRequirements requirements{};
 		vkGetImageMemoryRequirements(device_, image, &requirements);
 		const std::uint32_t memory_type = FindMemoryType(physical_device_, requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		if (memory_type == UINT32_MAX) return false;
+		if (memory_type == UINT32_MAX)
+		{
+			vkDestroyImage(device_, image, nullptr);
+			image = VK_NULL_HANDLE;
+			return false;
+		}
 		VkMemoryAllocateInfo allocate_info{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		allocate_info.allocationSize = requirements.size;
 		allocate_info.memoryTypeIndex = memory_type;
-		return vkAllocateMemory(device_, &allocate_info, nullptr, &memory) == VK_SUCCESS &&
-			vkBindImageMemory(device_, image, memory, 0) == VK_SUCCESS;
+		if (vkAllocateMemory(device_, &allocate_info, nullptr, &memory) != VK_SUCCESS)
+		{
+			vkDestroyImage(device_, image, nullptr);
+			image = VK_NULL_HANDLE;
+			return false;
+		}
+		if (vkBindImageMemory(device_, image, memory, 0) != VK_SUCCESS)
+		{
+			vkFreeMemory(device_, memory, nullptr);
+			vkDestroyImage(device_, image, nullptr);
+			memory = VK_NULL_HANDLE;
+			image = VK_NULL_HANDLE;
+			return false;
+		}
+		return true;
 	}
 
 	bool VulkanGpuChunkRenderer::RunImmediateCommands(void (*record)(VkCommandBuffer, void*), void* user_data) const
@@ -293,19 +344,31 @@ namespace ve::rendering
 		allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocate_info.commandBufferCount = 1u;
 		if (vkAllocateCommandBuffers(device_, &allocate_info, &command_buffer) != VK_SUCCESS) return false;
+		const auto free_command_buffer = [&]
+		{
+			if (command_buffer != VK_NULL_HANDLE) vkFreeCommandBuffers(device_, command_pool_, 1u, &command_buffer);
+		};
 
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS) return false;
+		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+		{
+			free_command_buffer();
+			return false;
+		}
 		record(command_buffer, user_data);
-		if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) return false;
+		if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+		{
+			free_command_buffer();
+			return false;
+		}
 
 		VkSubmitInfo submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		submit_info.commandBufferCount = 1u;
 		submit_info.pCommandBuffers = &command_buffer;
 		const bool submitted = vkQueueSubmit(backend_->Device().GraphicsQueue(), 1u, &submit_info, VK_NULL_HANDLE) == VK_SUCCESS;
 		if (submitted) vkQueueWaitIdle(backend_->Device().GraphicsQueue());
-		vkFreeCommandBuffers(device_, command_pool_, 1u, &command_buffer);
+		free_command_buffer();
 		return submitted;
 	}
 
@@ -713,8 +776,9 @@ namespace ve::rendering
 		const int depth = metrics.worldSizeChunks * Chunk::CHUNK_DEPTH;
 		vertices.clear();
 		indices.clear();
-		vertices.reserve(140'000u);
-		indices.reserve(210'000u);
+		const std::size_t column_count = static_cast<std::size_t>(std::max(width, 0)) * static_cast<std::size_t>(std::max(depth, 0));
+		vertices.reserve(std::max<std::size_t>(140'000u, column_count * 16u));
+		indices.reserve(std::max<std::size_t>(210'000u, column_count * 24u));
 
 		for (int x = 0; x < width; ++x)
 		{
@@ -744,7 +808,7 @@ namespace ve::rendering
 								face.light
 							});
 						}
-						indices.insert(indices.end(), { base, base + 1u, base + 2u, base, base + 2u, base + 3u });
+						AppendQuadIndices(indices, base);
 					}
 				}
 			}
@@ -758,19 +822,27 @@ namespace ve::rendering
 		if (vertices.empty() || indices.empty()) return true;
 		const VkDeviceSize vertex_bytes = static_cast<VkDeviceSize>(vertices.size_bytes());
 		const VkDeviceSize index_bytes = static_cast<VkDeviceSize>(indices.size_bytes());
-		return UploadDeviceLocalBuffer(vertices.data(), vertex_bytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer_, vertex_memory_) &&
+		const bool uploaded =
+			UploadDeviceLocalBuffer(vertices.data(), vertex_bytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertex_buffer_, vertex_memory_) &&
 			UploadDeviceLocalBuffer(indices.data(), index_bytes, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, index_buffer_, index_memory_);
+		if (!uploaded) ReleaseMeshBuffers();
+		return uploaded;
 	}
 
 	bool VulkanGpuChunkRenderer::EnsureWorldMesh(const ve::world::World& world)
 	{
 		if (mesh_valid_ && mesh_revision_ == world.Revision()) return true;
+		const auto rebuild_start = std::chrono::steady_clock::now();
 		std::vector<VoxelVertex> vertices;
 		std::vector<std::uint32_t> indices;
 		RebuildMesh(world, vertices, indices);
 		if (!UploadMeshBuffers(vertices, indices)) return false;
 		mesh_revision_ = world.Revision();
 		mesh_valid_ = true;
+		const auto rebuild_end = std::chrono::steady_clock::now();
+		const double rebuild_ms = std::chrono::duration<double, std::milli>(rebuild_end - rebuild_start).count();
+		VE_LOG_CATEGORY_DEBUG(ve::log::category::Render, "Rebuilt Vulkan world mesh: " + std::to_string(index_count_) +
+			" indices in " + std::to_string(rebuild_ms) + " ms");
 		return true;
 	}
 

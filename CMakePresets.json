@@ -27,6 +27,16 @@
         "VE_WARNINGS_AS_ERRORS": true,
         "VE_USE_LATEST_CXX": true
       }
+    },
+    {
+      "name": "windows-visual-studio-asan",
+      "displayName": "Visual Studio ASan",
+      "inherits": "windows-visual-studio",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "VE_ENABLE_ASAN": true,
+        "VE_BUILD_TESTS": true
+      }
     }
   ],
   "buildPresets": [
@@ -66,6 +76,16 @@
         "voxel_engine",
         "engine_tests"
       ]
+    },
+    {
+      "name": "windows-visual-studio-asan",
+      "displayName": "Build with AddressSanitizer",
+      "configurePreset": "windows-visual-studio-asan",
+      "configuration": "Debug",
+      "targets": [
+        "voxel_engine",
+        "engine_tests"
+      ]
     }
   ],
   "testPresets": [
@@ -73,6 +93,15 @@
       "name": "windows-vcpkg-tests",
       "displayName": "Run voxel engine tests",
       "configurePreset": "windows-vcpkg",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-visual-studio-asan-tests",
+      "displayName": "Run voxel engine tests with AddressSanitizer",
+      "configurePreset": "windows-visual-studio-asan",
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true

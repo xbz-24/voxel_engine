@@ -10,6 +10,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
 option(VE_BUILD_TESTS "Build engine tests" ON)
 option(VE_ENABLE_STRICT_WARNINGS "Enable the project's extended compiler warning set" ON)
+option(VE_ENABLE_ASAN "Build supported targets with AddressSanitizer instrumentation" OFF)
+option(VE_ENABLE_UBSAN "Build supported targets with UndefinedBehaviorSanitizer instrumentation" OFF)
 option(VE_WARNINGS_AS_ERRORS "Treat project warnings as compilation errors" ON)
 option(VE_USE_LATEST_CXX "Use the newest C++ language mode exposed by the compiler" ON)
 
@@ -99,6 +101,27 @@ else()
     endif()
 endif()
 
+if (VE_ENABLE_ASAN)
+    target_compile_definitions(ve_project_options INTERFACE VE_ADDRESS_SANITIZER=1)
+    if (MSVC)
+        target_compile_options(ve_project_options INTERFACE /fsanitize=address /Zi /Oy-)
+        target_link_options(ve_project_options INTERFACE /INCREMENTAL:NO)
+    else()
+        target_compile_options(ve_project_options INTERFACE -fsanitize=address -fno-omit-frame-pointer)
+        target_link_options(ve_project_options INTERFACE -fsanitize=address)
+    endif()
+endif()
+
+if (VE_ENABLE_UBSAN)
+    if (MSVC)
+        message(WARNING "VE_ENABLE_UBSAN is not supported by MSVC and will be ignored.")
+    else()
+        target_compile_definitions(ve_project_options INTERFACE VE_UNDEFINED_BEHAVIOR_SANITIZER=1)
+        target_compile_options(ve_project_options INTERFACE -fsanitize=undefined -fno-omit-frame-pointer)
+        target_link_options(ve_project_options INTERFACE -fsanitize=undefined)
+    endif()
+endif()
+
 find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
@@ -156,6 +179,28 @@ function(ve_add_subsystem target folder directory)
     target_link_libraries(${target} PUBLIC ve_dependencies PRIVATE ve_project_options)
     set_target_properties(${target} PROPERTIES FOLDER "Engine/${folder}")
     source_group(TREE ${directory} FILES ${SUBSYSTEM_SOURCES} ${SUBSYSTEM_HEADERS})
+endfunction()
+
+function(ve_copy_msvc_asan_runtime target)
+    if (NOT (VE_ENABLE_ASAN AND MSVC))
+        return()
+    endif()
+    get_filename_component(VE_MSVC_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    file(GLOB VE_MSVC_ASAN_RUNTIME_DLLS CONFIGURE_DEPENDS
+        "${VE_MSVC_BIN_DIR}/clang_rt.asan*_dynamic-x86_64.dll"
+    )
+    if (NOT VE_MSVC_ASAN_RUNTIME_DLLS)
+        message(WARNING "MSVC AddressSanitizer runtime DLLs were not found next to ${CMAKE_CXX_COMPILER}.")
+        return()
+    endif()
+    foreach(asan_runtime_dll IN LISTS VE_MSVC_ASAN_RUNTIME_DLLS)
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${asan_runtime_dll}"
+                "$<TARGET_FILE_DIR:${target}>"
+            VERBATIM
+        )
+    endforeach()
 endfunction()
 
 ve_add_subsystem(ve_core Core "${VE_SOURCE_ROOT}/core" SOURCES ${VE_CORE_SOURCES} HEADERS ${VE_CORE_HEADERS})
@@ -270,6 +315,7 @@ target_link_libraries(voxel_engine PRIVATE
     ve_core
 )
 set_target_properties(voxel_engine PROPERTIES FOLDER "Applications")
+ve_copy_msvc_asan_runtime(voxel_engine)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_engine)
 
 if (VE_BUILD_API_DOCS)
@@ -311,5 +357,6 @@ if (VE_BUILD_TESTS)
         target_compile_options(engine_tests PRIVATE /wd4866)
     endif()
     set_target_properties(engine_tests PROPERTIES FOLDER "Tests")
+    ve_copy_msvc_asan_runtime(engine_tests)
     add_test(NAME engine_tests COMMAND engine_tests)
 endif()

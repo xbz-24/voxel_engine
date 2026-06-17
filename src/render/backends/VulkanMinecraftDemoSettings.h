@@ -26,12 +26,19 @@ namespace ve::rendering
 		int tower_height = 14;
 		int lantern_count = 12;
 		int ore_richness = 14;
+		int market_stall_count = 4;
+		int floating_island_count = 3;
+		int ruin_count = 3;
 		bool village = true;
 		bool farms = true;
 		bool water = true;
 		bool cave = true;
 		bool trees = true;
 		bool lights = true;
+		bool market = true;
+		bool floating_islands = true;
+		bool ruins = true;
+		bool beacon = true;
 		bool stress_blocks = false;
 
 		[[nodiscard]] bool operator==(const VulkanMinecraftDemoSceneConfig&) const = default;

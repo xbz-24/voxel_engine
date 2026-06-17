@@ -10,27 +10,23 @@
 #include "RenderView.h"
 #include "VulkanFrameRenderer.h"
 
-#include <memory>
 #include <bitset>
+#include <memory>
 
 namespace ve::engine
 {
 	class OpenGLRenderView;
 
-	class VulkanInputController {
+	class VulkanInputController
+	{
 	public:
-		// Las acciones disponibles son públicas, para que EngineRuntime pueda pedirlas.
 		enum class Action : size_t { LeftClick, F1, F2, Count };
 
-		// Actualiza el estado leyendo directamente de la ventana.
 		void Update(GLFWwindow* window);
-
-		// Métodos de consulta limpios y semánticos.
 		bool IsDown(Action action) const;
 		bool IsJustPressed(Action action) const;
 
 	private:
-		// El estado interno queda completamente oculto (Information Hiding).
 		std::bitset<static_cast<size_t>(Action::Count)> current_state_;
 		std::bitset<static_cast<size_t>(Action::Count)> previous_state_;
 	};
@@ -50,8 +46,6 @@ namespace ve::engine
 		void PrepareAssetsAndLogging();
 		[[nodiscard]] bool CreateRuntimeSystems();
 		[[nodiscard]] bool CreateRenderBackend();
-
-		VulkanInputController vulkan_input_;
 
 		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
@@ -75,6 +69,7 @@ namespace ve::engine
 		std::unique_ptr<RenderView> view_;
 		ve::rendering::VulkanFrameRenderer vulkan_frame_renderer_;
 		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
+		VulkanInputController vulkan_input_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;
