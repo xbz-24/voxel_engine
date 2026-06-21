@@ -200,6 +200,7 @@ namespace ve::rendering
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Render, "volk initialization failed");
 			return false;
 		}
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
 		const std::vector<VkLayerProperties> available_layers = EnumerateInstanceLayers();
 		const std::vector<VkExtensionProperties> available_extensions = EnumerateInstanceExtensions();
@@ -229,6 +230,7 @@ namespace ve::rendering
 		}
 
 		volkLoadInstance(instance_);
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Instance{ instance_ });
 		if (settings.enable_debug_utils && can_enable_debug_utils)
 		{
 			if (vkCreateDebugUtilsMessengerEXT(instance_, &debug_info, nullptr, &debug_messenger_) != VK_SUCCESS)

@@ -14,6 +14,9 @@ namespace ve::rendering
 		/** @param name Debug name. @param execute Callback run by the graph. @return This builder. */
 		FrameGraphBuilder& AddPass(std::string name, std::function<void(FrameGraphContext&)> execute);
 
+		/** @param pass Fully declared pass. @return This builder. */
+		FrameGraphBuilder& AddPass(FrameGraphPass pass);
+
 	private:
 		FrameGraph& graph_;
 	};

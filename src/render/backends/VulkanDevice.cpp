@@ -54,6 +54,7 @@ namespace ve::rendering
 		create_info.ppEnabledExtensionNames = extensions.data();
 		if (vkCreateDevice(physical_device, &create_info, nullptr, &device_) != VK_SUCCESS) return false;
 		volkLoadDevice(device_);
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Device{ device_ });
 		vkGetDeviceQueue(device_, queues.graphics_family, 0, &graphics_queue_);
 		vkGetDeviceQueue(device_, queues.present_family, 0, &present_queue_);
 		return true;

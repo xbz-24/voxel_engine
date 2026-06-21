@@ -1,7 +1,6 @@
 #include "GameModel.h"
 
 #include "Logger.h"
-#include "VulkanDemoSceneBuilder.h"
 #include "WorkerPolicy.h"
 
 #include <string>
@@ -38,7 +37,7 @@ namespace ve::engine
 
 	const ve::blocks::BlockRegistry* GameModel::GetBlockRegistry() const noexcept { return block_registry_.get(); }
 
-	void GameModel::PumpAsyncWorldGeneration()
+	int GameModel::PumpAsyncWorldGeneration()
 	{
 		int applied_count = 0;
 		for (const ve::world::generation::ChunkGenerationResult& result : world_generator_.DrainCompletedChunks())
@@ -48,17 +47,13 @@ namespace ve::engine
 		if (applied_count > 0)
 		{
 			VE_LOG_CATEGORY_DEBUG(ve::log::category::World, std::string("Applied generated chunks: ") + std::to_string(applied_count));
-			active_vulkan_demo_config_.reset();
 		}
+		return applied_count;
 	}
 
-	void GameModel::UpdateVulkanDemoScene(const ve::rendering::VulkanMinecraftDemoSceneConfig& scene_config, bool force_rebuild)
+	ve::core::Index GameModel::PendingWorldGenerationCount() const
 	{
-		if (world_generator_.PendingTaskCount() != 0) return;
-		if (!force_rebuild && active_vulkan_demo_config_ && *active_vulkan_demo_config_ == scene_config) return;
-		VulkanDemoSceneBuilder::Build(world_, scene_config);
-		active_vulkan_demo_config_ = scene_config;
-		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Built editable Vulkan Minecraft demo scene");
+		return world_generator_.PendingTaskCount();
 	}
 
 	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& block_registry, int render_distance_chunks)

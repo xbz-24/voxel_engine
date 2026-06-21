@@ -1,6 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+#include "BackgroundTaskQueue.h"
 #include "EcsWorld.h"
 #include "FabrikInverseKinematicsSolver.h"
 #include "MonteCarloPathTracer.h"
@@ -11,7 +12,10 @@
 
 #include <glm/geometric.hpp>
 
+#include <atomic>
 #include <array>
+#include <chrono>
+#include <thread>
 
 TEST_CASE("ecs registry creates and destroys alive entities")
 {
@@ -88,4 +92,27 @@ TEST_CASE("simd float4 dot product uses packed math")
 	const ve::math::SimdFloat4 right{ { 5.0f, 6.0f, 7.0f, 8.0f } };
 
 	CHECK(ve::math::SimdFloat4Math::Dot(left, right) == doctest::Approx(70.0f));
+}
+
+TEST_CASE("background task queue runs enqueued work")
+{
+	ve::tasks::BackgroundTaskQueue queue(1);
+	std::atomic_bool completed = false;
+
+	REQUIRE(queue.Enqueue([&completed] { completed.store(true); }));
+
+	for (int attempt = 0; attempt < 100 && !completed.load(); ++attempt)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+
+	CHECK(completed.load());
+}
+
+TEST_CASE("background task queue rejects work after stop")
+{
+	ve::tasks::BackgroundTaskQueue queue(1);
+	queue.Stop();
+
+	CHECK(!queue.Enqueue([] {}));
 }

@@ -1,8 +1,6 @@
 #include "Logger.h"
 #include "Window.h"
 
-#include <GL/glew.h>
-
 /// Starts GLFW and reports whether initialization succeeded.
 bool ve::engine::Window::InitializeGlfw()
 {
@@ -62,17 +60,6 @@ void ve::engine::Window::ConfigureNativeCallbacks()
 	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
 	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window);
 }
-
-/// Initializes GLEW after the OpenGL context exists.
-//la borro por completo
-/*bool ve::engine::Window::InitializeOpenGLLoader()
-{
-	if (_graphicsApi != ve::rendering::GraphicsApi::OpenGLCompatibility) return true;
-	glewExperimental = GL_TRUE;
-	if (glewInit() == GLEW_OK) return true;
-	VE_LOG_ERROR("Failed to initialize GLEW");
-	return false;
-}*/
 
 /// Initializes the native window with the default Vulkan backend.
 bool ve::engine::Window::Initialize()

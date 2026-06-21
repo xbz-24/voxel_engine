@@ -2,8 +2,11 @@
 
 #include "GraphicsFacade.h"
 #include "GraphicsResourcePool.h"
+#include "FrameGraph.h"
 #include "MortonCode.h"
 #include "RenderCommandSorter.h"
+
+#include <utility>
 
 namespace
 {
@@ -73,4 +76,21 @@ TEST_CASE("graphics facade records and submits common primitives")
 
 	CHECK(graphics.PendingCommandCount() == 3U);
 	CHECK(executor.executed_command_count == 3U);
+}
+
+TEST_CASE("frame graph records resource dependencies")
+{
+	ve::rendering::FrameGraph graph;
+	const ve::rendering::FrameGraphResourceHandle color = graph.DeclareResource("color");
+	const ve::rendering::FrameGraphResourceHandle depth = graph.DeclareResource("depth");
+
+	ve::rendering::FrameGraphPass pass{};
+	pass.name = "geometry";
+	pass.writes = { color, depth };
+	graph.AddPass(std::move(pass));
+
+	REQUIRE(graph.ResourceCount() == 2U);
+	REQUIRE(graph.PassCount() == 1U);
+	CHECK(graph.Passes().front().writes.size() == 2U);
+	CHECK(graph.Passes().front().writes.front() == color);
 }

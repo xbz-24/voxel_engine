@@ -37,7 +37,10 @@ namespace ve::engine
 		const bool ui_captures_input = vulkan_demo_settings_.show_controls || vulkan_frame_renderer_.WantsMouseInput();
 		engine_._runtimeSettings.isSettingsMenuOpen = ui_captures_input;
 
-		controller_.UpdateVulkanDemo(window_, *model_, vulkan_demo_settings_, frame_timer_.DeltaSeconds(), ui_captures_input);
+		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
+		assert(block_registry != nullptr);
+		controller_.UpdateVulkanDemo(window_, *model_, *block_registry, engine_._runtimeSettings, vulkan_demo_settings_,
+			frame_timer_.DeltaSeconds(), ui_captures_input);
 
 		double mouse_x = 0.0;
 		double mouse_y = 0.0;
@@ -91,7 +94,7 @@ namespace ve::engine
 	{
 		ve::blocks::BlockRegistry* block_registry = model_->MutableBlockRegistry();
 		assert(block_registry != nullptr);
-		controller_.Update(engine_, window_, *model_, *block_registry, frame_timer_.DeltaSeconds());
+		controller_.Update(window_, *model_, *block_registry, engine_._runtimeSettings, frame_timer_.DeltaSeconds());
 	}
 
 	/** Renders the voxel world through the OpenGL compatibility path. */
@@ -109,7 +112,7 @@ namespace ve::engine
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
 		legacy_view.MutableHudRenderer().Draw(engine_.CreateHudFrame(window_, model_->GetCamera(), frame_timer_,
-			model_->GetSelection(), *block_registry, model_->GetWorld()));
+			model_->GetSelection(), *block_registry, model_->GetWorld(), controller_.SelectedPlacementBlock()));
 	}
 
 	/** Renders editor panels and presents the native window. */
