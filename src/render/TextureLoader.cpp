@@ -3,17 +3,17 @@
 #include "Logger.h"
 
 #include <stb_image.h>
+#include <cstring>
 #include <string>
 
 namespace ve::rendering
 {
-	/**
-	 * Loads an image file into an OpenGL 2D texture.
-	 *
-	 * @param path Null-terminated file-system path to the image file.
-	 * @return OpenGL texture id, or 0 when loading fails.
-	 */
-	GLuint LoadTexture(const char* path)
+	bool DecodedImage::IsValid() const noexcept
+	{
+		return width > 0 && height > 0 && !rgba.empty();
+	}
+
+	DecodedImage DecodeImageFile(const char* path)
 	{
 		int width = 0;
 		int height = 0;
@@ -23,10 +23,24 @@ namespace ve::rendering
 		if (!data)
 		{
 			ve::log::Error(std::string("Failed to load texture: ") + path);
-			return 0;
+			return {};
 		}
 
 		VE_LOG_INFO("Texture " + std::string(path) + ": " + std::to_string(width) + "x" + std::to_string(height));
+		DecodedImage image;
+		image.width = width;
+		image.height = height;
+		const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+		image.rgba.resize(byte_count);
+		std::memcpy(image.rgba.data(), data, byte_count);
+		stbi_image_free(data);
+		return image;
+	}
+
+	TextureHandle UploadOpenGLTexture(const DecodedImage& image)
+	{
+		if (!image.IsValid()) return kInvalidTextureHandle;
+
 		GLuint texture = 0;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -34,9 +48,18 @@ namespace ve::rendering
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		stbi_image_free(data);
-		return texture;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.rgba.data());
+		return TextureHandle{ texture };
+	}
+
+	GLuint NativeOpenGLTexture(TextureHandle handle) noexcept
+	{
+		return static_cast<GLuint>(handle.value);
+	}
+
+	TextureHandle LoadTexture(const char* path)
+	{
+		return UploadOpenGLTexture(DecodeImageFile(path));
 	}
 
 	/**

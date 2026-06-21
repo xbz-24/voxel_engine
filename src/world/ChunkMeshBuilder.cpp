@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <utility>
 
 namespace ve::world::mesh
 {
@@ -33,35 +34,51 @@ namespace ve::world::mesh
 				result.batches.push_back(ve::rendering::ChunkMeshBatch{ texture, first_vertex, vertex_count });
 			}
 		}
+
+		class ChunkMeshAssembler
+		{
+		public:
+			explicit ChunkMeshAssembler(std::vector<MeshFace> faces)
+				: faces_(std::move(faces))
+			{
+				SortFacesByTexture(faces_);
+			}
+
+			[[nodiscard]] ChunkMeshBuildResult Build() const
+			{
+				ChunkMeshBuildResult result;
+				result.vertices.reserve(faces_.size() * 4);
+				if (faces_.empty())
+				{
+					return result;
+				}
+
+				ve::rendering::TextureHandle current_texture = faces_.front().texture;
+				std::uint32_t batch_start = 0;
+				for (const MeshFace& face : faces_)
+				{
+					if (face.texture != current_texture)
+					{
+						AppendBatch(result, current_texture, batch_start);
+						current_texture = face.texture;
+						batch_start = static_cast<std::uint32_t>(result.vertices.size());
+					}
+					AppendFaceVertices(face, result.vertices);
+				}
+				AppendBatch(result, current_texture, batch_start);
+				return result;
+			}
+
+		private:
+			std::vector<MeshFace> faces_;
+		};
 	}
 
 	ChunkMeshBuildResult BuildChunkMesh(const ChunkMeshInput& meshInput, const ve::blocks::BlockRegistry& blockRegistry, const NeighborMeshInputs& neighbors)
 	{
 		std::vector<MeshFace> faces;
 		CollectChunkFaces(meshInput, blockRegistry, neighbors, faces);
-		SortFacesByTexture(faces);
-
-		ChunkMeshBuildResult result;
-		result.vertices.reserve(faces.size() * 4);
-		if (faces.empty())
-		{
-			return result;
-		}
-
-		ve::rendering::TextureHandle currentTexture = faces.front().texture;
-		std::uint32_t batchStart = 0;
-		for (const MeshFace& face : faces)
-		{
-			if (face.texture != currentTexture)
-			{
-				AppendBatch(result, currentTexture, batchStart);
-				currentTexture = face.texture;
-				batchStart = static_cast<std::uint32_t>(result.vertices.size());
-			}
-			AppendFaceVertices(face, result.vertices);
-		}
-		AppendBatch(result, currentTexture, batchStart);
-		return result;
+		return ChunkMeshAssembler{ std::move(faces) }.Build();
 	}
 
 	ChunkMeshBuildResult BuildChunkMesh(const Chunk& chunk, const ve::blocks::BlockRegistry& blockRegistry, const NeighborChunks& neighbors)

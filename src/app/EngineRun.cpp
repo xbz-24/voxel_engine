@@ -3,7 +3,7 @@
 #include "EngineRuntime.h"
 
 /** Starts the engine runtime and returns a process-style status code. */
-int Engine::Run()
+int EngineApplication::Run()
 {
 	ve::engine::EngineRuntime runtime{ *this };
 	return runtime.Execute();

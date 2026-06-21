@@ -1,5 +1,19 @@
 #include "Engine.h"
 
-Engine::Engine() = default;
+#include <utility>
 
-Engine::~Engine() = default;
+EngineApplication::EngineApplication()
+	: EngineApplication(ve::engine::EngineCreateInfo{})
+{
+}
+
+EngineApplication::EngineApplication(ve::engine::EngineCreateInfo create_info)
+	: create_info_(std::move(create_info))
+{
+	_runtimeSettings.isVSyncEnabled = create_info_.vsync;
+	_runtimeSettings.showDebugOverlay = create_info_.show_debug_overlay;
+	_runtimeSettings.renderDistanceChunks = create_info_.render_distance_chunks;
+	_runtimeSettings.renderBackendConfiguration = create_info_.render_backend;
+}
+
+EngineApplication::~EngineApplication() = default;

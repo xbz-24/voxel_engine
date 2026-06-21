@@ -28,12 +28,12 @@ namespace
 namespace ve::gameplay
 {
 	/// Reads the hotbar slot selected by number keys.
-	std::optional<std::size_t> ReadSelectedHotbarSlot(GLFWwindow* window) noexcept
+	std::optional<std::size_t> ReadSelectedHotbarSlot(const ve::input::InputSnapshot& input) noexcept
 	{
 		const auto& keys = HotbarKeys();
 		for (std::size_t index = 0; index < keys.size(); index++)
 		{
-			if (ve::input::IsPressed(window, keys[index]))
+			if (ve::input::IsPressed(input, keys[index]))
 			{
 				return index;
 			}
@@ -42,20 +42,20 @@ namespace ve::gameplay
 	}
 
 	/// Consumes the debug overlay toggle key.
-	bool ConsumeDebugToggle(GLFWwindow* window, bool& wasPressed) noexcept
+	bool ConsumeDebugToggle(const ve::input::InputSnapshot& input, bool& wasPressed) noexcept
 	{
-		return ve::input::WasPressed(window, ve::input::Key::F3, wasPressed);
+		return ve::input::WasPressed(input, ve::input::Key::F3, wasPressed);
 	}
 
 	/// Consumes the block break mouse action.
-	bool ConsumeBlockBreak(GLFWwindow* window, bool& wasPressed) noexcept
+	bool ConsumeBlockBreak(const ve::input::InputSnapshot& input, bool& wasPressed) noexcept
 	{
-		return ve::input::WasPressed(window, ve::input::MouseButton::Left, wasPressed);
+		return ve::input::WasPressed(input, ve::input::MouseButton::Left, wasPressed);
 	}
 
 	/// Consumes the block place mouse action.
-	bool ConsumeBlockPlace(GLFWwindow* window, bool& wasPressed) noexcept
+	bool ConsumeBlockPlace(const ve::input::InputSnapshot& input, bool& wasPressed) noexcept
 	{
-		return ve::input::WasPressed(window, ve::input::MouseButton::Right, wasPressed);
+		return ve::input::WasPressed(input, ve::input::MouseButton::Right, wasPressed);
 	}
 }

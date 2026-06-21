@@ -5,22 +5,33 @@
 #include <glm/ext.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+
 namespace ve::ui
 {
+	namespace
+	{
+		GLuint LoadHudTexture(const std::filesystem::path& path)
+		{
+			// TODO: Load HUD textures through backend-owned texture resources instead of forcing OpenGL ids at construction.
+			return ve::rendering::NativeOpenGLTexture(ve::rendering::LoadTexture(path.string().c_str()));
+		}
+	}
+
 	HudRenderer::HudRenderer(const ve::assets::AssetPaths& paths)
 		: _textures{
-			ve::rendering::LoadTexture(paths.crosshairTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hotbarTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hotbarSelectionTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.experienceBarTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.healthTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hungerTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.fontTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuBackgroundTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuButtonTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuButtonHighlightedTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuSliderTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuSliderHandleTexture.string().c_str())
+			LoadHudTexture(paths.crosshairTexture),
+			LoadHudTexture(paths.hotbarTexture),
+			LoadHudTexture(paths.hotbarSelectionTexture),
+			LoadHudTexture(paths.experienceBarTexture),
+			LoadHudTexture(paths.healthTexture),
+			LoadHudTexture(paths.hungerTexture),
+			LoadHudTexture(paths.fontTexture),
+			LoadHudTexture(paths.menuBackgroundTexture),
+			LoadHudTexture(paths.menuButtonTexture),
+			LoadHudTexture(paths.menuButtonHighlightedTexture),
+			LoadHudTexture(paths.menuSliderTexture),
+			LoadHudTexture(paths.menuSliderHandleTexture)
 		}
 	{
 	}

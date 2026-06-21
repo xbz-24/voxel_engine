@@ -11,10 +11,23 @@
 
 namespace ve::engine
 {
+	struct WindowCreateInfo
+	{
+		std::string title = "Voxel Engine v1.0.0";
+		int width = 1280;
+		int height = 720;
+		bool fullscreen = false;
+	};
+
 	class Window
 	{
 	public:
 		enum class CursorMode { Normal, Captured };
+
+		struct NativeWindowHandle
+		{
+			void* glfwWindow = nullptr;
+		};
 
 		struct CallbackContext
 		{
@@ -23,6 +36,7 @@ namespace ve::engine
 		};
 
 		explicit Window(std::string_view title);
+		explicit Window(WindowCreateInfo create_info);
 		~Window();
 
 		Window(const Window&) = delete;
@@ -45,6 +59,7 @@ namespace ve::engine
 		[[nodiscard]] int GetWidth() const;
 		[[nodiscard]] int GetHeight() const;
 		[[nodiscard]] float GetAspectRatio() const;
+		[[nodiscard]] NativeWindowHandle NativeHandle() const noexcept;
 		[[nodiscard]] GLFWwindow* GetNativeWindow() const;
 
 		[[nodiscard]] ve::rendering::GraphicsApi GraphicsApi() const noexcept;
@@ -68,6 +83,7 @@ namespace ve::engine
 		bool _isVSyncEnabled = false;
 		ve::rendering::GraphicsApi _graphicsApi = ve::rendering::GraphicsApi::Vulkan;
 		std::string _title;
+		bool _fullscreen = false;
 		CallbackContext _callbackContext{};
 	};
 }

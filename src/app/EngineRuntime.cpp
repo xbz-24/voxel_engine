@@ -7,15 +7,13 @@
 #include "VulkanBackend.h"
 
 #include <cassert>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <glm/glm.hpp>
 
 namespace
 {
-	constexpr int kDefaultWorldSizeChunks = 10;
-	constexpr int kVulkanDemoWorldSizeChunks = 8;
-
 #if !defined(NDEBUG)
 	bool EnvironmentFlagEnabled(const char* name) noexcept
 	{
@@ -37,8 +35,9 @@ namespace
 namespace ve::engine
 {
 	/** Stores the engine facade used by runtime systems. */
-	EngineRuntime::EngineRuntime(Engine& engine) noexcept
-		: engine_(engine)
+	EngineRuntime::EngineRuntime(EngineApplication& engine) noexcept
+		: engine_(engine),
+		  window_(engine.create_info_.window)
 	{
 	}
 
@@ -87,11 +86,16 @@ namespace ve::engine
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Render view creation failed");
 			return false;
 		}
-		const int world_size_chunks = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan ? kVulkanDemoWorldSizeChunks : kDefaultWorldSizeChunks;
+		const int world_size_chunks = engine_.create_info_.world_size_chunks;
 		model_ = std::make_unique<GameModel>(world_size_chunks, &asset_paths_);
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
-		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
+		if (engine_.create_info_.has_custom_camera)
+		{
+			model_->MutableCamera().MoveTo(engine_.create_info_.camera_position);
+			model_->MutableCamera().TurnTo(engine_.create_info_.camera_look_at);
+		}
+		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
 		{
 			model_->MutableCamera().MoveTo(glm::vec3(90.0f, 58.0f, 124.0f));
 			model_->MutableCamera().TurnTo(glm::vec3(78.0f, 53.0f, 91.0f));
@@ -138,6 +142,41 @@ namespace ve::engine
 		return true;
 	}
 
+	void EngineRuntime::ApplyConfiguredWorldEditsOnce()
+	{
+		if (configured_world_edits_applied_ || model_ == nullptr) return;
+		if (engine_.create_info_.world_edits.empty())
+		{
+			configured_world_edits_applied_ = true;
+			return;
+		}
+		if (model_->PendingWorldGenerationCount() != 0) return;
+
+		ve::world::World& world = model_->MutableWorld();
+		for (const WorldBlockEdit& edit : engine_.create_info_.world_edits)
+		{
+			const int min_x = std::min(edit.min_x, edit.max_x);
+			const int min_y = std::min(edit.min_y, edit.max_y);
+			const int min_z = std::min(edit.min_z, edit.max_z);
+			const int max_x = std::max(edit.min_x, edit.max_x);
+			const int max_y = std::max(edit.min_y, edit.max_y);
+			const int max_z = std::max(edit.min_z, edit.max_z);
+
+			for (int z = min_z; z <= max_z; ++z)
+			{
+				for (int y = min_y; y <= max_y; ++y)
+				{
+					for (int x = min_x; x <= max_x; ++x)
+					{
+						(void)world.SetBlock(x, y, z, edit.block);
+					}
+				}
+			}
+		}
+		configured_world_edits_applied_ = true;
+		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Applied configured public API world edits");
+	}
+
 	/** Returns the OpenGL compatibility view after startup validation. */
 	OpenGLRenderView& EngineRuntime::LegacyOpenGLView() noexcept
 	{
@@ -159,7 +198,14 @@ namespace ve::engine
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) engine_.ReleaseRenderCaches();
 		view_.reset();
 		vulkan_frame_renderer_.Release();
-		if (backend_ != nullptr && backend_->Api() == ve::rendering::GraphicsApi::Vulkan)
+		if (backend_ == nullptr)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Engine, "No render backend to release");
+			model_.reset();
+			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
+			return;
+		}
+		if (backend_->Api() == ve::rendering::GraphicsApi::Vulkan)
 		{
 			static_cast<ve::rendering::VulkanBackend&>(*backend_).Release();
 		}

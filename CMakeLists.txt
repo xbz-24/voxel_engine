@@ -8,12 +8,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
+option(VE_BUILD_EXAMPLES "Build public API example applications" ON)
 option(VE_BUILD_TESTS "Build engine tests" ON)
 option(VE_ENABLE_STRICT_WARNINGS "Enable the project's extended compiler warning set" ON)
 option(VE_ENABLE_ASAN "Build supported targets with AddressSanitizer instrumentation" OFF)
 option(VE_ENABLE_UBSAN "Build supported targets with UndefinedBehaviorSanitizer instrumentation" OFF)
 option(VE_WARNINGS_AS_ERRORS "Treat project warnings as compilation errors" ON)
 option(VE_USE_LATEST_CXX "Use the newest C++ language mode exposed by the compiler" ON)
+set(VE_IMGUI_VULKAN_BACKEND_SOURCE "" CACHE FILEPATH "Path to imgui_impl_vulkan.cpp")
 
 add_library(ve_project_options INTERFACE)
 target_compile_features(ve_project_options INTERFACE cxx_std_23)
@@ -157,6 +159,7 @@ target_compile_definitions(ve_dependencies INTERFACE
 )
 
 set(VE_SOURCE_ROOT "${CMAKE_SOURCE_DIR}/src")
+set(VE_PUBLIC_INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include")
 
 function(ve_collect_subsystem directory prefix)
     file(GLOB subsystem_sources CONFIGURE_DEPENDS "${directory}/*.cpp")
@@ -211,6 +214,18 @@ ve_add_subsystem(ve_render_backends Render "${VE_SOURCE_ROOT}/render/backends" S
 ve_add_subsystem(ve_world World "${VE_SOURCE_ROOT}/world" SOURCES ${VE_WORLD_SOURCES} HEADERS ${VE_WORLD_HEADERS})
 ve_add_subsystem(ve_network Network "${VE_SOURCE_ROOT}/network" SOURCES ${VE_NETWORK_SOURCES} HEADERS ${VE_NETWORK_HEADERS})
 ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HEADERS ${VE_APP_HEADERS})
+
+add_library(voxel_engine_sdk STATIC
+    "${VE_SOURCE_ROOT}/api/Engine.cpp"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Blocks.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Camera.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Engine.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Voxel.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/World.h"
+)
+target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
+target_link_libraries(voxel_engine_sdk PRIVATE ve_project_options ve_app)
+set_target_properties(voxel_engine_sdk PROPERTIES FOLDER "Engine/API")
 
 set(VE_VULKAN_SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
 set(VE_VULKAN_SHADER_SOURCES
@@ -270,11 +285,13 @@ target_link_libraries(ve_render_backends PUBLIC
 )
 
 if (CMAKE_TOOLCHAIN_FILE)
-    get_filename_component(VE_VCPKG_BUILDSYSTEM_DIR "${CMAKE_TOOLCHAIN_FILE}" DIRECTORY)
-    get_filename_component(VE_VCPKG_SCRIPTS_DIR "${VE_VCPKG_BUILDSYSTEM_DIR}" DIRECTORY)
-    get_filename_component(VE_VCPKG_ROOT "${VE_VCPKG_SCRIPTS_DIR}" DIRECTORY)
-    file(GLOB VE_IMGUI_BACKEND_DIRS CONFIGURE_DEPENDS "${VE_VCPKG_ROOT}/buildtrees/imgui/src/*/backends")
-    find_file(VE_IMGUI_VULKAN_BACKEND_SOURCE imgui_impl_vulkan.cpp PATHS ${VE_IMGUI_BACKEND_DIRS} NO_DEFAULT_PATH)
+    if (NOT VE_IMGUI_VULKAN_BACKEND_SOURCE)
+        get_filename_component(VE_VCPKG_BUILDSYSTEM_DIR "${CMAKE_TOOLCHAIN_FILE}" DIRECTORY)
+        get_filename_component(VE_VCPKG_SCRIPTS_DIR "${VE_VCPKG_BUILDSYSTEM_DIR}" DIRECTORY)
+        get_filename_component(VE_VCPKG_ROOT "${VE_VCPKG_SCRIPTS_DIR}" DIRECTORY)
+        file(GLOB VE_IMGUI_BACKEND_DIRS CONFIGURE_DEPENDS "${VE_VCPKG_ROOT}/buildtrees/imgui/src/*/backends")
+        find_file(VE_IMGUI_VULKAN_BACKEND_SOURCE imgui_impl_vulkan.cpp PATHS ${VE_IMGUI_BACKEND_DIRS} NO_DEFAULT_PATH)
+    endif()
     if (VE_IMGUI_VULKAN_BACKEND_SOURCE)
         get_filename_component(VE_IMGUI_VULKAN_BACKEND_DIR "${VE_IMGUI_VULKAN_BACKEND_SOURCE}" DIRECTORY)
         target_sources(ve_render_backends PRIVATE "${VE_IMGUI_VULKAN_BACKEND_SOURCE}")
@@ -290,7 +307,6 @@ if (CMAKE_TOOLCHAIN_FILE)
 endif()
 
 target_link_libraries(ve_world PUBLIC
-    GLEW::GLEW
     glm::glm
 )
 
@@ -309,16 +325,28 @@ target_link_libraries(ve_app PUBLIC
 add_executable(voxel_engine main.cpp "${VE_SOURCE_ROOT}/app/main.rc")
 target_link_libraries(voxel_engine PRIVATE
     ve_project_options
-    ve_app
-    ve_world
-    ve_network
-    ve_render
-    ve_render_backends
-    ve_core
+    voxel_engine_sdk
 )
 set_target_properties(voxel_engine PROPERTIES FOLDER "Applications")
 ve_copy_msvc_asan_runtime(voxel_engine)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_engine)
+
+if (VE_BUILD_EXAMPLES)
+    function(ve_add_public_example target source)
+        add_executable(${target} "${source}")
+        target_link_libraries(${target} PRIVATE
+            ve_project_options
+            voxel_engine_sdk
+        )
+        set_target_properties(${target} PROPERTIES FOLDER "Examples")
+        ve_copy_msvc_asan_runtime(${target})
+    endfunction()
+
+    ve_add_public_example(voxel_example_minimal "${CMAKE_SOURCE_DIR}/examples/minimal.cpp")
+    ve_add_public_example(voxel_example_custom_scene "${CMAKE_SOURCE_DIR}/examples/custom_scene.cpp")
+    ve_add_public_example(voxel_example_world_edit "${CMAKE_SOURCE_DIR}/examples/world_edit.cpp")
+    ve_add_public_example(voxel_example_showcase "${CMAKE_SOURCE_DIR}/examples/showcase.cpp")
+endif()
 
 if (VE_BUILD_API_DOCS)
     find_package(Doxygen QUIET)
@@ -343,12 +371,14 @@ if (VE_BUILD_TESTS)
         Tests/GraphicsCommandTests.cpp
         Tests/GraphicsGeometryTests.cpp
         Tests/NetworkProtocolTests.cpp
+        Tests/PublicApiCompileTests.cpp
         Tests/RenderBackendTests.cpp
         Tests/WorldCoordinateTests.cpp
     )
     target_link_libraries(engine_tests PRIVATE
         ve_project_options
         doctest::doctest
+        voxel_engine_sdk
         ve_core
         ve_network
         ve_render

@@ -50,6 +50,9 @@ namespace ve::world
 		/** @param request Camera and render data used to submit visible chunks. */
 		void Draw(const WorldRenderRequest& request);
 
+		/** @param request Camera and render data used to collect visible chunk meshes. @return Visible render items. */
+		ChunkRenderItemList ExtractVisibleChunks(const WorldRenderRequest& request) const;
+
 		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
 
@@ -95,9 +98,6 @@ namespace ve::world
 
 		/// Marks neighbor chunks dirty when a changed local block touches a border.
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
-
-		/// Draws one chunk when it passes camera-direction culling.
-		void DrawVisibleChunk(const WorldRenderRequest& request, int chunkX, int chunkZ);
 
 		/// Collects neighboring chunks used to hide shared border faces.
 		ve::world::mesh::NeighborChunks FindNeighborChunks(int chunkX, int chunkZ) const;

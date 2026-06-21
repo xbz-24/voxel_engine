@@ -4,7 +4,7 @@
 #include "RenderBackendSelector.h"
 
 /// Initializes the native window and applies runtime window options.
-bool Engine::InitializeWindow(ve::engine::Window& window)
+bool EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
 		_runtimeSettings.renderBackendConfiguration);
@@ -18,7 +18,7 @@ bool Engine::InitializeWindow(ve::engine::Window& window)
 }
 
 /// Initializes logger outputs that need the resolved project root.
-void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
+void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
 	constexpr ve::log::Level minimum_level =
 #if defined(NDEBUG)
@@ -35,7 +35,7 @@ void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 }
 
 /// Updates projection matrices only when the window dimensions changed.
-void Engine::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
+void EngineApplication::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
 {
 	if (window.GetWidth() == _window_state.current_width && window.GetHeight() == _window_state.current_height)
 	{
@@ -47,7 +47,7 @@ void Engine::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
 }
 
 /// Releases cached OpenGL resources owned directly by the engine.
-void Engine::ReleaseRenderCaches()
+void EngineApplication::ReleaseRenderCaches()
 {
 	if (_render_cache_state.cloud_display_list_id == 0)
 	{

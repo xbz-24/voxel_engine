@@ -7,6 +7,7 @@
 #include "BlockSelection.h"
 #include "BlockSelectionCube.h"
 #include "Camera.h"
+#include "EngineConfiguration.h"
 #include "EngineState.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
@@ -21,25 +22,24 @@
 
 namespace ve::engine
 {
-	class GameController;
 	class EngineRuntime;
 }
 
 /** Coordinates engine settings, callbacks, and the runtime entry point. */
-class Engine
+class EngineApplication
 {
 public:
 	/** Creates the engine and records default runtime state. */
-	Engine();
+	EngineApplication();
+	explicit EngineApplication(ve::engine::EngineCreateInfo create_info);
 
 	/** Releases engine-owned resources. */
-	~Engine();
+	~EngineApplication();
 
 	/** Starts the runtime loop and returns a process-style status code. */
 	int Run();
 
 private:
-	friend class ve::engine::GameController;
 	friend class ve::engine::EngineRuntime;
 
 	struct MouseState
@@ -106,4 +106,5 @@ private:
 	EngineRenderCacheState _render_cache_state;
 	EngineWindowState _window_state;
 	ve::gameplay::RuntimeSettings _runtimeSettings;
+	ve::engine::EngineCreateInfo create_info_;
 };

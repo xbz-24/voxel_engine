@@ -1,7 +1,7 @@
 #include "Engine.h"
 
 /// Builds immutable HUD data for the current frame.
-ve::ui::HudFrameInfo Engine::CreateHudFrame(const ve::engine::Window& window,
+ve::ui::HudFrameInfo EngineApplication::CreateHudFrame(const ve::engine::Window& window,
 	const Camera& camera,
 	const ve::time::FrameTimer& frameTimer,
 	const ve::gameplay::BlockSelection& selection,

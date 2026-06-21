@@ -15,6 +15,11 @@ namespace ve::blocks
 	class BlockRegistry;
 }
 
+namespace ve::input
+{
+	struct InputSnapshot;
+}
+
 namespace ve::engine
 {
 	class GameController
@@ -54,38 +59,43 @@ namespace ve::engine
 			bool ui_captures_input);
 
 	private:
-		void UpdateFrameGameplay(Window& window,
-			ve::world::World& world,
-			const ve::blocks::BlockRegistry& block_registry,
-			Camera& camera,
-			ve::gameplay::BlockSelection& selection,
-			ve::gameplay::RuntimeSettings& settings,
-			double delta_seconds);
-		void ProcessInput(Window& window,
-			const ve::world::World& world,
-			const ve::blocks::BlockRegistry& block_registry,
-			Camera& camera,
-			ve::gameplay::RuntimeSettings& settings,
-			double delta_seconds);
-		void UpdatePlayerMovement(GLFWwindow* window,
-			const ve::world::World& world,
-			const ve::blocks::BlockRegistry& block_registry,
-			Camera& camera,
-			ve::gameplay::RuntimeSettings& settings,
-			double delta_seconds);
-		void ApplyPlayerPhysics(const ve::world::World& world,
-			const ve::blocks::BlockRegistry& block_registry,
-			Camera& camera,
-			ve::gameplay::RuntimeSettings& settings,
-			double delta_seconds);
-		void UpdateSelection(const ve::world::World& world,
-			const ve::blocks::BlockRegistry& block_registry,
-			Camera& camera,
-			ve::gameplay::BlockSelection& selection);
-		void ProcessGameplayInput(Window& window,
-			ve::world::World& world,
-			const ve::gameplay::BlockSelection& selection,
-			ve::gameplay::RuntimeSettings& settings);
+		struct GameplayFrameContext
+		{
+			GameplayFrameContext(Window& window,
+				const ve::input::InputSnapshot& input,
+				ve::world::World& world,
+				const ve::blocks::BlockRegistry& block_registry,
+				Camera& camera,
+				ve::gameplay::BlockSelection& selection,
+				ve::gameplay::RuntimeSettings& settings,
+				double delta_seconds) noexcept
+				: window(window),
+				  input(input),
+				  world(world),
+				  block_registry(block_registry),
+				  camera(camera),
+				  selection(selection),
+				  settings(settings),
+				  delta_seconds(delta_seconds)
+			{
+			}
+
+			Window& window;
+			const ve::input::InputSnapshot& input;
+			ve::world::World& world;
+			const ve::blocks::BlockRegistry& block_registry;
+			Camera& camera;
+			ve::gameplay::BlockSelection& selection;
+			ve::gameplay::RuntimeSettings& settings;
+			double delta_seconds;
+		};
+
+		void UpdateFrameGameplay(GameplayFrameContext& frame);
+		void ProcessInput(GameplayFrameContext& frame);
+		void UpdatePlayerMovement(GameplayFrameContext& frame);
+		void ApplyPlayerPhysics(GameplayFrameContext& frame);
+		void UpdateSelection(GameplayFrameContext& frame);
+		void ProcessGameplayInput(GameplayFrameContext& frame);
 
 		EngineInputState input_state_;
 		ve::gameplay::SettingsMenuController settings_menu_controller_;

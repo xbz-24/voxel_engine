@@ -7,13 +7,13 @@
 #include "World.h"
 
 /// Configures persistent OpenGL state used by the engine renderer.
-void Engine::ConfigureOpenGLState()
+void EngineApplication::ConfigureOpenGLState()
 {
 	ve::rendering::ConfigureWorldDefaults();
 }
 
 /// Renders the visible 3D world and selection highlight.
-void Engine::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
+void EngineApplication::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
 	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 	ve::rendering::ApplyProjection(_render_cache_state.projection_3d);
@@ -31,7 +31,7 @@ void Engine::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, P
 }
 
 /// Rebuilds 3D and 2D projection matrices after window size changes.
-void Engine::UpdateProjections(int width, int height)
+void EngineApplication::UpdateProjections(int width, int height)
 {
 	if (height == 0)
 	{

@@ -42,6 +42,8 @@ TEST_CASE("render backend catalog exposes vulkan as the default api")
 	CHECK(backend.api == ve::rendering::GraphicsApi::Vulkan);
 	CHECK(backend.is_default);
 	CHECK(backend.is_implemented);
+	CHECK(backend.migration.has_backend_neutral_world_renderer);
+	CHECK(!backend.migration.has_backend_neutral_hud);
 }
 
 TEST_CASE("render backend factory creates every declared backend object")
@@ -51,6 +53,7 @@ TEST_CASE("render backend factory creates every declared backend object")
 		const std::unique_ptr<ve::rendering::RenderBackend> backend = ve::rendering::RenderBackendFactory::Create(descriptor.api);
 		REQUIRE(backend != nullptr);
 		CHECK(backend->Api() == descriptor.api);
+		CHECK(backend->MigrationStatus().has_runtime_smoke_test == descriptor.migration.has_runtime_smoke_test);
 	}
 }
 
@@ -112,7 +115,7 @@ TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
 		{ 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
 		{ 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f }
 	};
-	mesh.batches = { ve::rendering::ChunkMeshBatch{ 42u, 0u, 4u } };
+	mesh.batches = { ve::rendering::ChunkMeshBatch{ ve::rendering::TextureHandle{ 42u }, 0u, 4u } };
 
 	const ve::rendering::VulkanChunkMeshPayload payload = ve::rendering::BuildVulkanChunkMeshPayload(mesh);
 

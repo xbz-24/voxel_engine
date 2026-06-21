@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
+#include "VulkanGpuChunkGeometry.h"
 #include "World.h"
 
 #include <stb_image.h>
@@ -37,57 +38,6 @@ namespace ve::rendering
 			VkBuffer destination = VK_NULL_HANDLE;
 			VkDeviceSize byte_size = 0;
 		};
-
-		struct BlockFaceGeometry
-		{
-			ve::blocks::BlockFace face;
-			glm::ivec3 neighbor_offset;
-			std::array<glm::vec3, 4> corners;
-			float light;
-		};
-
-		const std::array kFaces{
-			BlockFaceGeometry{ ve::blocks::BlockFace::Top, { 0, 1, 0 }, { glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 1.00f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Bottom, { 0, -1, 0 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f } }, 0.52f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Front, { 0, 0, 1 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 0.86f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Back, { 0, 0, -1 }, { glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f } }, 0.72f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Left, { -1, 0, 0 }, { glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f } }, 0.78f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Right, { 1, 0, 0 }, { glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } }, 0.82f }
-		};
-
-		const std::array kFaceUvs{
-			glm::vec2{ 0.0f, 1.0f },
-			glm::vec2{ 1.0f, 1.0f },
-			glm::vec2{ 1.0f, 0.0f },
-			glm::vec2{ 0.0f, 0.0f }
-		};
-
-		std::size_t FaceIndex(ve::blocks::BlockId block, ve::blocks::BlockFace face) noexcept
-		{
-			return (static_cast<std::size_t>(block) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)) +
-				static_cast<std::size_t>(face);
-		}
-
-		bool IsRenderableBlock(ve::blocks::BlockId block) noexcept
-		{
-			return block != ve::blocks::BlockId::Air &&
-				static_cast<std::size_t>(block) < static_cast<std::size_t>(ve::blocks::BlockId::Count);
-		}
-
-		bool OccludesNeighborFaces(ve::blocks::BlockId block) noexcept
-		{
-			if (block == ve::blocks::BlockId::Glass ||
-				block == ve::blocks::BlockId::Water ||
-				block == ve::blocks::BlockId::OakLeaves ||
-				block == ve::blocks::BlockId::BirchLeaves ||
-				block == ve::blocks::BlockId::CherryLeaves)
-			{
-				return false;
-			}
-			const std::size_t index = static_cast<std::size_t>(block);
-			return index < static_cast<std::size_t>(ve::blocks::BlockId::Count) &&
-				ve::blocks::BuiltInBlockDefinitions[index].isSolid;
-		}
 
 		std::vector<char> ReadBinaryFile(const std::filesystem::path& path)
 		{
@@ -164,15 +114,6 @@ namespace ve::rendering
 			vkCmdCopyBuffer(command_buffer, context.source, context.destination, 1u, &copy);
 		}
 
-		void AppendQuadIndices(std::vector<std::uint32_t>& indices, std::uint32_t base)
-		{
-			indices.push_back(base);
-			indices.push_back(base + 1u);
-			indices.push_back(base + 2u);
-			indices.push_back(base);
-			indices.push_back(base + 2u);
-			indices.push_back(base + 3u);
-		}
 	}
 
 	bool VulkanGpuChunkRenderer::Initialize(VulkanBackend& backend,
@@ -770,6 +711,7 @@ namespace ve::rendering
 
 	void VulkanGpuChunkRenderer::RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const
 	{
+		// TODO: Replace full-world rebuilds with dirty chunk meshes cached across World::Revision() changes.
 		const ve::world::WorldMetrics metrics = world.Metrics();
 		const int width = metrics.worldSizeChunks * Chunk::CHUNK_WIDTH;
 		const int height = Chunk::CHUNK_HEIGHT;
@@ -788,31 +730,55 @@ namespace ve::rendering
 				{
 					const ve::blocks::BlockId block = world.GetBlock(x, y, z);
 					if (!IsRenderableBlock(block)) continue;
-					for (const BlockFaceGeometry& face : kFaces)
-					{
-						const ve::blocks::BlockId neighbor = world.GetBlock(x + face.neighbor_offset.x, y + face.neighbor_offset.y, z + face.neighbor_offset.z);
-						if (OccludesNeighborFaces(neighbor)) continue;
-						const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
-						const float layer = static_cast<float>(TextureLayer(block, face.face));
-						const glm::vec3 origin{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z) };
-						for (std::size_t corner = 0; corner < face.corners.size(); ++corner)
-						{
-							const glm::vec3 position = origin + face.corners[corner];
-							vertices.push_back(VoxelVertex{
-								position.x,
-								position.y,
-								position.z,
-								kFaceUvs[corner].x,
-								kFaceUvs[corner].y,
-								layer,
-								face.light
-							});
-						}
-						AppendQuadIndices(indices, base);
-					}
+					AppendVisibleBlockFaces(world, x, y, z, block, vertices, indices);
 				}
 			}
 		}
+	}
+
+	void VulkanGpuChunkRenderer::AppendVisibleBlockFaces(const ve::world::World& world,
+		int x,
+		int y,
+		int z,
+		ve::blocks::BlockId block,
+		std::vector<VoxelVertex>& vertices,
+		std::vector<std::uint32_t>& indices) const
+	{
+		for (const BlockFaceGeometry& face : ChunkFaces())
+		{
+			const ve::blocks::BlockId neighbor = world.GetBlock(x + face.neighbor_offset.x, y + face.neighbor_offset.y, z + face.neighbor_offset.z);
+			if (!OccludesNeighborFaces(neighbor))
+			{
+				AppendFaceMesh(face, x, y, z, block, vertices, indices);
+			}
+		}
+	}
+
+	void VulkanGpuChunkRenderer::AppendFaceMesh(const BlockFaceGeometry& face,
+		int x,
+		int y,
+		int z,
+		ve::blocks::BlockId block,
+		std::vector<VoxelVertex>& vertices,
+		std::vector<std::uint32_t>& indices) const
+	{
+		const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
+		const float layer = static_cast<float>(TextureLayer(block, face.face));
+		const glm::vec3 origin{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z) };
+		for (std::size_t corner = 0; corner < face.corners.size(); ++corner)
+		{
+			const glm::vec3 position = origin + face.corners[corner];
+			vertices.push_back(VoxelVertex{
+				position.x,
+				position.y,
+				position.z,
+				ChunkFaceUvs()[corner].x,
+				ChunkFaceUvs()[corner].y,
+				layer,
+				face.light
+			});
+		}
+		AppendQuadIndices(indices, base);
 	}
 
 	bool VulkanGpuChunkRenderer::UploadMeshBuffers(std::span<const VoxelVertex> vertices, std::span<const std::uint32_t> indices)
@@ -832,6 +798,7 @@ namespace ve::rendering
 	bool VulkanGpuChunkRenderer::EnsureWorldMesh(const ve::world::World& world)
 	{
 		if (mesh_valid_ && mesh_revision_ == world.Revision()) return true;
+		// TODO: Surface rebuild/upload timing through renderer stats instead of relying only on debug log output.
 		const auto rebuild_start = std::chrono::steady_clock::now();
 		std::vector<VoxelVertex> vertices;
 		std::vector<std::uint32_t> indices;

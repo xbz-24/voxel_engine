@@ -2,69 +2,91 @@
 
 #include <cstring>
 #include <type_traits>
+#include <utility>
 
 namespace
 {
-	/**
-	 * Appends bytes for a trivially copyable field.
-	 *
-	 * @param bytes Destination payload buffer.
-	 * @param value Field copied into the payload.
-	 */
-	template <typename Value>
-	void AppendValue(ve::network::ByteBuffer& bytes, const Value& value)
+	class PayloadWriter
 	{
-		static_assert(std::is_trivially_copyable_v<Value>);
-		const auto* firstByte = reinterpret_cast<const std::byte*>(&value);
-		bytes.insert(bytes.end(), firstByte, firstByte + sizeof(Value));
-	}
+	public:
+		template <typename Value>
+		void Write(const Value& value)
+		{
+			static_assert(std::is_trivially_copyable_v<Value>);
+			const auto* first_byte = reinterpret_cast<const std::byte*>(&value);
+			bytes_.insert(bytes_.end(), first_byte, first_byte + sizeof(Value));
+		}
 
-	/**
-	 * Reads one trivially copyable field from a payload.
-	 *
-	 * @param payloadBytes Source payload bytes.
-	 * @param readOffset Current byte offset, advanced on success.
-	 * @param outputValue Destination field filled from bytes.
-	 * @return True when enough bytes were available.
-	 */
-	template <typename Value>
-	bool TryReadValue(std::span<const std::byte> payloadBytes, std::size_t& readOffset, Value& outputValue)
+		void WriteBytes(std::span<const std::byte> bytes)
+		{
+			bytes_.insert(bytes_.end(), bytes.begin(), bytes.end());
+		}
+
+		[[nodiscard]] ve::network::ByteBuffer Finish() &&
+		{
+			return std::move(bytes_);
+		}
+
+	private:
+		ve::network::ByteBuffer bytes_;
+	};
+
+	class PayloadReader
 	{
-		static_assert(std::is_trivially_copyable_v<Value>);
-		if (readOffset > payloadBytes.size()) return false;
-		if (payloadBytes.size() - readOffset < sizeof(Value)) return false;
-		std::memcpy(&outputValue, payloadBytes.data() + readOffset, sizeof(Value));
-		readOffset += sizeof(Value);
-		return true;
-	}
+	public:
+		explicit PayloadReader(std::span<const std::byte> bytes) noexcept
+			: bytes_(bytes)
+		{
+		}
+
+		template <typename Value>
+		bool Read(Value& output)
+		{
+			static_assert(std::is_trivially_copyable_v<Value>);
+			if (offset_ > bytes_.size()) return false;
+			if (bytes_.size() - offset_ < sizeof(Value)) return false;
+			std::memcpy(&output, bytes_.data() + offset_, sizeof(Value));
+			offset_ += sizeof(Value);
+			return true;
+		}
+
+		[[nodiscard]] bool IsFinished() const noexcept
+		{
+			return offset_ == bytes_.size();
+		}
+
+	private:
+		std::span<const std::byte> bytes_;
+		std::size_t offset_ = 0;
+	};
 }
 
 namespace ve::network
 {
 	ByteBuffer SerializeClientHello(const std::string& playerName)
 	{
-		ByteBuffer payloadBytes;
+		PayloadWriter writer;
 		const std::uint16_t nameByteCount = static_cast<std::uint16_t>(playerName.size());
-		AppendValue(payloadBytes, nameByteCount);
-		payloadBytes.insert(payloadBytes.end(), reinterpret_cast<const std::byte*>(playerName.data()), reinterpret_cast<const std::byte*>(playerName.data() + playerName.size()));
-		return payloadBytes;
+		writer.Write(nameByteCount);
+		writer.WriteBytes(std::as_bytes(std::span(playerName.data(), playerName.size())));
+		return std::move(writer).Finish();
 	}
 
 	ByteBuffer SerializePlayerSnapshot(const PlayerSnapshotPayload& playerSnapshot)
 	{
-		ByteBuffer payloadBytes;
-		AppendValue(payloadBytes, playerSnapshot);
-		return payloadBytes;
+		PayloadWriter writer;
+		writer.Write(playerSnapshot);
+		return std::move(writer).Finish();
 	}
 
 	ByteBuffer SerializeBlockMutation(const BlockMutationPayload& blockMutation)
 	{
-		ByteBuffer payloadBytes;
-		AppendValue(payloadBytes, blockMutation.blockX);
-		AppendValue(payloadBytes, blockMutation.blockY);
-		AppendValue(payloadBytes, blockMutation.blockZ);
-		AppendValue(payloadBytes, blockMutation.blockId);
-		return payloadBytes;
+		PayloadWriter writer;
+		writer.Write(blockMutation.blockX);
+		writer.Write(blockMutation.blockY);
+		writer.Write(blockMutation.blockZ);
+		writer.Write(blockMutation.blockId);
+		return std::move(writer).Finish();
 	}
 
 	std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> payloadBytes)
@@ -87,13 +109,13 @@ namespace ve::network
 
 	std::optional<BlockMutationPayload> TryDeserializeBlockMutation(std::span<const std::byte> payloadBytes)
 	{
-		std::size_t readOffset = 0;
+		PayloadReader reader(payloadBytes);
 		BlockMutationPayload blockMutation{};
-		if (!TryReadValue(payloadBytes, readOffset, blockMutation.blockX)) return std::nullopt;
-		if (!TryReadValue(payloadBytes, readOffset, blockMutation.blockY)) return std::nullopt;
-		if (!TryReadValue(payloadBytes, readOffset, blockMutation.blockZ)) return std::nullopt;
-		if (!TryReadValue(payloadBytes, readOffset, blockMutation.blockId)) return std::nullopt;
-		if (readOffset != payloadBytes.size()) return std::nullopt;
+		if (!reader.Read(blockMutation.blockX)) return std::nullopt;
+		if (!reader.Read(blockMutation.blockY)) return std::nullopt;
+		if (!reader.Read(blockMutation.blockZ)) return std::nullopt;
+		if (!reader.Read(blockMutation.blockId)) return std::nullopt;
+		if (!reader.IsFinished()) return std::nullopt;
 		return blockMutation;
 	}
 }

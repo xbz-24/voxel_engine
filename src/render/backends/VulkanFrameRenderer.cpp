@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
+#include "VulkanFrameRendererCommands.h"
 #include "Window.h"
 #include "World.h"
 
@@ -13,24 +14,6 @@
 
 namespace ve::rendering
 {
-	namespace
-	{
-		VkImageSubresourceRange ColorSubresourceRange() noexcept
-		{
-			VkImageSubresourceRange range{};
-			range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			range.levelCount = 1;
-			range.layerCount = 1;
-			return range;
-		}
-
-		void RecordImguiOverlay(VkCommandBuffer command_buffer, void* user_data)
-		{
-			if (user_data == nullptr) return;
-			static_cast<VulkanImGuiOverlay*>(user_data)->Record(command_buffer);
-		}
-	}
-
 	VulkanFrameRenderer::~VulkanFrameRenderer() { Release(); }
 
 	bool VulkanFrameRenderer::Initialize(VulkanBackend& backend, ve::engine::Window& window, const std::filesystem::path& block_texture_directory)
@@ -396,6 +379,7 @@ namespace ve::rendering
 		const VulkanDemoInput& input,
 		VulkanMinecraftDemoSettings& minecraft_demo_settings)
 	{
+		// TODO: Give the GPU path its own explicit input/overlay contract instead of silently ignoring VulkanDemoInput.
 		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, camera, displayed_fps, delta_seconds, minecraft_demo_settings);
 		return DrawSoftwareFrame(world, camera, displayed_fps, delta_seconds, input);
 	}

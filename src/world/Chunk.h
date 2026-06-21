@@ -69,13 +69,8 @@ public:
 	 */
 	void UploadMesh(ve::world::mesh::ChunkMeshBuildResult meshBuildResult);
 
-	/**
-	 * Draws the chunk, building its mesh lazily on first use.
-	 *
-	 * @param blockRegistry Registry used to resolve texture ids.
-	 * @param neighbors Adjacent chunks used for border occlusion.
-	 */
-	void Draw(const ve::blocks::BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors);
+	/** @return Backend-neutral uploaded chunk mesh resource. */
+	const ve::rendering::ChunkGpuMesh& RenderMesh() const noexcept;
 
 	/**
 	 * Returns a read-only mesh input view over this chunk's block storage.

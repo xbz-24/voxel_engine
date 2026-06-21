@@ -52,6 +52,8 @@ namespace ve::engine
 			config.market_stall_count = std::clamp(config.market_stall_count, 0, 8);
 			config.floating_island_count = std::clamp(config.floating_island_count, 0, 6);
 			config.ruin_count = std::clamp(config.ruin_count, 0, 8);
+			config.bridge_count = std::clamp(config.bridge_count, 0, 4);
+			config.vista_marker_count = std::clamp(config.vista_marker_count, 0, 24);
 			return config;
 		}
 
@@ -312,6 +314,36 @@ namespace ve::engine
 			FillBox(world, bounds, lake_x - radius - 2, config.ground_y + 1, lake_z + 2, lake_x + radius + 2, config.ground_y + 1, lake_z + 2, BlockId::OakLog);
 		}
 
+		void BuildBridges(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			if (config.bridge_count <= 0) return;
+			const int y = config.ground_y + 1;
+			const std::array starts{
+				glm::ivec3{ bounds.center_x - 34, y, bounds.center_z + 28 },
+				glm::ivec3{ bounds.center_x - 3, y, bounds.center_z - 24 },
+				glm::ivec3{ bounds.center_x + 20, y, bounds.center_z + 12 },
+				glm::ivec3{ bounds.center_x - 45, y, bounds.center_z - 8 }
+			};
+			for (int index = 0; index < config.bridge_count; ++index)
+			{
+				const glm::ivec3 start = starts[static_cast<std::size_t>(index) % starts.size()];
+				const bool along_x = index % 2 == 0;
+				const int length = along_x ? 30 : 22;
+				for (int step = 0; step < length; ++step)
+				{
+					const int x = start.x + (along_x ? step : 0);
+					const int z = start.z + (along_x ? 0 : step);
+					FillBox(world, bounds, x - (along_x ? 0 : 2), y, z - (along_x ? 2 : 0), x + (along_x ? 0 : 2), y, z + (along_x ? 2 : 0), BlockId::SprucePlanks);
+					if (step % 5 == 0)
+					{
+						FillBox(world, bounds, x - (along_x ? 0 : 3), y + 1, z - (along_x ? 3 : 0), x - (along_x ? 0 : 3), y + 3, z - (along_x ? 3 : 0), BlockId::OakLog);
+						FillBox(world, bounds, x + (along_x ? 0 : 3), y + 1, z + (along_x ? 3 : 0), x + (along_x ? 0 : 3), y + 3, z + (along_x ? 3 : 0), BlockId::OakLog);
+						SetBlock(world, bounds, x, y + 4, z, BlockId::SeaLantern);
+					}
+				}
+			}
+		}
+
 		void BuildFarm(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (!config.farms || config.farm_rows <= 0) return;
@@ -562,28 +594,82 @@ namespace ve::engine
 			}
 		}
 
-		void BuildMinecraftStyleShowcase(ve::world::World& world, VulkanMinecraftDemoSceneConfig config)
+		void BuildVistaMarkers(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			config = Sanitize(config);
-			const DemoBounds bounds = BoundsFor(world);
-			BuildTerrain(world, bounds, config);
-			BuildLake(world, bounds, config);
-			BuildVillage(world, bounds, config);
-			BuildFarm(world, bounds, config);
-			BuildQuarryAndCave(world, bounds, config);
-				BuildWatchtower(world, bounds, config);
-				BuildTrees(world, bounds, config);
-				BuildLights(world, bounds, config);
-				BuildMarket(world, bounds, config);
-				BuildAncientRuins(world, bounds, config);
-				BuildFloatingIslands(world, bounds, config);
-				BuildBeacon(world, bounds, config);
-				BuildBlockShowcase(world, bounds, config);
+			if (config.vista_marker_count <= 0) return;
+			const int radius = std::max(28, config.terrain_radius - 6);
+			for (int index = 0; index < config.vista_marker_count; ++index)
+			{
+				const float angle = (static_cast<float>(index) / static_cast<float>(std::max(config.vista_marker_count, 1))) * 6.2831853f;
+				const int x = bounds.center_x + static_cast<int>(std::round(std::cos(angle) * static_cast<float>(radius)));
+				const int z = bounds.center_z + static_cast<int>(std::round(std::sin(angle) * static_cast<float>(radius)));
+				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
+				const BlockId base = index % 3 == 0 ? BlockId::Blackstone : (index % 3 == 1 ? BlockId::MossyCobblestone : BlockId::Basalt);
+				FillBox(world, bounds, x - 1, y + 1, z - 1, x + 1, y + 1, z + 1, base);
+				FillBox(world, bounds, x, y + 2, z, x, y + 5 + (index % 3), z, base);
+				SetBlock(world, bounds, x, y + 6 + (index % 3), z, BlockId::SeaLantern);
 			}
+		}
+
+		class MinecraftStyleShowcaseBuilder
+		{
+		public:
+			MinecraftStyleShowcaseBuilder(ve::world::World& world, VulkanMinecraftDemoSceneConfig config)
+				: world_(world),
+				  config_(Sanitize(config)),
+				  bounds_(BoundsFor(world))
+			{
+			}
+
+			void Build()
+			{
+				BuildBaseTerrain();
+				BuildVillageAndWorksites();
+				BuildLandmarks();
+				BuildDebugShowcase();
+			}
+
+		private:
+			void BuildBaseTerrain()
+			{
+				BuildTerrain(world_, bounds_, config_);
+				BuildLake(world_, bounds_, config_);
+				BuildBridges(world_, bounds_, config_);
+			}
+
+			void BuildVillageAndWorksites()
+			{
+				BuildVillage(world_, bounds_, config_);
+				BuildFarm(world_, bounds_, config_);
+				BuildQuarryAndCave(world_, bounds_, config_);
+				BuildMarket(world_, bounds_, config_);
+			}
+
+			void BuildLandmarks()
+			{
+				BuildWatchtower(world_, bounds_, config_);
+				BuildTrees(world_, bounds_, config_);
+				BuildLights(world_, bounds_, config_);
+				BuildAncientRuins(world_, bounds_, config_);
+				BuildFloatingIslands(world_, bounds_, config_);
+				BuildBeacon(world_, bounds_, config_);
+				BuildVistaMarkers(world_, bounds_, config_);
+			}
+
+			void BuildDebugShowcase()
+			{
+				// TODO: Move large authored demo structures into data assets once scene iteration needs more than code-side presets.
+				BuildBlockShowcase(world_, bounds_, config_);
+			}
+
+			ve::world::World& world_;
+			VulkanMinecraftDemoSceneConfig config_;
+			DemoBounds bounds_;
+		};
 	}
 
 	void VulkanDemoSceneBuilder::Build(ve::world::World& world, ve::rendering::VulkanMinecraftDemoSceneConfig config)
 	{
-		BuildMinecraftStyleShowcase(world, config);
+		MinecraftStyleShowcaseBuilder{ world, config }.Build();
 	}
 }

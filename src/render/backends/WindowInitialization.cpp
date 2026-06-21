@@ -14,19 +14,25 @@ const GLFWvidmode* ve::engine::Window::ReadPrimaryMonitorMode()
 {
 	GLFWmonitor* primaryDisplayMonitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryDisplayMonitor);
-	_width = videoMode->width;
-	_height = videoMode->height;
+	if (_fullscreen)
+	{
+		_width = videoMode->width;
+		_height = videoMode->height;
+	}
 	return videoMode;
 }
 
 /// Applies GLFW window hints from a video mode.
 void ve::engine::Window::ApplyWindowHints(const GLFWvidmode& videoMode)
 {
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	glfwWindowHint(GLFW_RED_BITS, videoMode.redBits);
-	glfwWindowHint(GLFW_GREEN_BITS, videoMode.greenBits);
-	glfwWindowHint(GLFW_BLUE_BITS, videoMode.blueBits);
-	glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
+	glfwWindowHint(GLFW_DECORATED, _fullscreen ? GLFW_FALSE : GLFW_TRUE);
+	if (_fullscreen)
+	{
+		glfwWindowHint(GLFW_RED_BITS, videoMode.redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, videoMode.greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, videoMode.blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
+	}
 	ApplyGraphicsApiHints();
 }
 

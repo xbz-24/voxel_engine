@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct RaymarchingSettings
 	{
+		// TODO: Route volumetric passes through RenderCommandList so GL shader ids do not leak into high-level effects.
 		int step_count = 64;
 		float max_distance = 96.0f;
 		float density = 0.035f;

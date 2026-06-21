@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-void Engine::RenderClouds()
+void EngineApplication::RenderClouds()
 {
 	if (_render_cache_state.cloud_display_list_id == 0)
 	{
@@ -11,7 +11,7 @@ void Engine::RenderClouds()
 	glCallList(_render_cache_state.cloud_display_list_id);
 }
 
-void Engine::BuildCloudDisplayList()
+void EngineApplication::BuildCloudDisplayList()
 {
 	_render_cache_state.cloud_display_list_id = glGenLists(1);
 	glNewList(_render_cache_state.cloud_display_list_id, GL_COMPILE);

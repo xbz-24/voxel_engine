@@ -15,20 +15,20 @@ namespace ve::engine
 {
 	namespace
 	{
-		void ConsumeFlyToggle(GLFWwindow* window, ve::gameplay::RuntimeSettings& settings, bool& was_pressed)
+		void ConsumeFlyToggle(const ve::input::InputSnapshot& input, ve::gameplay::RuntimeSettings& settings, bool& was_pressed)
 		{
-			if (!ve::input::WasPressed(window, ve::input::Key::F, was_pressed)) return;
+			if (!ve::input::WasPressed(input, ve::input::Key::F, was_pressed)) return;
 			settings.isFlying = !settings.isFlying;
 			settings.verticalVelocity = 0.0f;
 		}
 
-		void ConsumeRenderDistanceAdjustment(GLFWwindow* window,
+		void ConsumeRenderDistanceAdjustment(const ve::input::InputSnapshot& input,
 			ve::gameplay::RuntimeSettings& settings,
 			ve::input::Key key,
 			int amount,
 			bool& was_pressed)
 		{
-			if (ve::input::WasPressed(window, key, was_pressed))
+			if (ve::input::WasPressed(input, key, was_pressed))
 			{
 				settings.renderDistanceChunks = std::clamp(settings.renderDistanceChunks + amount, 1, 6);
 			}
@@ -44,7 +44,18 @@ namespace ve::engine
 	{
 		(void)model.PumpAsyncWorldGeneration();
 		model.PumpAsyncChunkMeshing(block_registry, settings.renderDistanceChunks);
-		UpdateFrameGameplay(window, model.MutableWorld(), block_registry, model.MutableCamera(), model.MutableSelection(), settings, delta_seconds);
+		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window.GetNativeWindow());
+		GameplayFrameContext frame(
+			window,
+			input,
+			model.MutableWorld(),
+			block_registry,
+			model.MutableCamera(),
+			model.MutableSelection(),
+			settings,
+			delta_seconds
+		);
+		UpdateFrameGameplay(frame);
 	}
 
 	ve::blocks::BlockId GameController::SelectedPlacementBlock() const noexcept
@@ -52,89 +63,69 @@ namespace ve::engine
 		return selected_placement_block_;
 	}
 
-	void GameController::UpdateFrameGameplay(Window& window,
-		ve::world::World& world,
-		const ve::blocks::BlockRegistry& block_registry,
-		Camera& camera,
-		ve::gameplay::BlockSelection& selection,
-		ve::gameplay::RuntimeSettings& settings,
-		double delta_seconds)
+	void GameController::UpdateFrameGameplay(GameplayFrameContext& frame)
 	{
-		ProcessInput(window, world, block_registry, camera, settings, delta_seconds);
-		if (settings.isSettingsMenuOpen)
+		ProcessInput(frame);
+		if (frame.settings.isSettingsMenuOpen)
 		{
-			selection.has_target = false;
+			frame.selection.has_target = false;
 			return;
 		}
-		UpdateSelection(world, block_registry, camera, selection);
-		ProcessGameplayInput(window, world, selection, settings);
-		UpdateSelection(world, block_registry, camera, selection);
+		UpdateSelection(frame);
+		ProcessGameplayInput(frame);
+		UpdateSelection(frame);
 	}
 
-	void GameController::ProcessInput(Window& window,
-		const ve::world::World& world,
-		const ve::blocks::BlockRegistry& block_registry,
-		Camera& camera,
-		ve::gameplay::RuntimeSettings& settings,
-		double delta_seconds)
+	void GameController::ProcessInput(GameplayFrameContext& frame)
 	{
-		const bool was_menu_open = settings.isSettingsMenuOpen;
-		settings_menu_controller_.ProcessInput(window, settings);
-		if (was_menu_open || settings.isSettingsMenuOpen) return;
-		UpdatePlayerMovement(window.GetNativeWindow(), world, block_registry, camera, settings, delta_seconds);
+		const bool was_menu_open = frame.settings.isSettingsMenuOpen;
+		settings_menu_controller_.ProcessInput(frame.window, frame.settings);
+		if (was_menu_open || frame.settings.isSettingsMenuOpen) return;
+		UpdatePlayerMovement(frame);
 	}
 
-	void GameController::UpdatePlayerMovement(GLFWwindow* window,
-		const ve::world::World& world,
-		const ve::blocks::BlockRegistry& block_registry,
-		Camera& camera,
-		ve::gameplay::RuntimeSettings& settings,
-		double delta_seconds)
+	void GameController::UpdatePlayerMovement(GameplayFrameContext& frame)
 	{
-		ConsumeFlyToggle(window, settings, input_state_.was_fly_toggle_pressed);
-		ConsumeRenderDistanceAdjustment(window, settings, ve::input::Key::LeftBracket, -1, input_state_.was_render_distance_decrease_pressed);
-		ConsumeRenderDistanceAdjustment(window, settings, ve::input::Key::RightBracket, 1, input_state_.was_render_distance_increase_pressed);
+		ConsumeFlyToggle(frame.input, frame.settings, input_state_.was_fly_toggle_pressed);
+		ConsumeRenderDistanceAdjustment(frame.input, frame.settings, ve::input::Key::LeftBracket, -1, input_state_.was_render_distance_decrease_pressed);
+		ConsumeRenderDistanceAdjustment(frame.input, frame.settings, ve::input::Key::RightBracket, 1, input_state_.was_render_distance_increase_pressed);
 
-		const float speed = 5.0f * static_cast<float>(delta_seconds);
-		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window);
-		ve::gameplay::ApplyPlanarMovement(intent, camera, speed);
-		if (settings.isFlying)
+		const float speed = 5.0f * static_cast<float>(frame.delta_seconds);
+		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(frame.input);
+		ve::gameplay::ApplyPlanarMovement(intent, frame.camera, speed);
+		if (frame.settings.isFlying)
 		{
-			ve::gameplay::ApplyFlyingMovement(intent, camera, speed);
+			ve::gameplay::ApplyFlyingMovement(intent, frame.camera, speed);
 		}
 		else if (input_state_.is_grounded && ve::gameplay::WantsJump(intent))
 		{
-			settings.verticalVelocity = 7.0f;
+			frame.settings.verticalVelocity = 7.0f;
 		}
-		ApplyPlayerPhysics(world, block_registry, camera, settings, delta_seconds);
+		ApplyPlayerPhysics(frame);
 	}
 
-	void GameController::ApplyPlayerPhysics(const ve::world::World& world,
-		const ve::blocks::BlockRegistry& block_registry,
-		Camera& camera,
-		ve::gameplay::RuntimeSettings& settings,
-		double delta_seconds)
+	void GameController::ApplyPlayerPhysics(GameplayFrameContext& frame)
 	{
-		if (settings.isFlying)
+		if (frame.settings.isFlying)
 		{
-			settings.verticalVelocity = 0.0f;
+			frame.settings.verticalVelocity = 0.0f;
 			input_state_.is_grounded = false;
 			return;
 		}
 
 		constexpr float gravity_blocks_per_second = 22.0f;
 		constexpr float player_eye_height = 1.7f;
-		glm::vec3 position = camera.GetPosition();
-		settings.verticalVelocity -= gravity_blocks_per_second * static_cast<float>(delta_seconds);
-		position.y += settings.verticalVelocity * static_cast<float>(delta_seconds);
+		glm::vec3 position = frame.camera.GetPosition();
+		frame.settings.verticalVelocity -= gravity_blocks_per_second * static_cast<float>(frame.delta_seconds);
+		position.y += frame.settings.verticalVelocity * static_cast<float>(frame.delta_seconds);
 
 		const int foot_block_x = static_cast<int>(std::floor(position.x));
 		const int foot_block_y = static_cast<int>(std::floor(position.y - player_eye_height));
 		const int foot_block_z = static_cast<int>(std::floor(position.z));
-		if (settings.verticalVelocity <= 0.0f && block_registry.IsSolid(world.GetBlock(foot_block_x, foot_block_y, foot_block_z)))
+		if (frame.settings.verticalVelocity <= 0.0f && frame.block_registry.IsSolid(frame.world.GetBlock(foot_block_x, foot_block_y, foot_block_z)))
 		{
 			position.y = static_cast<float>(foot_block_y) + 1.0f + player_eye_height;
-			settings.verticalVelocity = 0.0f;
+			frame.settings.verticalVelocity = 0.0f;
 			input_state_.is_grounded = true;
 		}
 		else
@@ -142,51 +133,44 @@ namespace ve::engine
 			input_state_.is_grounded = false;
 		}
 
-		camera.MoveTo(position);
+		frame.camera.MoveTo(position);
 	}
 
-	void GameController::UpdateSelection(const ve::world::World& world,
-		const ve::blocks::BlockRegistry& block_registry,
-		Camera& camera,
-		ve::gameplay::BlockSelection& selection)
+	void GameController::UpdateSelection(GameplayFrameContext& frame)
 	{
 		constexpr float max_reach = 8.0f;
 		const std::optional<ve::gameplay::BlockRaycastHit> hit =
-			ve::gameplay::RaycastBlocks(world, block_registry, camera.GetPosition(), camera.GetForward(), max_reach);
-		selection.has_target = hit.has_value();
+			ve::gameplay::RaycastBlocks(frame.world, frame.block_registry, frame.camera.GetPosition(), frame.camera.GetForward(), max_reach);
+		frame.selection.has_target = hit.has_value();
 		if (hit)
 		{
-			selection.target_block = hit->targetBlock;
-			selection.placement_block = hit->placementBlock;
+			frame.selection.target_block = hit->targetBlock;
+			frame.selection.placement_block = hit->placementBlock;
 		}
 	}
 
-	void GameController::ProcessGameplayInput(Window& window,
-		ve::world::World& world,
-		const ve::gameplay::BlockSelection& selection,
-		ve::gameplay::RuntimeSettings& settings)
+	void GameController::ProcessGameplayInput(GameplayFrameContext& frame)
 	{
-		if (settings.isSettingsMenuOpen) return;
+		if (frame.settings.isSettingsMenuOpen) return;
 
-		GLFWwindow* native_window = window.GetNativeWindow();
 		const auto& blocks = ve::gameplay::DefaultHotbarBlocks();
-		if (const std::optional<std::size_t> selected_slot = ve::gameplay::ReadSelectedHotbarSlot(native_window))
+		if (const std::optional<std::size_t> selected_slot = ve::gameplay::ReadSelectedHotbarSlot(frame.input))
 		{
 			selected_placement_block_ = blocks[*selected_slot];
 		}
 
-		if (ve::gameplay::ConsumeDebugToggle(native_window, input_state_.was_debug_toggle_pressed))
+		if (ve::gameplay::ConsumeDebugToggle(frame.input, input_state_.was_debug_toggle_pressed))
 		{
-			settings.showDebugOverlay = !settings.showDebugOverlay;
+			frame.settings.showDebugOverlay = !frame.settings.showDebugOverlay;
 		}
 
-		if (selection.has_target && ve::gameplay::ConsumeBlockBreak(native_window, input_state_.was_left_mouse_button_pressed))
+		if (frame.selection.has_target && ve::gameplay::ConsumeBlockBreak(frame.input, input_state_.was_left_mouse_button_pressed))
 		{
-			ve::gameplay::BreakBlock(world, selection.target_block);
+			ve::gameplay::BreakBlock(frame.world, frame.selection.target_block);
 		}
-		if (selection.has_target && ve::gameplay::ConsumeBlockPlace(native_window, input_state_.was_right_mouse_button_pressed))
+		if (frame.selection.has_target && ve::gameplay::ConsumeBlockPlace(frame.input, input_state_.was_right_mouse_button_pressed))
 		{
-			ve::gameplay::PlaceBlock(world, selection.placement_block, selected_placement_block_);
+			ve::gameplay::PlaceBlock(frame.world, frame.selection.placement_block, selected_placement_block_);
 		}
 	}
 
@@ -199,9 +183,10 @@ namespace ve::engine
 		double delta_seconds,
 		bool ui_captures_input)
 	{
-		if (ve::input::IsPressed(window.GetNativeWindow(), ve::input::Key::Escape)) window.Close();
+		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window.GetNativeWindow());
+		if (ve::input::IsPressed(input, ve::input::Key::Escape)) window.Close();
 		static bool was_f3_down = false;
-		const bool f3_down = ve::input::IsPressed(window.GetNativeWindow(), ve::input::Key::F3);
+		const bool f3_down = ve::input::IsPressed(input, ve::input::Key::F3);
 		if (f3_down && !was_f3_down) demo_settings.show_controls = !demo_settings.show_controls;
 		was_f3_down = f3_down;
 
@@ -212,7 +197,7 @@ namespace ve::engine
 
 		window.SetCursorMode(demo_settings.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
 		const float speed = 18.0f * static_cast<float>(std::max(delta_seconds, 0.001));
-		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(window.GetNativeWindow());
+		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(input);
 		if (!ui_captures_input)
 		{
 			ve::gameplay::ApplyPlanarMovement(intent, model.MutableCamera(), speed);

@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct VoxelConeTracingSettings
 	{
+		// TODO: Replace OpenGL texture/image binding calls with a backend-owned voxel lighting volume resource.
 		int resolution = 128;
 		float world_extent = 256.0f;
 	};

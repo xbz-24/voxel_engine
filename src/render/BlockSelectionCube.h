@@ -1,6 +1,7 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "GraphicsTypes.h"
+
 #include <string>
 
 class BlockSelectionCube
@@ -40,11 +41,11 @@ private:
 	/// Draws the left face with the side texture.
 	void DrawLeft(float halfSize) const;
 
-	GLuint _front = 0;
-	GLuint _back = 0;
-	GLuint _top = 0;
-	GLuint _bottom = 0;
-	GLuint _left = 0;
-	GLuint _right = 0;
+	ve::rendering::TextureHandle _front;
+	ve::rendering::TextureHandle _back;
+	ve::rendering::TextureHandle _top;
+	ve::rendering::TextureHandle _bottom;
+	ve::rendering::TextureHandle _left;
+	ve::rendering::TextureHandle _right;
 };
 

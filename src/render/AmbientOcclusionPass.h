@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct AmbientOcclusionSpecification
 	{
+		// TODO: Express AO inputs/outputs as render graph resources instead of raw OpenGL framebuffer state.
 		int width = 1;
 		int height = 1;
 		float radius = 0.75f;

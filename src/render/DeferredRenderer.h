@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct DeferredFramebufferSpecification
 	{
+		// TODO: Replace raw dimensions with backend-neutral render-target descriptors once Vulkan owns G-buffer allocation.
 		int width = 1;
 		int height = 1;
 	};

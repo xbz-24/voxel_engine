@@ -2,6 +2,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/mat4x4.hpp>
+#include <vector>
+
+namespace ve::rendering
+{
+	class ChunkGpuMesh;
+}
 
 namespace ve::blocks
 {
@@ -34,4 +40,14 @@ namespace ve::world
 		glm::mat4 viewProjection;
 		int renderDistanceChunks;
 	};
+
+	/** Backend-neutral visible chunk render payload. */
+	struct ChunkRenderItem
+	{
+		const ve::rendering::ChunkGpuMesh* mesh = nullptr;
+		int chunkX = 0;
+		int chunkZ = 0;
+	};
+
+	using ChunkRenderItemList = std::vector<ChunkRenderItem>;
 }

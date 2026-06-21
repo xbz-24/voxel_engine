@@ -31,12 +31,12 @@ namespace ve::engine
 		std::bitset<static_cast<size_t>(Action::Count)> previous_state_;
 	};
 
-	/** Owns the active runtime systems created by Engine::Run. */
+	/** Owns the active runtime systems created by EngineApplication::Run. */
 	class EngineRuntime
 	{
 	public:
 		/** Keeps a reference to the engine facade that owns shared settings and callbacks. */
-		explicit EngineRuntime(Engine& engine) noexcept;
+		explicit EngineRuntime(EngineApplication& engine) noexcept;
 
 		/** Initializes systems, runs the frame loop, shuts down, and returns a process status. */
 		[[nodiscard]] int Execute();
@@ -53,16 +53,19 @@ namespace ve::engine
 		void RunFrame();
 		void RunOpenGLFrame();
 		void RunVulkanFrame();
+		[[nodiscard]] ve::rendering::VulkanDemoInput CaptureVulkanDemoInput();
+		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input);
 		void BeginRuntimeFrame();
 		void UpdateGameplay();
-		void RenderWorld(OpenGLRenderView& legacyView);
-		void RenderHud(OpenGLRenderView& legacyView);
+		void RenderWorld(RenderView& renderView);
+		void RenderHud(RenderView& renderView);
 		void EndRuntimeFrame();
+		void ApplyConfiguredWorldEditsOnce();
 		void Shutdown();
 
-		Engine& engine_;
-		Window window_{ "Voxel Engine v1.0.0" };
-		Engine::CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
+		EngineApplication& engine_;
+		Window window_;
+		EngineApplication::CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;
@@ -73,5 +76,6 @@ namespace ve::engine
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;
+		bool configured_world_edits_applied_ = false;
 	};
 }

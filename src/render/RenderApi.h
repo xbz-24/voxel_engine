@@ -19,6 +19,16 @@ namespace ve::rendering
 		bool is_available = false;
 	};
 
+	/** Tracks how far a backend has moved onto backend-neutral engine contracts. */
+	struct RenderBackendMigrationStatus
+	{
+		bool has_backend_neutral_meshes = false;
+		bool has_backend_neutral_textures = false;
+		bool has_backend_neutral_hud = false;
+		bool has_backend_neutral_world_renderer = false;
+		bool has_runtime_smoke_test = false;
+	};
+
 	/** Stores backend selection rules used during startup. */
 	struct RenderBackendConfiguration
 	{

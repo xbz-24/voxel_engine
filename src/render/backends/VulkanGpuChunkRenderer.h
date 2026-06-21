@@ -2,6 +2,7 @@
 
 #include "Block.h"
 #include "CoreTypes.h"
+#include "VulkanGpuChunkGeometry.h"
 
 #include <volk.h>
 
@@ -82,6 +83,20 @@ namespace ve::rendering
 		void ReleaseTextureResources();
 		void ReleasePipelineResources();
 		void RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void AppendVisibleBlockFaces(const ve::world::World& world,
+			int x,
+			int y,
+			int z,
+			ve::blocks::BlockId block,
+			std::vector<VoxelVertex>& vertices,
+			std::vector<std::uint32_t>& indices) const;
+		void AppendFaceMesh(const BlockFaceGeometry& face,
+			int x,
+			int y,
+			int z,
+			ve::blocks::BlockId block,
+			std::vector<VoxelVertex>& vertices,
+			std::vector<std::uint32_t>& indices) const;
 		[[nodiscard]] std::uint32_t TextureLayer(ve::blocks::BlockId block, ve::blocks::BlockFace face) const noexcept;
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 

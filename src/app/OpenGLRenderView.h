@@ -28,6 +28,18 @@ namespace ve::engine
 		/** @return Read-only high-level primitive drawing API. */
 		[[nodiscard]] const ve::rendering::GraphicsFacade* Graphics() const noexcept override;
 
+		/** @return Skybox render service. */
+		[[nodiscard]] SkyBox* Skybox() noexcept;
+
+		/** @return Ground/debug plane render service. */
+		[[nodiscard]] Plane* GroundPlane() noexcept;
+
+		/** @return Selected-block render service. */
+		[[nodiscard]] BlockSelectionCube* SelectionCube() noexcept;
+
+		/** @return HUD render service. */
+		[[nodiscard]] ve::ui::HudRenderer* Hud() noexcept;
+
 		/** @return This object as the OpenGL compatibility adapter. */
 		[[nodiscard]] OpenGLRenderView* AsOpenGLRenderView() noexcept override;
 

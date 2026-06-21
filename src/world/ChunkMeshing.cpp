@@ -21,10 +21,10 @@ void Chunk::UploadMesh(ve::world::mesh::ChunkMeshBuildResult meshBuildResult)
 	_isMeshBuildQueued = false;
 }
 
-/// Draws the chunk, building its mesh lazily when needed.
-void Chunk::Draw(const BlockRegistry&, const ve::world::mesh::NeighborChunks&)
+/// Returns the uploaded render mesh resource.
+const ve::rendering::ChunkGpuMesh& Chunk::RenderMesh() const noexcept
 {
-	_mesh.Draw();
+	return _mesh;
 }
 
 /// Returns a read-only mesh input view over this chunk's block storage.

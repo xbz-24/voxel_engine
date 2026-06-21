@@ -44,6 +44,11 @@ float ve::engine::Window::GetAspectRatio() const
 	return static_cast<float>(_width) / static_cast<float>(_height);
 }
 
+ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept
+{
+	return NativeWindowHandle{ _window };
+}
+
 GLFWwindow* ve::engine::Window::GetNativeWindow() const
 {
 	return _window;

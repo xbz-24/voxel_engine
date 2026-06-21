@@ -1,7 +1,11 @@
 #pragma once
 
-struct GLFWwindow;
 class Camera;
+
+namespace ve::input
+{
+	struct InputSnapshot;
+}
 
 namespace ve::gameplay
 {
@@ -21,10 +25,10 @@ namespace ve::gameplay
 	/**
 	 * Reads movement keys into an engine-owned intent structure.
 	 *
-	 * @param window Native window that owns the input state.
+	 * @param input Captured input state.
 	 * @return Movement intent for the current frame.
 	 */
-	PlayerMoveIntent ReadPlayerMoveIntent(GLFWwindow* window) noexcept;
+	PlayerMoveIntent ReadPlayerMoveIntent(const ve::input::InputSnapshot& input) noexcept;
 
 	/**
 	 * Applies horizontal movement to the camera from an intent.

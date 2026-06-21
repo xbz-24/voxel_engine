@@ -25,10 +25,11 @@ namespace ve::engine
 	/** Runs gameplay, world, and HUD rendering through the OpenGL compatibility view. */
 	void EngineRuntime::RunOpenGLFrame()
 	{
-		OpenGLRenderView& legacy_view = LegacyOpenGLView();
+		RenderView& render_view = *view_;
 		UpdateGameplay();
-		RenderWorld(legacy_view);
-		RenderHud(legacy_view);
+		ApplyConfiguredWorldEditsOnce();
+		RenderWorld(render_view);
+		RenderHud(render_view);
 	}
 
 	/** Presents the Vulkan migration frame. */
@@ -41,7 +42,18 @@ namespace ve::engine
 		assert(block_registry != nullptr);
 		controller_.UpdateVulkanDemo(window_, *model_, *block_registry, engine_._runtimeSettings, vulkan_demo_settings_,
 			frame_timer_.DeltaSeconds(), ui_captures_input);
+		ApplyConfiguredWorldEditsOnce();
 
+		if (!DrawVulkanFrame(CaptureVulkanDemoInput()))
+		{
+			window_.Close();
+		}
+
+		window_.SetCursorMode(vulkan_demo_settings_.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
+	}
+
+	ve::rendering::VulkanDemoInput EngineRuntime::CaptureVulkanDemoInput()
+	{
 		double mouse_x = 0.0;
 		double mouse_y = 0.0;
 		int window_width = 1;
@@ -55,8 +67,7 @@ namespace ve::engine
 		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));
 
 		vulkan_input_.Update(native_window);
-
-		const ve::rendering::VulkanDemoInput input{
+		return ve::rendering::VulkanDemoInput{
 			mouse_x * scale_x,
 			mouse_y * scale_y,
 			vulkan_input_.IsDown(VulkanInputController::Action::LeftClick),
@@ -64,18 +75,16 @@ namespace ve::engine
 			vulkan_input_.IsJustPressed(VulkanInputController::Action::F1),
 			vulkan_input_.IsJustPressed(VulkanInputController::Action::F2)
 		};
+	}
 
-		if (!vulkan_frame_renderer_.DrawFrame(model_->GetWorld(),
+	bool EngineRuntime::DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input)
+	{
+		return vulkan_frame_renderer_.DrawFrame(model_->GetWorld(),
 			model_->GetCamera(),
 			frame_timer_.DisplayedFps(),
 			frame_timer_.DeltaSeconds(),
 			input,
-			vulkan_demo_settings_))
-		{
-			window_.Close();
-		}
-
-		window_.SetCursorMode(vulkan_demo_settings_.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
+			vulkan_demo_settings_);
 	}
 
 	/** Updates frame-scoped state before gameplay systems run. */
@@ -98,20 +107,33 @@ namespace ve::engine
 	}
 
 	/** Renders the voxel world through the OpenGL compatibility path. */
-	void EngineRuntime::RenderWorld(OpenGLRenderView& legacy_view)
+	void EngineRuntime::RenderWorld(RenderView& render_view)
 	{
+		(void)render_view;
+		// TODO: Move world rendering behind RenderView so this path stops downcasting back to OpenGLRenderView.
 		ve::blocks::BlockRegistry* block_registry = model_->MutableBlockRegistry();
 		assert(block_registry != nullptr);
-		engine_.Render3DWorld(window_, model_->MutableCamera(), legacy_view.MutableSkyBox(), legacy_view.MutablePlane(),
-			legacy_view.MutableSelectionCube(), *block_registry, model_->MutableWorld(), model_->GetSelection());
+		OpenGLRenderView& legacy_view = LegacyOpenGLView();
+		SkyBox* skybox = legacy_view.Skybox();
+		Plane* ground_plane = legacy_view.GroundPlane();
+		BlockSelectionCube* selection_cube = legacy_view.SelectionCube();
+		assert(skybox != nullptr);
+		assert(ground_plane != nullptr);
+		assert(selection_cube != nullptr);
+		engine_.Render3DWorld(window_, model_->MutableCamera(), *skybox, *ground_plane,
+			*selection_cube, *block_registry, model_->MutableWorld(), model_->GetSelection());
 	}
 
 	/** Renders the HUD through the OpenGL compatibility path. */
-	void EngineRuntime::RenderHud(OpenGLRenderView& legacy_view)
+	void EngineRuntime::RenderHud(RenderView& render_view)
 	{
+		(void)render_view;
+		// TODO: Introduce a backend-neutral HUD renderer so Vulkan and OpenGL share the same HudFrameInfo pipeline.
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
-		legacy_view.MutableHudRenderer().Draw(engine_.CreateHudFrame(window_, model_->GetCamera(), frame_timer_,
+		ve::ui::HudRenderer* hud = LegacyOpenGLView().Hud();
+		assert(hud != nullptr);
+		hud->Draw(engine_.CreateHudFrame(window_, model_->GetCamera(), frame_timer_,
 			model_->GetSelection(), *block_registry, model_->GetWorld(), controller_.SelectedPlacementBlock()));
 	}
 

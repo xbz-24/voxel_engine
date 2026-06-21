@@ -7,6 +7,7 @@ namespace ve::rendering
 {
 	struct TemporalAntiAliasingSettings
 	{
+		// TODO: Move history textures behind a backend-neutral temporal resource cache for Vulkan reuse.
 		int width = 1;
 		int height = 1;
 		float history_blend = 0.92f;

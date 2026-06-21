@@ -46,6 +46,77 @@ namespace ve::gameplay
 		{
 			return step == 0 ? std::numeric_limits<float>::infinity() : std::abs(1.0f / direction);
 		}
+
+		class BlockGridRaycaster
+		{
+		public:
+			BlockGridRaycaster(const ve::world::World& world,
+				const ve::blocks::BlockRegistry& block_registry,
+				const glm::vec3& origin,
+				const glm::vec3& direction,
+				float max_distance)
+				: world_(world),
+				  block_registry_(block_registry),
+				  max_distance_(max_distance),
+				  ray_direction_(glm::normalize(direction)),
+				  current_block_(FloorToBlock(origin)),
+				  previous_block_(current_block_),
+				  step_(StepFor(ray_direction_.x), StepFor(ray_direction_.y), StepFor(ray_direction_.z)),
+				  next_distance_(
+					  InitialAxisDistance(origin.x, ray_direction_.x, current_block_.x, step_.x),
+					  InitialAxisDistance(origin.y, ray_direction_.y, current_block_.y, step_.y),
+					  InitialAxisDistance(origin.z, ray_direction_.z, current_block_.z, step_.z)),
+				  delta_distance_(AxisDelta(ray_direction_.x, step_.x), AxisDelta(ray_direction_.y, step_.y), AxisDelta(ray_direction_.z, step_.z))
+			{
+			}
+
+			[[nodiscard]] std::optional<BlockRaycastHit> Trace()
+			{
+				for (float distance = 0.0f; distance <= max_distance_;)
+				{
+					if (block_registry_.IsSolid(world_.GetBlock(current_block_)))
+					{
+						return BlockRaycastHit{ current_block_, previous_block_ };
+					}
+					distance = StepToNextBlock();
+				}
+				return std::nullopt;
+			}
+
+		private:
+			[[nodiscard]] float StepToNextBlock()
+			{
+				previous_block_ = current_block_;
+				if (next_distance_.x <= next_distance_.y && next_distance_.x <= next_distance_.z)
+				{
+					current_block_.x += step_.x;
+					const float distance = next_distance_.x;
+					next_distance_.x += delta_distance_.x;
+					return distance;
+				}
+				if (next_distance_.y <= next_distance_.z)
+				{
+					current_block_.y += step_.y;
+					const float distance = next_distance_.y;
+					next_distance_.y += delta_distance_.y;
+					return distance;
+				}
+				current_block_.z += step_.z;
+				const float distance = next_distance_.z;
+				next_distance_.z += delta_distance_.z;
+				return distance;
+			}
+
+			const ve::world::World& world_;
+			const ve::blocks::BlockRegistry& block_registry_;
+			float max_distance_;
+			glm::vec3 ray_direction_;
+			glm::ivec3 current_block_;
+			glm::ivec3 previous_block_;
+			glm::ivec3 step_;
+			glm::vec3 next_distance_;
+			glm::vec3 delta_distance_;
+		};
 	}
 
 	std::optional<BlockRaycastHit> RaycastBlocks(const ve::world::World& world, const ve::blocks::BlockRegistry& blockRegistry, const glm::vec3& origin, const glm::vec3& direction, float maxDistance)
@@ -54,44 +125,6 @@ namespace ve::gameplay
 		{
 			return std::nullopt;
 		}
-
-		const glm::vec3 rayDirection = glm::normalize(direction);
-		glm::ivec3 currentBlock = FloorToBlock(origin);
-		glm::ivec3 previousBlock = currentBlock;
-		const glm::ivec3 step(StepFor(rayDirection.x), StepFor(rayDirection.y), StepFor(rayDirection.z));
-		glm::vec3 nextDistance(
-			InitialAxisDistance(origin.x, rayDirection.x, currentBlock.x, step.x),
-			InitialAxisDistance(origin.y, rayDirection.y, currentBlock.y, step.y),
-			InitialAxisDistance(origin.z, rayDirection.z, currentBlock.z, step.z));
-		const glm::vec3 deltaDistance(AxisDelta(rayDirection.x, step.x), AxisDelta(rayDirection.y, step.y), AxisDelta(rayDirection.z, step.z));
-
-		for (float distance = 0.0f; distance <= maxDistance;)
-		{
-			if (blockRegistry.IsSolid(world.GetBlock(currentBlock)))
-			{
-				return BlockRaycastHit{ currentBlock, previousBlock };
-			}
-
-			previousBlock = currentBlock;
-			if (nextDistance.x <= nextDistance.y && nextDistance.x <= nextDistance.z)
-			{
-				currentBlock.x += step.x;
-				distance = nextDistance.x;
-				nextDistance.x += deltaDistance.x;
-			}
-			else if (nextDistance.y <= nextDistance.z)
-			{
-				currentBlock.y += step.y;
-				distance = nextDistance.y;
-				nextDistance.y += deltaDistance.y;
-			}
-			else
-			{
-				currentBlock.z += step.z;
-				distance = nextDistance.z;
-				nextDistance.z += deltaDistance.z;
-			}
-		}
-		return std::nullopt;
+		return BlockGridRaycaster{ world, blockRegistry, origin, direction, maxDistance }.Trace();
 	}
 }

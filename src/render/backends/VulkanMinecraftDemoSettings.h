@@ -29,6 +29,8 @@ namespace ve::rendering
 		int market_stall_count = 4;
 		int floating_island_count = 3;
 		int ruin_count = 3;
+		int bridge_count = 2;
+		int vista_marker_count = 8;
 		bool village = true;
 		bool farms = true;
 		bool water = true;

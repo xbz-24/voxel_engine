@@ -35,6 +35,7 @@ namespace ve::input::detail
 		case Key::Digit7: return GLFW_KEY_7;
 		case Key::Digit8: return GLFW_KEY_8;
 		case Key::Digit9: return GLFW_KEY_9;
+		case Key::Count: return GLFW_KEY_UNKNOWN;
 		}
 		return GLFW_KEY_UNKNOWN;
 	}
@@ -46,6 +47,7 @@ namespace ve::input::detail
 		{
 		case MouseButton::Left: return GLFW_MOUSE_BUTTON_LEFT;
 		case MouseButton::Right: return GLFW_MOUSE_BUTTON_RIGHT;
+		case MouseButton::Count: return GLFW_MOUSE_BUTTON_LEFT;
 		}
 		return GLFW_MOUSE_BUTTON_LEFT;
 	}

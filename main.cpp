@@ -1,7 +1,6 @@
-#include "Engine.h"
+#include <voxel/Engine.h>
 
 int main()
 {
-	Engine engine;
-	return engine.Run();
+	return voxel::Run(voxel::EngineConfig::MinecraftDemo());
 }

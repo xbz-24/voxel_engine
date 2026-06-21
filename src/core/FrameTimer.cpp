@@ -1,13 +1,10 @@
 #include "FrameTimer.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 namespace ve::time
 {
 	FrameTimer::FrameTimer()
 		: _deltaSeconds(0.0),
-		  _lastFrameTimestampSeconds(0.0),
+		  _lastFrameTimestamp(std::chrono::steady_clock::now()),
 		  _fpsAccumulatorSeconds(0.0),
 		  _currentFrameCount(0),
 		  _displayedFps(0)
@@ -16,9 +13,9 @@ namespace ve::time
 
 	void FrameTimer::Tick()
 	{
-		const double currentFrameTimestampSeconds = static_cast<double>(glfwGetTime());
-		_deltaSeconds = currentFrameTimestampSeconds - _lastFrameTimestampSeconds;
-		_lastFrameTimestampSeconds = currentFrameTimestampSeconds;
+		const auto currentFrameTimestamp = std::chrono::steady_clock::now();
+		_deltaSeconds = std::chrono::duration<double>(currentFrameTimestamp - _lastFrameTimestamp).count();
+		_lastFrameTimestamp = currentFrameTimestamp;
 
 		_currentFrameCount++;
 		_fpsAccumulatorSeconds += _deltaSeconds;
@@ -41,4 +38,3 @@ namespace ve::time
 		return _displayedFps;
 	}
 }
-

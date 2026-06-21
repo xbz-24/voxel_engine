@@ -1,5 +1,7 @@
 #include "BlockSelectionCube.h"
 
+#include "TextureLoader.h"
+
 /**
  * Draws the right face using the side texture.
  *
@@ -7,7 +9,7 @@
  */
 void BlockSelectionCube::DrawRight(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _right);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_right));
 	glBegin(GL_QUADS);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
 	glTexCoord2f(1.0f, 1.0f); glVertex3f(halfSize, halfSize, -halfSize);
@@ -23,7 +25,7 @@ void BlockSelectionCube::DrawRight(float halfSize) const
  */
 void BlockSelectionCube::DrawLeft(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _left);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_left));
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);

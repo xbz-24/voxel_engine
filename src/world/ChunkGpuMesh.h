@@ -1,9 +1,10 @@
 #pragma once
 
 #include "GraphicsTypes.h"
+#include "RenderMesh.h"
 
-#include <GL/glew.h>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace ve::rendering
@@ -57,8 +58,6 @@ namespace ve::rendering
 		void Release();
 
 	private:
-		GLuint _vertexBuffer;
-		GLsizei _vertexCount;
-		std::vector<ChunkMeshBatch> _batches;
+		std::unique_ptr<RenderMesh> _mesh;
 	};
 }

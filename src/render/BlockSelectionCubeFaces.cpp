@@ -1,5 +1,7 @@
 #include "BlockSelectionCube.h"
 
+#include "TextureLoader.h"
+
 /**
  * Draws the front face using the side texture.
  *
@@ -7,7 +9,7 @@
  */
 void BlockSelectionCube::DrawFront(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _front);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_front));
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, halfSize);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, halfSize);
@@ -23,7 +25,7 @@ void BlockSelectionCube::DrawFront(float halfSize) const
  */
 void BlockSelectionCube::DrawBack(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _back);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_back));
 	glBegin(GL_QUADS);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
 	glTexCoord2f(1.0f, 1.0f); glVertex3f(-halfSize, halfSize, -halfSize);
@@ -39,7 +41,7 @@ void BlockSelectionCube::DrawBack(float halfSize) const
  */
 void BlockSelectionCube::DrawTop(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _top);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_top));
 	glColor3f(0.404f, 0.655f, 0.239f);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, halfSize, -halfSize);
@@ -57,7 +59,7 @@ void BlockSelectionCube::DrawTop(float halfSize) const
  */
 void BlockSelectionCube::DrawBottom(float halfSize) const
 {
-	glBindTexture(GL_TEXTURE_2D, _bottom);
+	glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_bottom));
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-halfSize, -halfSize, -halfSize);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(halfSize, -halfSize, -halfSize);
