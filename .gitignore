@@ -4,6 +4,7 @@ stb_image.h
 .DS_Store
 .vs/
 Builds/.vs/
+Builds/
 Builds/CMakeFiles/
 Builds/CMakeCache.txt
 Builds/cmake_install.cmake
@@ -20,6 +21,8 @@ out/
 *.tmp
 *.log
 *.swp
+imgui.ini
+/main
 
 *.o
 *.out
