@@ -6,6 +6,7 @@
 class Camera
 {
 public:
+	// TODO: Split camera math from player camera behavior so public apps can plug FPS, orbit, cinematic, or fixed cameras.
 	/**
 	 * Creates a camera at the default player spawn position.
 	 */
@@ -46,6 +47,7 @@ public:
 	 *
 	 * @return Camera view matrix.
 	 */
+	// TODO: Rename this to backend-neutral view matrix terminology; Vulkan code should not inherit OpenGL assumptions.
 	glm::mat4 GetViewMatrix() const;
 
 	/**
@@ -102,6 +104,7 @@ public:
 	void NormalizePitch();
 
 private:
+	// TODO: Store camera orientation as a quaternion once roll and authored camera paths are supported.
 	glm::vec3 _position;
 	float _yaw;
 	float _pitch;

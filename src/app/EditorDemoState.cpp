@@ -17,9 +17,7 @@ namespace ve::editor
 	{
 		switch (demo)
 		{
-		case DemoGame::MinecraftSandbox: return "Minecraft sandbox";
-		case DemoGame::VoxelApiShowcase: return "Voxel API showcase";
-		case DemoGame::EmptyPrototype: return "Empty prototype";
+		case DemoGame::HyperrealDesert: return "Hyperreal voxel desert";
 		}
 		return "Unknown";
 	}

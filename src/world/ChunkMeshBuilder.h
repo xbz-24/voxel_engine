@@ -6,6 +6,7 @@
 
 namespace ve::world::mesh
 {
+	// TODO: Return mesh build diagnostics such as visible faces, culled faces, and merge ratio for performance tuning.
 	/**
 	 * Builds CPU vertex/batch data for one chunk mesh.
 	 *

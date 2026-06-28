@@ -2,6 +2,8 @@
 
 #include "LoggerService.h"
 
+#include <utility>
+
 namespace ve::log
 {
 	void SetMinimumLevel(Level level) { LoggerService::Instance().SetMinimumLevel(level); }
@@ -13,6 +15,8 @@ namespace ve::log
 	void SetConsoleEnabled(bool is_enabled) { LoggerService::Instance().SetConsoleEnabled(is_enabled); }
 
 	bool SetFileOutput(const std::filesystem::path& path) { return LoggerService::Instance().SetFileOutput(path); }
+
+	void SetCallback(std::function<void(std::string)> callback) { LoggerService::Instance().SetCallback(std::move(callback)); }
 
 	void ClearFileOutput() { LoggerService::Instance().ClearFileOutput(); }
 

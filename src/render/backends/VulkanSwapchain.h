@@ -14,8 +14,8 @@ namespace ve::rendering
 		/** Releases the swapchain when destroyed. */
 		~VulkanSwapchain();
 
-		/** @param physical_device Selected GPU. @param device Logical device. @param surface Presentation surface. @param width Window width. @param height Window height. @return True when created. */
-		[[nodiscard]] bool Create(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, int width, int height);
+		/** @param physical_device Selected GPU. @param device Logical device. @param surface Presentation surface. @param width Window width. @param height Window height. @param is_vsync_enabled Whether presentation should wait for vblank. @return True when created. */
+		[[nodiscard]] bool Create(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, int width, int height, bool is_vsync_enabled = false);
 
 		/** Destroys the swapchain and clears image handles. */
 		void Release();

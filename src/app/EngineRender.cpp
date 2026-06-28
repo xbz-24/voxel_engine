@@ -6,6 +6,11 @@
 #include "Window.h"
 #include "World.h"
 
+namespace
+{
+	constexpr float FarWorldClipDistance = 1024.0f;
+}
+
 /// Configures persistent OpenGL state used by the engine renderer.
 void EngineApplication::ConfigureOpenGLState()
 {
@@ -39,6 +44,6 @@ void EngineApplication::UpdateProjections(int width, int height)
 	}
 
 	const float aspect = static_cast<float>(width) / static_cast<float>(height);
-	_render_cache_state.projection_3d = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, 100.0f);
+	_render_cache_state.projection_3d = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, FarWorldClipDistance);
 	ve::rendering::SetViewport(width, height);
 }

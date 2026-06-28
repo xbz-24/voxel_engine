@@ -6,6 +6,8 @@
 #include "ThreadSafeMessageQueue.h"
 #include "WorldConfiguration.h"
 
+#include <atomic>
+
 namespace ve::world::generation
 {
 	struct ChunkGenerationRequest
@@ -36,11 +38,12 @@ namespace ve::world::generation
 		/** @return Completed generated chunks ready for the game thread. */
 		ve::core::DynamicArray<ChunkGenerationResult> DrainCompletedChunks();
 
-		/** @return Number of terrain jobs waiting to start. */
+		/** @return Number of terrain requests not yet drained by the game thread. */
 		ve::core::Index PendingTaskCount() const;
 
 	private:
 		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completed_chunks_;
 		ve::tasks::BackgroundTaskQueue background_tasks_;
+		std::atomic<ve::core::Index> outstanding_requests_ = 0;
 	};
 }

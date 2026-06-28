@@ -20,8 +20,11 @@ namespace ve::engine
 		 *
 		 * @param world_size_chunks Number of chunks along one side of the world.
 		 * @param asset_paths Optional resolved asset paths used to load block metadata for legacy gameplay/rendering.
+		 * @param texture_loading Whether the block registry should upload legacy face textures.
 		 */
-		explicit GameModel(int world_size_chunks, const ve::assets::AssetPaths* asset_paths = nullptr);
+		explicit GameModel(int world_size_chunks,
+			const ve::assets::AssetPaths* asset_paths = nullptr,
+			ve::blocks::BlockRegistry::TextureLoading texture_loading = ve::blocks::BlockRegistry::TextureLoading::LoadTextures);
 
 		/** @return Mutable camera controlled by gameplay input. */
 		Camera& MutableCamera() noexcept;

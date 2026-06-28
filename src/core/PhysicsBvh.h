@@ -7,6 +7,7 @@
 
 namespace ve::physics
 {
+	// TODO: Support incremental refit/update so moving entities do not require full BVH rebuilds every frame.
 	class PhysicsBvh
 	{
 	public:
@@ -22,6 +23,7 @@ namespace ve::physics
 	private:
 		struct BvhNode
 		{
+			// TODO: Store parent/depth metadata for debug visualization and tree quality metrics.
 			Aabb bounds{};
 			int left_child = -1;
 			int right_child = -1;

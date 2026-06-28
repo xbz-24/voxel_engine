@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.25)
 
 project(VoxelEngine LANGUAGES C CXX)
 
+# TODO: Add install/export package targets once voxel_engine_sdk no longer exports private engine target dependencies.
+# TODO: Add a standalone SDK consumer smoke project that builds against an installed tree instead of this source checkout.
+# TODO: Split editor/demo-only dependencies from the public SDK so minimal users do not inherit the full application stack.
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -10,15 +13,18 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
 option(VE_BUILD_EXAMPLES "Build public API example applications" ON)
 option(VE_BUILD_TESTS "Build engine tests" ON)
+option(VE_BUILD_RUNTIME_SMOKE_TESTS "Add short voxel_engine launch tests that exit after a few frames" OFF)
 option(VE_ENABLE_STRICT_WARNINGS "Enable the project's extended compiler warning set" ON)
 option(VE_ENABLE_ASAN "Build supported targets with AddressSanitizer instrumentation" OFF)
 option(VE_ENABLE_UBSAN "Build supported targets with UndefinedBehaviorSanitizer instrumentation" OFF)
 option(VE_WARNINGS_AS_ERRORS "Treat project warnings as compilation errors" ON)
 option(VE_USE_LATEST_CXX "Use the newest C++ language mode exposed by the compiler" ON)
 set(VE_IMGUI_VULKAN_BACKEND_SOURCE "" CACHE FILEPATH "Path to imgui_impl_vulkan.cpp")
+set(VE_RUNTIME_SMOKE_FRAMES "3" CACHE STRING "Frame count used by optional runtime smoke tests")
 
 add_library(ve_project_options INTERFACE)
 target_compile_features(ve_project_options INTERFACE cxx_std_23)
+# TODO: Add compiler matrix CI presets for MSVC, ClangCL, and one non-Windows toolchain before treating the SDK as portable.
 
 if (MSVC)
     target_compile_options(ve_project_options INTERFACE
@@ -216,16 +222,25 @@ ve_add_subsystem(ve_network Network "${VE_SOURCE_ROOT}/network" SOURCES ${VE_NET
 ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HEADERS ${VE_APP_HEADERS})
 
 add_library(voxel_engine_sdk STATIC
+    "${VE_SOURCE_ROOT}/api/EngineConfigTranslator.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineConfigValidation.cpp"
     "${VE_SOURCE_ROOT}/api/Engine.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Assets.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Blocks.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Camera.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Engine.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Materials.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Runtime.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Scene.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Voxel.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/World.h"
 )
 target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
 target_link_libraries(voxel_engine_sdk PRIVATE ve_project_options ve_app)
 set_target_properties(voxel_engine_sdk PROPERTIES FOLDER "Engine/API")
+add_library(VoxelEngine::SDK ALIAS voxel_engine_sdk)
 
 set(VE_VULKAN_SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
 set(VE_VULKAN_SHADER_SOURCES
@@ -322,7 +337,13 @@ target_link_libraries(ve_app PUBLIC
     imgui::imgui
 )
 
-add_executable(voxel_engine main.cpp "${VE_SOURCE_ROOT}/app/main.rc")
+set(VE_LAUNCHER_SOURCES
+    "${VE_SOURCE_ROOT}/api/CommandLineLauncher.cpp"
+    "${VE_SOURCE_ROOT}/api/CommandLineLauncher.h"
+)
+
+add_executable(voxel_engine main.cpp ${VE_LAUNCHER_SOURCES} "${VE_SOURCE_ROOT}/app/main.rc")
+target_include_directories(voxel_engine PRIVATE "${VE_SOURCE_ROOT}/api")
 target_link_libraries(voxel_engine PRIVATE
     ve_project_options
     voxel_engine_sdk
@@ -344,8 +365,16 @@ if (VE_BUILD_EXAMPLES)
 
     ve_add_public_example(voxel_example_minimal "${CMAKE_SOURCE_DIR}/examples/minimal.cpp")
     ve_add_public_example(voxel_example_custom_scene "${CMAKE_SOURCE_DIR}/examples/custom_scene.cpp")
+    ve_add_public_example(voxel_example_model_demos "${CMAKE_SOURCE_DIR}/examples/model_demos.cpp")
     ve_add_public_example(voxel_example_world_edit "${CMAKE_SOURCE_DIR}/examples/world_edit.cpp")
     ve_add_public_example(voxel_example_showcase "${CMAKE_SOURCE_DIR}/examples/showcase.cpp")
+endif()
+
+if (VE_BUILD_RUNTIME_SMOKE_TESTS)
+    enable_testing()
+    add_test(NAME voxel_engine_runtime_smoke_desert
+        COMMAND $<TARGET_FILE:voxel_engine> --demo desert --smoke-frames ${VE_RUNTIME_SMOKE_FRAMES}
+    )
 endif()
 
 if (VE_BUILD_API_DOCS)
@@ -367,6 +396,7 @@ endif()
 if (VE_BUILD_TESTS)
     enable_testing()
     add_executable(engine_tests
+        ${VE_LAUNCHER_SOURCES}
         Tests/EngineSmokeTests.cpp
         Tests/GraphicsCommandTests.cpp
         Tests/GraphicsGeometryTests.cpp
@@ -375,10 +405,12 @@ if (VE_BUILD_TESTS)
         Tests/RenderBackendTests.cpp
         Tests/WorldCoordinateTests.cpp
     )
+    target_include_directories(engine_tests PRIVATE "${VE_SOURCE_ROOT}/api")
     target_link_libraries(engine_tests PRIVATE
         ve_project_options
         doctest::doctest
         voxel_engine_sdk
+        ve_app
         ve_core
         ve_network
         ve_render

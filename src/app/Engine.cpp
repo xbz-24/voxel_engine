@@ -12,7 +12,7 @@ EngineApplication::EngineApplication(ve::engine::EngineCreateInfo create_info)
 {
 	_runtimeSettings.isVSyncEnabled = create_info_.vsync;
 	_runtimeSettings.showDebugOverlay = create_info_.show_debug_overlay;
-	_runtimeSettings.renderDistanceChunks = create_info_.render_distance_chunks;
+	_runtimeSettings.renderDistanceChunks = ve::gameplay::ClampRenderDistanceChunks(create_info_.render_distance_chunks);
 	_runtimeSettings.renderBackendConfiguration = create_info_.render_backend;
 }
 

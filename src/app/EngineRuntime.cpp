@@ -68,6 +68,7 @@ namespace ve::engine
 	void EngineRuntime::PrepareAssetsAndLogging()
 	{
 		asset_paths_ = ve::assets::Resolve();
+		ve::log::SetCallback(engine_.create_info_.on_log);
 		engine_.ConfigureRuntimeLogging(asset_paths_);
 	}
 
@@ -87,7 +88,12 @@ namespace ve::engine
 			return false;
 		}
 		const int world_size_chunks = engine_.create_info_.world_size_chunks;
-		model_ = std::make_unique<GameModel>(world_size_chunks, &asset_paths_);
+		const auto texture_loading = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan
+			? ve::blocks::BlockRegistry::TextureLoading::MetadataOnly
+			: ve::blocks::BlockRegistry::TextureLoading::LoadTextures;
+		model_ = std::make_unique<GameModel>(world_size_chunks, &asset_paths_, texture_loading);
+		vulkan_demo_settings_.scene.preset = engine_.create_info_.vulkan_demo_preset;
+		vulkan_demo_settings_.request_scene_rebuild = true;
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
 		if (engine_.create_info_.has_custom_camera)
@@ -152,8 +158,17 @@ namespace ve::engine
 		}
 		if (model_->PendingWorldGenerationCount() != 0) return;
 
+		ApplyWorldEdits(engine_.create_info_.world_edits);
+		configured_world_edits_applied_ = true;
+		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Applied configured public API world edits");
+	}
+
+	void EngineRuntime::ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits)
+	{
+		if (model_ == nullptr) return;
+
 		ve::world::World& world = model_->MutableWorld();
-		for (const WorldBlockEdit& edit : engine_.create_info_.world_edits)
+		for (const WorldBlockEdit& edit : edits)
 		{
 			const int min_x = std::min(edit.min_x, edit.max_x);
 			const int min_y = std::min(edit.min_y, edit.max_y);
@@ -173,8 +188,6 @@ namespace ve::engine
 				}
 			}
 		}
-		configured_world_edits_applied_ = true;
-		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Applied configured public API world edits");
 	}
 
 	/** Returns the OpenGL compatibility view after startup validation. */
@@ -188,7 +201,11 @@ namespace ve::engine
 	/** Runs frames until the window asks to close. */
 	void EngineRuntime::RunMainLoop()
 	{
-		while (!window_.ShouldClose()) RunFrame();
+		while (true)
+		{
+			if (window_.ShouldClose()) break;
+			RunFrame();
+		}
 	}
 
 	/** Releases runtime resources and reports shutdown. */

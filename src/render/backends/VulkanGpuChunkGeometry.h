@@ -22,12 +22,12 @@ namespace ve::rendering
 	[[nodiscard]] inline constexpr std::array<BlockFaceGeometry, 6> ChunkFaces() noexcept
 	{
 		return { {
-			BlockFaceGeometry{ ve::blocks::BlockFace::Top, { 0, 1, 0 }, { glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 1.00f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Bottom, { 0, -1, 0 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f } }, 0.52f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Front, { 0, 0, 1 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 0.86f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Back, { 0, 0, -1 }, { glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f } }, 0.72f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Left, { -1, 0, 0 }, { glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f } }, 0.78f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Right, { 1, 0, 0 }, { glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } }, 0.82f }
+			BlockFaceGeometry{ ve::blocks::BlockFace::Top, { 0, 1, 0 }, { glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 1.22f },
+			BlockFaceGeometry{ ve::blocks::BlockFace::Bottom, { 0, -1, 0 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f } }, 0.24f },
+			BlockFaceGeometry{ ve::blocks::BlockFace::Front, { 0, 0, 1 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 0.90f },
+			BlockFaceGeometry{ ve::blocks::BlockFace::Back, { 0, 0, -1 }, { glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f } }, 0.44f },
+			BlockFaceGeometry{ ve::blocks::BlockFace::Left, { -1, 0, 0 }, { glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f } }, 0.58f },
+			BlockFaceGeometry{ ve::blocks::BlockFace::Right, { 1, 0, 0 }, { glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } }, 1.02f }
 		} };
 	}
 

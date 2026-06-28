@@ -10,14 +10,14 @@ namespace ve::rendering
 	VulkanSwapchain::~VulkanSwapchain() { Release(); }
 
 	/** Creates a Vulkan swapchain for the selected device and surface. */
-	bool VulkanSwapchain::Create(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, int width, int height)
+	bool VulkanSwapchain::Create(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, int width, int height, bool is_vsync_enabled)
 	{
 		Release();
 		device_ = device;
 		const VulkanSwapchainSupportDetails support = QuerySwapchainSupport(physical_device, surface);
 		if (!support.IsComplete()) return false;
 		const VkSurfaceFormatKHR surface_format = ChooseSwapchainSurfaceFormat(support.formats);
-		const VkPresentModeKHR present_mode = ChooseSwapchainPresentMode(support.present_modes);
+		const VkPresentModeKHR present_mode = ChooseSwapchainPresentMode(support.present_modes, is_vsync_enabled);
 		extent_ = ChooseSwapchainExtent(support.capabilities, width, height);
 		std::uint32_t image_count = support.capabilities.minImageCount + 1;
 		if (support.capabilities.maxImageCount > 0) image_count = std::min(image_count, support.capabilities.maxImageCount);

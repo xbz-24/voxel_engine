@@ -12,6 +12,7 @@ namespace ve::rendering
 	class RenderBackend
 	{
 	public:
+		// TODO: Add backend-owned resource factories for textures, materials, render targets, and scene instances.
 		virtual ~RenderBackend() = default;
 
 		/** @return Graphics API represented by this backend. */
@@ -31,5 +32,7 @@ namespace ve::rendering
 
 		/** @return Backend compute dispatcher, or null when compute dispatch is unavailable. */
 		[[nodiscard]] virtual const ComputeDispatcher* Compute() const noexcept;
+
+		// TODO: Add frame lifecycle hooks so Vulkan/OpenGL/DirectX backends can share presentation orchestration.
 	};
 }

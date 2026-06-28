@@ -51,7 +51,14 @@ namespace voxel
 		SeaLantern,
 		CherryLog,
 		CherryPlanks,
-		CherryLeaves
+		CherryLeaves,
+		Sandstone,
+		CutSandstone,
+		RedSand,
+		RedSandstone,
+		Terracotta,
+		Cactus,
+		DeadBush
 	};
 
 	inline constexpr Block Air = Block::Air;
@@ -100,4 +107,11 @@ namespace voxel
 	inline constexpr Block CherryLog = Block::CherryLog;
 	inline constexpr Block CherryPlanks = Block::CherryPlanks;
 	inline constexpr Block CherryLeaves = Block::CherryLeaves;
+	inline constexpr Block Sandstone = Block::Sandstone;
+	inline constexpr Block CutSandstone = Block::CutSandstone;
+	inline constexpr Block RedSand = Block::RedSand;
+	inline constexpr Block RedSandstone = Block::RedSandstone;
+	inline constexpr Block Terracotta = Block::Terracotta;
+	inline constexpr Block Cactus = Block::Cactus;
+	inline constexpr Block DeadBush = Block::DeadBush;
 }

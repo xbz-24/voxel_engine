@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderApi.h"
+#include "RenderDistanceSettings.h"
 #include "SettingsMenu.h"
 
 namespace ve::gameplay
@@ -10,12 +11,13 @@ namespace ve::gameplay
 	 */
 	struct RuntimeSettings
 	{
+		// TODO: Separate player/gameplay state from renderer/editor settings so public runtime config can be saved cleanly.
 		bool isSettingsMenuOpen = false;
 		bool isVSyncEnabled = false;
 		bool showDebugOverlay = true;
 		bool isFlying = false;
 		float verticalVelocity = 0.0f;
-		int renderDistanceChunks = 2;
+		int renderDistanceChunks = DefaultRenderDistanceChunks;
 		ve::rendering::RenderBackendConfiguration renderBackendConfiguration{};
 		ve::ui::SettingsMenuOption selectedSettingsMenuOption = ve::ui::SettingsMenuOption::RenderDistance;
 	};

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RenderDistanceSettings.h"
+
 namespace ve::editor
 {
 	/**
@@ -8,9 +10,7 @@ namespace ve::editor
 
 	enum class DemoGame
 	{
-		MinecraftSandbox, 
-		VoxelApiShowcase,
-		EmptyPrototype
+		HyperrealDesert
 	};
 
 	/**
@@ -23,9 +23,9 @@ namespace ve::editor
 
 	struct EditorDemoState
 	{
-		DemoGame selected_demo = DemoGame::MinecraftSandbox;
+		DemoGame selected_demo = DemoGame::HyperrealDesert;
 		int requested_world_size_chunks = 10;
-		int render_distance_chunks = 2;
+		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;
 		bool is_vsync_enabled = false;
 		bool show_imgui_demo_window = false;
 		bool request_demo_rebuild = false;

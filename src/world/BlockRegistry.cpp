@@ -39,9 +39,16 @@ namespace ve::blocks
 				cache.Load(files.right)
 			} };
 		}
+
+		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> EmptyFaces() noexcept
+		{
+			std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faces{};
+			faces.fill(ve::rendering::kInvalidTextureHandle);
+			return faces;
+		}
 	}
 
-	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths)
+	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading)
 	{
 		BlockTextureCache cache(paths.blockTexturesDirectory);
 		for (const BlockDefinition& definition : BuiltInBlockDefinitions)
@@ -50,7 +57,7 @@ namespace ve::blocks
 				definition.id,
 				definition.name,
 				definition.isSolid,
-				LoadFaces(cache, definition.textures),
+				texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition.textures) : EmptyFaces(),
 				DefaultPbrMaterialForBlock(definition.id)
 			};
 		}

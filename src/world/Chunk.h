@@ -7,6 +7,7 @@
 #include "ChunkMeshTypes.h"
 #include "ChunkTerrain.h"
 
+#include <cstdint>
 #include <span>
 
 enum class ChunkGenerationMode
@@ -53,6 +54,9 @@ public:
 
 	/** @return True when this chunk was reserved for one async mesh task. */
 	bool TryReserveMeshBuild() noexcept;
+
+	/** Releases a mesh reservation when the async task could not be queued. */
+	void CancelMeshBuildReservation() noexcept;
 
 	/**
 	 * Builds a GPU mesh containing visible chunk faces.
@@ -101,11 +105,15 @@ public:
 	/// Marks the cached mesh as dirty so it is rebuilt next draw.
 	void MarkDirty();
 
+	/** @return Monotonic revision used to reject stale async mesh outputs. */
+	[[nodiscard]] std::uint64_t MeshRevision() const noexcept;
+
 private:
 	ve::world::terrain::BlockStorage blocks;
 	ve::rendering::ChunkGpuMesh _mesh;
 	int _chunkX;
 	int _chunkZ;
+	std::uint64_t _meshRevision;
 	bool _isMeshBuilt;
 	bool _isGenerated;
 	bool _isMeshBuildQueued;

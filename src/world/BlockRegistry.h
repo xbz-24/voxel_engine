@@ -15,6 +15,7 @@ namespace ve::blocks
 	 */
 	struct BlockType
 	{
+		// TODO: Load block definitions from data so API users can register custom blocks without recompiling.
 		BlockId id;
 		std::string_view name;
 		bool isSolid;
@@ -28,12 +29,20 @@ namespace ve::blocks
 	class BlockRegistry
 	{
 	public:
+		enum class TextureLoading
+		{
+			LoadTextures,
+			MetadataOnly
+		};
+
+		// TODO: Add public extension points for custom block ids, collision flags, transparency, sounds, and drops.
 		/**
 		 * Loads built-in block definitions from the asset tree.
 		 *
 		 * @param paths Resolved engine asset paths.
+		 * @param texture_loading Whether legacy face textures should be uploaded.
 		 */
-		explicit BlockRegistry(const ve::assets::AssetPaths& paths);
+		explicit BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading = TextureLoading::LoadTextures);
 
 		/**
 		 * Returns metadata for a block id.
@@ -77,6 +86,7 @@ namespace ve::blocks
 		const ve::rendering::PbrMaterial& MaterialFor(BlockId id) const;
 
 	private:
+		// TODO: Replace fixed enum-indexed storage with a stable registry that can handle user-defined block packs.
 		std::array<BlockType, static_cast<std::size_t>(BlockId::Count)> _blocks;
 	};
 }

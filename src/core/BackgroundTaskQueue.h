@@ -12,6 +12,7 @@ namespace ve::tasks
 {
 	using BackgroundTask = std::function<void()>;
 
+	// TODO: Add task priorities and cancellation ids so chunk meshing can drop work that moved out of view.
 	class BackgroundTaskQueue
 	{
 	public:
@@ -47,6 +48,7 @@ namespace ve::tasks
 		void Stop();
 
 	private:
+		// TODO: Add worker telemetry for queue latency, execution time, and shutdown stalls.
 		void StartWorkers(std::size_t workerCount);
 		void RunWorker(std::stop_token stopToken);
 		bool WaitForTask(std::stop_token stopToken, BackgroundTask& task);

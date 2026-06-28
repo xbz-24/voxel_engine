@@ -1,6 +1,7 @@
 #include "HudRenderer.h"
 
 #include "Render2D.h"
+#include "RenderDistanceSettings.h"
 
 #include <string>
 
@@ -53,7 +54,7 @@ namespace ve::ui
 		const float sliderX = panelX + 254.0f;
 		const float sliderY = firstRowY + 10.0f;
 		const float sliderWidth = 150.0f;
-		const float handleX = sliderX + ((static_cast<float>(frame.settingsMenu.renderDistanceChunks - 1) / 5.0f) * (sliderWidth - 16.0f));
+		const float handleX = sliderX + (ve::gameplay::RenderDistanceSliderRatio(frame.settingsMenu.renderDistanceChunks) * (sliderWidth - 16.0f));
 		ve::rendering::DrawTexturedQuad(_textures.menuSlider, sliderX, sliderY + 18.0f, sliderWidth, 12.0f);
 		ve::rendering::DrawTexturedQuad(_textures.menuSliderHandle, handleX, sliderY + 10.0f, 18.0f, 28.0f);
 	}

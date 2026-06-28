@@ -31,6 +31,7 @@ namespace ve::rendering
 	class VulkanFrameRenderer
 	{
 	public:
+		// TODO: Rename this from demo renderer to frame orchestrator once software and GPU paths become pluggable passes.
 		~VulkanFrameRenderer();
 
 		/** @param backend Initialized Vulkan backend. @return True when frame resources are ready. */
@@ -48,8 +49,10 @@ namespace ve::rendering
 		void Release();
 
 		[[nodiscard]] bool WantsMouseInput() const noexcept;
+		[[nodiscard]] bool WantsKeyboardInput() const noexcept;
 
 	private:
+		// TODO: Replace ad-hoc frame resources with a per-frame resource struct to simplify resize/release handling.
 		[[nodiscard]] bool CreateCommandResources();
 		[[nodiscard]] bool CreateSynchronization();
 		[[nodiscard]] bool CreateTimestampQueries();
@@ -68,6 +71,7 @@ namespace ve::rendering
 			int displayed_fps,
 			double delta_seconds,
 			const VulkanDemoInput& input);
+		[[nodiscard]] bool WaitForAllInFlightFrames() const;
 		void CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const;
 		void ReleaseIntermediateImages();
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
@@ -84,6 +88,7 @@ namespace ve::rendering
 		std::array<VkDeviceMemory, kFramesInFlight> intermediate_image_memory_{};
 		std::array<VkImageLayout, kFramesInFlight> intermediate_image_layouts_{};
 		VulkanGpuChunkRenderer gpu_chunk_renderer_;
+		// TODO: Decouple ImGui overlay from the chunk renderer so headless/runtime smoke tests can disable it cleanly.
 		VulkanImGuiOverlay imgui_overlay_;
 		VulkanSoftwareVoxelRasterizer rasterizer_;
 		VulkanFrameTiming previous_frame_timing_{};
@@ -94,8 +99,9 @@ namespace ve::rendering
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
 		std::array<VkCommandBuffer, kFramesInFlight> command_buffers_{};
 		std::array<VkSemaphore, kFramesInFlight> image_available_semaphores_{};
-		ve::core::DynamicArray<VkSemaphore> render_finished_semaphores_;
+		std::array<VkSemaphore, kFramesInFlight> render_finished_semaphores_{};
 		std::array<VkFence, kFramesInFlight> in_flight_fences_{};
+		ve::core::DynamicArray<VkFence> images_in_flight_;
 		std::size_t current_frame_ = 0;
 		bool logged_first_frame_ = false;
 	};

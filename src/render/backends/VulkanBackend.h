@@ -14,6 +14,7 @@ namespace ve::rendering
 {
 	struct VulkanBackendSettings
 	{
+		// TODO: Add swapchain, validation, device feature, and allocator knobs needed by public EngineConfig.
 		VulkanContextSettings context{};
 	};
 
@@ -21,6 +22,7 @@ namespace ve::rendering
 	class VulkanBackend final : public RenderBackend
 	{
 	public:
+		// TODO: Move backend initialization reporting to structured errors so API users can show actionable failure messages.
 		/** Initializes with default Vulkan backend settings. */
 		[[nodiscard]] bool Initialize(ve::engine::Window& window);
 
@@ -61,6 +63,7 @@ namespace ve::rendering
 		[[nodiscard]] bool IsInitialized() const noexcept;
 
 	private:
+		// TODO: Centralize Vulkan object naming/debug labels for RenderDoc and validation-layer diagnostics.
 		VulkanContext context_;
 		VulkanSurface surface_;
 		VulkanPhysicalDevice physical_device_;

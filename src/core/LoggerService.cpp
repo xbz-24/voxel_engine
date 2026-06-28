@@ -1,5 +1,9 @@
 #include "LoggerService.h"
 
+#include "LogFormatter.h"
+
+#include <utility>
+
 namespace ve::log
 {
 	LoggerService& LoggerService::Instance()
@@ -38,6 +42,12 @@ namespace ve::log
 		return backend_.SetFileOutput(path);
 	}
 
+	void LoggerService::SetCallback(std::function<void(std::string)> callback)
+	{
+		std::lock_guard<std::mutex> lock(mutex_);
+		callback_ = std::move(callback);
+	}
+
 	void LoggerService::ClearFileOutput()
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
@@ -46,8 +56,21 @@ namespace ve::log
 
 	void LoggerService::Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
 	{
-		std::lock_guard<std::mutex> lock(mutex_);
 		const Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id() };
-		backend_.Write(record);
+		std::function<void(std::string)> callback;
+		std::string formatted_record;
+		{
+			std::lock_guard<std::mutex> lock(mutex_);
+			backend_.Write(record);
+			callback = callback_;
+			if (callback)
+			{
+				formatted_record = FormatRecord(record);
+			}
+		}
+		if (callback)
+		{
+			callback(std::move(formatted_record));
+		}
 	}
 }

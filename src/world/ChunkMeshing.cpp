@@ -55,3 +55,9 @@ bool Chunk::TryReserveMeshBuild() noexcept
 	_isMeshBuildQueued = true;
 	return true;
 }
+
+/// Releases a failed async mesh reservation without marking the current mesh valid.
+void Chunk::CancelMeshBuildReservation() noexcept
+{
+	_isMeshBuildQueued = false;
+}

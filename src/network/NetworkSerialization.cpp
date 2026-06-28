@@ -1,5 +1,6 @@
 #include "NetworkSerialization.h"
 
+#include <algorithm>
 #include <cstring>
 #include <type_traits>
 #include <utility>
@@ -66,9 +67,10 @@ namespace ve::network
 	ByteBuffer SerializeClientHello(const std::string& playerName)
 	{
 		PayloadWriter writer;
-		const std::uint16_t nameByteCount = static_cast<std::uint16_t>(playerName.size());
+		const std::size_t bounded_size = std::min(playerName.size(), static_cast<std::size_t>(MaxPlayerNameByteCount));
+		const std::uint16_t nameByteCount = static_cast<std::uint16_t>(bounded_size);
 		writer.Write(nameByteCount);
-		writer.WriteBytes(std::as_bytes(std::span(playerName.data(), playerName.size())));
+		writer.WriteBytes(std::as_bytes(std::span(playerName.data(), bounded_size)));
 		return std::move(writer).Finish();
 	}
 
@@ -94,6 +96,7 @@ namespace ve::network
 		if (payloadBytes.size() < sizeof(std::uint16_t)) return std::nullopt;
 		std::uint16_t nameByteCount = 0;
 		std::memcpy(&nameByteCount, payloadBytes.data(), sizeof(nameByteCount));
+		if (nameByteCount == 0 || nameByteCount > MaxPlayerNameByteCount) return std::nullopt;
 		if (payloadBytes.size() != sizeof(nameByteCount) + nameByteCount) return std::nullopt;
 		const char* firstCharacter = reinterpret_cast<const char*>(payloadBytes.data() + sizeof(nameByteCount));
 		return std::string(firstCharacter, firstCharacter + nameByteCount);

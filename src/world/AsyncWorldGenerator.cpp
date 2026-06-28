@@ -34,10 +34,16 @@ namespace ve::world::generation
 	/// Queues one chunk coordinate for background generation.
 	bool AsyncWorldGenerator::RequestChunk(ChunkGenerationRequest request)
 	{
-		return background_tasks_.Enqueue([this, request]()
+		outstanding_requests_.fetch_add(1, std::memory_order_relaxed);
+		if (!background_tasks_.Enqueue([this, request]()
 		{
 			completed_chunks_.Push(GenerateChunk(request));
-		});
+		}))
+		{
+			outstanding_requests_.fetch_sub(1, std::memory_order_relaxed);
+			return false;
+		}
+		return true;
 	}
 
 	/// Queues every chunk in a square world for background generation.
@@ -51,12 +57,17 @@ namespace ve::world::generation
 	/// Drains completed generated chunks without blocking the game thread.
 	ve::core::DynamicArray<ChunkGenerationResult> AsyncWorldGenerator::DrainCompletedChunks()
 	{
-		return completed_chunks_.Drain();
+		ve::core::DynamicArray<ChunkGenerationResult> completed_chunks = completed_chunks_.Drain();
+		if (!completed_chunks.empty())
+		{
+			outstanding_requests_.fetch_sub(completed_chunks.size(), std::memory_order_relaxed);
+		}
+		return completed_chunks;
 	}
 
-	/// Reports terrain jobs waiting to start.
+	/// Reports terrain requests that still need to be drained on the game thread.
 	ve::core::Index AsyncWorldGenerator::PendingTaskCount() const
 	{
-		return background_tasks_.PendingTaskCount();
+		return outstanding_requests_.load(std::memory_order_relaxed);
 	}
 }

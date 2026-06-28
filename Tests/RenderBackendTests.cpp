@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+// TODO: Add runtime smoke tests that create a real window/backend with overlay disabled and exit after a few frames.
 TEST_CASE("render backend selector uses the explicitly requested compatibility backend")
 {
 	const ve::rendering::RenderBackendConfiguration configuration{
@@ -37,6 +38,7 @@ TEST_CASE("render backend selector defaults to vulkan when legacy rendering is g
 
 TEST_CASE("render backend catalog exposes vulkan as the default api")
 {
+	// TODO: Fail this test once Vulkan migration status regresses from backend-neutral world rendering.
 	const ve::rendering::RenderBackendDescriptor& backend = ve::rendering::RenderBackendCatalog::DefaultBackend();
 
 	CHECK(backend.api == ve::rendering::GraphicsApi::Vulkan);
@@ -89,6 +91,8 @@ TEST_CASE("vulkan swapchain choices prefer uncapped present and srgb")
 	CHECK(ve::rendering::ChooseSwapchainSurfaceFormat(formats).format == VK_FORMAT_B8G8R8A8_SRGB);
 	CHECK(ve::rendering::ChooseSwapchainPresentMode(modes) == VK_PRESENT_MODE_IMMEDIATE_KHR);
 	CHECK(ve::rendering::ChooseSwapchainPresentMode(low_latency_modes) == VK_PRESENT_MODE_MAILBOX_KHR);
+	CHECK(ve::rendering::ChooseSwapchainPresentMode(modes, true) == VK_PRESENT_MODE_FIFO_KHR);
+	CHECK(ve::rendering::ChooseSwapchainPresentMode(low_latency_modes, true) == VK_PRESENT_MODE_FIFO_KHR);
 }
 
 TEST_CASE("vulkan render view exposes vulkan hpp handles")

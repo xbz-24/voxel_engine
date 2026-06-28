@@ -32,7 +32,8 @@ namespace ve::world
 	void World::UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline)
 	{
 		meshPipeline.CollectCompletedBuilds();
-		for (ve::world::mesh::ChunkMeshBuildOutput& output : meshPipeline.DrainUploadBacklog())
+		auto upload_backlog = meshPipeline.DrainUploadBacklog();
+		for (ve::world::mesh::ChunkMeshBuildOutput& output : upload_backlog)
 		{
 			TryUploadChunkMeshOutput(std::move(output));
 		}
@@ -72,7 +73,14 @@ namespace ve::world
 			Chunk* chunk = FindChunk(candidate.chunk_x, candidate.chunk_z);
 			if (!chunk || !chunk->TryReserveMeshBuild()) continue;
 			auto request = CaptureChunkMeshBuildRequest(candidate.chunk_x, candidate.chunk_z);
-			if (request && meshPipeline.RequestBuild(std::move(*request), blockRegistry)) ++scheduled_count;
+			if (request && meshPipeline.RequestBuild(std::move(*request), blockRegistry))
+			{
+				++scheduled_count;
+			}
+			else
+			{
+				chunk->CancelMeshBuildReservation();
+			}
 		}
 	}
 }

@@ -8,6 +8,7 @@ namespace ve::world::mesh
 	class ChunkMeshPipeline
 	{
 	public:
+		// TODO: Add per-chunk in-flight tracking so duplicate mesh jobs are coalesced instead of queued repeatedly.
 		/**
 		 * Creates the async mesh pipeline.
 		 *
@@ -43,6 +44,7 @@ namespace ve::world::mesh
 		std::size_t PendingUploadCount() const;
 
 	private:
+		// TODO: Surface pipeline stats to renderer diagnostics and public API callbacks.
 		AsyncChunkMeshScheduler _scheduler;
 		ChunkMeshUploadQueue _uploadQueue;
 	};

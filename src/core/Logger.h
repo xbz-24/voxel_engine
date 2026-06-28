@@ -5,6 +5,8 @@
 #include "LoggerConfiguration.h"
 
 #include <filesystem>
+#include <functional>
+#include <string>
 #include <string_view>
 
 namespace ve::log
@@ -44,6 +46,9 @@ namespace ve::log
 	 * @return True when the file sink was opened successfully.
 	 */
 	bool SetFileOutput(const std::filesystem::path& path);
+
+	/** @param callback Optional sink receiving formatted log lines after built-in sinks. */
+	void SetCallback(std::function<void(std::string)> callback);
 
 	/**
 	 * Closes the file sink when one is active.

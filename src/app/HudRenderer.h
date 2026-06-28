@@ -84,7 +84,7 @@ namespace ve::ui
 		/// Draws a screen-space row of icons.
 		void DrawIconRow(GLuint texture, float startX, float y, float iconSize, float spacing, int count, float direction);
 
-		/// Draws the fixed Minecraft-like HUD widgets.
+		/// Draws the fixed voxel HUD widgets.
 		void DrawSurvivalHud(const ve::engine::Window& window, const ve::blocks::BlockRegistry& blockRegistry, ve::blocks::BlockId selectedPlacementBlock);
 
 		/// Draws debug text readouts.

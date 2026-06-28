@@ -14,6 +14,7 @@ namespace ve::rendering
 	/** CPU-side decoded RGBA8 image data. */
 	struct DecodedImage
 	{
+		// TODO: Add image format metadata, mip levels, and color-space intent for material-aware uploads.
 		int width = 0;
 		int height = 0;
 		std::vector<std::uint8_t> rgba;
@@ -36,6 +37,7 @@ namespace ve::rendering
 	 * @return Backend-neutral texture handle wrapping the OpenGL texture registry id.
 	 */
 	[[nodiscard]] TextureHandle UploadOpenGLTexture(const DecodedImage& image);
+	// TODO: Add UploadVulkanTexture through a backend texture interface instead of exposing backend-specific helpers here.
 
 	/** @param handle Backend-neutral handle. @return Native OpenGL texture id for compatibility renderer binding. */
 	[[nodiscard]] GLuint NativeOpenGLTexture(TextureHandle handle) noexcept;

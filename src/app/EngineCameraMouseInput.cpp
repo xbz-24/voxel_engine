@@ -5,6 +5,7 @@
 
 void EngineApplication::ConfigureCallbacks(ve::engine::Window& window, CallbackContext& context)
 {
+	// TODO: Route callbacks through an input router so ImGui, public callbacks, and gameplay share capture rules.
 	window.SetCallbackUserData(&context);
 	glfwSetCursorPosCallback(window.GetNativeWindow(), mouse_callback);
 	window.SetCursorMode(ve::engine::Window::CursorMode::Captured);
@@ -12,6 +13,7 @@ void EngineApplication::ConfigureCallbacks(ve::engine::Window& window, CallbackC
 
 void EngineApplication::mouse_callback(GLFWwindow* window, double currentMouseCursorPosX, double currentMouseCursorPosY) noexcept
 {
+	// TODO: Move mouse-look sensitivity and inversion into RuntimeSettings/public camera controls.
 	CallbackContext* context = static_cast<CallbackContext*>(ve::engine::Window::GetCallbackUserData(window));
 	if (!context || !context->camera)
 	{

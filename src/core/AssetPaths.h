@@ -9,6 +9,7 @@ namespace ve::assets
 	 */
 	struct AssetPaths
 	{
+		// TODO: Merge this with public AssetCatalog so built-in and user-provided assets resolve through one pipeline.
 		std::filesystem::path rootDirectory;
 		std::filesystem::path blockTexturesDirectory;
 		std::filesystem::path environmentTexturesDirectory;
@@ -31,5 +32,6 @@ namespace ve::assets
 	 *
 	 * @return Resolved asset path bundle.
 	 */
+	// TODO: Stop relying on ROOT_DIR for packaged builds; prefer executable-relative and user-specified search roots.
 	AssetPaths Resolve();
 }

@@ -7,6 +7,7 @@ namespace ve::network
 {
 	NetworkPumpStats NetworkSession::ApplyIncomingMessages(ve::world::World& world)
 	{
+		// TODO: Add per-peer rate limiting and validation before applying remote world mutations.
 		if (_mode == NetworkSessionMode::Hosting)
 		{
 			return ApplyServerMessages(world);
@@ -20,6 +21,7 @@ namespace ve::network
 
 	NetworkPumpStats NetworkSession::ApplyServerMessages(ve::world::World& world)
 	{
+		// TODO: Deduplicate echoed mutations so the origin client can reconcile prediction cleanly.
 		NetworkPumpStats stats;
 		for (const MultiplayerInboundMessage& inboundMessage : _server.DrainIncomingMessages())
 		{
@@ -36,6 +38,7 @@ namespace ve::network
 
 	NetworkPumpStats NetworkSession::ApplyClientMessages(ve::world::World& world)
 	{
+		// TODO: Add ordered delivery/replay handling before clients receive multi-chunk world snapshots.
 		NetworkPumpStats stats;
 		for (const NetworkMessage& message : _client.DrainIncomingMessages())
 		{

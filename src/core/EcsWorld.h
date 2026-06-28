@@ -4,6 +4,7 @@
 
 namespace ve::ecs
 {
+	// TODO: Add component storage and queries so public SceneGraph entities can map onto real runtime entities.
 	class EcsWorld
 	{
 	public:
@@ -20,6 +21,7 @@ namespace ve::ecs
 		[[nodiscard]] ve::core::Index AliveCount() const noexcept;
 
 	private:
+		// TODO: Add generation-safe handles to public API before exposing entity ids outside the engine.
 		EntityRegistry registry_;
 	};
 }

@@ -21,6 +21,7 @@ namespace ve::world
 	using ChunkAllocator = std::pmr::polymorphic_allocator<Chunk>;
 	using ChunkList = std::vector<Chunk, ChunkAllocator>;
 
+	// TODO: Split storage, generation, meshing, and event publication so World can be used headlessly by tools/tests.
 	class World
 	{
 	public:
@@ -37,6 +38,7 @@ namespace ve::world
 
 		/** @param worldSize Number of chunks along each world side. */
 		void SpawnFlatGrid(int worldSize);
+		// TODO: Add streaming world bounds so large worlds are not limited to one fixed square grid.
 
 		/** @param settings Spawn settings containing the world size in chunks. */
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
@@ -73,6 +75,7 @@ namespace ve::world
 
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
+		// TODO: Add event subscription filters so renderer, networking, and gameplay do not all drain the same queue.
 
 		/** @return Number of events waiting for consumers. */
 		std::size_t PendingEventCount() const noexcept;
@@ -90,6 +93,7 @@ namespace ve::world
 		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks);
 
 	private:
+		// TODO: Replace linear chunk lookup with coordinate-indexed storage before raising world size limits.
 		/// Returns the chunk that contains a chunk-grid coordinate.
 		Chunk* FindChunk(int chunkX, int chunkZ);
 
@@ -112,6 +116,7 @@ namespace ve::world
 		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
 		LevelSpawn _levelSpawn;
+		// TODO: Persist dirty chunk metadata separately from Chunk so serialization can stream only changed regions.
 		ChunkList _chunks;
 		std::vector<WorldEvent> _pendingEvents;
 		int _worldSize;

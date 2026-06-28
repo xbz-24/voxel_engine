@@ -16,9 +16,10 @@ namespace ve::rendering
 		return formats.empty() ? VkSurfaceFormatKHR{} : formats.front();
 	}
 
-	/** Chooses uncapped immediate present for the Vulkan demo when available, then low-latency mailbox, then guaranteed FIFO. */
-	VkPresentModeKHR ChooseSwapchainPresentMode(std::span<const VkPresentModeKHR> present_modes) noexcept
+	/** Chooses FIFO for vsync, otherwise uncapped immediate, low-latency mailbox, then guaranteed FIFO. */
+	VkPresentModeKHR ChooseSwapchainPresentMode(std::span<const VkPresentModeKHR> present_modes, bool is_vsync_enabled) noexcept
 	{
+		if (is_vsync_enabled) return VK_PRESENT_MODE_FIFO_KHR;
 		for (VkPresentModeKHR mode : present_modes)
 		{
 			if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) return mode;

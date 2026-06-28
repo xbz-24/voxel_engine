@@ -1,24 +1,40 @@
 #include "VulkanDemoSceneBuilder.h"
 
 #include "Block.h"
+#include "BlockSolidColor.h"
 #include "Chunk.h"
 #include "ChunkTerrain.h"
+#include "ImportedModel.h"
+#include "Logger.h"
+#include "ModelAssetLibrary.h"
 #include "World.h"
+
+#include <stb_image.h>
+
+#include <glm/geometric.hpp>
 
 #include <algorithm>
 #include <array>
-#include <boost/container/small_vector.hpp>
+#include <cctype>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <glm/vec3.hpp>
+#include <filesystem>
+#include <limits>
+#include <optional>
 #include <random>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace ve::engine
 {
 	namespace
 	{
 		using ve::blocks::BlockId;
-		using ve::rendering::VulkanMinecraftDemoPreset;
 		using ve::rendering::VulkanMinecraftDemoSceneConfig;
 
 		struct DemoBounds
@@ -30,30 +46,35 @@ namespace ve::engine
 			int center_z = 0;
 		};
 
-		struct TreeStyle
+		struct SurfacePoint
 		{
-			BlockId log;
-			BlockId leaves;
-			int trunk_bonus;
+			int x = 0;
+			int y = 0;
+			int z = 0;
 		};
 
 		[[nodiscard]] VulkanMinecraftDemoSceneConfig Sanitize(VulkanMinecraftDemoSceneConfig config) noexcept
 		{
 			config.ground_y = std::clamp(config.ground_y, 34, 76);
-			config.terrain_radius = std::clamp(config.terrain_radius, 24, 62);
-			config.hill_height = std::clamp(config.hill_height, 0, 28);
-			config.house_count = std::clamp(config.house_count, 0, 9);
-			config.tree_count = std::clamp(config.tree_count, 0, 96);
-			config.farm_rows = std::clamp(config.farm_rows, 0, 16);
-			config.water_radius = std::clamp(config.water_radius, 0, 22);
-			config.tower_height = std::clamp(config.tower_height, 6, 28);
-			config.lantern_count = std::clamp(config.lantern_count, 0, 32);
-			config.ore_richness = std::clamp(config.ore_richness, 0, 32);
-			config.market_stall_count = std::clamp(config.market_stall_count, 0, 8);
-			config.floating_island_count = std::clamp(config.floating_island_count, 0, 6);
+			config.terrain_radius = std::clamp(config.terrain_radius, 48, 140);
+			config.hill_height = std::clamp(config.hill_height, 4, 22);
+			config.house_count = std::clamp(config.house_count, 0, 120);
+			config.tree_count = std::clamp(config.tree_count, 0, 520);
+			config.farm_rows = std::clamp(config.farm_rows, 0, 48);
+			config.water_radius = std::clamp(config.water_radius, 0, 14);
+			config.tower_height = std::clamp(config.tower_height, 2, 14);
+			config.lantern_count = std::clamp(config.lantern_count, 0, 40);
+			config.ore_richness = std::clamp(config.ore_richness, 0, 56);
+			config.market_stall_count = std::clamp(config.market_stall_count, 0, 220);
+			config.floating_island_count = 0;
 			config.ruin_count = std::clamp(config.ruin_count, 0, 8);
-			config.bridge_count = std::clamp(config.bridge_count, 0, 4);
-			config.vista_marker_count = std::clamp(config.vista_marker_count, 0, 24);
+			config.bridge_count = 0;
+			config.vista_marker_count = std::clamp(config.vista_marker_count, 0, 12);
+			config.village = false;
+			config.farms = false;
+			config.market = false;
+			config.floating_islands = false;
+			config.beacon = false;
 			return config;
 		}
 
@@ -95,6 +116,377 @@ namespace ve::engine
 			}
 		}
 
+		void FillColumnRange(ve::world::World& world, const DemoBounds& bounds, int x, int min_y, int z, int max_y, BlockId block)
+		{
+			if (max_y < min_y) return;
+			FillBox(world, bounds, x, min_y, z, x, max_y, z, block);
+		}
+
+		void ResetDemoWorld(ve::world::World& world)
+		{
+			const ve::world::WorldMetrics metrics = world.Metrics();
+			world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ metrics.worldSizeChunks });
+		}
+
+		void FillEllipsoid(ve::world::World& world,
+			const DemoBounds& bounds,
+			int cx,
+			int cy,
+			int cz,
+			int rx,
+			int ry,
+			int rz,
+			BlockId block)
+		{
+			for (int dx = -rx; dx <= rx; ++dx)
+			{
+				for (int dy = -ry; dy <= ry; ++dy)
+				{
+					for (int dz = -rz; dz <= rz; ++dz)
+					{
+						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(rx, 1));
+						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(ry, 1));
+						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(rz, 1));
+						if ((nx * nx) + (ny * ny) + (nz * nz) <= 1.0f)
+						{
+							SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, block);
+						}
+					}
+				}
+			}
+		}
+
+		[[nodiscard]] std::string Lowercase(std::string value)
+		{
+			std::ranges::transform(value, value.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+			return value;
+		}
+
+		[[nodiscard]] bool IsModelExtension(const std::filesystem::path& path)
+		{
+			const std::string extension = Lowercase(path.extension().string());
+			return extension == ".obj" || extension == ".fbx" || extension == ".gltf" || extension == ".glb" ||
+				extension == ".dae" || extension == ".stl" || extension == ".ply" || extension == ".3ds" ||
+				extension == ".blend" || extension == ".x";
+		}
+
+		[[nodiscard]] std::filesystem::path AssetRoot()
+		{
+#if defined(ROOT_DIR)
+			return std::filesystem::path{ ROOT_DIR } / "assets" / "models";
+#else
+			return std::filesystem::current_path() / "assets" / "models";
+#endif
+		}
+
+		[[nodiscard]] std::optional<std::filesystem::path> FindModelAsset(std::string_view keyword)
+		{
+			const std::filesystem::path root = AssetRoot();
+			if (!std::filesystem::exists(root)) return std::nullopt;
+			const std::string needle = Lowercase(std::string{ keyword });
+			for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(root))
+			{
+				if (!entry.is_regular_file()) continue;
+				const std::filesystem::path path = entry.path();
+				if (!IsModelExtension(path)) continue;
+				const std::string name = Lowercase(path.filename().string());
+				const std::string parent = Lowercase(path.parent_path().filename().string());
+				if (name.find(needle) != std::string::npos || parent.find(needle) != std::string::npos) return path;
+			}
+			return std::nullopt;
+		}
+
+		[[nodiscard]] std::uint64_t VoxelKey(int x, int y, int z) noexcept
+		{
+			return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(x)) << 40u) ^
+				(static_cast<std::uint64_t>(static_cast<std::uint32_t>(y)) << 20u) ^
+				static_cast<std::uint64_t>(static_cast<std::uint32_t>(z));
+		}
+
+		[[nodiscard]] std::uint32_t StableStringHash(std::string_view value) noexcept
+		{
+			std::uint32_t hash = 2166136261u;
+			for (char ch : value)
+			{
+				hash ^= static_cast<std::uint8_t>(ch);
+				hash *= 16777619u;
+			}
+			return hash;
+		}
+
+		template <std::size_t Count>
+		[[nodiscard]] BlockId PickBlock(const std::array<BlockId, Count>& palette, std::uint32_t hash) noexcept
+		{
+			return palette[hash % Count];
+		}
+
+		struct ImportedTexture
+		{
+			int width = 0;
+			int height = 0;
+			std::vector<std::uint8_t> pixels;
+		};
+
+		using TextureCache = std::unordered_map<std::string, ImportedTexture>;
+
+		[[nodiscard]] bool IsLoaded(const ImportedTexture& texture) noexcept
+		{
+			return texture.width > 0 && texture.height > 0 && !texture.pixels.empty();
+		}
+
+		[[nodiscard]] const ImportedTexture* CachedTexture(TextureCache& cache, const std::filesystem::path& path)
+		{
+			if (path.empty()) return nullptr;
+			const std::string key = path.lexically_normal().string();
+			if (const auto existing = cache.find(key); existing != cache.end())
+			{
+				return IsLoaded(existing->second) ? &existing->second : nullptr;
+			}
+
+			ImportedTexture texture;
+			if (std::filesystem::exists(path))
+			{
+				int width = 0;
+				int height = 0;
+				int channels = 0;
+				stbi_uc* data = stbi_load(path.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				if (data != nullptr && width > 0 && height > 0)
+				{
+					const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+					texture.width = width;
+					texture.height = height;
+					texture.pixels.assign(data, data + byte_count);
+				}
+				stbi_image_free(data);
+			}
+
+			const auto inserted = cache.emplace(key, std::move(texture));
+			return IsLoaded(inserted.first->second) ? &inserted.first->second : nullptr;
+		}
+
+		[[nodiscard]] float NormalizedHeight(const glm::vec3& point, const glm::vec3& minimum, const glm::vec3& maximum) noexcept
+		{
+			const float height = std::max(maximum.y - minimum.y, 0.0001f);
+			return std::clamp((point.y - minimum.y) / height, 0.0f, 1.0f);
+		}
+
+		[[nodiscard]] bool HasUsefulMaterialColor(const glm::vec4& color) noexcept
+		{
+			const float white_distance = std::abs(color.r - 1.0f) + std::abs(color.g - 1.0f) + std::abs(color.b - 1.0f);
+			const float black_distance = color.r + color.g + color.b;
+			const float saturation = std::max({ color.r, color.g, color.b }) - std::min({ color.r, color.g, color.b });
+			return color.a > 0.05f && white_distance > 0.20f && black_distance > 0.08f && saturation > 0.025f;
+		}
+
+		[[nodiscard]] bool HasUsefulTextureColor(ve::blocks::SolidBlockColor color) noexcept
+		{
+			const float white_distance = std::abs(color.r - 1.0f) + std::abs(color.g - 1.0f) + std::abs(color.b - 1.0f);
+			const float black_distance = color.r + color.g + color.b;
+			return color.a > 0.05f && white_distance > 0.08f && black_distance > 0.06f;
+		}
+
+		[[nodiscard]] ve::blocks::SolidBlockColor SampleTextureColor(const ImportedTexture& texture, glm::vec2 uv) noexcept
+		{
+			uv.x -= std::floor(uv.x);
+			uv.y -= std::floor(uv.y);
+			const int x = std::clamp(static_cast<int>(uv.x * static_cast<float>(texture.width)), 0, texture.width - 1);
+			const int y = std::clamp(static_cast<int>((1.0f - uv.y) * static_cast<float>(texture.height)), 0, texture.height - 1);
+			const std::size_t index = ((static_cast<std::size_t>(y) * static_cast<std::size_t>(texture.width)) + static_cast<std::size_t>(x)) * 4u;
+			return {
+				static_cast<float>(texture.pixels[index]) / 255.0f,
+				static_cast<float>(texture.pixels[index + 1u]) / 255.0f,
+				static_cast<float>(texture.pixels[index + 2u]) / 255.0f,
+				static_cast<float>(texture.pixels[index + 3u]) / 255.0f
+			};
+		}
+
+		[[nodiscard]] std::optional<ve::blocks::SolidBlockColor> SampleMaterialColor(const ve::assets::ImportedModel& model,
+			const ve::assets::ImportedMesh& mesh,
+			glm::vec2 uv,
+			TextureCache& texture_cache)
+		{
+			if (mesh.material_index >= model.materials.size()) return std::nullopt;
+			const ve::assets::ImportedMaterial& material = model.materials[mesh.material_index];
+			if (const ImportedTexture* texture = CachedTexture(texture_cache, material.albedo_texture))
+			{
+				const ve::blocks::SolidBlockColor sampled = SampleTextureColor(*texture, uv);
+				if (HasUsefulTextureColor(sampled)) return sampled;
+			}
+			if (HasUsefulMaterialColor(material.base_color))
+			{
+				return ve::blocks::SolidBlockColor{ material.base_color.r, material.base_color.g, material.base_color.b, material.base_color.a };
+			}
+			return std::nullopt;
+		}
+
+		[[nodiscard]] BlockId BlockFromSourceColor(const ve::assets::ImportedModel& model, ve::core::Index material_index)
+		{
+			if (material_index >= model.materials.size()) return BlockId::Air;
+			const glm::vec4 color = model.materials[material_index].base_color;
+			return HasUsefulMaterialColor(color) ? ve::blocks::NearestSolidColorBlock({ color.r, color.g, color.b, color.a }) : BlockId::Air;
+		}
+
+		[[nodiscard]] BlockId BlockForAquaTriangle(std::string_view hints, float height, std::uint32_t hash) noexcept
+		{
+			if (hints.find("hair") != std::string::npos || hints.find("blue") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::DiamondOre, BlockId::LapisOre, BlockId::Glass } }, hash);
+			if (hints.find("skin") != std::string::npos || hints.find("face") != std::string::npos || hints.find("body") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::Sandstone, BlockId::CutSandstone, BlockId::BirchPlanks } }, hash);
+			if (hints.find("cloth") != std::string::npos || hints.find("dress") != std::string::npos || hints.find("skirt") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::Snow, BlockId::Diorite, BlockId::DiamondOre } }, hash);
+			if (height > 0.78f) return PickBlock(std::array<BlockId, 3>{ { BlockId::DiamondOre, BlockId::LapisOre, BlockId::Glass } }, hash);
+			if (height > 0.58f) return PickBlock(std::array<BlockId, 3>{ { BlockId::Sandstone, BlockId::CutSandstone, BlockId::DiamondOre } }, hash);
+			if (height > 0.34f) return PickBlock(std::array<BlockId, 4>{ { BlockId::Snow, BlockId::Diorite, BlockId::DiamondOre, BlockId::AmethystBlock } }, hash);
+			return PickBlock(std::array<BlockId, 3>{ { BlockId::Blackstone, BlockId::DiamondOre, BlockId::Snow } }, hash);
+		}
+
+		[[nodiscard]] BlockId BlockForSponzaTriangle(std::string_view hints, float height, std::uint32_t hash) noexcept
+		{
+			if (hints.find("leaf") != std::string::npos || hints.find("plant") != std::string::npos || hints.find("green") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::MossBlock, BlockId::OakLeaves, BlockId::BirchLeaves } }, hash);
+			if (hints.find("curtain") != std::string::npos || hints.find("cloth") != std::string::npos || hints.find("red") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::Terracotta, BlockId::RedSandstone, BlockId::Bricks } }, hash);
+			if (hints.find("wood") != std::string::npos || hints.find("bark") != std::string::npos) return PickBlock(std::array<BlockId, 3>{ { BlockId::OakLog, BlockId::SpruceLog, BlockId::OakPlanks } }, hash);
+			if (hints.find("roof") != std::string::npos || height > 0.82f) return PickBlock(std::array<BlockId, 3>{ { BlockId::Terracotta, BlockId::RedSandstone, BlockId::Blackstone } }, hash);
+			return PickBlock(std::array<BlockId, 6>{ { BlockId::Stone, BlockId::Andesite, BlockId::MossyCobblestone, BlockId::Cobblestone, BlockId::Granite, BlockId::Blackstone } }, hash);
+		}
+
+		[[nodiscard]] BlockId BlockForImportedTriangle(const ve::assets::ImportedModel& model,
+			const ve::assets::ImportedMesh& mesh,
+			const glm::vec3& centroid,
+			const glm::vec3& minimum,
+			const glm::vec3& maximum,
+			const std::optional<ve::blocks::SolidBlockColor>& sampled_color)
+		{
+			std::string hints = Lowercase(mesh.name);
+			if (mesh.material_index < model.materials.size())
+			{
+				const ve::assets::ImportedMaterial& material = model.materials[mesh.material_index];
+				hints += " " + Lowercase(material.name + " " + material.albedo_texture.string());
+			}
+			const std::string source = Lowercase(model.source_path.string());
+			const float height = NormalizedHeight(centroid, minimum, maximum);
+			const std::uint32_t hash = StableStringHash(hints) + static_cast<std::uint32_t>(height * 997.0f);
+			const BlockId sampled_block = sampled_color ? ve::blocks::NearestSolidColorBlock(*sampled_color) : BlockId::Air;
+			if (source.find("aqua") != std::string::npos || source.find("konosuba") != std::string::npos)
+			{
+				return sampled_block != BlockId::Air ? sampled_block : BlockForAquaTriangle(hints, height, hash);
+			}
+			if (source.find("sponza") != std::string::npos || source.find("atrium") != std::string::npos)
+			{
+				return sampled_block != BlockId::Air ? sampled_block : BlockForSponzaTriangle(hints, height, hash);
+			}
+			const BlockId source_color = sampled_block != BlockId::Air ? sampled_block : BlockFromSourceColor(model, mesh.material_index);
+			if (source_color != BlockId::Air) return source_color;
+			return PickBlock(std::array<BlockId, 4>{ { BlockId::Diorite, BlockId::Stone, BlockId::CutSandstone, BlockId::MossBlock } }, hash);
+		}
+
+		[[nodiscard]] bool ModelBounds(const ve::assets::ImportedModel& model, glm::vec3& minimum, glm::vec3& maximum)
+		{
+			minimum = glm::vec3{ std::numeric_limits<float>::max() };
+			maximum = glm::vec3{ std::numeric_limits<float>::lowest() };
+			bool has_vertex = false;
+			for (const ve::assets::ImportedMesh& mesh : model.meshes)
+			{
+				for (const ve::assets::ImportedVertex& vertex : mesh.vertices)
+				{
+					minimum = glm::min(minimum, vertex.position);
+					maximum = glm::max(maximum, vertex.position);
+					has_vertex = true;
+				}
+			}
+			return has_vertex;
+		}
+
+		[[nodiscard]] glm::vec3 ModelToVoxelPosition(const glm::vec3& position,
+			const glm::vec3& minimum,
+			const glm::vec3& target_origin,
+			float scale) noexcept
+		{
+			return target_origin + ((position - minimum) * scale);
+		}
+
+		void PlaceImportedVoxel(ve::world::World& world,
+			const DemoBounds& bounds,
+			std::unordered_set<std::uint64_t>& occupied,
+			const glm::vec3& position,
+			BlockId block,
+			std::size_t& budget)
+		{
+			if (budget == 0) return;
+			const int x = static_cast<int>(std::round(position.x));
+			const int y = static_cast<int>(std::round(position.y));
+			const int z = static_cast<int>(std::round(position.z));
+			if (!IsInside(bounds, x, y, z)) return;
+			const std::uint64_t key = VoxelKey(x, y, z);
+			if (!occupied.insert(key).second) return;
+			SetBlock(world, bounds, x, y, z, block);
+			--budget;
+		}
+
+		void VoxelizeTriangle(ve::world::World& world,
+			const DemoBounds& bounds,
+			std::unordered_set<std::uint64_t>& occupied,
+			glm::vec3 a,
+			glm::vec3 b,
+			glm::vec3 c,
+			BlockId block,
+			std::size_t& budget)
+		{
+			const float longest = std::max({ glm::length(a - b), glm::length(b - c), glm::length(c - a) });
+			const int samples = std::clamp(static_cast<int>(std::ceil(longest * 1.55f)), 1, 24);
+			for (int u = 0; u <= samples && budget > 0; ++u)
+			{
+				for (int v = 0; v <= samples - u && budget > 0; ++v)
+				{
+					const float fu = static_cast<float>(u) / static_cast<float>(samples);
+					const float fv = static_cast<float>(v) / static_cast<float>(samples);
+					const float fw = 1.0f - fu - fv;
+					PlaceImportedVoxel(world, bounds, occupied, (a * fu) + (b * fv) + (c * fw), block, budget);
+				}
+			}
+		}
+
+		[[nodiscard]] bool VoxelizeImportedModel(ve::world::World& world,
+			const DemoBounds& bounds,
+			const ve::assets::ImportedModel& model,
+			int base_y,
+			int target_extent,
+			std::size_t voxel_budget)
+		{
+			glm::vec3 minimum{};
+			glm::vec3 maximum{};
+			if (!ModelBounds(model, minimum, maximum)) return false;
+			const glm::vec3 source_size = maximum - minimum;
+			const float longest_axis = std::max({ source_size.x, source_size.y, source_size.z });
+			if (longest_axis <= 0.0001f) return false;
+			const float scale = static_cast<float>(target_extent) / longest_axis;
+			const glm::vec3 target_size = source_size * scale;
+			const glm::vec3 target_origin{
+				static_cast<float>(bounds.center_x) - (target_size.x * 0.5f),
+				static_cast<float>(base_y),
+				static_cast<float>(bounds.center_z) - (target_size.z * 0.5f)
+			};
+
+			std::unordered_set<std::uint64_t> occupied;
+			occupied.reserve(std::min<std::size_t>(voxel_budget, 300'000u));
+			TextureCache texture_cache;
+			for (const ve::assets::ImportedMesh& mesh : model.meshes)
+			{
+				for (std::size_t index = 0; index + 2 < mesh.indices.size() && voxel_budget > 0; index += 3)
+				{
+					const std::uint32_t ai = mesh.indices[index];
+					const std::uint32_t bi = mesh.indices[index + 1u];
+					const std::uint32_t ci = mesh.indices[index + 2u];
+					if (ai >= mesh.vertices.size() || bi >= mesh.vertices.size() || ci >= mesh.vertices.size()) continue;
+					const glm::vec3 source_centroid = (mesh.vertices[ai].position + mesh.vertices[bi].position + mesh.vertices[ci].position) / 3.0f;
+					const glm::vec2 source_uv = (mesh.vertices[ai].texture_coordinates + mesh.vertices[bi].texture_coordinates + mesh.vertices[ci].texture_coordinates) / 3.0f;
+					const std::optional<ve::blocks::SolidBlockColor> sampled_color = SampleMaterialColor(model, mesh, source_uv, texture_cache);
+					const BlockId block = BlockForImportedTriangle(model, mesh, source_centroid, minimum, maximum, sampled_color);
+					const glm::vec3 a = ModelToVoxelPosition(mesh.vertices[ai].position, minimum, target_origin, scale);
+					const glm::vec3 b = ModelToVoxelPosition(mesh.vertices[bi].position, minimum, target_origin, scale);
+					const glm::vec3 c = ModelToVoxelPosition(mesh.vertices[ci].position, minimum, target_origin, scale);
+					VoxelizeTriangle(world, bounds, occupied, a, b, c, block, voxel_budget);
+				}
+			}
+			return !occupied.empty();
+		}
+
 		[[nodiscard]] float Hash01(int x, int z, int seed) noexcept
 		{
 			std::uint32_t value = static_cast<std::uint32_t>(x) * 0x9E3779B9u;
@@ -106,87 +498,15 @@ namespace ve::engine
 			return static_cast<float>(value & 0xFFFFu) / 65535.0f;
 		}
 
-		[[nodiscard]] int TerrainHeightAt(const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config, int x, int z) noexcept
+		[[nodiscard]] float SignedHash(int x, int z, int seed) noexcept
 		{
-			const float dx = static_cast<float>(x - bounds.center_x);
-			const float dz = static_cast<float>(z - bounds.center_z);
-			const float distance = std::sqrt((dx * dx) + (dz * dz));
-			const float radial = std::max(0.0f, 1.0f - (distance / static_cast<float>(std::max(config.terrain_radius, 1))));
-			const float wave = std::sin((static_cast<float>(x + config.seed) * 0.17f)) +
-				std::cos((static_cast<float>(z - config.seed) * 0.13f));
-			float height = static_cast<float>(config.ground_y) + (radial * radial * static_cast<float>(config.hill_height) * 0.38f) + (wave * 1.25f);
-
-			if (config.preset == VulkanMinecraftDemoPreset::QuarryOutpost)
-			{
-				const float ridge = std::max(0.0f, 1.0f - std::abs(static_cast<float>(x - (bounds.center_x + 28))) / 24.0f);
-				height += ridge * static_cast<float>(config.hill_height) * 0.65f;
-			}
-			if (config.preset == VulkanMinecraftDemoPreset::ForestFarm)
-			{
-				height += Hash01(x / 3, z / 3, config.seed) * 2.5f;
-			}
-			if (config.preset == VulkanMinecraftDemoPreset::StressTown)
-			{
-				height += static_cast<float>(((x / 6) + (z / 6)) % 2) * 2.0f;
-			}
-
-			if (config.water && config.water_radius > 0)
-			{
-				const int lake_x = bounds.center_x - 22;
-				const int lake_z = bounds.center_z + 28;
-				const int lake_dx = x - lake_x;
-				const int lake_dz = z - lake_z;
-				if ((lake_dx * lake_dx) + (lake_dz * lake_dz) < config.water_radius * config.water_radius)
-				{
-					height = std::min(height, static_cast<float>(config.ground_y - 2));
-				}
-			}
-			return std::clamp(static_cast<int>(std::round(height)), 6, bounds.height - 8);
-		}
-
-		void ClearColumnAboveDemoFloor(ve::world::World& world, const DemoBounds& bounds, int x, int z, int floor_y)
-		{
-			FillBox(world, bounds, x, std::max(1, floor_y - 12), z, x, bounds.height - 1, z, BlockId::Air);
-		}
-
-		void SetTerrainColumn(ve::world::World& world, const DemoBounds& bounds, int x, int z, int surface_y, BlockId surface)
-		{
-			FillBox(world, bounds, x, std::max(0, surface_y - 7), z, x, surface_y - 4, z, BlockId::Stone);
-			FillBox(world, bounds, x, surface_y - 3, z, x, surface_y - 1, z, BlockId::Dirt);
-			SetBlock(world, bounds, x, surface_y, z, surface);
-		}
-
-		void BuildTerrain(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
-		{
-			const int margin = 4;
-			for (int x = margin; x < bounds.width - margin; ++x)
-			{
-				for (int z = margin; z < bounds.depth - margin; ++z)
-				{
-					ClearColumnAboveDemoFloor(world, bounds, x, z, config.ground_y);
-					const int surface_y = TerrainHeightAt(bounds, config, x, z);
-					BlockId surface = surface_y >= config.ground_y + config.hill_height - 1 && config.hill_height > 14 ? BlockId::Snow : BlockId::Grass;
-					if (Hash01(x, z, config.seed + 41) < 0.035f && surface == BlockId::Grass) surface = BlockId::MossBlock;
-					SetTerrainColumn(world, bounds, x, z, surface_y, surface);
-				}
-			}
-		}
-
-		void FlattenArea(ve::world::World& world, const DemoBounds& bounds, int min_x, int min_z, int max_x, int max_z, int y, BlockId surface)
-		{
-			for (int x = min_x; x <= max_x; ++x)
-			{
-				for (int z = min_z; z <= max_z; ++z)
-				{
-					FillBox(world, bounds, x, y - 8, z, x, bounds.height - 1, z, BlockId::Air);
-					SetTerrainColumn(world, bounds, x, z, y, surface);
-				}
-			}
+			return (Hash01(x, z, seed) * 2.0f) - 1.0f;
 		}
 
 		[[nodiscard]] int FindGroundY(const ve::world::World& world, const DemoBounds& bounds, int x, int z, int fallback_y)
 		{
-			for (int y = std::min(bounds.height - 2, fallback_y + 34); y >= 1; --y)
+			if (x < 0 || x >= bounds.width || z < 0 || z >= bounds.depth) return fallback_y;
+			for (int y = bounds.height - 2; y >= 1; --y)
 			{
 				const BlockId block = world.GetBlock(x, y, z);
 				if (block != BlockId::Air && block != BlockId::Water && block != BlockId::Glass) return y;
@@ -194,427 +514,594 @@ namespace ve::engine
 			return fallback_y;
 		}
 
-		void BuildPathRect(ve::world::World& world, const DemoBounds& bounds, int min_x, int min_z, int max_x, int max_z, int y)
+		[[nodiscard]] int TerrainHeightAt(const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config, int x, int z) noexcept
 		{
-			FillBox(world, bounds, min_x, y, min_z, max_x, y, max_z, BlockId::Gravel);
-			if ((max_x - min_x) > (max_z - min_z))
-			{
-				FillBox(world, bounds, min_x, y, min_z - 1, max_x, y, min_z - 1, BlockId::MossyCobblestone);
-				FillBox(world, bounds, min_x, y, max_z + 1, max_x, y, max_z + 1, BlockId::MossyCobblestone);
-			}
-			else
-			{
-				FillBox(world, bounds, min_x - 1, y, min_z, min_x - 1, y, max_z, BlockId::MossyCobblestone);
-				FillBox(world, bounds, max_x + 1, y, min_z, max_x + 1, y, max_z, BlockId::MossyCobblestone);
-			}
+			const float fx = static_cast<float>(x - bounds.center_x);
+			const float fz = static_cast<float>(z - bounds.center_z);
+			const float distance = std::sqrt((fx * fx) + (fz * fz));
+			const float radius = static_cast<float>(std::max(config.terrain_radius, 1));
+			const float radial_fade = std::clamp(1.0f - (distance / (radius + 42.0f)), 0.0f, 1.0f);
+			const float canopy_a = std::sin((static_cast<float>(x + config.seed) * 0.037f) + (static_cast<float>(z) * 0.019f));
+			const float canopy_b = std::sin((static_cast<float>(x - z) * 0.027f) + (static_cast<float>(config.seed) * 0.009f));
+			const float ridge = std::cos((static_cast<float>(x) * 0.075f) + (static_cast<float>(z) * 0.041f) -
+				(static_cast<float>(config.seed) * 0.007f));
+			const float local = SignedHash(x / 3, z / 3, config.seed + 71) * 1.9f;
+			const float height =
+				static_cast<float>(config.ground_y) +
+				(canopy_a * static_cast<float>(config.hill_height) * 0.34f * radial_fade) +
+				(canopy_b * static_cast<float>(config.hill_height) * 0.26f) +
+				(ridge * 2.8f * radial_fade) +
+				local;
+			return std::clamp(static_cast<int>(std::round(height)), 6, bounds.height - 10);
 		}
 
-		void BuildHouse(ve::world::World& world, const DemoBounds& bounds, int x, int z, int y, int style)
+		[[nodiscard]] BlockId SurfaceBlockFor(const VulkanMinecraftDemoSceneConfig& config, int x, int z, int surface_y) noexcept
 		{
-			const std::array wood_blocks{ BlockId::OakPlanks, BlockId::BirchPlanks, BlockId::SprucePlanks, BlockId::CherryPlanks };
-			const std::array log_blocks{ BlockId::OakLog, BlockId::BirchLog, BlockId::SpruceLog, BlockId::CherryLog };
-			const BlockId wall = wood_blocks[static_cast<std::size_t>(style) % wood_blocks.size()];
-			const BlockId log = log_blocks[static_cast<std::size_t>(style) % log_blocks.size()];
-			const BlockId roof = style % 3 == 0 ? BlockId::Bricks : (style % 3 == 1 ? BlockId::Cobblestone : BlockId::Blackstone);
-			const int width = 8 + (style % 2) * 2;
-			const int depth = 8;
-			FlattenArea(world, bounds, x - 1, z - 1, x + width, z + depth, y, BlockId::Grass);
-			FillBox(world, bounds, x, y, z, x + width - 1, y, z + depth - 1, BlockId::OakPlanks);
-
-			for (int level = 1; level <= 4; ++level)
-			{
-				FillBox(world, bounds, x, y + level, z, x + width - 1, y + level, z, wall);
-				FillBox(world, bounds, x, y + level, z + depth - 1, x + width - 1, y + level, z + depth - 1, wall);
-				FillBox(world, bounds, x, y + level, z, x, y + level, z + depth - 1, wall);
-				FillBox(world, bounds, x + width - 1, y + level, z, x + width - 1, y + level, z + depth - 1, wall);
-			}
-			FillBox(world, bounds, x, y + 1, z, x, y + 5, z, log);
-			FillBox(world, bounds, x + width - 1, y + 1, z, x + width - 1, y + 5, z, log);
-			FillBox(world, bounds, x, y + 1, z + depth - 1, x, y + 5, z + depth - 1, log);
-			FillBox(world, bounds, x + width - 1, y + 1, z + depth - 1, x + width - 1, y + 5, z + depth - 1, log);
-
-			FillBox(world, bounds, x - 1, y + 5, z - 1, x + width, y + 5, z + depth, roof);
-			FillBox(world, bounds, x, y + 6, z, x + width - 1, y + 6, z + depth - 1, roof);
-			FillBox(world, bounds, x + 2, y + 7, z + 2, x + width - 3, y + 7, z + depth - 3, roof);
-			FillBox(world, bounds, x + 3, y + 8, z + 3, x + width - 4, y + 8, z + depth - 4, roof);
-
-			FillBox(world, bounds, x + width / 2 - 1, y + 1, z, x + width / 2, y + 3, z, BlockId::Air);
-			SetBlock(world, bounds, x + 2, y + 2, z, BlockId::Glass);
-			SetBlock(world, bounds, x + width - 3, y + 2, z + depth - 1, BlockId::Glass);
-			SetBlock(world, bounds, x, y + 2, z + 3, BlockId::Glass);
-			SetBlock(world, bounds, x + width - 1, y + 2, z + 4, BlockId::Glass);
-			SetBlock(world, bounds, x + 2, y + 1, z + 2, BlockId::CraftingTable);
-			SetBlock(world, bounds, x + 3, y + 1, z + 2, BlockId::Bookshelf);
-			SetBlock(world, bounds, x + 4, y + 1, z + 2, BlockId::Bookshelf);
+			const float vein_width = 0.014f + (static_cast<float>(config.ore_richness) * 0.0006f);
+			const float root_line = std::abs(std::sin((static_cast<float>(x) * 0.24f) + (static_cast<float>(z) * 0.17f) +
+				(static_cast<float>(config.seed) * 0.005f)));
+			const float warm_patch = Hash01(x / 2, z / 2, config.seed + 19);
+			if (root_line < vein_width && warm_patch > 0.30f) return warm_patch > 0.68f ? BlockId::MossyCobblestone : BlockId::MossBlock;
+			if (surface_y > config.ground_y + (config.hill_height / 2) && warm_patch < 0.16f) return BlockId::Stone;
+			if (warm_patch < 0.16f) return BlockId::MossBlock;
+			if (warm_patch > 0.94f) return BlockId::OakLeaves;
+			return BlockId::Grass;
 		}
 
-		void BuildWell(ve::world::World& world, const DemoBounds& bounds, int x, int z, int y)
+		void SetJungleColumn(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config, int x, int z, int surface_y)
 		{
-			FillBox(world, bounds, x - 2, y, z - 2, x + 2, y, z + 2, BlockId::MossyCobblestone);
-			FillBox(world, bounds, x - 1, y + 1, z - 1, x + 1, y + 1, z + 1, BlockId::Water);
-			FillBox(world, bounds, x - 2, y + 1, z - 2, x - 2, y + 4, z - 2, BlockId::OakLog);
-			FillBox(world, bounds, x + 2, y + 1, z - 2, x + 2, y + 4, z - 2, BlockId::OakLog);
-			FillBox(world, bounds, x - 2, y + 1, z + 2, x - 2, y + 4, z + 2, BlockId::OakLog);
-			FillBox(world, bounds, x + 2, y + 1, z + 2, x + 2, y + 4, z + 2, BlockId::OakLog);
-			FillBox(world, bounds, x - 2, y + 5, z - 2, x + 2, y + 5, z + 2, BlockId::Bricks);
-			SetBlock(world, bounds, x, y + 4, z, BlockId::SeaLantern);
+			const float layer_noise = Hash01(x / 5, z / 5, config.seed + 43);
+			const BlockId base = layer_noise < 0.50f ? BlockId::Stone : (layer_noise < 0.74f ? BlockId::Andesite : BlockId::Deepslate);
+			const BlockId stratum = layer_noise < 0.55f ? BlockId::Dirt : (layer_noise < 0.80f ? BlockId::MossyCobblestone : BlockId::Granite);
+			const BlockId humus = layer_noise < 0.42f ? BlockId::Dirt : BlockId::MossBlock;
+			FillColumnRange(world, bounds, x, 0, z, std::max(0, surface_y - 15), BlockId::Deepslate);
+			FillColumnRange(world, bounds, x, std::max(0, surface_y - 13), z, surface_y - 8, base);
+			FillColumnRange(world, bounds, x, surface_y - 7, z, surface_y - 4, stratum);
+			FillColumnRange(world, bounds, x, surface_y - 3, z, surface_y - 1, humus);
+			SetBlock(world, bounds, x, surface_y, z, SurfaceBlockFor(config, x, z, surface_y));
 		}
 
-		void BuildVillage(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildJungleTerrain(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			if (!config.village) return;
-			const int y = config.ground_y;
-			const int center_x = bounds.center_x + 2;
-			const int center_z = bounds.center_z + 2;
-			FlattenArea(world, bounds, center_x - 28, center_z - 22, center_x + 32, center_z + 24, y, BlockId::Grass);
-			BuildPathRect(world, bounds, center_x - 31, center_z - 2, center_x + 35, center_z + 2, y);
-			BuildPathRect(world, bounds, center_x - 2, center_z - 24, center_x + 2, center_z + 26, y);
-			BuildWell(world, bounds, center_x, center_z, y);
-
-			boost::container::small_vector<glm::ivec3, 9> lots{
-				glm::ivec3{ center_x - 24, y, center_z - 18 },
-				glm::ivec3{ center_x + 12, y, center_z - 18 },
-				glm::ivec3{ center_x - 25, y, center_z + 10 },
-				glm::ivec3{ center_x + 15, y, center_z + 10 },
-				glm::ivec3{ center_x - 6, y, center_z - 33 },
-				glm::ivec3{ center_x + 34, y, center_z - 4 },
-				glm::ivec3{ center_x - 39, y, center_z - 3 },
-				glm::ivec3{ center_x + 2, y, center_z + 30 },
-				glm::ivec3{ center_x - 44, y, center_z + 20 }
-			};
-			for (int index = 0; index < std::min<int>(config.house_count, static_cast<int>(lots.size())); ++index)
+			const int margin = 3;
+			for (int x = margin; x < bounds.width - margin; ++x)
 			{
-				BuildHouse(world, bounds, lots[static_cast<std::size_t>(index)].x, lots[static_cast<std::size_t>(index)].z, y, index);
-			}
-		}
-
-		void BuildLake(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
-		{
-			if (!config.water || config.water_radius <= 0) return;
-			const int lake_x = bounds.center_x - 22;
-			const int lake_z = bounds.center_z + 28;
-			const int radius = config.water_radius;
-			for (int x = lake_x - radius - 3; x <= lake_x + radius + 3; ++x)
-			{
-				for (int z = lake_z - radius - 3; z <= lake_z + radius + 3; ++z)
+				for (int z = margin; z < bounds.depth - margin; ++z)
 				{
-					const int dx = x - lake_x;
-					const int dz = z - lake_z;
-					const int distance_sq = (dx * dx) + (dz * dz);
-					if (distance_sq > (radius + 2) * (radius + 2)) continue;
-					const bool water = distance_sq <= radius * radius;
-					FillBox(world, bounds, x, config.ground_y - 5, z, x, config.ground_y + 2, z, BlockId::Air);
-					SetTerrainColumn(world, bounds, x, z, config.ground_y - (water ? 2 : 1), water ? BlockId::Sand : BlockId::Grass);
-					if (water) SetBlock(world, bounds, x, config.ground_y - 1, z, BlockId::Water);
-					if (!water && Hash01(x, z, config.seed + 73) < 0.35f) SetBlock(world, bounds, x, config.ground_y, z, BlockId::Sand);
+					const int surface_y = TerrainHeightAt(bounds, config, x, z);
+					FillColumnRange(world, bounds, x, surface_y + 1, z, bounds.height - 1, BlockId::Air);
+					SetJungleColumn(world, bounds, config, x, z, surface_y);
 				}
 			}
-			FillBox(world, bounds, lake_x - radius - 2, config.ground_y, lake_z - 1, lake_x + radius + 2, config.ground_y, lake_z + 1, BlockId::OakPlanks);
-			FillBox(world, bounds, lake_x - radius - 2, config.ground_y + 1, lake_z - 2, lake_x + radius + 2, config.ground_y + 1, lake_z - 2, BlockId::OakLog);
-			FillBox(world, bounds, lake_x - radius - 2, config.ground_y + 1, lake_z + 2, lake_x + radius + 2, config.ground_y + 1, lake_z + 2, BlockId::OakLog);
 		}
 
-		void BuildBridges(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildGroundCover(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			if (config.bridge_count <= 0) return;
-			const int y = config.ground_y + 1;
-			const std::array starts{
-				glm::ivec3{ bounds.center_x - 34, y, bounds.center_z + 28 },
-				glm::ivec3{ bounds.center_x - 3, y, bounds.center_z - 24 },
-				glm::ivec3{ bounds.center_x + 20, y, bounds.center_z + 12 },
-				glm::ivec3{ bounds.center_x - 45, y, bounds.center_z - 8 }
-			};
-			for (int index = 0; index < config.bridge_count; ++index)
+			if (config.farm_rows <= 0) return;
+			const float threshold = 0.006f + (static_cast<float>(config.farm_rows) * 0.0018f);
+			const int radius_sq = config.terrain_radius * config.terrain_radius;
+			for (int x = bounds.center_x - config.terrain_radius; x <= bounds.center_x + config.terrain_radius; ++x)
 			{
-				const glm::ivec3 start = starts[static_cast<std::size_t>(index) % starts.size()];
-				const bool along_x = index % 2 == 0;
-				const int length = along_x ? 30 : 22;
-				for (int step = 0; step < length; ++step)
+				for (int z = bounds.center_z - config.terrain_radius; z <= bounds.center_z + config.terrain_radius; ++z)
 				{
-					const int x = start.x + (along_x ? step : 0);
-					const int z = start.z + (along_x ? 0 : step);
-					FillBox(world, bounds, x - (along_x ? 0 : 2), y, z - (along_x ? 2 : 0), x + (along_x ? 0 : 2), y, z + (along_x ? 2 : 0), BlockId::SprucePlanks);
-					if (step % 5 == 0)
+					const int dx = x - bounds.center_x;
+					const int dz = z - bounds.center_z;
+					if ((dx * dx) + (dz * dz) > radius_sq) continue;
+					const float wave = std::sin((static_cast<float>(x) * 0.72f) + (static_cast<float>(z) * 0.22f) + (static_cast<float>(config.seed) * 0.01f));
+					if (std::abs(wave) > threshold) continue;
+					if (Hash01(x, z, config.seed + 101) < 0.48f) continue;
+					const int y = FindGroundY(world, bounds, x, z, config.ground_y);
+					const float flower = Hash01(x, z, config.seed + 102);
+					const BlockId block = flower < 0.035f ? BlockId::DiamondOre :
+						(flower < 0.075f ? BlockId::AmethystBlock : (flower < 0.16f ? BlockId::HayBlock : (flower < 0.55f ? BlockId::MossBlock : BlockId::OakLeaves)));
+					SetBlock(world, bounds, x, y + 1, z, block);
+				}
+			}
+		}
+
+		void BuildLagoon(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			if (!config.water || config.water_radius <= 0) return;
+			const int cx = bounds.center_x - 26;
+			const int cz = bounds.center_z + 20;
+			const int radius = config.water_radius;
+			const int water_y = config.ground_y - 3;
+			for (int x = cx - radius - 7; x <= cx + radius + 7; ++x)
+			{
+				for (int z = cz - radius - 7; z <= cz + radius + 7; ++z)
+				{
+					const int dx = x - cx;
+					const int dz = z - cz;
+					const int distance_sq = (dx * dx) + (dz * dz);
+					if (distance_sq > (radius + 7) * (radius + 7)) continue;
+					const bool wet = distance_sq <= radius * radius;
+					const bool shore = !wet && distance_sq <= (radius + 3) * (radius + 3);
+					const int surface_y = wet ? water_y - 1 : (shore ? water_y : FindGroundY(world, bounds, x, z, config.ground_y));
+					FillBox(world, bounds, x, surface_y - 7, z, x, bounds.height - 1, z, BlockId::Air);
+					SetJungleColumn(world, bounds, config, x, z, surface_y);
+					if (wet)
 					{
-						FillBox(world, bounds, x - (along_x ? 0 : 3), y + 1, z - (along_x ? 3 : 0), x - (along_x ? 0 : 3), y + 3, z - (along_x ? 3 : 0), BlockId::OakLog);
-						FillBox(world, bounds, x + (along_x ? 0 : 3), y + 1, z + (along_x ? 3 : 0), x + (along_x ? 0 : 3), y + 3, z + (along_x ? 3 : 0), BlockId::OakLog);
-						SetBlock(world, bounds, x, y + 4, z, BlockId::SeaLantern);
+						SetBlock(world, bounds, x, water_y, z, BlockId::Water);
+					}
+					else if (shore)
+					{
+						SetBlock(world, bounds, x, surface_y, z, Hash01(x, z, config.seed + 121) < 0.35f ? BlockId::MossBlock : BlockId::Grass);
 					}
 				}
 			}
 		}
 
-		void BuildFarm(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void FillDisc(ve::world::World& world, const DemoBounds& bounds, int cx, int y, int cz, int radius, BlockId block, int noise_seed)
 		{
-			if (!config.farms || config.farm_rows <= 0) return;
-			const int y = config.ground_y;
-			const int min_x = bounds.center_x - 46;
-			const int min_z = bounds.center_z - 18;
-			const int rows = config.farm_rows;
-			FlattenArea(world, bounds, min_x - 2, min_z - 2, min_x + 24, min_z + rows + 4, y, BlockId::Dirt);
-			for (int row = 0; row < rows; ++row)
+			for (int dx = -radius; dx <= radius; ++dx)
 			{
-				const BlockId crop = row % 3 == 0 ? BlockId::HayBlock : (row % 3 == 1 ? BlockId::Pumpkin : BlockId::Melon);
-				for (int x = min_x; x <= min_x + 22; ++x)
+				for (int dz = -radius; dz <= radius; ++dz)
 				{
-					SetBlock(world, bounds, x, y, min_z + row, row % 4 == 0 ? BlockId::Water : BlockId::Dirt);
-					if (row % 4 != 0 && x % 3 == 0) SetBlock(world, bounds, x, y + 1, min_z + row, crop);
+					const float normalized = static_cast<float>((dx * dx) + (dz * dz)) / static_cast<float>(std::max(radius * radius, 1));
+					if (normalized > 1.0f) continue;
+					if (normalized > 0.78f && Hash01(cx + dx, cz + dz, noise_seed) < 0.35f) continue;
+					SetBlock(world, bounds, cx + dx, y, cz + dz, block);
 				}
 			}
-			FillBox(world, bounds, min_x - 1, y, min_z - 1, min_x + 23, y, min_z - 1, BlockId::OakLog);
-			FillBox(world, bounds, min_x - 1, y, min_z + rows + 1, min_x + 23, y, min_z + rows + 1, BlockId::OakLog);
 		}
 
-		void BuildQuarryAndCave(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildMossyOutcrop(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (!config.cave) return;
-			const int qx = bounds.center_x + 31;
-			const int qz = bounds.center_z + 30;
-			const int y = config.ground_y;
-			for (int step = 0; step < 5; ++step)
+			const int cx = bounds.center_x + 52;
+			const int cz = bounds.center_z - 48;
+			const int base_y = FindGroundY(world, bounds, cx, cz, config.ground_y);
+			const int levels = std::max(2, config.tower_height / 3);
+			for (int level = 0; level < levels; ++level)
 			{
-				FillBox(world, bounds, qx - 11 + step, y + step, qz - 9 + step, qx + 11 - step, y + step, qz + 9 - step,
-					step % 2 == 0 ? BlockId::Stone : BlockId::Deepslate);
+				const int radius = std::max(3, 11 - (level * 3));
+				const BlockId block = level % 5 == 0 ? BlockId::MossyCobblestone : (level % 3 == 0 ? BlockId::Andesite : BlockId::Stone);
+				FillDisc(world, bounds, cx, base_y + 1 + level, cz, radius, block, config.seed + level);
 			}
-			FillBox(world, bounds, qx - 6, y + 1, qz - 10, qx + 6, y + 6, qz - 4, BlockId::Air);
-			FillBox(world, bounds, qx - 7, y + 1, qz - 11, qx - 7, y + 6, qz - 4, BlockId::Blackstone);
-			FillBox(world, bounds, qx + 7, y + 1, qz - 11, qx + 7, y + 6, qz - 4, BlockId::Blackstone);
-			FillBox(world, bounds, qx - 7, y + 7, qz - 11, qx + 7, y + 7, qz - 4, BlockId::Basalt);
-			const std::array ores{ BlockId::CoalOre, BlockId::IronOre, BlockId::CopperOre, BlockId::GoldOre, BlockId::EmeraldOre, BlockId::LapisOre, BlockId::DiamondOre };
-			for (int index = 0; index < config.ore_richness; ++index)
-			{
-				const int ox = qx - 8 + ((index * 5 + config.seed) % 17);
-				const int oy = y + 1 + ((index * 7) % 6);
-				const int oz = qz - 11 + ((index * 3) % 8);
-				SetBlock(world, bounds, ox, oy, oz, ores[static_cast<std::size_t>(index) % ores.size()]);
-			}
-			SetBlock(world, bounds, qx, y + 2, qz - 5, BlockId::SeaLantern);
-			SetBlock(world, bounds, qx - 3, y + 1, qz - 7, BlockId::AmethystBlock);
-			SetBlock(world, bounds, qx + 3, y + 1, qz - 7, BlockId::AmethystBlock);
+			FillDisc(world, bounds, cx, base_y + levels + 1, cz, 4, BlockId::MossBlock, config.seed + 401);
 		}
 
-		void BuildWatchtower(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildStreamCut(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			const int x = bounds.center_x + 38;
-			const int z = bounds.center_z - 21;
-			const int y = config.ground_y;
-			const int top = y + config.tower_height;
-			FlattenArea(world, bounds, x - 5, z - 5, x + 5, z + 5, y, BlockId::Grass);
-			FillBox(world, bounds, x - 1, y + 1, z - 1, x + 1, top - 3, z + 1, BlockId::OakLog);
-			FillBox(world, bounds, x - 4, top - 4, z - 4, x + 4, top - 4, z + 4, BlockId::SprucePlanks);
-			FillBox(world, bounds, x - 4, top - 3, z - 4, x - 4, top - 1, z + 4, BlockId::SprucePlanks);
-			FillBox(world, bounds, x + 4, top - 3, z - 4, x + 4, top - 1, z + 4, BlockId::SprucePlanks);
-			FillBox(world, bounds, x - 4, top - 3, z - 4, x + 4, top - 1, z - 4, BlockId::SprucePlanks);
-			FillBox(world, bounds, x - 4, top - 3, z + 4, x + 4, top - 1, z + 4, BlockId::SprucePlanks);
-			FillBox(world, bounds, x - 3, top, z - 3, x + 3, top, z + 3, BlockId::Bricks);
-			SetBlock(world, bounds, x, top + 1, z, BlockId::SeaLantern);
-			for (int step = 0; step < config.tower_height - 5; step += 2)
+			if (!config.cave) return;
+			for (int step = -config.terrain_radius; step <= config.terrain_radius; ++step)
 			{
-				SetBlock(world, bounds, x - 2, y + 1 + step, z, BlockId::OakPlanks);
-				SetBlock(world, bounds, x + 2, y + 2 + step, z, BlockId::OakPlanks);
-			}
-		}
-
-		void PlaceTree(ve::world::World& world, const DemoBounds& bounds, int x, int z, int y, const TreeStyle& style)
-		{
-			const int trunk_height = 4 + style.trunk_bonus + static_cast<int>(Hash01(x, z, y) * 3.0f);
-			FillBox(world, bounds, x, y + 1, z, x, y + trunk_height, z, style.log);
-			for (int lx = x - 3; lx <= x + 3; ++lx)
-			{
-				for (int lz = z - 3; lz <= z + 3; ++lz)
+				const int cx = bounds.center_x + step;
+				const int cz = bounds.center_z - 8 + static_cast<int>(std::round(std::sin(static_cast<float>(step) * 0.12f) * 9.0f));
+				const int half_width = 1 + (std::abs(step) % 4);
+				for (int offset = -half_width; offset <= half_width; ++offset)
 				{
-					const int distance = std::abs(lx - x) + std::abs(lz - z);
-					if (distance <= 4) SetBlock(world, bounds, lx, y + trunk_height + 1, lz, style.leaves);
-					if (distance <= 3) SetBlock(world, bounds, lx, y + trunk_height, lz, style.leaves);
-					if (distance <= 2) SetBlock(world, bounds, lx, y + trunk_height + 2, lz, style.leaves);
+					const int x = cx;
+					const int z = cz + offset;
+					const int ground = FindGroundY(world, bounds, x, z, config.ground_y);
+					const int carve = 1 + (half_width - std::abs(offset)) / 2;
+					FillBox(world, bounds, x, ground - carve + 1, z, x, ground + 2, z, BlockId::Air);
+					SetBlock(world, bounds, x, ground - carve, z, offset == 0 ? BlockId::Water : BlockId::MossyCobblestone);
+					if (std::abs(offset) == half_width) SetBlock(world, bounds, x, ground - carve + 1, z, BlockId::MossBlock);
 				}
 			}
 		}
 
-		void BuildTrees(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void CarveCavePocket(ve::world::World& world, const DemoBounds& bounds, int cx, int cy, int cz, int rx, int ry, int rz)
+		{
+			for (int dx = -rx; dx <= rx; ++dx)
+			{
+				for (int dy = -ry; dy <= ry; ++dy)
+				{
+					for (int dz = -rz; dz <= rz; ++dz)
+					{
+						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(rx, 1));
+						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(ry, 1));
+						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(rz, 1));
+						const float distance = (nx * nx) + (ny * ny * 1.4f) + (nz * nz);
+						if (distance <= 1.0f) SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, BlockId::Air);
+						else if (distance <= 1.25f && Hash01(cx + dx, cz + dz, cy + dy) > 0.38f)
+						{
+							SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, dy < 0 ? BlockId::MossyCobblestone : BlockId::Blackstone);
+						}
+					}
+				}
+			}
+		}
+
+		void PlaceCaveTorch(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int side)
+		{
+			SetBlock(world, bounds, x, y, z, BlockId::SpruceLog);
+			SetBlock(world, bounds, x, y + 1, z, BlockId::GoldOre);
+			SetBlock(world, bounds, x, y + 2, z, BlockId::SeaLantern);
+			SetBlock(world, bounds, x + side, y + 1, z, BlockId::Terracotta);
+		}
+
+		void BuildTorchCave(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			if (!config.cave) return;
+			const int start_x = bounds.center_x - 76;
+			const int start_z = bounds.center_z + 58;
+			for (int step = 0; step < 74; ++step)
+			{
+				const int x = start_x + step;
+				const int z = start_z + static_cast<int>(std::round(std::sin(static_cast<float>(step) * 0.18f) * 7.0f));
+				const int ground = FindGroundY(world, bounds, x, z, config.ground_y);
+				const int y = std::max(8, ground - 3 - (step / 18));
+				CarveCavePocket(world, bounds, x, y + 2, z, 4, 4, 3);
+				FillBox(world, bounds, x - 3, y - 1, z - 2, x + 3, y - 1, z + 2, step % 5 == 0 ? BlockId::MossBlock : BlockId::Stone);
+				if (step % 11 == 3) PlaceCaveTorch(world, bounds, x, y, z - 3, -1);
+				if (step % 17 == 8) PlaceCaveTorch(world, bounds, x, y, z + 3, 1);
+			}
+		}
+
+		void PlaceBoulder(ve::world::World& world, const DemoBounds& bounds, int cx, int base_y, int cz, int radius, int height, int seed)
+		{
+			const std::array<BlockId, 5> palette{ BlockId::Granite, BlockId::Andesite, BlockId::MossyCobblestone, BlockId::Stone, BlockId::MossBlock };
+			for (int dx = -radius; dx <= radius; ++dx)
+			{
+				for (int dz = -radius; dz <= radius; ++dz)
+				{
+					for (int dy = 0; dy <= height; ++dy)
+					{
+						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(radius, 1));
+						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(radius, 1));
+						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(height, 1));
+						if ((nx * nx) + (nz * nz) + (ny * ny * 1.3f) > 1.05f) continue;
+						if (Hash01(cx + dx, cz + dz + dy, seed) < 0.16f) continue;
+						const std::size_t palette_index = static_cast<std::size_t>((std::abs(dx) + std::abs(dz) + dy + seed) % static_cast<int>(palette.size()));
+						SetBlock(world, bounds, cx + dx, base_y + dy + 1, cz + dz, palette[palette_index]);
+					}
+				}
+			}
+		}
+
+		SurfacePoint RandomSurfacePoint(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config, std::mt19937& rng)
+		{
+			const int min_x = std::clamp(bounds.center_x - config.terrain_radius + 6, 3, std::max(3, bounds.width - 4));
+			const int max_x = std::clamp(bounds.center_x + config.terrain_radius - 6, min_x, std::max(min_x, bounds.width - 4));
+			const int min_z = std::clamp(bounds.center_z - config.terrain_radius + 6, 3, std::max(3, bounds.depth - 4));
+			const int max_z = std::clamp(bounds.center_z + config.terrain_radius - 6, min_z, std::max(min_z, bounds.depth - 4));
+			std::uniform_int_distribution<int> x_dist(min_x, max_x);
+			std::uniform_int_distribution<int> z_dist(min_z, max_z);
+			const int x = x_dist(rng);
+			const int z = z_dist(rng);
+			return SurfacePoint{ x, FindGroundY(world, bounds, x, z, config.ground_y), z };
+		}
+
+		void BuildRockFields(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 501));
+			for (int index = 0; index < config.house_count; ++index)
+			{
+				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
+				if (std::abs(point.x - bounds.center_x) < 10 && std::abs(point.z - bounds.center_z) < 10) continue;
+				const int radius = 1 + (index % 2);
+				const int height = ((index * 3) % 3);
+				PlaceBoulder(world, bounds, point.x, point.y, point.z, radius, height, config.seed + index);
+			}
+		}
+
+		void PlaceUnderstory(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int seed)
+		{
+			const float variant = Hash01(x, z, seed);
+			const BlockId flower = variant < 0.08f ? BlockId::DiamondOre : (variant < 0.16f ? BlockId::AmethystBlock : BlockId::OakLeaves);
+			SetBlock(world, bounds, x, y + 1, z, variant > 0.54f ? BlockId::MossBlock : flower);
+			if (variant > 0.30f) SetBlock(world, bounds, x + 1, y + 1, z, BlockId::OakLeaves);
+			if (variant > 0.58f) SetBlock(world, bounds, x - 1, y + 1, z, BlockId::BirchLeaves);
+			if (variant > 0.78f) SetBlock(world, bounds, x, y + 2, z, BlockId::MossBlock);
+		}
+
+		void PlaceCanopyTree(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int seed)
+		{
+			const int height = 12 + static_cast<int>(Hash01(x, z, seed) * 12.0f);
+			const BlockId trunk = Hash01(x, z, seed + 1) < 0.70f ? BlockId::SpruceLog : BlockId::OakLog;
+			const float leaf_roll = Hash01(x, z, seed + 2);
+			const BlockId leaves = leaf_roll < 0.58f ? BlockId::OakLeaves : (leaf_roll < 0.90f ? BlockId::BirchLeaves : BlockId::CherryLeaves);
+			FillBox(world, bounds, x, y + 1, z, x, y + height, z, trunk);
+			FillBox(world, bounds, x - 1, y + 1, z, x - 1, y + 4, z, trunk);
+			FillBox(world, bounds, x + 1, y + 1, z, x + 1, y + 4, z, trunk);
+			FillBox(world, bounds, x, y + 1, z - 1, x, y + 3, z - 1, trunk);
+			FillEllipsoid(world, bounds, x, y + height + 2, z, 6, 4, 6, leaves);
+			FillEllipsoid(world, bounds, x - 4, y + height, z + 2, 4, 3, 4, leaves);
+			FillEllipsoid(world, bounds, x + 4, y + height - 1, z - 1, 4, 3, 4, leaves);
+			if (Hash01(x, z, seed + 5) > 0.52f) FillBox(world, bounds, x - 2, y + height - 6, z + 3, x - 2, y + height, z + 3, BlockId::MossBlock);
+			if (Hash01(x, z, seed + 7) > 0.58f) FillBox(world, bounds, x + 3, y + height - 7, z - 2, x + 3, y + height, z - 2, BlockId::MossBlock);
+		}
+
+		void PlaceEmergentTree(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int seed)
+		{
+			const int height = 24 + static_cast<int>(Hash01(x, z, seed) * 16.0f);
+			FillBox(world, bounds, x, y + 1, z, x, y + height, z, BlockId::SpruceLog);
+			FillBox(world, bounds, x - 1, y + 1, z, x + 1, y + 6, z, BlockId::SpruceLog);
+			FillBox(world, bounds, x, y + 1, z - 1, x, y + 6, z + 1, BlockId::SpruceLog);
+			for (int level = 0; level < 5; ++level)
+			{
+				const int canopy_y = y + height - (level * 4);
+				const int radius = std::max(3, 9 - level);
+				FillDisc(world, bounds, x, canopy_y, z, radius, level % 2 == 0 ? BlockId::OakLeaves : BlockId::BirchLeaves, seed + level);
+				FillDisc(world, bounds, x, canopy_y + 1, z, std::max(2, radius - 2), BlockId::MossBlock, seed + 20 + level);
+			}
+			if (Hash01(x, z, seed + 8) > 0.42f) FillBox(world, bounds, x - 4, y + height - 18, z + 2, x - 4, y + height - 2, z + 2, BlockId::MossBlock);
+			if (Hash01(x, z, seed + 9) > 0.50f) FillBox(world, bounds, x + 5, y + height - 16, z - 3, x + 5, y + height - 1, z - 3, BlockId::MossBlock);
+		}
+
+		void PlaceFrog(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			FillBox(world, bounds, x - 1, y + 1, z, x + 1, y + 1, z + 1, BlockId::MossBlock);
+			SetBlock(world, bounds, x - 1, y + 2, z, BlockId::Blackstone);
+			SetBlock(world, bounds, x + 1, y + 2, z, BlockId::Blackstone);
+			SetBlock(world, bounds, x, y + 2, z + 1, BlockId::BirchLeaves);
+		}
+
+		void PlaceBird(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			SetBlock(world, bounds, x, y + 6, z, BlockId::DiamondOre);
+			FillBox(world, bounds, x - 2, y + 6, z, x - 1, y + 6, z, BlockId::AmethystBlock);
+			FillBox(world, bounds, x + 1, y + 6, z, x + 2, y + 6, z, BlockId::AmethystBlock);
+			SetBlock(world, bounds, x, y + 6, z - 1, BlockId::GoldOre);
+			SetBlock(world, bounds, x, y + 5, z, BlockId::OakLog);
+		}
+
+		void PlaceTapir(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			FillBox(world, bounds, x - 1, y + 1, z, x + 1, y + 2, z + 2, BlockId::Blackstone);
+			FillBox(world, bounds, x - 1, y + 1, z + 3, x + 1, y + 2, z + 3, BlockId::Snow);
+			SetBlock(world, bounds, x, y + 3, z + 3, BlockId::Diorite);
+		}
+
+		void PlaceCapybara(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			FillBox(world, bounds, x - 2, y + 1, z, x + 2, y + 2, z + 2, BlockId::OakPlanks);
+			FillBox(world, bounds, x - 1, y + 2, z + 3, x + 1, y + 3, z + 3, BlockId::OakLog);
+			FillBox(world, bounds, x - 2, y + 1, z, x + 2, y + 1, z, BlockId::Blackstone);
+			SetBlock(world, bounds, x - 1, y + 3, z + 4, BlockId::Blackstone);
+			SetBlock(world, bounds, x + 1, y + 3, z + 4, BlockId::Blackstone);
+		}
+
+		void PlaceDeer(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			FillBox(world, bounds, x - 1, y + 3, z, x + 1, y + 4, z + 3, BlockId::HayBlock);
+			FillBox(world, bounds, x - 1, y + 1, z, x - 1, y + 2, z, BlockId::OakLog);
+			FillBox(world, bounds, x + 1, y + 1, z, x + 1, y + 2, z, BlockId::OakLog);
+			FillBox(world, bounds, x - 1, y + 1, z + 3, x - 1, y + 2, z + 3, BlockId::OakLog);
+			FillBox(world, bounds, x + 1, y + 1, z + 3, x + 1, y + 2, z + 3, BlockId::OakLog);
+			SetBlock(world, bounds, x, y + 5, z + 4, BlockId::OakLog);
+			SetBlock(world, bounds, x - 1, y + 6, z + 4, BlockId::BirchLog);
+			SetBlock(world, bounds, x + 1, y + 6, z + 4, BlockId::BirchLog);
+		}
+
+		void ClearAnimalSpace(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z)
+		{
+			FillBox(world, bounds, x - 3, y + 1, z - 3, x + 3, y + 8, z + 5, BlockId::Air);
+		}
+
+		void BuildJunglePlants(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (!config.trees || config.tree_count <= 0) return;
-			const std::array styles{
-				TreeStyle{ BlockId::OakLog, BlockId::OakLeaves, 0 },
-				TreeStyle{ BlockId::BirchLog, BlockId::BirchLeaves, 0 },
-				TreeStyle{ BlockId::SpruceLog, BlockId::OakLeaves, 2 },
-				TreeStyle{ BlockId::CherryLog, BlockId::CherryLeaves, 0 }
-			};
-			std::mt19937 rng(static_cast<std::uint32_t>(config.seed));
-			std::uniform_int_distribution<int> x_dist(10, std::max(11, bounds.width - 11));
-			std::uniform_int_distribution<int> z_dist(10, std::max(11, bounds.depth - 11));
-			int placed = 0;
-			for (int attempt = 0; attempt < config.tree_count * 6 && placed < config.tree_count; ++attempt)
+			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 601));
+			for (int index = 0; index < config.tree_count; ++index)
 			{
-				const int x = x_dist(rng);
-				const int z = z_dist(rng);
-				if (std::abs(x - bounds.center_x) < 34 && std::abs(z - bounds.center_z) < 30) continue;
-				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
-				if (world.GetBlock(x, y, z) == BlockId::Water || y < config.ground_y - 4) continue;
-				const TreeStyle& style = styles[static_cast<std::size_t>((placed + config.seed) % static_cast<int>(styles.size()))];
-				PlaceTree(world, bounds, x, z, y, style);
-				++placed;
+				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
+				const float tree_roll = Hash01(point.x, point.z, config.seed + index);
+				if (tree_roll > 0.86f)
+				{
+					PlaceEmergentTree(world, bounds, point.x, point.y, point.z, config.seed + index);
+				}
+				else if (tree_roll > 0.54f)
+				{
+					PlaceCanopyTree(world, bounds, point.x, point.y, point.z, config.seed + index);
+				}
+				else
+				{
+					PlaceUnderstory(world, bounds, point.x, point.y, point.z, config.seed + index);
+				}
 			}
 		}
 
-		void BuildLights(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildWildlife(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			if (!config.lights || config.lantern_count <= 0) return;
-			for (int index = 0; index < config.lantern_count; ++index)
+			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 901));
+			for (int index = 0; index < 34; ++index)
 			{
-				const int side = index % 4;
-				const int offset = -24 + (index / 4) * 10;
-				const int x = side < 2 ? bounds.center_x + offset : bounds.center_x + (side == 2 ? -29 : 33);
-				const int z = side < 2 ? bounds.center_z + (side == 0 ? -5 : 5) : bounds.center_z + offset;
-				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
-				FillBox(world, bounds, x, y + 1, z, x, y + 3, z, BlockId::OakLog);
-				SetBlock(world, bounds, x, y + 4, z, BlockId::SeaLantern);
+				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
+				ClearAnimalSpace(world, bounds, point.x, point.y, point.z);
+				if (index % 5 == 0) PlaceFrog(world, bounds, point.x, point.y, point.z);
+				else if (index % 5 == 1) PlaceBird(world, bounds, point.x, point.y, point.z);
+				else if (index % 5 == 2) PlaceTapir(world, bounds, point.x, point.y, point.z);
+				else if (index % 5 == 3) PlaceCapybara(world, bounds, point.x, point.y, point.z);
+				else PlaceDeer(world, bounds, point.x, point.y, point.z);
 			}
 		}
 
-		void BuildMarket(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
-		{
-			if (!config.market || config.market_stall_count <= 0) return;
-			const int y = config.ground_y;
-			const int origin_x = bounds.center_x - 16;
-			const int origin_z = bounds.center_z + 9;
-			for (int index = 0; index < config.market_stall_count; ++index)
-			{
-				const int x = origin_x + (index % 4) * 8;
-				const int z = origin_z + (index / 4) * 9;
-				const BlockId canopy = index % 3 == 0 ? BlockId::HayBlock : (index % 3 == 1 ? BlockId::CherryPlanks : BlockId::BirchPlanks);
-				FlattenArea(world, bounds, x - 1, z - 1, x + 5, z + 5, y, BlockId::Gravel);
-				FillBox(world, bounds, x, y + 1, z, x, y + 4, z, BlockId::OakLog);
-				FillBox(world, bounds, x + 4, y + 1, z, x + 4, y + 4, z, BlockId::OakLog);
-				FillBox(world, bounds, x, y + 1, z + 4, x, y + 4, z + 4, BlockId::OakLog);
-				FillBox(world, bounds, x + 4, y + 1, z + 4, x + 4, y + 4, z + 4, BlockId::OakLog);
-				FillBox(world, bounds, x - 1, y + 5, z - 1, x + 5, y + 5, z + 5, canopy);
-				FillBox(world, bounds, x + 1, y + 1, z + 1, x + 3, y + 1, z + 3, index % 2 == 0 ? BlockId::Bookshelf : BlockId::CraftingTable);
-				SetBlock(world, bounds, x + 2, y + 2, z + 2, index % 2 == 0 ? BlockId::Pumpkin : BlockId::Melon);
-				SetBlock(world, bounds, x + 2, y + 4, z + 2, BlockId::SeaLantern);
-			}
-		}
-
-		void BuildAncientRuins(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildMossyRuins(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (!config.ruins || config.ruin_count <= 0) return;
 			for (int index = 0; index < config.ruin_count; ++index)
 			{
-				const int x = bounds.center_x + 18 + (index % 4) * 9;
-				const int z = bounds.center_z + 37 - (index / 4) * 11;
+				const int x = bounds.center_x - 46 + (index % 4) * 28;
+				const int z = bounds.center_z + 52 - (index / 4) * 24;
 				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
-				const int height = 3 + (index % 4);
-				FlattenArea(world, bounds, x - 3, z - 3, x + 3, z + 3, y, BlockId::MossyCobblestone);
-				FillBox(world, bounds, x - 3, y + 1, z - 3, x - 3, y + height, z - 3, BlockId::Blackstone);
-				FillBox(world, bounds, x + 3, y + 1, z - 3, x + 3, y + height - 1, z - 3, BlockId::Basalt);
-				FillBox(world, bounds, x - 3, y + 1, z + 3, x - 3, y + height - 2, z + 3, BlockId::Basalt);
-				FillBox(world, bounds, x + 3, y + 1, z + 3, x + 3, y + height, z + 3, BlockId::Blackstone);
-				if (index % 2 == 0) FillBox(world, bounds, x - 2, y + height, z, x + 2, y + height, z, BlockId::Blackstone);
+				const int height = 1 + (index % 2);
+				FillBox(world, bounds, x - 2, y + 1, z - 2, x - 2, y + height, z - 2, BlockId::MossyCobblestone);
+				FillBox(world, bounds, x + 2, y + 1, z - 2, x + 2, y + 1, z - 2, BlockId::Stone);
+				FillBox(world, bounds, x - 2, y + 1, z + 2, x - 2, y + 1, z + 2, BlockId::Andesite);
+				if (index % 3 == 0) FillBox(world, bounds, x - 1, y + 1, z, x + 1, y + 1, z, BlockId::MossBlock);
 				SetBlock(world, bounds, x, y + 1, z, BlockId::AmethystBlock);
-				SetBlock(world, bounds, x, y + 2, z, BlockId::SeaLantern);
 			}
 		}
 
-		void BuildFloatingIslands(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildPebbleFields(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			if (!config.floating_islands || config.floating_island_count <= 0) return;
-			for (int index = 0; index < config.floating_island_count; ++index)
+			const int count = config.market_stall_count * (config.stress_blocks ? 16 : 6);
+			if (count <= 0) return;
+			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 701));
+			const std::array<BlockId, 6> palette{ BlockId::Gravel, BlockId::Granite, BlockId::Andesite, BlockId::Diorite, BlockId::MossBlock, BlockId::OakLeaves };
+			for (int index = 0; index < count; ++index)
 			{
-				const int cx = bounds.center_x - 40 + (index % 3) * 35;
-				const int cz = bounds.center_z - 50 + (index / 3) * 24;
-				const int cy = config.ground_y + 24 + (index % 3) * 4;
-				const int radius = 5 + (index % 2);
-				for (int dx = -radius; dx <= radius; ++dx)
-				{
-					for (int dz = -radius; dz <= radius; ++dz)
-					{
-						for (int dy = -4; dy <= 1; ++dy)
-						{
-							const float nx = static_cast<float>(dx) / static_cast<float>(radius);
-							const float nz = static_cast<float>(dz) / static_cast<float>(radius);
-							const float ny = static_cast<float>(dy) / 4.0f;
-							if ((nx * nx) + (nz * nz) + (ny * ny) > 1.0f) continue;
-							const BlockId block = dy < -2 ? BlockId::Stone : (dy < 0 ? BlockId::Dirt : BlockId::Grass);
-							SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, block);
-						}
-					}
-				}
-				if (config.water && index % 2 == 0)
-				{
-					FillBox(world, bounds, cx, config.ground_y + 5, cz, cx, cy, cz, BlockId::Water);
-				}
-				SetBlock(world, bounds, cx, cy + 2, cz, BlockId::SeaLantern);
-				if (config.trees)
-				{
-					const TreeStyle style{ index % 2 == 0 ? BlockId::CherryLog : BlockId::BirchLog, index % 2 == 0 ? BlockId::CherryLeaves : BlockId::BirchLeaves, 0 };
-					PlaceTree(world, bounds, cx + 2, cz + 1, cy + 1, style);
-				}
+				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
+				if (Hash01(point.x, point.z, config.seed + index) < 0.25f) continue;
+				const std::size_t palette_index = static_cast<std::size_t>(index % static_cast<int>(palette.size()));
+				SetBlock(world, bounds, point.x, point.y + 1, point.z, palette[palette_index]);
 			}
 		}
 
-		void BuildBeacon(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildHeatGlints(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			if (!config.beacon) return;
-			const int x = bounds.center_x - 35;
-			const int z = bounds.center_z - 34;
-			const int y = FindGroundY(world, bounds, x, z, config.ground_y);
-			FlattenArea(world, bounds, x - 5, z - 5, x + 5, z + 5, y, BlockId::Blackstone);
-			FillBox(world, bounds, x - 3, y + 1, z - 3, x + 3, y + 1, z + 3, BlockId::SeaLantern);
-			FillBox(world, bounds, x - 2, y + 2, z - 2, x + 2, y + 2, z + 2, BlockId::Glass);
-			FillBox(world, bounds, x, y + 3, z, x, y + 24, z, BlockId::Glass);
-			FillBox(world, bounds, x - 1, y + 25, z - 1, x + 1, y + 25, z + 1, BlockId::SeaLantern);
-		}
-
-		void BuildBlockShowcase(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
-		{
-			const int x0 = bounds.center_x - 50;
-			const int z0 = bounds.center_z + 48;
-			const int y = config.ground_y;
-			const std::array blocks{
-				BlockId::Grass, BlockId::Dirt, BlockId::Stone, BlockId::Cobblestone, BlockId::Granite,
-				BlockId::Andesite, BlockId::Diorite, BlockId::Blackstone, BlockId::Basalt, BlockId::Bricks,
-				BlockId::OakPlanks, BlockId::BirchPlanks, BlockId::SprucePlanks, BlockId::CherryPlanks,
-				BlockId::SeaLantern, BlockId::Glass, BlockId::Water, BlockId::AmethystBlock
-			};
-			for (std::size_t index = 0; index < blocks.size(); ++index)
+			if (!config.lights || config.lantern_count <= 0) return;
+			for (int index = 0; index < config.lantern_count; ++index)
 			{
-				const int x = x0 + static_cast<int>(index % 9) * 4;
-				const int z = z0 + static_cast<int>(index / 9) * 4;
-				FillBox(world, bounds, x, y + 1, z, x + 2, y + 3, z + 2, blocks[index]);
-			}
-			if (!config.stress_blocks) return;
-			for (int row = 0; row < 8; ++row)
-			{
-				for (int column = 0; column < 24; ++column)
-				{
-					const BlockId block = blocks[static_cast<std::size_t>((row + column) % static_cast<int>(blocks.size()))];
-					FillBox(world, bounds, bounds.center_x - 50 + column * 2, y + 1, bounds.center_z - 55 + row * 3,
-						bounds.center_x - 49 + column * 2, y + 3 + (column % 4), bounds.center_z - 54 + row * 3, block);
-				}
+				const float angle = (static_cast<float>(index) / static_cast<float>(std::max(config.lantern_count, 1))) * 6.2831853f;
+				const int radius = 18 + ((index * 11) % std::max(config.terrain_radius - 18, 1));
+				const int x = bounds.center_x + static_cast<int>(std::round(std::cos(angle) * static_cast<float>(radius)));
+				const int z = bounds.center_z + static_cast<int>(std::round(std::sin(angle) * static_cast<float>(radius)));
+				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
+				SetBlock(world, bounds, x, y + 1, z, BlockId::Glass);
+				if (index % 4 == 0) SetBlock(world, bounds, x, y, z, BlockId::SeaLantern);
 			}
 		}
 
-		void BuildVistaMarkers(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		void BuildSurveyMarkers(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (config.vista_marker_count <= 0) return;
-			const int radius = std::max(28, config.terrain_radius - 6);
+			const int radius = std::max(28, config.terrain_radius - 4);
 			for (int index = 0; index < config.vista_marker_count; ++index)
 			{
 				const float angle = (static_cast<float>(index) / static_cast<float>(std::max(config.vista_marker_count, 1))) * 6.2831853f;
 				const int x = bounds.center_x + static_cast<int>(std::round(std::cos(angle) * static_cast<float>(radius)));
 				const int z = bounds.center_z + static_cast<int>(std::round(std::sin(angle) * static_cast<float>(radius)));
 				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
-				const BlockId base = index % 3 == 0 ? BlockId::Blackstone : (index % 3 == 1 ? BlockId::MossyCobblestone : BlockId::Basalt);
-				FillBox(world, bounds, x - 1, y + 1, z - 1, x + 1, y + 1, z + 1, base);
-				FillBox(world, bounds, x, y + 2, z, x, y + 5 + (index % 3), z, base);
-				SetBlock(world, bounds, x, y + 6 + (index % 3), z, BlockId::SeaLantern);
+				SetBlock(world, bounds, x, y + 1, z, BlockId::SeaLantern);
+				SetBlock(world, bounds, x, y + 2, z, index % 2 == 0 ? BlockId::DiamondOre : BlockId::AmethystBlock);
 			}
 		}
 
-		class MinecraftStyleShowcaseBuilder
+		void BuildModelStage(ve::world::World& world, const DemoBounds& bounds, int base_y, int radius)
+		{
+			FillBox(world, bounds,
+				bounds.center_x - radius,
+				base_y - 2,
+				bounds.center_z - radius,
+				bounds.center_x + radius,
+				base_y - 2,
+				bounds.center_z + radius,
+				BlockId::Blackstone);
+			FillBox(world, bounds,
+				bounds.center_x - radius + 1,
+				base_y - 1,
+				bounds.center_z - radius + 1,
+				bounds.center_x + radius - 1,
+				base_y - 1,
+				bounds.center_z + radius - 1,
+				BlockId::Andesite);
+			FillBox(world, bounds,
+				bounds.center_x - radius + 2,
+				base_y,
+				bounds.center_z - 1,
+				bounds.center_x + radius - 2,
+				base_y,
+				bounds.center_z + 1,
+				BlockId::Stone);
+			FillBox(world, bounds,
+				bounds.center_x - 1,
+				base_y,
+				bounds.center_z - radius + 2,
+				bounds.center_x + 1,
+				base_y,
+				bounds.center_z + radius - 2,
+				BlockId::Stone);
+		}
+
+		void BuildAquaFallback(ve::world::World& world, const DemoBounds& bounds, int base_y)
+		{
+			const int x = bounds.center_x;
+			const int z = bounds.center_z;
+			FillEllipsoid(world, bounds, x, base_y + 30, z, 10, 18, 6, BlockId::Snow);
+			FillEllipsoid(world, bounds, x, base_y + 55, z, 8, 10, 7, BlockId::Sandstone);
+			FillEllipsoid(world, bounds, x, base_y + 60, z, 12, 9, 10, BlockId::DiamondOre);
+			FillEllipsoid(world, bounds, x - 8, base_y + 47, z, 5, 18, 4, BlockId::DiamondOre);
+			FillEllipsoid(world, bounds, x + 8, base_y + 47, z, 5, 18, 4, BlockId::DiamondOre);
+			FillBox(world, bounds, x - 6, base_y + 12, z - 2, x - 2, base_y + 29, z + 2, BlockId::Sandstone);
+			FillBox(world, bounds, x + 2, base_y + 12, z - 2, x + 6, base_y + 29, z + 2, BlockId::Sandstone);
+			FillBox(world, bounds, x - 8, base_y, z - 3, x - 3, base_y + 12, z + 3, BlockId::DiamondOre);
+			FillBox(world, bounds, x + 3, base_y, z - 3, x + 8, base_y + 12, z + 3, BlockId::DiamondOre);
+			FillBox(world, bounds, x - 20, base_y + 36, z, x - 11, base_y + 40, z + 3, BlockId::Sandstone);
+			FillBox(world, bounds, x + 11, base_y + 36, z, x + 20, base_y + 40, z + 3, BlockId::Sandstone);
+			FillBox(world, bounds, x + 23, base_y + 4, z + 6, x + 25, base_y + 62, z + 8, BlockId::OakLog);
+			FillEllipsoid(world, bounds, x + 24, base_y + 66, z + 7, 5, 5, 5, BlockId::SeaLantern);
+		}
+
+		void BuildSponzaFallback(ve::world::World& world, const DemoBounds& bounds, int base_y)
+		{
+			const int cx = bounds.center_x;
+			const int cz = bounds.center_z;
+			FillBox(world, bounds, cx - 58, base_y, cz - 34, cx + 58, base_y, cz + 34, BlockId::Diorite);
+			for (int side = -1; side <= 1; side += 2)
+			{
+				const int z = cz + (side * 30);
+				FillBox(world, bounds, cx - 62, base_y + 1, z - 3, cx + 62, base_y + 4, z + 3, BlockId::Terracotta);
+				for (int i = -5; i <= 5; ++i)
+				{
+					const int x = cx + (i * 11);
+					FillBox(world, bounds, x - 2, base_y + 1, z - 2, x + 2, base_y + 34, z + 2, BlockId::Diorite);
+					FillEllipsoid(world, bounds, x, base_y + 38, z, 5, 4, 4, BlockId::CutSandstone);
+					if (i < 5)
+					{
+						FillBox(world, bounds, x + 4, base_y + 29, z - 2, x + 7, base_y + 34, z + 2, BlockId::CutSandstone);
+					}
+				}
+			}
+			FillBox(world, bounds, cx - 64, base_y + 40, cz - 36, cx + 64, base_y + 44, cz + 36, BlockId::RedSandstone);
+			FillBox(world, bounds, cx - 50, base_y + 45, cz - 30, cx + 50, base_y + 48, cz + 30, BlockId::Terracotta);
+			for (int x = cx - 44; x <= cx + 44; x += 12)
+			{
+				FillBox(world, bounds, x - 2, base_y + 1, cz - 6, x + 2, base_y + 9, cz + 6, BlockId::MossBlock);
+			}
+		}
+
+		void BuildImportedModelDemo(ve::world::World& world,
+			const DemoBounds& bounds,
+			std::string_view keyword,
+			int base_y,
+			int stage_radius,
+			int target_extent,
+			std::size_t voxel_budget,
+			void (*fallback)(ve::world::World&, const DemoBounds&, int))
+		{
+			(void)bounds;
+			ResetDemoWorld(world);
+			const DemoBounds reset_bounds = BoundsFor(world);
+			BuildModelStage(world, reset_bounds, base_y, stage_radius);
+			const std::optional<std::filesystem::path> model_path = FindModelAsset(keyword);
+			if (!model_path)
+			{
+				VE_LOG_CATEGORY_WARNING(ve::log::category::World, "Model demo asset not found under assets/models for keyword: " + std::string{ keyword });
+				fallback(world, reset_bounds, base_y);
+				return;
+			}
+
+			ve::assets::ModelAssetLibrary library;
+			std::optional<ve::assets::ImportedModel> model = library.ImportModel(*model_path);
+			if (!model || !VoxelizeImportedModel(world, reset_bounds, *model, base_y, target_extent, voxel_budget))
+			{
+				VE_LOG_CATEGORY_WARNING(ve::log::category::World, "Failed to voxelize model demo asset: " + model_path->string());
+				fallback(world, reset_bounds, base_y);
+				return;
+			}
+			VE_LOG_CATEGORY_INFO(ve::log::category::World, "Voxelized model demo asset: " + model_path->string());
+		}
+
+		void BuildAquaModelDemo(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			const int base_y = std::max(8, config.ground_y);
+			BuildImportedModelDemo(world, bounds, "aqua", base_y, 62, 128, 700'000u, BuildAquaFallback);
+		}
+
+		void BuildSponzaAtriumDemo(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
+		{
+			const int base_y = std::max(8, config.ground_y);
+			BuildImportedModelDemo(world, bounds, "sponza", base_y, 96, 170, 850'000u, BuildSponzaFallback);
+		}
+
+		class CrystalJungleBuilder
 		{
 		public:
-			MinecraftStyleShowcaseBuilder(ve::world::World& world, VulkanMinecraftDemoSceneConfig config)
+			CrystalJungleBuilder(ve::world::World& world, VulkanMinecraftDemoSceneConfig config)
 				: world_(world),
 				  config_(Sanitize(config)),
 				  bounds_(BoundsFor(world))
@@ -623,45 +1110,24 @@ namespace ve::engine
 
 			void Build()
 			{
-				BuildBaseTerrain();
-				BuildVillageAndWorksites();
-				BuildLandmarks();
-				BuildDebugShowcase();
+				ResetDemoWorld(world_);
+				bounds_ = BoundsFor(world_);
+				BuildJungleTerrain(world_, bounds_, config_);
+				BuildLagoon(world_, bounds_, config_);
+				BuildStreamCut(world_, bounds_, config_);
+				BuildTorchCave(world_, bounds_, config_);
+				BuildMossyOutcrop(world_, bounds_, config_);
+				BuildGroundCover(world_, bounds_, config_);
+				BuildRockFields(world_, bounds_, config_);
+				BuildPebbleFields(world_, bounds_, config_);
+				BuildJunglePlants(world_, bounds_, config_);
+				BuildMossyRuins(world_, bounds_, config_);
+				BuildWildlife(world_, bounds_, config_);
+				BuildHeatGlints(world_, bounds_, config_);
+				BuildSurveyMarkers(world_, bounds_, config_);
 			}
 
 		private:
-			void BuildBaseTerrain()
-			{
-				BuildTerrain(world_, bounds_, config_);
-				BuildLake(world_, bounds_, config_);
-				BuildBridges(world_, bounds_, config_);
-			}
-
-			void BuildVillageAndWorksites()
-			{
-				BuildVillage(world_, bounds_, config_);
-				BuildFarm(world_, bounds_, config_);
-				BuildQuarryAndCave(world_, bounds_, config_);
-				BuildMarket(world_, bounds_, config_);
-			}
-
-			void BuildLandmarks()
-			{
-				BuildWatchtower(world_, bounds_, config_);
-				BuildTrees(world_, bounds_, config_);
-				BuildLights(world_, bounds_, config_);
-				BuildAncientRuins(world_, bounds_, config_);
-				BuildFloatingIslands(world_, bounds_, config_);
-				BuildBeacon(world_, bounds_, config_);
-				BuildVistaMarkers(world_, bounds_, config_);
-			}
-
-			void BuildDebugShowcase()
-			{
-				// TODO: Move large authored demo structures into data assets once scene iteration needs more than code-side presets.
-				BuildBlockShowcase(world_, bounds_, config_);
-			}
-
 			ve::world::World& world_;
 			VulkanMinecraftDemoSceneConfig config_;
 			DemoBounds bounds_;
@@ -670,6 +1136,22 @@ namespace ve::engine
 
 	void VulkanDemoSceneBuilder::Build(ve::world::World& world, ve::rendering::VulkanMinecraftDemoSceneConfig config)
 	{
-		MinecraftStyleShowcaseBuilder{ world, config }.Build();
+		const VulkanMinecraftDemoSceneConfig sanitized = Sanitize(config);
+		switch (sanitized.preset)
+		{
+		case ve::rendering::VulkanMinecraftDemoPreset::AquaModel:
+			BuildAquaModelDemo(world, BoundsFor(world), sanitized);
+			break;
+		case ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium:
+			BuildSponzaAtriumDemo(world, BoundsFor(world), sanitized);
+			break;
+		case ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert:
+		default:
+		{
+			CrystalJungleBuilder builder{ world, sanitized };
+			builder.Build();
+			break;
+		}
+		}
 	}
 }

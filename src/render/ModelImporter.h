@@ -11,6 +11,7 @@ namespace ve::assets
 	class IModelImporter
 	{
 	public:
+		// TODO: Add importer diagnostics with warnings, missing textures, scale corrections, and animation support.
 		/** Releases importer implementation resources. */
 		virtual ~IModelImporter() = default;
 

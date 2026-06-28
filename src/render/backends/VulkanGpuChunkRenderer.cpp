@@ -1,6 +1,7 @@
 #include "VulkanGpuChunkRenderer.h"
 
 #include "BlockDefinitions.h"
+#include "BlockSolidColor.h"
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
@@ -23,6 +24,8 @@ namespace ve::rendering
 {
 	namespace
 	{
+		constexpr float FarWorldClipDistance = 1024.0f;
+
 		struct TextureUploadContext
 		{
 			VkImage image = VK_NULL_HANDLE;
@@ -39,8 +42,58 @@ namespace ve::rendering
 			VkDeviceSize byte_size = 0;
 		};
 
+		[[nodiscard]] bool OccludesLight(const ve::world::World& world, const glm::ivec3& coordinate) noexcept
+		{
+			return OccludesNeighborFaces(world.GetBlock(coordinate.x, coordinate.y, coordinate.z));
+		}
+
+		[[nodiscard]] float BlockLightBoost(ve::blocks::BlockId block) noexcept
+		{
+			using enum ve::blocks::BlockId;
+			if (block == SeaLantern) return 1.75f;
+			if (block == Glass || block == Water) return 1.16f;
+			if (block == GoldOre || block == DiamondOre || block == AmethystBlock) return 1.10f;
+			if (block == OakLeaves || block == BirchLeaves || block == CherryLeaves || block == MossBlock) return 0.96f;
+			return 1.0f;
+		}
+
+		[[nodiscard]] glm::ivec3 CornerSideOffset(const BlockFaceGeometry& face, std::size_t corner, int axis) noexcept
+		{
+			glm::ivec3 offset{ 0 };
+			const float value = face.corners[corner][static_cast<glm::length_t>(axis)];
+			offset[static_cast<glm::length_t>(axis)] = value < 0.5f ? -1 : 1;
+			return offset;
+		}
+
+		[[nodiscard]] float CornerOcclusion(const ve::world::World& world,
+			const BlockFaceGeometry& face,
+			const glm::ivec3& block_coordinate,
+			std::size_t corner) noexcept
+		{
+			std::array<glm::ivec3, 2> sides{};
+			std::size_t side_count = 0;
+			for (int axis = 0; axis < 3 && side_count < sides.size(); ++axis)
+			{
+				if (face.neighbor_offset[static_cast<glm::length_t>(axis)] == 0)
+				{
+					sides[side_count++] = CornerSideOffset(face, corner, axis);
+				}
+			}
+			if (side_count < sides.size()) return 1.0f;
+			const glm::ivec3 outside = block_coordinate + face.neighbor_offset;
+			const bool side_a = OccludesLight(world, outside + sides[0]);
+			const bool side_b = OccludesLight(world, outside + sides[1]);
+			const bool diagonal = OccludesLight(world, outside + sides[0] + sides[1]);
+			float shade = 1.0f;
+			if (side_a) shade -= 0.14f;
+			if (side_b) shade -= 0.14f;
+			if (diagonal) shade -= (side_a && side_b) ? 0.26f : 0.18f;
+			return std::clamp(shade, 0.46f, 1.0f);
+		}
+
 		std::vector<char> ReadBinaryFile(const std::filesystem::path& path)
 		{
+			// TODO: Cache shader bytecode and include path/context in errors for faster shader iteration.
 			std::ifstream file(path, std::ios::ate | std::ios::binary);
 			if (!file) return {};
 			const std::streamsize size = file.tellg();
@@ -53,6 +106,7 @@ namespace ve::rendering
 
 		std::vector<std::uint8_t> BuildFallbackTexture(std::uint32_t width, std::uint32_t height)
 		{
+			// TODO: Replace checkerboard fallback with a named diagnostic texture from the asset system.
 			std::vector<std::uint8_t> pixels(static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u);
 			for (std::uint32_t y = 0; y < height; ++y)
 			{
@@ -71,6 +125,7 @@ namespace ve::rendering
 
 		void RecordTextureUpload(VkCommandBuffer command_buffer, void* user_data)
 		{
+			// TODO: Move image layout transitions into a reusable Vulkan resource barrier helper.
 			const auto& context = *static_cast<const TextureUploadContext*>(user_data);
 			VkImageMemoryBarrier to_transfer{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 			to_transfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -112,6 +167,24 @@ namespace ve::rendering
 			VkBufferCopy copy{};
 			copy.size = context.byte_size;
 			vkCmdCopyBuffer(command_buffer, context.source, context.destination, 1u, &copy);
+
+			VkBufferMemoryBarrier to_vertex_input{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+			to_vertex_input.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			to_vertex_input.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
+			to_vertex_input.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			to_vertex_input.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			to_vertex_input.buffer = context.destination;
+			to_vertex_input.size = context.byte_size;
+			vkCmdPipelineBarrier(command_buffer,
+				VK_PIPELINE_STAGE_TRANSFER_BIT,
+				VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+				0,
+				0,
+				nullptr,
+				1,
+				&to_vertex_input,
+				0,
+				nullptr);
 		}
 
 	}
@@ -127,8 +200,8 @@ namespace ve::rendering
 		physical_device_ = backend.PhysicalDevice().Handle();
 		command_pool_ = command_pool;
 		if (device_ == VK_NULL_HANDLE || physical_device_ == VK_NULL_HANDLE || command_pool_ == VK_NULL_HANDLE) return false;
-		if (!CreateDescriptors() || !CreateTextureArray(block_texture_directory) || !CreateRenderPass() ||
-			!CreatePipeline(shader_directory) || !CreateSwapchainResources())
+		(void)block_texture_directory;
+		if (!CreateRenderPass() || !CreatePipeline(shader_directory) || !CreateSwapchainResources())
 		{
 			Release();
 			return false;
@@ -561,9 +634,8 @@ namespace ve::rendering
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		std::array attributes{
 			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, x)) },
-			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R32G32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, u)) },
-			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, texture_layer)) },
-			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, light)) }
+			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R32G32B32A32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, r)) },
+			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, light)) }
 		};
 		VkPipelineVertexInputStateCreateInfo vertex_input{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		vertex_input.vertexBindingDescriptionCount = 1u;
@@ -613,8 +685,8 @@ namespace ve::rendering
 		push_constants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		push_constants.size = sizeof(glm::mat4);
 		VkPipelineLayoutCreateInfo layout_info{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-		layout_info.setLayoutCount = 1u;
-		layout_info.pSetLayouts = &descriptor_set_layout_;
+		layout_info.setLayoutCount = 0u;
+		layout_info.pSetLayouts = nullptr;
 		layout_info.pushConstantRangeCount = 1u;
 		layout_info.pPushConstantRanges = &push_constants;
 		if (vkCreatePipelineLayout(device_, &layout_info, nullptr, &pipeline_layout_) != VK_SUCCESS) return false;
@@ -749,12 +821,13 @@ namespace ve::rendering
 			const ve::blocks::BlockId neighbor = world.GetBlock(x + face.neighbor_offset.x, y + face.neighbor_offset.y, z + face.neighbor_offset.z);
 			if (!OccludesNeighborFaces(neighbor))
 			{
-				AppendFaceMesh(face, x, y, z, block, vertices, indices);
+				AppendFaceMesh(face, world, x, y, z, block, vertices, indices);
 			}
 		}
 	}
 
 	void VulkanGpuChunkRenderer::AppendFaceMesh(const BlockFaceGeometry& face,
+		const ve::world::World& world,
 		int x,
 		int y,
 		int z,
@@ -763,19 +836,22 @@ namespace ve::rendering
 		std::vector<std::uint32_t>& indices) const
 	{
 		const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
-		const float layer = static_cast<float>(TextureLayer(block, face.face));
+		const ve::blocks::SolidBlockColor color = ve::blocks::JitteredSolidColor(block, x, y, z);
+		const glm::ivec3 block_coordinate{ x, y, z };
 		const glm::vec3 origin{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z) };
 		for (std::size_t corner = 0; corner < face.corners.size(); ++corner)
 		{
 			const glm::vec3 position = origin + face.corners[corner];
+			const float light = std::clamp(face.light * BlockLightBoost(block) * CornerOcclusion(world, face, block_coordinate, corner), 0.20f, 1.70f);
 			vertices.push_back(VoxelVertex{
 				position.x,
 				position.y,
 				position.z,
-				ChunkFaceUvs()[corner].x,
-				ChunkFaceUvs()[corner].y,
-				layer,
-				face.light
+				color.r,
+				color.g,
+				color.b,
+				color.a,
+				light
 			});
 		}
 		AppendQuadIndices(indices, base);
@@ -797,7 +873,7 @@ namespace ve::rendering
 
 	bool VulkanGpuChunkRenderer::EnsureWorldMesh(const ve::world::World& world)
 	{
-		if (mesh_valid_ && mesh_revision_ == world.Revision()) return true;
+		if (!NeedsWorldMeshUpdate(world)) return true;
 		// TODO: Surface rebuild/upload timing through renderer stats instead of relying only on debug log output.
 		const auto rebuild_start = std::chrono::steady_clock::now();
 		std::vector<VoxelVertex> vertices;
@@ -813,6 +889,11 @@ namespace ve::rendering
 		return true;
 	}
 
+	bool VulkanGpuChunkRenderer::NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept
+	{
+		return !mesh_valid_ || mesh_revision_ != world.Revision();
+	}
+
 	bool VulkanGpuChunkRenderer::Record(VkCommandBuffer command_buffer,
 		std::uint32_t image_index,
 		const Camera& camera,
@@ -821,7 +902,7 @@ namespace ve::rendering
 	{
 		if (!initialized_ || image_index >= framebuffers_.size()) return false;
 		VkClearValue clear_color{};
-		clear_color.color = { { 0.50f, 0.66f, 0.84f, 1.0f } };
+		clear_color.color = { { 0.34f, 0.50f, 0.68f, 1.0f } };
 		VkClearValue clear_depth{};
 		clear_depth.depthStencil = { 1.0f, 0u };
 		std::array clear_values{ clear_color, clear_depth };
@@ -844,10 +925,9 @@ namespace ve::rendering
 		vkCmdSetViewport(command_buffer, 0u, 1u, &viewport);
 		vkCmdSetScissor(command_buffer, 0u, 1u, &scissor);
 		vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
-		vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_, 0u, 1u, &descriptor_set_, 0u, nullptr);
 
 		const float aspect = static_cast<float>(extent_.width) / static_cast<float>(std::max(extent_.height, 1u));
-		glm::mat4 projection = glm::perspective(glm::radians(72.0f), aspect, 0.05f, 512.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(72.0f), aspect, 0.05f, FarWorldClipDistance);
 		projection[1][1] *= -1.0f;
 		const glm::mat4 mvp = projection * camera.GetViewMatrix();
 		vkCmdPushConstants(command_buffer, pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT, 0u, sizeof(glm::mat4), &mvp);

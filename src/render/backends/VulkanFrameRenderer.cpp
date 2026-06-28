@@ -99,24 +99,20 @@ namespace ve::rendering
 		const vk::FenceCreateInfo fence_info{ vk::FenceCreateFlagBits::eSignaled };
 		const std::size_t swapchain_image_count = backend_->Swapchain().Images().size();
 		if (swapchain_image_count == 0) return false;
-		render_finished_semaphores_.assign(swapchain_image_count, VK_NULL_HANDLE);
+		images_in_flight_.assign(swapchain_image_count, VK_NULL_HANDLE);
 		for (std::size_t index = 0; index < kFramesInFlight; ++index)
 		{
 			vk::Semaphore image_available{};
-			vk::Fence in_flight{};
-			if (device.createSemaphore(&semaphore_info, nullptr, &image_available) != vk::Result::eSuccess ||
-				device.createFence(&fence_info, nullptr, &in_flight) != vk::Result::eSuccess)
-			{
-				return false;
-			}
+			if (device.createSemaphore(&semaphore_info, nullptr, &image_available) != vk::Result::eSuccess) return false;
 			image_available_semaphores_[index] = image_available;
-			in_flight_fences_[index] = in_flight;
-		}
-		for (VkSemaphore& semaphore : render_finished_semaphores_)
-		{
+
 			vk::Semaphore render_finished{};
 			if (device.createSemaphore(&semaphore_info, nullptr, &render_finished) != vk::Result::eSuccess) return false;
-			semaphore = render_finished;
+			render_finished_semaphores_[index] = render_finished;
+
+			vk::Fence in_flight{};
+			if (device.createFence(&fence_info, nullptr, &in_flight) != vk::Result::eSuccess) return false;
+			in_flight_fences_[index] = in_flight;
 		}
 		return true;
 	}
@@ -234,7 +230,11 @@ namespace ve::rendering
 		if (frame_index >= intermediate_images_.size() || intermediate_images_[frame_index] == VK_NULL_HANDLE) return false;
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS) return false;
+		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to begin Vulkan GPU command buffer");
+			return false;
+		}
 
 		const std::uint32_t first_query = static_cast<std::uint32_t>(frame_index * 2u);
 		if (timestamp_query_pool_ != VK_NULL_HANDLE)
@@ -345,12 +345,21 @@ namespace ve::rendering
 		}
 		const VulkanOverlayRecordCallback overlay_callback = imgui_overlay_.IsInitialized() ? RecordImguiOverlay : nullptr;
 		void* overlay_user_data = imgui_overlay_.IsInitialized() ? &imgui_overlay_ : nullptr;
-		if (!gpu_chunk_renderer_.Record(command_buffer, image_index, camera, overlay_callback, overlay_user_data)) return false;
+		if (!gpu_chunk_renderer_.Record(command_buffer, image_index, camera, overlay_callback, overlay_user_data))
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to record Vulkan GPU chunk commands");
+			return false;
+		}
 		if (timestamp_query_pool_ != VK_NULL_HANDLE)
 		{
 			vkCmdWriteTimestamp(command_buffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, timestamp_query_pool_, first_query + 1u);
 		}
-		return vkEndCommandBuffer(command_buffer) == VK_SUCCESS;
+		if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to end Vulkan GPU command buffer");
+			return false;
+		}
+		return true;
 	}
 
 	void VulkanFrameRenderer::CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const
@@ -395,6 +404,7 @@ namespace ve::rendering
 		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
 		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
 		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
+		if (gpu_chunk_renderer_.NeedsWorldMeshUpdate(world) && !WaitForAllInFlightFrames()) return false;
 		if (!gpu_chunk_renderer_.EnsureWorldMesh(world)) return false;
 		imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
 			displayed_fps,
@@ -411,19 +421,38 @@ namespace ve::rendering
 		const auto present_start = std::chrono::steady_clock::now();
 		const VkResult acquire_result = vkAcquireNextImageKHR(device_, backend_->Swapchain().Handle(), UINT64_MAX,
 			image_available_semaphores_[current_frame_], VK_NULL_HANDLE, &image_index);
-		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR) return false;
-		if (image_index >= render_finished_semaphores_.size()) return false;
+		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to acquire Vulkan swapchain image: " + std::to_string(static_cast<int>(acquire_result)));
+			return false;
+		}
+		if (image_index >= images_in_flight_.size())
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Acquired Vulkan swapchain image index out of range: " + std::to_string(image_index));
+			return false;
+		}
+		const VkFence image_fence = images_in_flight_[image_index];
+		if (image_fence != VK_NULL_HANDLE && vkWaitForFences(device_, 1u, &image_fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to wait for Vulkan swapchain image fence");
+			return false;
+		}
 
-		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS) return false;
+		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to reset Vulkan frame fence");
+			return false;
+		}
 		VkCommandBuffer command_buffer = command_buffers_[current_frame_];
 		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS || !RecordGpuCommandBuffer(command_buffer, image_index, current_frame_, camera))
 		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to prepare Vulkan GPU command buffer");
 			return false;
 		}
 
 		const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		const VkSemaphore image_available = image_available_semaphores_[current_frame_];
-		const VkSemaphore render_finished = render_finished_semaphores_[image_index];
+		const VkSemaphore render_finished = render_finished_semaphores_[current_frame_];
 		VkSubmitInfo submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		submit_info.waitSemaphoreCount = 1u;
 		submit_info.pWaitSemaphores = &image_available;
@@ -432,7 +461,13 @@ namespace ve::rendering
 		submit_info.pCommandBuffers = &command_buffer;
 		submit_info.signalSemaphoreCount = 1u;
 		submit_info.pSignalSemaphores = &render_finished;
-		if (vkQueueSubmit(backend_->Device().GraphicsQueue(), 1u, &submit_info, fence) != VK_SUCCESS) return false;
+		const VkResult submit_result = vkQueueSubmit(backend_->Device().GraphicsQueue(), 1u, &submit_info, fence);
+		if (submit_result != VK_SUCCESS)
+		{
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to submit Vulkan GPU frame: " + std::to_string(static_cast<int>(submit_result)));
+			return false;
+		}
+		images_in_flight_[image_index] = fence;
 
 		VkPresentInfoKHR present_info{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		present_info.waitSemaphoreCount = 1u;
@@ -462,9 +497,24 @@ namespace ve::rendering
 		return present_result == VK_SUCCESS || present_result == VK_SUBOPTIMAL_KHR;
 	}
 
+	bool VulkanFrameRenderer::WaitForAllInFlightFrames() const
+	{
+		if (device_ == VK_NULL_HANDLE) return false;
+		return vkWaitForFences(device_,
+			static_cast<std::uint32_t>(in_flight_fences_.size()),
+			in_flight_fences_.data(),
+			VK_TRUE,
+			UINT64_MAX) == VK_SUCCESS;
+	}
+
 	bool VulkanFrameRenderer::WantsMouseInput() const noexcept
 	{
 		return imgui_overlay_.WantsMouseInput();
+	}
+
+	bool VulkanFrameRenderer::WantsKeyboardInput() const noexcept
+	{
+		return imgui_overlay_.WantsKeyboardInput();
 	}
 
 	bool VulkanFrameRenderer::DrawSoftwareFrame(const ve::world::World& world,
@@ -493,7 +543,9 @@ namespace ve::rendering
 			image_available_semaphores_[current_frame_], VK_NULL_HANDLE, &image_index);
 		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR) return false;
 		if (image_index >= image_layouts_.size()) return false;
-		if (image_index >= render_finished_semaphores_.size()) return false;
+		if (image_index >= images_in_flight_.size()) return false;
+		const VkFence image_fence = images_in_flight_[image_index];
+		if (image_fence != VK_NULL_HANDLE && vkWaitForFences(device_, 1u, &image_fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
 
 		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS) return false;
 		VkCommandBuffer command_buffer = command_buffers_[current_frame_];
@@ -504,7 +556,7 @@ namespace ve::rendering
 
 		const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		const VkSemaphore image_available = image_available_semaphores_[current_frame_];
-		const VkSemaphore render_finished = render_finished_semaphores_[image_index];
+		const VkSemaphore render_finished = render_finished_semaphores_[current_frame_];
 		VkSubmitInfo submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		submit_info.waitSemaphoreCount = 1;
 		submit_info.pWaitSemaphores = &image_available;
@@ -514,6 +566,7 @@ namespace ve::rendering
 		submit_info.signalSemaphoreCount = 1;
 		submit_info.pSignalSemaphores = &render_finished;
 		if (vkQueueSubmit(backend_->Device().GraphicsQueue(), 1, &submit_info, fence) != VK_SUCCESS) return false;
+		images_in_flight_[image_index] = fence;
 
 		VkPresentInfoKHR present_info{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		present_info.waitSemaphoreCount = 1;
@@ -573,7 +626,7 @@ namespace ve::rendering
 			if (semaphore != VK_NULL_HANDLE) vkDestroySemaphore(device_, semaphore, nullptr);
 			semaphore = VK_NULL_HANDLE;
 		}
-		render_finished_semaphores_.clear();
+		images_in_flight_.clear();
 		for (VkSemaphore& semaphore : image_available_semaphores_)
 		{
 			if (semaphore != VK_NULL_HANDLE) vkDestroySemaphore(device_, semaphore, nullptr);

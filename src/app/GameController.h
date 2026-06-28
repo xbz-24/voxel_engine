@@ -25,6 +25,7 @@ namespace ve::engine
 	class GameController
 	{
 	public:
+		// TODO: Move input bindings into data-driven action maps shared by public API callbacks and in-game controls.
 		/**
 		 * Updates player input, targeting, physics, and block edits.
 		 *
@@ -61,6 +62,7 @@ namespace ve::engine
 	private:
 		struct GameplayFrameContext
 		{
+			// TODO: Replace this transient bag with small subsystem-specific update contexts.
 			GameplayFrameContext(Window& window,
 				const ve::input::InputSnapshot& input,
 				ve::world::World& world,
@@ -98,6 +100,7 @@ namespace ve::engine
 		void ProcessGameplayInput(GameplayFrameContext& frame);
 
 		EngineInputState input_state_;
+		// TODO: Split editor/menu navigation from survival gameplay so non-demo apps can opt out cleanly.
 		ve::gameplay::SettingsMenuController settings_menu_controller_;
 		VulkanDemoWorldController vulkan_demo_world_controller_;
 		ve::blocks::BlockId selected_placement_block_ = ve::blocks::BlockId::Cobblestone;

@@ -1,13 +1,11 @@
 #include "SettingsMenuController.h"
 
-#include <algorithm>
-
 namespace ve::gameplay
 {
 	/// Adjusts render distance within the supported range.
 	void SettingsMenuController::AdjustRenderDistance(RuntimeSettings& settings, int direction)
 	{
-		settings.renderDistanceChunks = std::clamp(settings.renderDistanceChunks + direction, 1, 6);
+		settings.renderDistanceChunks = ClampRenderDistanceChunks(settings.renderDistanceChunks + direction);
 	}
 
 	/// Toggles VSync and applies it to the native window.

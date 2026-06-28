@@ -8,6 +8,7 @@ namespace ve::rendering
 	class GraphicsFacade
 	{
 	public:
+		// TODO: Decide whether this remains an immediate debug facade or becomes the public 2D/3D drawing API.
 		/** @param executor Backend strategy that consumes recorded commands. */
 		explicit GraphicsFacade(RenderCommandExecutor& executor) noexcept;
 
@@ -36,6 +37,7 @@ namespace ve::rendering
 		[[nodiscard]] std::size_t PendingCommandCount() const noexcept;
 
 	private:
+		// TODO: Allow multiple command lists per frame for world, HUD, editor, and plugin overlays.
 		RenderCommandExecutor& executor_;
 		RenderCommandList command_list_;
 	};

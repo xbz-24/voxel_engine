@@ -24,6 +24,7 @@ namespace ve::network
 
 	struct NetworkHostSettings
 	{
+		// TODO: Add max players, auth mode, tick rate, and world snapshot policy.
 		std::uint16_t port = 25565;
 		int pendingConnectionBacklog = 8;
 	};
@@ -44,6 +45,7 @@ namespace ve::network
 	class NetworkSession
 	{
 	public:
+		// TODO: Expose connection state and errors through public API events instead of only internal stats.
 		/** @param settings Listen port and pending connection backlog. @return True when hosting started. */
 		bool HostGame(const NetworkHostSettings& settings);
 		/** @param settings Server endpoint plus local player name. @return True when the client connected. */
@@ -60,6 +62,7 @@ namespace ve::network
 		bool IsOnline() const noexcept;
 
 	private:
+		// TODO: Queue outbound world snapshots separately from live mutation packets.
 		std::size_t PublishMessage(const NetworkMessage& message);
 		NetworkPumpStats ApplyServerMessages(ve::world::World& world);
 		NetworkPumpStats ApplyClientMessages(ve::world::World& world);

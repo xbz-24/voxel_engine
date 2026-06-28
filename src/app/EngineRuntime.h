@@ -17,6 +17,7 @@ namespace ve::engine
 {
 	class OpenGLRenderView;
 
+	// TODO: Replace this Vulkan-only controller with the public action map used by both rendering paths.
 	class VulkanInputController
 	{
 	public:
@@ -35,6 +36,7 @@ namespace ve::engine
 	class EngineRuntime
 	{
 	public:
+		// TODO: Add a non-owning embedding mode where a host app calls Tick() and Present() itself.
 		/** Keeps a reference to the engine facade that owns shared settings and callbacks. */
 		explicit EngineRuntime(EngineApplication& engine) noexcept;
 
@@ -61,6 +63,8 @@ namespace ve::engine
 		void RenderHud(RenderView& renderView);
 		void EndRuntimeFrame();
 		void ApplyConfiguredWorldEditsOnce();
+		void ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits);
+		void InvokePublicApiFrameCallbacks();
 		void Shutdown();
 
 		EngineApplication& engine_;
@@ -71,11 +75,13 @@ namespace ve::engine
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;
 		std::unique_ptr<RenderView> view_;
 		ve::rendering::VulkanFrameRenderer vulkan_frame_renderer_;
+		// TODO: Move demo settings out of core runtime once public scenes drive Vulkan rendering.
 		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
 		VulkanInputController vulkan_input_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;
+		double elapsed_seconds_ = 0.0;
 		bool configured_world_edits_applied_ = false;
 	};
 }

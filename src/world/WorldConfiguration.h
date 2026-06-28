@@ -9,6 +9,7 @@ namespace ve::world
 	 */
 	struct WorldCreateInfo
 	{
+		// TODO: Add allocator/streaming policy so large worlds do not require reserving every chunk up front.
 		std::size_t chunkCapacity;
 	};
 
@@ -17,6 +18,7 @@ namespace ve::world
 	 */
 	struct FlatWorldSpawnSettings
 	{
+		// TODO: Add seed, base height, block palette, and spawn biome to flat/procedural generation settings.
 		int worldSizeChunks;
 	};
 
@@ -25,6 +27,7 @@ namespace ve::world
 	 */
 	struct WorldMetrics
 	{
+		// TODO: Include dirty chunk counts, mesh backlog, memory usage, and generation backlog in world diagnostics.
 		int worldSizeChunks;
 		std::size_t loadedChunks;
 		std::size_t chunkCapacity;

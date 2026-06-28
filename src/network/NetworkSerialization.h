@@ -9,11 +9,14 @@
 
 namespace ve::network
 {
+	inline constexpr std::uint16_t MaxPlayerNameByteCount = 32;
+
 	/**
 	 * Player transform replicated from client to server.
 	 */
 	struct PlayerSnapshotPayload
 	{
+		// TODO: Add timestamp/tick id and velocity for interpolation and reconciliation.
 		std::uint32_t playerId;
 		float positionX, positionY, positionZ;
 		float yawDegrees, pitchDegrees;
@@ -24,6 +27,7 @@ namespace ve::network
 	 */
 	struct BlockMutationPayload
 	{
+		// TODO: Add mutation id and author id so clients can de-duplicate predicted edits.
 		std::int32_t blockX, blockY, blockZ;
 		std::uint8_t blockId;
 	};

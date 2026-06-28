@@ -2,8 +2,6 @@
 
 #include "VulkanMinecraftDemoSettings.h"
 
-#include <optional>
-
 namespace ve::engine
 {
 	class GameModel;
@@ -18,6 +16,6 @@ namespace ve::engine
 		void Invalidate() noexcept;
 
 	private:
-		std::optional<ve::rendering::VulkanMinecraftDemoSceneConfig> active_config_;
+		bool scene_built_ = false;
 	};
 }

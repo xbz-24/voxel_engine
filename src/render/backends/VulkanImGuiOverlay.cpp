@@ -29,80 +29,26 @@ namespace ve::rendering
 
 		void ApplyPresetDefaults(VulkanMinecraftDemoSettings& settings, VulkanMinecraftDemoPreset preset)
 		{
+			settings.scene = VulkanMinecraftDemoSceneConfig{};
 			settings.scene.preset = preset;
 			switch (preset)
 			{
-			case VulkanMinecraftDemoPreset::LakesideVillage:
-				settings.scene.hill_height = 12;
-				settings.scene.house_count = 5;
-				settings.scene.tree_count = 28;
-				settings.scene.farm_rows = 7;
-				settings.scene.water_radius = 11;
-				settings.scene.tower_height = 14;
-				settings.scene.lantern_count = 12;
-				settings.scene.ore_richness = 14;
-				settings.scene.market_stall_count = 4;
-				settings.scene.floating_island_count = 3;
-				settings.scene.ruin_count = 3;
-				settings.scene.market = true;
-				settings.scene.floating_islands = true;
-				settings.scene.ruins = true;
-				settings.scene.beacon = true;
-				settings.scene.stress_blocks = false;
+			case VulkanMinecraftDemoPreset::AquaModel:
+				settings.scene.terrain_radius = 58;
+				settings.scene.hill_height = 8;
+				settings.scene.tree_count = 0;
+				settings.scene.market_stall_count = 0;
+				settings.scene.cave = false;
 				break;
-			case VulkanMinecraftDemoPreset::QuarryOutpost:
-				settings.scene.hill_height = 22;
-				settings.scene.house_count = 3;
-				settings.scene.tree_count = 12;
-				settings.scene.farm_rows = 3;
-				settings.scene.water_radius = 6;
-				settings.scene.tower_height = 19;
-				settings.scene.lantern_count = 18;
-				settings.scene.ore_richness = 28;
-				settings.scene.market_stall_count = 2;
-				settings.scene.floating_island_count = 1;
-				settings.scene.ruin_count = 5;
-				settings.scene.market = false;
-				settings.scene.floating_islands = true;
-				settings.scene.ruins = true;
-				settings.scene.beacon = true;
-				settings.scene.stress_blocks = false;
+			case VulkanMinecraftDemoPreset::SponzaAtrium:
+				settings.scene.terrain_radius = 72;
+				settings.scene.hill_height = 10;
+				settings.scene.tree_count = 0;
+				settings.scene.market_stall_count = 0;
+				settings.scene.cave = false;
 				break;
-			case VulkanMinecraftDemoPreset::ForestFarm:
-				settings.scene.hill_height = 9;
-				settings.scene.house_count = 4;
-				settings.scene.tree_count = 58;
-				settings.scene.farm_rows = 12;
-				settings.scene.water_radius = 13;
-				settings.scene.tower_height = 12;
-				settings.scene.lantern_count = 8;
-				settings.scene.ore_richness = 8;
-				settings.scene.market_stall_count = 3;
-				settings.scene.floating_island_count = 4;
-				settings.scene.ruin_count = 2;
-				settings.scene.market = true;
-				settings.scene.floating_islands = true;
-				settings.scene.ruins = false;
-				settings.scene.beacon = false;
-				settings.scene.stress_blocks = false;
-				break;
-			case VulkanMinecraftDemoPreset::StressTown:
-				settings.scene.hill_height = 16;
-				settings.scene.house_count = 9;
-				settings.scene.tree_count = 72;
-				settings.scene.farm_rows = 14;
-				settings.scene.water_radius = 16;
-				settings.scene.tower_height = 24;
-				settings.scene.lantern_count = 28;
-				settings.scene.ore_richness = 32;
-				settings.scene.market_stall_count = 8;
-				settings.scene.floating_island_count = 5;
-				settings.scene.ruin_count = 6;
-				settings.scene.market = true;
-				settings.scene.floating_islands = true;
-				settings.scene.ruins = true;
-				settings.scene.beacon = true;
-				settings.scene.stress_blocks = true;
+			case VulkanMinecraftDemoPreset::HyperrealDesert:
+			default:
 				break;
 			}
 			settings.request_scene_rebuild = true;
@@ -110,15 +56,13 @@ namespace ve::rendering
 
 		void DrawPresetCombo(VulkanMinecraftDemoSettings& settings)
 		{
-			static constexpr std::array<VulkanMinecraftDemoPreset, 4> presets{ {
-				VulkanMinecraftDemoPreset::LakesideVillage,
-				VulkanMinecraftDemoPreset::QuarryOutpost,
-				VulkanMinecraftDemoPreset::ForestFarm,
-				VulkanMinecraftDemoPreset::StressTown
+			static constexpr std::array<VulkanMinecraftDemoPreset, 3> presets{ {
+				VulkanMinecraftDemoPreset::HyperrealDesert,
+				VulkanMinecraftDemoPreset::AquaModel,
+				VulkanMinecraftDemoPreset::SponzaAtrium
 			} };
-
 			const char* current = VulkanMinecraftDemoPresetName(settings.scene.preset);
-			if (!ImGui::BeginCombo("Preset", current)) return;
+			if (!ImGui::BeginCombo("Scene", current)) return;
 			for (const VulkanMinecraftDemoPreset preset : presets)
 			{
 				const bool selected = preset == settings.scene.preset;
@@ -137,36 +81,28 @@ namespace ve::rendering
 			bool changed = false;
 			changed |= ImGui::DragInt("Seed", &settings.scene.seed, 1.0f, 1, 99999);
 			changed |= ImGui::DragInt("Ground", &settings.scene.ground_y, 0.35f, 34, 76);
-			changed |= ImGui::DragInt("Terrain radius", &settings.scene.terrain_radius, 0.4f, 24, 62);
-			changed |= ImGui::DragInt("Hill height", &settings.scene.hill_height, 0.35f, 0, 28);
-			changed |= ImGui::DragInt("Houses", &settings.scene.house_count, 0.15f, 0, 9);
-			changed |= ImGui::DragInt("Trees", &settings.scene.tree_count, 0.5f, 0, 96);
-			changed |= ImGui::DragInt("Farm rows", &settings.scene.farm_rows, 0.25f, 0, 16);
-			changed |= ImGui::DragInt("Water radius", &settings.scene.water_radius, 0.25f, 0, 22);
-			changed |= ImGui::DragInt("Tower height", &settings.scene.tower_height, 0.25f, 6, 28);
-			changed |= ImGui::DragInt("Lanterns", &settings.scene.lantern_count, 0.35f, 0, 32);
-			changed |= ImGui::DragInt("Ore blocks", &settings.scene.ore_richness, 0.35f, 0, 32);
-			changed |= ImGui::DragInt("Market stalls", &settings.scene.market_stall_count, 0.15f, 0, 8);
-			changed |= ImGui::DragInt("Floating islands", &settings.scene.floating_island_count, 0.15f, 0, 6);
-			changed |= ImGui::DragInt("Ruins", &settings.scene.ruin_count, 0.15f, 0, 8);
-			changed |= ImGui::Checkbox("Village", &settings.scene.village);
+			changed |= ImGui::DragInt("Dune radius", &settings.scene.terrain_radius, 0.8f, 48, 140);
+			changed |= ImGui::DragInt("Dune height", &settings.scene.hill_height, 0.25f, 4, 22);
+			changed |= ImGui::DragInt("Rock grains", &settings.scene.house_count, 0.25f, 0, 120);
+			changed |= ImGui::DragInt("Dry plants", &settings.scene.tree_count, 1.0f, 0, 520);
+			changed |= ImGui::DragInt("Ripple bands", &settings.scene.farm_rows, 0.35f, 0, 48);
+			changed |= ImGui::DragInt("Oasis radius", &settings.scene.water_radius, 0.25f, 0, 14);
+			changed |= ImGui::DragInt("Ridge height", &settings.scene.tower_height, 0.25f, 2, 14);
+			changed |= ImGui::DragInt("Heat glints", &settings.scene.lantern_count, 0.35f, 0, 24);
+			changed |= ImGui::DragInt("Strata veins", &settings.scene.ore_richness, 0.35f, 0, 56);
+			changed |= ImGui::DragInt("Pebble fields", &settings.scene.market_stall_count, 0.5f, 0, 220);
+			changed |= ImGui::DragInt("Ruin fragments", &settings.scene.ruin_count, 0.15f, 0, 8);
+			changed |= ImGui::DragInt("Survey markers", &settings.scene.vista_marker_count, 0.15f, 0, 12);
+			changed |= ImGui::Checkbox("Oasis", &settings.scene.water);
 			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Farms", &settings.scene.farms);
+			changed |= ImGui::Checkbox("Canyons", &settings.scene.cave);
 			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Lake", &settings.scene.water);
-			changed |= ImGui::Checkbox("Cave", &settings.scene.cave);
-			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Trees", &settings.scene.trees);
-			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Lights", &settings.scene.lights);
-			changed |= ImGui::Checkbox("Market", &settings.scene.market);
-			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Islands", &settings.scene.floating_islands);
+			changed |= ImGui::Checkbox("Plants", &settings.scene.trees);
+			changed |= ImGui::Checkbox("Heat glints", &settings.scene.lights);
 			ImGui::SameLine();
 			changed |= ImGui::Checkbox("Ruins", &settings.scene.ruins);
-			changed |= ImGui::Checkbox("Beacon", &settings.scene.beacon);
 			ImGui::SameLine();
-			changed |= ImGui::Checkbox("Stress blocks", &settings.scene.stress_blocks);
+			changed |= ImGui::Checkbox("Dense grains", &settings.scene.stress_blocks);
 			if (changed) settings.request_scene_rebuild = true;
 
 			if (ImGui::Button("Rebuild"))
@@ -180,9 +116,9 @@ namespace ve::rendering
 				settings.request_scene_rebuild = true;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Stress"))
+			if (ImGui::Button("Reset scene"))
 			{
-				ApplyPresetDefaults(settings, VulkanMinecraftDemoPreset::StressTown);
+				ApplyPresetDefaults(settings, settings.scene.preset);
 			}
 		}
 
@@ -211,7 +147,7 @@ namespace ve::rendering
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		ImGui::StyleColorsDark();
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Initializing Vulkan ImGui GLFW backend");
+		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Initializing Vulkan ImGui GLFW backend with input callbacks");
 
 		if (!ImGui_ImplGlfw_InitForVulkan(window.GetNativeWindow(), true))
 		{
@@ -257,7 +193,7 @@ namespace ve::rendering
 		if (settings.show_controls)
 		{
 			ImGui::SetNextWindowSize(ImVec2{ 420.0f, 620.0f }, ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("Vulkan Minecraft Lab", &settings.show_controls))
+			if (ImGui::Begin("Vulkan Desert Lab", &settings.show_controls))
 			{
 				DrawSceneControls(settings);
 				if (settings.show_metrics) DrawStats(stats);
@@ -282,6 +218,13 @@ namespace ve::rendering
 	bool VulkanImGuiOverlay::WantsMouseInput() const noexcept
 	{
 		return initialized_ && ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse;
+	}
+
+	bool VulkanImGuiOverlay::WantsKeyboardInput() const noexcept
+	{
+		if (!initialized_ || ImGui::GetCurrentContext() == nullptr) return false;
+		const ImGuiIO& io = ImGui::GetIO();
+		return io.WantCaptureKeyboard || io.WantTextInput || ImGui::IsAnyItemActive();
 	}
 
 	bool VulkanImGuiOverlay::IsInitialized() const noexcept

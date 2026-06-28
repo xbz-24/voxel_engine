@@ -2,10 +2,12 @@
 
 #include "voxel/Blocks.h"
 
+#include <string>
 #include <vector>
 
 namespace voxel
 {
+	// TODO: Introduce typed units for block, chunk, and world coordinates so int-heavy overloads cannot be mixed accidentally.
 	struct BlockPosition
 	{
 		int x = 0;
@@ -30,6 +32,7 @@ namespace voxel
 
 	struct WorldEdit
 	{
+		// TODO: Hide this behind an opaque scene command list before the public API freezes.
 		enum class Kind
 		{
 			SetBlock,
@@ -44,6 +47,7 @@ namespace voxel
 
 	struct WorldConfig
 	{
+		// TODO: Add seed, terrain generator selection, biome settings, and vertical world bounds to the public world config.
 		int size_chunks = 8;
 		std::vector<WorldEdit> edits;
 
@@ -65,7 +69,11 @@ namespace voxel
 		WorldConfig& AddLightPost(int x, int y, int z, int height = 4, Block post = OakLog, Block light = SeaLantern);
 		WorldConfig& AddPathX(int x1, int x2, int y, int z, int half_width = 1, Block block = Gravel);
 		WorldConfig& AddPathZ(int x, int y, int z1, int z2, int half_width = 1, Block block = Gravel);
+		WorldConfig& AddBridgeX(int x1, int x2, int y, int z, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
+		WorldConfig& AddBridgeZ(int x, int y, int z1, int z2, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
 		WorldConfig& AddHouse(int x, int y, int z, int radius = 3, Block walls = OakPlanks, Block roof = Bricks);
+		WorldConfig& AddPond(int x, int y, int z, int radius = 3, Block water = Water, Block rim = MossyCobblestone);
+		WorldConfig& AddGarden(int x, int y, int z, int half_width = 2, int half_depth = 3, Block soil = Dirt, Block crop = HayBlock);
 		WorldConfig& AddTree(int x, int y, int z, Block trunk = OakLog, Block leaves = OakLeaves);
 	};
 
@@ -73,4 +81,7 @@ namespace voxel
 	[[nodiscard]] WorldConfig World();
 	[[nodiscard]] WorldConfig Scene(int size_chunks);
 	[[nodiscard]] WorldConfig Scene();
+
+	[[nodiscard]] bool SaveWorldConfig(const WorldConfig& world, const std::string& path);
+	[[nodiscard]] WorldConfig LoadWorldConfig(const std::string& path);
 }

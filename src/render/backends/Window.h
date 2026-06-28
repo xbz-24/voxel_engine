@@ -13,6 +13,7 @@ namespace ve::engine
 {
 	struct WindowCreateInfo
 	{
+		// TODO: Add display id, refresh rate, resizable mode, high-DPI policy, and initial cursor capture.
 		std::string title = "Voxel Engine v1.0.0";
 		int width = 1280;
 		int height = 720;
@@ -22,6 +23,7 @@ namespace ve::engine
 	class Window
 	{
 	public:
+		// TODO: Abstract GLFW behind an input/window backend before exposing native handles in the public SDK.
 		enum class CursorMode { Normal, Captured };
 
 		struct NativeWindowHandle
@@ -70,6 +72,7 @@ namespace ve::engine
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
 
 	private:
+		// TODO: Surface framebuffer resize events through a typed event queue instead of polling dimensions each frame.
 		bool InitializeGlfw();
 		const GLFWvidmode* ReadPrimaryMonitorMode();
 		void ApplyWindowHints(const GLFWvidmode& videoMode);

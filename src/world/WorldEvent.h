@@ -11,6 +11,7 @@ namespace ve::world
 	 */
 	enum class WorldEventType
 	{
+		// TODO: Add ChunkLoaded, ChunkUnloaded, EntityChanged, and RegionSaved events before tooling relies on polling.
 		BlockChanged,
 		ChunkGenerated
 	};
@@ -39,6 +40,7 @@ namespace ve::world
 	 */
 	struct WorldEvent
 	{
+		// TODO: Replace parallel payload fields with std::variant once event volume and type count grow.
 		WorldEventType eventType;
 		BlockChangedEvent blockChanged;
 		ChunkGeneratedEvent chunkGenerated;

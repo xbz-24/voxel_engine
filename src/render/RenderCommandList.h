@@ -11,6 +11,7 @@ namespace ve::rendering
 	class RenderCommandList
 	{
 	public:
+		// TODO: Add text, textured quads, instanced meshes, and scissor/clip commands before this can drive the full HUD.
 		/** @param expected_command_count Command capacity to reserve. */
 		void Reserve(std::size_t expected_command_count);
 
@@ -42,6 +43,7 @@ namespace ve::rendering
 		[[nodiscard]] std::size_t Count() const noexcept;
 
 	private:
+		// TODO: Store commands in frame arena memory to avoid per-frame heap churn in HUD-heavy scenes.
 		std::vector<RenderCommand> commands_;
 	};
 }

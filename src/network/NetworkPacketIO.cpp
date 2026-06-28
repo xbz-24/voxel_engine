@@ -8,6 +8,7 @@ namespace ve::network
 	bool SendNetworkMessage(const TcpSocket& socket, const NetworkMessage& message)
 	{
 		const ByteBuffer packetBytes = BuildPacket(message.messageType, message.payloadBytes);
+		if (packetBytes.empty()) return false;
 		return socket.SendBytes(packetBytes);
 	}
 
@@ -15,11 +16,11 @@ namespace ve::network
 	{
 		std::array<std::byte, PacketHeaderByteCount> headerBytes{};
 		if (!socket.ReceiveBytes(headerBytes)) return std::nullopt;
-		std::uint32_t payloadByteCount = 0;
-		std::memcpy(&payloadByteCount, headerBytes.data() + 8, sizeof(payloadByteCount));
+		const std::optional<PacketHeader> packetHeader = TryParsePacketHeader(headerBytes);
+		if (!packetHeader.has_value()) return std::nullopt;
 		ByteBuffer packetBytes(headerBytes.begin(), headerBytes.end());
-		packetBytes.resize(PacketHeaderByteCount + payloadByteCount);
-		std::span<std::byte> payloadBytes(packetBytes.data() + PacketHeaderByteCount, payloadByteCount);
+		packetBytes.resize(PacketHeaderByteCount + packetHeader->payloadByteCount);
+		std::span<std::byte> payloadBytes(packetBytes.data() + PacketHeaderByteCount, packetHeader->payloadByteCount);
 		if (!socket.ReceiveBytes(payloadBytes)) return std::nullopt;
 		return TryParsePacket(packetBytes);
 	}

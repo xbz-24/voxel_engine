@@ -1,6 +1,6 @@
-#include <voxel/Engine.h>
+#include "CommandLineLauncher.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	return voxel::Run(voxel::EngineConfig::MinecraftDemo());
+	return ve::launcher::RunCommandLine(argc, argv);
 }

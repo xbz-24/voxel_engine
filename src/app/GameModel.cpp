@@ -7,14 +7,16 @@
 
 namespace ve::engine
 {
-	GameModel::GameModel(int world_size_chunks, const ve::assets::AssetPaths* asset_paths)
+	GameModel::GameModel(int world_size_chunks,
+		const ve::assets::AssetPaths* asset_paths,
+		ve::blocks::BlockRegistry::TextureLoading texture_loading)
 		: world_(ve::world::CreateInfoForSquareWorld(world_size_chunks)),
 		  world_generator_(ve::tasks::DefaultWorkerCount()),
 		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
 	{
 		if (asset_paths != nullptr)
 		{
-			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*asset_paths);
+			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*asset_paths, texture_loading);
 		}
 		const ve::world::FlatWorldSpawnSettings settings{ world_size_chunks };
 		world_.SpawnEmptyGrid(settings);

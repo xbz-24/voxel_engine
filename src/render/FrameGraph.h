@@ -10,6 +10,7 @@ namespace ve::rendering
 	/** Per-frame data passed into render graph pass callbacks. */
 	struct FrameGraphContext
 	{
+		// TODO: Carry backend command encoder, frame resources, and render stats instead of only a frame index.
 		ve::core::Index frame_index = 0;
 	};
 
@@ -34,6 +35,7 @@ namespace ve::rendering
 	class FrameGraph
 	{
 	public:
+		// TODO: Topologically sort passes by declared reads/writes and validate missing producers.
 		/** @param name Debug name for a transient frame resource. @return Handle used by passes. */
 		[[nodiscard]] FrameGraphResourceHandle DeclareResource(std::string name);
 
@@ -59,6 +61,7 @@ namespace ve::rendering
 		[[nodiscard]] const ve::core::DynamicArray<FrameGraphPass>& Passes() const noexcept;
 
 	private:
+		// TODO: Promote string resource names to descriptors with format, size, lifetime, and import/export flags.
 		ve::core::DynamicArray<std::string> resources_;
 		ve::core::DynamicArray<FrameGraphPass> passes_;
 	};

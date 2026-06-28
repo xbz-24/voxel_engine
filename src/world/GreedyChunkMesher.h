@@ -8,6 +8,7 @@
 
 namespace ve::world::mesh
 {
+	// TODO: Share greedy meshing rules with any future compute mesher so CPU/GPU chunk output remains visually identical.
 	class GreedyChunkMesher
 	{
 	public:
@@ -40,6 +41,7 @@ namespace ve::world::mesh
 
 		struct MaskCell
 		{
+			// TODO: Replace per-cell RGB with material/light payload once lighting data is generated per block face.
 			bool visible = false;
 			ve::rendering::TextureHandle texture = ve::rendering::kInvalidTextureHandle;
 			ve::blocks::BlockId block_id = ve::blocks::BlockId::Air;

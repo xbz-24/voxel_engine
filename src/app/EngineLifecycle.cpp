@@ -6,6 +6,7 @@
 /// Initializes the native window and applies runtime window options.
 bool EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
+	// TODO: Return structured startup errors instead of a bool so the public API can report missing drivers/backends clearly.
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
 		_runtimeSettings.renderBackendConfiguration);
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, ve::rendering::RenderBackendSelector::Name(graphics_api));
@@ -20,6 +21,7 @@ bool EngineApplication::InitializeWindow(ve::engine::Window& window)
 /// Initializes logger outputs that need the resolved project root.
 void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
+	// TODO: Let public EngineConfig override log sinks before the runtime decides the default file path.
 	constexpr ve::log::Level minimum_level =
 #if defined(NDEBUG)
 		ve::log::Level::Info;
@@ -49,6 +51,7 @@ void EngineApplication::UpdateProjectionIfWindowChanged(const ve::engine::Window
 /// Releases cached OpenGL resources owned directly by the engine.
 void EngineApplication::ReleaseRenderCaches()
 {
+	// TODO: Move remaining direct OpenGL cache ownership into OpenGLRenderView.
 	if (_render_cache_state.cloud_display_list_id == 0)
 	{
 		return;

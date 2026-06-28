@@ -2,6 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "BackgroundTaskQueue.h"
+#include "CommandLineLauncher.h"
 #include "EcsWorld.h"
 #include "FabrikInverseKinematicsSolver.h"
 #include "MonteCarloPathTracer.h"
@@ -9,13 +10,46 @@
 #include "PhysicsBounds.h"
 #include "RigidBodyWorld.h"
 #include "SimdFloat4.h"
+#include "ModelAssetLibrary.h"
 
 #include <glm/geometric.hpp>
 
 #include <atomic>
 #include <array>
 #include <chrono>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <string_view>
 #include <thread>
+
+// TODO: Split smoke tests by subsystem and add runtime launch coverage for Vulkan startup with overlay disabled.
+namespace
+{
+	class CountingModelImporter final : public ve::assets::IModelImporter
+	{
+	public:
+		[[nodiscard]] std::string_view Name() const noexcept override
+		{
+			return "Counting";
+		}
+
+		[[nodiscard]] bool CanImport(const std::filesystem::path& model_path) const override
+		{
+			return model_path.extension() == ".counting";
+		}
+
+		[[nodiscard]] std::optional<ve::assets::ImportedModel> Import(const std::filesystem::path& model_path, const ve::assets::ModelImportOptions&) const override
+		{
+			++import_count;
+			ve::assets::ImportedModel model{};
+			model.source_path = model_path;
+			return model;
+		}
+
+		static inline int import_count = 0;
+	};
+}
 
 TEST_CASE("ecs registry creates and destroys alive entities")
 {
@@ -115,4 +149,68 @@ TEST_CASE("background task queue rejects work after stop")
 	queue.Stop();
 
 	CHECK(!queue.Enqueue([] {}));
+}
+
+TEST_CASE("command line launcher defaults to the demo suite")
+{
+	std::array<char*, 1> argv{ { const_cast<char*>("voxel_engine") } };
+
+	const ve::launcher::LaunchParseResult parsed =
+		ve::launcher::ParseLaunchArguments(static_cast<int>(argv.size()), argv.data());
+
+	CHECK(parsed.ok);
+	CHECK(parsed.options.launch_all);
+	CHECK(parsed.options.demo_name == "desert");
+	CHECK(parsed.options.smoke_frames == 0);
+}
+
+TEST_CASE("command line launcher parses single demo smoke runs")
+{
+	std::array<char*, 5> argv{ {
+		const_cast<char*>("voxel_engine"),
+		const_cast<char*>("--demo"),
+		const_cast<char*>("aqua"),
+		const_cast<char*>("--smoke-frames"),
+		const_cast<char*>("3")
+	} };
+
+	const ve::launcher::LaunchParseResult parsed =
+		ve::launcher::ParseLaunchArguments(static_cast<int>(argv.size()), argv.data());
+
+	CHECK(parsed.ok);
+	CHECK(!parsed.options.launch_all);
+	CHECK(parsed.options.demo_name == "aqua");
+	CHECK(parsed.options.smoke_frames == 3);
+}
+
+TEST_CASE("command line launcher rejects invalid arguments")
+{
+	std::array<char*, 3> argv{ {
+		const_cast<char*>("voxel_engine"),
+		const_cast<char*>("--smoke-frames"),
+		const_cast<char*>("zero")
+	} };
+
+	const ve::launcher::LaunchParseResult parsed =
+		ve::launcher::ParseLaunchArguments(static_cast<int>(argv.size()), argv.data());
+
+	CHECK(!parsed.ok);
+}
+
+TEST_CASE("model asset library caches imports by path and options")
+{
+	CountingModelImporter::import_count = 0;
+	ve::assets::ModelAssetLibrary library;
+	library.RegisterImporter(std::make_unique<CountingModelImporter>());
+
+	const std::optional<ve::assets::ImportedModel> first = library.ImportModel("asset.counting");
+	const std::optional<ve::assets::ImportedModel> second = library.ImportModel("asset.counting");
+	ve::assets::ModelImportOptions different_options{};
+	different_options.flip_uvs = true;
+	const std::optional<ve::assets::ImportedModel> third = library.ImportModel("asset.counting", different_options);
+
+	REQUIRE(first.has_value());
+	REQUIRE(second.has_value());
+	REQUIRE(third.has_value());
+	CHECK(CountingModelImporter::import_count == 2);
 }

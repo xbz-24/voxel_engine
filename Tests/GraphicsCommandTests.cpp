@@ -10,6 +10,7 @@
 
 namespace
 {
+	// TODO: Extend this executor to validate command payloads once text/textured primitives land.
 	class RecordingRenderCommandExecutor final : public ve::rendering::RenderCommandExecutor
 	{
 	public:
@@ -80,6 +81,7 @@ TEST_CASE("graphics facade records and submits common primitives")
 
 TEST_CASE("frame graph records resource dependencies")
 {
+	// TODO: Add ordering/validation tests when FrameGraph starts sorting passes by declared resource dependencies.
 	ve::rendering::FrameGraph graph;
 	const ve::rendering::FrameGraphResourceHandle color = graph.DeclareResource("color");
 	const ve::rendering::FrameGraphResourceHandle depth = graph.DeclareResource("depth");

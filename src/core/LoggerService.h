@@ -3,7 +3,9 @@
 #include "LoggerConfiguration.h"
 #include "SpdlogLoggerBackend.h"
 
+#include <functional>
 #include <mutex>
+#include <string>
 #include <string_view>
 
 namespace ve::log
@@ -33,6 +35,9 @@ namespace ve::log
 		/** @param path File path receiving formatted records. @return True when opened. */
 		bool SetFileOutput(const std::filesystem::path& path);
 
+		/** @param callback Optional sink receiving formatted log lines after built-in sinks. */
+		void SetCallback(std::function<void(std::string)> callback);
+
 		/** Closes the file sink when one is active. */
 		void ClearFileOutput();
 
@@ -42,7 +47,9 @@ namespace ve::log
 	private:
 		LoggerService() = default;
 
+		// TODO: Add structured fields and per-sink formatting once diagnostics need machine-readable logs.
 		std::mutex mutex_;
 		SpdlogLoggerBackend backend_;
+		std::function<void(std::string)> callback_;
 	};
 }

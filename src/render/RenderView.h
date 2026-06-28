@@ -22,6 +22,7 @@ namespace ve::engine
 	class RenderView
 	{
 	public:
+		// TODO: Remove AsOpenGL/AsVulkan downcasts after world, HUD, and editor rendering use backend-neutral contracts.
 		/** Releases resources through the concrete render-view implementation. */
 		virtual ~RenderView() = default;
 
@@ -49,6 +50,7 @@ namespace ve::engine
 
 	template <typename ViewT>
 	concept RenderViewAdapter =
+		// TODO: Avoid updating this concept for every backend by replacing adapter casts with capability interfaces.
 		std::same_as<ViewT, OpenGLRenderView> || std::same_as<ViewT, VulkanRenderView>;
 
 	/**

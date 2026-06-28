@@ -24,6 +24,7 @@ namespace ve::rendering
 	class VulkanBackend;
 	using VulkanOverlayRecordCallback = void (*)(VkCommandBuffer command_buffer, void* user_data);
 
+	// TODO: Turn this into a chunk-cache renderer fed by ChunkMeshPipeline instead of rebuilding from World directly.
 	class VulkanGpuChunkRenderer
 	{
 	public:
@@ -31,6 +32,7 @@ namespace ve::rendering
 			VkCommandPool command_pool,
 			const std::filesystem::path& block_texture_directory,
 			const std::filesystem::path& shader_directory);
+		[[nodiscard]] bool NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept;
 		[[nodiscard]] bool EnsureWorldMesh(const ve::world::World& world);
 		[[nodiscard]] bool Record(VkCommandBuffer command_buffer,
 			std::uint32_t image_index,
@@ -46,12 +48,14 @@ namespace ve::rendering
 	private:
 		struct VoxelVertex
 		{
+			// TODO: Pack vertex attributes and add normals/tangents once materials and lighting are backend-driven.
 			float x = 0.0f;
 			float y = 0.0f;
 			float z = 0.0f;
-			float u = 0.0f;
-			float v = 0.0f;
-			float texture_layer = 0.0f;
+			float r = 1.0f;
+			float g = 1.0f;
+			float b = 1.0f;
+			float a = 1.0f;
 			float light = 1.0f;
 		};
 
@@ -91,6 +95,7 @@ namespace ve::rendering
 			std::vector<VoxelVertex>& vertices,
 			std::vector<std::uint32_t>& indices) const;
 		void AppendFaceMesh(const BlockFaceGeometry& face,
+			const ve::world::World& world,
 			int x,
 			int y,
 			int z,
@@ -118,6 +123,7 @@ namespace ve::rendering
 		VkDeviceMemory depth_memory_ = VK_NULL_HANDLE;
 		VkImageView depth_view_ = VK_NULL_HANDLE;
 		VkBuffer vertex_buffer_ = VK_NULL_HANDLE;
+		// TODO: Track buffer capacities separately from counts so small edits can reuse allocations.
 		VkDeviceMemory vertex_memory_ = VK_NULL_HANDLE;
 		VkBuffer index_buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory index_memory_ = VK_NULL_HANDLE;

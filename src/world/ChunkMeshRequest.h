@@ -4,6 +4,7 @@
 #include "ChunkMeshSnapshot.h"
 #include "ChunkMeshTypes.h"
 
+#include <cstdint>
 #include <optional>
 
 namespace ve::world::mesh
@@ -21,6 +22,7 @@ namespace ve::world::mesh
 	{
 		int chunkX;
 		int chunkZ;
+		std::uint64_t chunkRevision;
 		ChunkMeshBuildResult mesh;
 	};
 

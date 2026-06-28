@@ -34,7 +34,7 @@ namespace ve::rendering
 			initialize_step("Selecting Vulkan physical device", "No suitable physical device", [&] { return physical_device_.Select(context_.Instance(), surface_.Handle()); }) &&
 			initialize_step("Creating Vulkan logical device", "Logical device creation failed", [&] { return device_.Create(physical_device_.Handle(), physical_device_.QueueFamilies()); }) &&
 			initialize_step("Creating Vulkan memory allocator", "Allocator creation failed", [&] { return allocator_.Initialize(context_.Instance(), physical_device_.Handle(), device_.Handle()); }) &&
-			initialize_step("Creating Vulkan swapchain", "Swapchain creation failed", [&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), window.GetWidth(), window.GetHeight()); });
+			initialize_step("Creating Vulkan swapchain", "Swapchain creation failed", [&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), window.GetWidth(), window.GetHeight(), window.IsVSyncEnabled()); });
 
 		if (!is_initialized)
 		{
