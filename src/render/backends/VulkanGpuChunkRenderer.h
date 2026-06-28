@@ -61,8 +61,8 @@ namespace ve::rendering
 
 		[[nodiscard]] bool CreateRenderPass();
 		[[nodiscard]] bool CreatePipeline(const std::filesystem::path& shader_directory);
-		[[nodiscard]] bool CreateDescriptors();
-		[[nodiscard]] bool CreateTextureArray(const std::filesystem::path& block_texture_directory);
+		[[nodiscard]] bool CreatePipelineLayout();
+		[[nodiscard]] bool CreateGraphicsPipeline(VkShaderModule vertex_shader, VkShaderModule fragment_shader);
 		[[nodiscard]] bool CreateSwapchainResources();
 		[[nodiscard]] bool CreateDepthResources();
 		[[nodiscard]] bool CreateFramebuffers();
@@ -102,7 +102,6 @@ namespace ve::rendering
 			ve::blocks::BlockId block,
 			std::vector<VoxelVertex>& vertices,
 			std::vector<std::uint32_t>& indices) const;
-		[[nodiscard]] std::uint32_t TextureLayer(ve::blocks::BlockId block, ve::blocks::BlockFace face) const noexcept;
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		VulkanBackend* backend_ = nullptr;
@@ -112,13 +111,6 @@ namespace ve::rendering
 		VkRenderPass render_pass_ = VK_NULL_HANDLE;
 		VkPipelineLayout pipeline_layout_ = VK_NULL_HANDLE;
 		VkPipeline pipeline_ = VK_NULL_HANDLE;
-		VkDescriptorSetLayout descriptor_set_layout_ = VK_NULL_HANDLE;
-		VkDescriptorPool descriptor_pool_ = VK_NULL_HANDLE;
-		VkDescriptorSet descriptor_set_ = VK_NULL_HANDLE;
-		VkSampler texture_sampler_ = VK_NULL_HANDLE;
-		VkImage texture_image_ = VK_NULL_HANDLE;
-		VkDeviceMemory texture_memory_ = VK_NULL_HANDLE;
-		VkImageView texture_view_ = VK_NULL_HANDLE;
 		VkImage depth_image_ = VK_NULL_HANDLE;
 		VkDeviceMemory depth_memory_ = VK_NULL_HANDLE;
 		VkImageView depth_view_ = VK_NULL_HANDLE;
@@ -129,7 +121,6 @@ namespace ve::rendering
 		VkDeviceMemory index_memory_ = VK_NULL_HANDLE;
 		ve::core::DynamicArray<VkImageView> swapchain_image_views_;
 		ve::core::DynamicArray<VkFramebuffer> framebuffers_;
-		std::array<std::uint32_t, static_cast<std::size_t>(ve::blocks::BlockId::Count) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)> texture_layers_{};
 		VkExtent2D extent_{};
 		VkFormat color_format_ = VK_FORMAT_UNDEFINED;
 		VkFormat depth_format_ = VK_FORMAT_D32_SFLOAT;

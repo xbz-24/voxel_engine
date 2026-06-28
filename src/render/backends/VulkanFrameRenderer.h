@@ -52,7 +52,6 @@ namespace ve::rendering
 		[[nodiscard]] bool WantsKeyboardInput() const noexcept;
 
 	private:
-		// TODO: Replace ad-hoc frame resources with a per-frame resource struct to simplify resize/release handling.
 		[[nodiscard]] bool CreateCommandResources();
 		[[nodiscard]] bool CreateSynchronization();
 		[[nodiscard]] bool CreateTimestampQueries();
@@ -77,16 +76,25 @@ namespace ve::rendering
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		static constexpr std::size_t kFramesInFlight = 2;
+		struct FrameResources
+		{
+			VulkanUploadBuffer upload_buffer;
+			VkImage intermediate_image = VK_NULL_HANDLE;
+			VkDeviceMemory intermediate_image_memory = VK_NULL_HANDLE;
+			VkImageLayout intermediate_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			VkCommandBuffer command_buffer = VK_NULL_HANDLE;
+			VkSemaphore image_available = VK_NULL_HANDLE;
+			VkSemaphore render_finished = VK_NULL_HANDLE;
+			VkFence in_flight = VK_NULL_HANDLE;
+			bool timestamp_query_valid = false;
+		};
+
 		VulkanBackend* backend_ = nullptr;
 		VkDevice device_ = VK_NULL_HANDLE;
 		VkCommandPool command_pool_ = VK_NULL_HANDLE;
 		VkQueryPool timestamp_query_pool_ = VK_NULL_HANDLE;
 		float timestamp_period_ns_ = 0.0f;
-		std::array<bool, kFramesInFlight> timestamp_query_valid_{};
-		std::array<VulkanUploadBuffer, kFramesInFlight> upload_buffers_{};
-		std::array<VkImage, kFramesInFlight> intermediate_images_{};
-		std::array<VkDeviceMemory, kFramesInFlight> intermediate_image_memory_{};
-		std::array<VkImageLayout, kFramesInFlight> intermediate_image_layouts_{};
+		std::array<FrameResources, kFramesInFlight> frames_{};
 		VulkanGpuChunkRenderer gpu_chunk_renderer_;
 		// TODO: Decouple ImGui overlay from the chunk renderer so headless/runtime smoke tests can disable it cleanly.
 		VulkanImGuiOverlay imgui_overlay_;
@@ -97,10 +105,6 @@ namespace ve::rendering
 		VkFormat intermediate_format_ = VK_FORMAT_UNDEFINED;
 		VkFilter upscale_filter_ = VK_FILTER_NEAREST;
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
-		std::array<VkCommandBuffer, kFramesInFlight> command_buffers_{};
-		std::array<VkSemaphore, kFramesInFlight> image_available_semaphores_{};
-		std::array<VkSemaphore, kFramesInFlight> render_finished_semaphores_{};
-		std::array<VkFence, kFramesInFlight> in_flight_fences_{};
 		ve::core::DynamicArray<VkFence> images_in_flight_;
 		std::size_t current_frame_ = 0;
 		bool logged_first_frame_ = false;
