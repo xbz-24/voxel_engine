@@ -2,7 +2,7 @@
 
 #include "BlockDefinitions.h"
 #include "Logger.h"
-#include "VulkanSoftwareRasterizerColor.h"
+#include "VulkanSoftwareRasterizerBlockColor.h"
 
 #include <boost/container/flat_map.hpp>
 #include <stb_image.h>
