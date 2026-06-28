@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 
@@ -19,135 +20,265 @@ namespace ve::launcher
 			std::chrono::seconds delay_after_launch;
 		};
 
-		constexpr std::array kDemoSuite{
-			DemoProcess{ "aqua", std::chrono::seconds{ 5 } },
-			DemoProcess{ "sponza", std::chrono::seconds{ 8 } },
-			DemoProcess{ "voxeldemo", std::chrono::seconds{ 0 } }
+		struct DemoLaunchRequest
+		{
+			std::string_view executable;
+			std::string_view demo_name;
+			int smoke_frames = 0;
 		};
 
-		[[nodiscard]] bool TryParsePositiveInt(std::string_view text, int& value) noexcept
+		[[nodiscard]] std::string_view ArgumentAt(char** argv, int index) noexcept
 		{
-			if (text.empty()) return false;
-			int parsed = 0;
-			for (const char ch : text)
+			if (argv == nullptr || argv[index] == nullptr) return {};
+			return argv[index];
+		}
+
+		class PositiveIntegerParser final
+		{
+		public:
+			[[nodiscard]] bool TryParse(std::string_view text, int& value) const noexcept
 			{
-				if (ch < '0' || ch > '9') return false;
-				parsed = (parsed * 10) + (ch - '0');
-				if (parsed > 100000) return false;
+				constexpr int kMaxFrameCount = 100000;
+
+				if (text.empty()) return false;
+
+				int parsed = 0;
+				for (const char ch : text)
+				{
+					if (ch < '0' || ch > '9') return false;
+
+					const int digit = ch - '0';
+					if (parsed > (kMaxFrameCount - digit) / 10) return false;
+					parsed = (parsed * 10) + digit;
+				}
+
+				if (parsed <= 0) return false;
+				value = parsed;
+				return true;
 			}
-			value = parsed;
-			return value > 0;
-		}
+		};
 
-		[[nodiscard]] bool IsAllDemosAlias(std::string_view demo) noexcept
+		class DemoCatalog final
 		{
-			return demo == "all" || demo == "all-demos" || demo == "demo-all";
-		}
-
-		[[nodiscard]] voxel::EngineConfig DemoConfig(std::string_view demo)
-		{
-			if (demo == "aqua" || demo == "konosuba" || demo == "konosuba-aqua") return voxel::AquaModelDemo();
-			if (demo == "sponza" || demo == "atrium" || demo == "sponza-atrium" ||
-				demo == "coliseo" || demo == "coliseum") return voxel::SponzaAtriumDemo();
-			return voxel::DesertDemo();
-		}
-
-		void ApplySmokeFrameLimit(voxel::EngineConfig& config, int smoke_frames)
-		{
-			if (smoke_frames <= 0) return;
-			config.HideDebugOverlay().OnUpdate([smoke_frames, frame_count = 0](voxel::FrameContext& frame) mutable {
-				++frame_count;
-				if (frame_count >= smoke_frames) frame.commands.RequestClose();
-			});
-		}
-
-		[[nodiscard]] std::string BuildProcessCommand(std::string_view executable,
-			std::string_view demo,
-			int smoke_frames)
-		{
-			std::string command = "start \"Voxel ";
-			command += demo;
-			command += "\" \"";
-			command += executable;
-			command += "\" --demo ";
-			command += demo;
-			if (smoke_frames > 0)
+		public:
+			[[nodiscard]] const std::array<DemoProcess, 3>& Suite() const noexcept
 			{
-				command += " --smoke-frames ";
-				command += std::to_string(smoke_frames);
+				static constexpr std::array<DemoProcess, 3> kDemoSuite{ {
+					DemoProcess{ "aqua", std::chrono::seconds{ 5 } },
+					DemoProcess{ "sponza", std::chrono::seconds{ 8 } },
+					DemoProcess{ "voxeldemo", std::chrono::seconds{ 0 } }
+				} };
+				return kDemoSuite;
 			}
-			return command;
-		}
 
-		[[nodiscard]] int LaunchDemoProcess(std::string_view executable,
-			std::string_view demo,
-			int smoke_frames)
-		{
-			const std::string command = BuildProcessCommand(executable, demo, smoke_frames);
-			return std::system(command.c_str()) == 0 ? 0 : -1;
-		}
-
-		[[nodiscard]] int LaunchDemoSuite(std::string_view executable, int smoke_frames)
-		{
-			int status = 0;
-			for (const DemoProcess demo : kDemoSuite)
+			[[nodiscard]] bool IsSuiteAlias(std::string_view demo) const noexcept
 			{
-				status |= LaunchDemoProcess(executable, demo.name, smoke_frames);
+				return demo == "all" || demo == "all-demos" || demo == "demo-all";
+			}
+
+			[[nodiscard]] voxel::EngineConfig CreateConfig(std::string_view demo) const
+			{
+				if (IsAquaDemo(demo)) return voxel::AquaModelDemo();
+				if (IsSponzaDemo(demo)) return voxel::SponzaAtriumDemo();
+				return voxel::DesertDemo();
+			}
+
+		private:
+			[[nodiscard]] bool IsAquaDemo(std::string_view demo) const noexcept
+			{
+				return demo == "aqua" || demo == "konosuba" || demo == "konosuba-aqua";
+			}
+
+			[[nodiscard]] bool IsSponzaDemo(std::string_view demo) const noexcept
+			{
+				return demo == "sponza" || demo == "atrium" || demo == "sponza-atrium" ||
+					demo == "coliseo" || demo == "coliseum";
+			}
+		};
+
+		class SmokeFrameLimiter final
+		{
+		public:
+			void Apply(voxel::EngineConfig& config, int smoke_frames) const
+			{
+				if (smoke_frames <= 0) return;
+
+				config.HideDebugOverlay().OnUpdate([smoke_frames, frame_count = 0](voxel::FrameContext& frame) mutable {
+					++frame_count;
+					if (frame_count >= smoke_frames) frame.commands.RequestClose();
+				});
+			}
+		};
+
+		class DemoProcessLauncher final
+		{
+		public:
+			[[nodiscard]] int Launch(const DemoLaunchRequest& request) const
+			{
+				const std::string command = BuildCommand(request);
+				return std::system(command.c_str()) == 0 ? 0 : -1;
+			}
+
+		private:
+			[[nodiscard]] std::string BuildCommand(const DemoLaunchRequest& request) const
+			{
+				std::string command = "start \"Voxel ";
+				command += request.demo_name;
+				command += "\" \"";
+				command += request.executable;
+				command += "\" --demo ";
+				command += request.demo_name;
+
+				if (request.smoke_frames > 0)
+				{
+					command += " --smoke-frames ";
+					command += std::to_string(request.smoke_frames);
+				}
+
+				return command;
+			}
+		};
+
+		class LaunchArgumentParser final
+		{
+		public:
+			explicit LaunchArgumentParser(const DemoCatalog& demos) noexcept : demos_{ demos } {}
+
+			[[nodiscard]] LaunchParseResult Parse(int argc, char** argv) const noexcept
+			{
+				LaunchParseResult result{};
+				result.options.launch_all = argc == 1;
+
+				for (int index = 1; index < argc; ++index)
+				{
+					const std::string_view arg = ArgumentAt(argv, index);
+
+					if (arg == "--demo")
+					{
+						if (!ApplyDemoOption(argc, argv, index, result)) return Invalid(result);
+					}
+					else if (arg == "--smoke-frames")
+					{
+						if (!ApplySmokeFramesOption(argc, argv, index, result)) return Invalid(result);
+					}
+					else if (arg == "--all-demos")
+					{
+						result.options.launch_all = true;
+					}
+					else
+					{
+						return Invalid(result);
+					}
+				}
+
+				return result;
+			}
+
+		private:
+			[[nodiscard]] bool ApplyDemoOption(int argc,
+				char** argv,
+				int& index,
+				LaunchParseResult& result) const noexcept
+			{
+				std::string_view demo{};
+				if (!TryReadValue(argc, argv, index, demo)) return false;
+
+				result.options.demo_name = demo;
+				result.options.launch_all = demos_.IsSuiteAlias(demo);
+				return true;
+			}
+
+			[[nodiscard]] bool ApplySmokeFramesOption(int argc,
+				char** argv,
+				int& index,
+				LaunchParseResult& result) const noexcept
+			{
+				std::string_view smoke_frames{};
+				if (!TryReadValue(argc, argv, index, smoke_frames)) return false;
+				return positive_ints_.TryParse(smoke_frames, result.options.smoke_frames);
+			}
+
+			[[nodiscard]] static LaunchParseResult Invalid(LaunchParseResult result) noexcept
+			{
+				result.ok = false;
+				return result;
+			}
+
+			[[nodiscard]] static bool TryReadValue(int argc,
+				char** argv,
+				int& index,
+				std::string_view& value) noexcept
+			{
+				if (index + 1 >= argc) return false;
+
+				++index;
+				if (argv == nullptr || argv[index] == nullptr) return false;
+
+				value = argv[index];
+				return true;
+			}
+
+			const DemoCatalog& demos_;
+			PositiveIntegerParser positive_ints_{};
+		};
+
+		class CommandLineRunner final
+		{
+		public:
+			[[nodiscard]] int Run(int argc, char** argv) const
+			{
+				const LaunchParseResult parsed = LaunchArgumentParser{ demos_ }.Parse(argc, argv);
+				if (!parsed.ok) return -1;
+
+				if (parsed.options.launch_all)
+				{
+					return LaunchDemoSuite(ArgumentAt(argv, 0), parsed.options.smoke_frames);
+				}
+
+				return RunNamedDemo(parsed.options.demo_name, parsed.options.smoke_frames);
+			}
+
+		private:
+			[[nodiscard]] int LaunchDemoSuite(std::string_view executable, int smoke_frames) const
+			{
+				int status = 0;
+				for (const DemoProcess demo : demos_.Suite())
+				{
+					status |= process_launcher_.Launch(DemoLaunchRequest{ executable, demo.name, smoke_frames });
+					WaitAfterLaunch(demo);
+				}
+				return status;
+			}
+
+			[[nodiscard]] int RunNamedDemo(std::string_view demo, int smoke_frames) const
+			{
+				voxel::EngineConfig config = demos_.CreateConfig(demo);
+				smoke_limiter_.Apply(config, smoke_frames);
+				return voxel::Run(std::move(config));
+			}
+
+			static void WaitAfterLaunch(const DemoProcess& demo)
+			{
 				if (demo.delay_after_launch.count() > 0)
 				{
 					std::this_thread::sleep_for(demo.delay_after_launch);
 				}
 			}
-			return status;
-		}
 
-		[[nodiscard]] int RunNamedDemo(std::string_view demo, int smoke_frames)
-		{
-			voxel::EngineConfig config = DemoConfig(demo);
-			ApplySmokeFrameLimit(config, smoke_frames);
-			return voxel::Run(std::move(config));
-		}
+			DemoCatalog demos_{};
+			DemoProcessLauncher process_launcher_{};
+			SmokeFrameLimiter smoke_limiter_{};
+		};
 	}
 
 	LaunchParseResult ParseLaunchArguments(int argc, char** argv) noexcept
 	{
-		LaunchParseResult result{};
-		result.options.launch_all = argc == 1;
-
-		for (int index = 1; index < argc; ++index)
-		{
-			const std::string_view arg = argv[index];
-			if (arg == "--demo" && index + 1 < argc)
-			{
-				result.options.demo_name = argv[++index];
-				result.options.launch_all = IsAllDemosAlias(result.options.demo_name);
-			}
-			else if (arg == "--smoke-frames" && index + 1 < argc)
-			{
-				if (!TryParsePositiveInt(argv[++index], result.options.smoke_frames))
-				{
-					result.ok = false;
-					return result;
-				}
-			}
-			else if (arg == "--all-demos")
-			{
-				result.options.launch_all = true;
-			}
-			else
-			{
-				result.ok = false;
-				return result;
-			}
-		}
-		return result;
+		const DemoCatalog demos{};
+		return LaunchArgumentParser{ demos }.Parse(argc, argv);
 	}
 
 	int RunCommandLine(int argc, char** argv)
 	{
-		const LaunchParseResult parsed = ParseLaunchArguments(argc, argv);
-		if (!parsed.ok) return -1;
-		if (parsed.options.launch_all) return LaunchDemoSuite(argv[0], parsed.options.smoke_frames);
-		return RunNamedDemo(parsed.options.demo_name, parsed.options.smoke_frames);
+		return CommandLineRunner{}.Run(argc, argv);
 	}
 }

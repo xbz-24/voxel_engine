@@ -41,4 +41,13 @@ namespace voxel::detail
 		static const ApplicationEngineRuntimeFactory factory{};
 		return factory;
 	}
+
+	EngineServices DefaultEngineServices() noexcept
+	{
+		return EngineServices{
+			DefaultEngineConfigValidator(),
+			DefaultEngineConfigTranslator(),
+			DefaultEngineRuntimeFactory()
+		};
+	}
 }

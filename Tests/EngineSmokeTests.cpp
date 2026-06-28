@@ -183,12 +183,44 @@ TEST_CASE("command line launcher parses single demo smoke runs")
 	CHECK(parsed.options.smoke_frames == 3);
 }
 
+TEST_CASE("command line launcher parses demo suite aliases")
+{
+	std::array<char*, 5> argv{ {
+		const_cast<char*>("voxel_engine"),
+		const_cast<char*>("--demo"),
+		const_cast<char*>("all-demos"),
+		const_cast<char*>("--smoke-frames"),
+		const_cast<char*>("2")
+	} };
+
+	const ve::launcher::LaunchParseResult parsed =
+		ve::launcher::ParseLaunchArguments(static_cast<int>(argv.size()), argv.data());
+
+	CHECK(parsed.ok);
+	CHECK(parsed.options.launch_all);
+	CHECK(parsed.options.demo_name == "all-demos");
+	CHECK(parsed.options.smoke_frames == 2);
+}
+
 TEST_CASE("command line launcher rejects invalid arguments")
 {
 	std::array<char*, 3> argv{ {
 		const_cast<char*>("voxel_engine"),
 		const_cast<char*>("--smoke-frames"),
 		const_cast<char*>("zero")
+	} };
+
+	const ve::launcher::LaunchParseResult parsed =
+		ve::launcher::ParseLaunchArguments(static_cast<int>(argv.size()), argv.data());
+
+	CHECK(!parsed.ok);
+}
+
+TEST_CASE("command line launcher rejects missing option values")
+{
+	std::array<char*, 2> argv{ {
+		const_cast<char*>("voxel_engine"),
+		const_cast<char*>("--demo")
 	} };
 
 	const ve::launcher::LaunchParseResult parsed =

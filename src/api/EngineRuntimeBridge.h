@@ -42,7 +42,24 @@ namespace voxel::detail
 		[[nodiscard]] virtual std::unique_ptr<IEngineRuntime> Create(ve::engine::EngineCreateInfo create_info) const = 0;
 	};
 
+	struct EngineServices
+	{
+		EngineServices(const IEngineConfigValidator& validator_service,
+			const IEngineConfigTranslator& translator_service,
+			const IEngineRuntimeFactory& runtime_factory_service) noexcept
+			: validator(validator_service),
+			  translator(translator_service),
+			  runtime_factory(runtime_factory_service)
+		{
+		}
+
+		const IEngineConfigValidator& validator;
+		const IEngineConfigTranslator& translator;
+		const IEngineRuntimeFactory& runtime_factory;
+	};
+
 	[[nodiscard]] const IEngineConfigValidator& DefaultEngineConfigValidator() noexcept;
 	[[nodiscard]] const IEngineConfigTranslator& DefaultEngineConfigTranslator() noexcept;
 	[[nodiscard]] const IEngineRuntimeFactory& DefaultEngineRuntimeFactory() noexcept;
+	[[nodiscard]] EngineServices DefaultEngineServices() noexcept;
 }

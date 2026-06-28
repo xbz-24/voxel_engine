@@ -224,9 +224,13 @@ ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HE
 add_library(voxel_engine_sdk STATIC
     "${VE_SOURCE_ROOT}/api/EngineConfigTranslator.cpp"
     "${VE_SOURCE_ROOT}/api/EngineConfigValidation.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineDemoPresets.cpp"
     "${VE_SOURCE_ROOT}/api/Engine.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeApi.cpp"
     "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.cpp"
     "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.h"
+    "${VE_SOURCE_ROOT}/api/EngineSceneApi.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineWorldApi.cpp"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Assets.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Blocks.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Camera.h"
