@@ -27,12 +27,6 @@ namespace ve::launcher
 			int smoke_frames = 0;
 		};
 
-		[[nodiscard]] std::string_view ArgumentAt(char** argv, int index) noexcept
-		{
-			if (argv == nullptr || argv[index] == nullptr) return {};
-			return argv[index];
-		}
-
 		class PositiveIntegerParser final
 		{
 		public:
@@ -144,22 +138,22 @@ namespace ve::launcher
 		public:
 			explicit LaunchArgumentParser(const DemoCatalog& demos) noexcept : demos_{ demos } {}
 
-			[[nodiscard]] LaunchParseResult Parse(int argc, char** argv) const noexcept
+			[[nodiscard]] LaunchParseResult Parse(const CommandLineArguments& arguments) const noexcept
 			{
 				LaunchParseResult result{};
-				result.options.launch_all = argc == 1;
+				result.options.launch_all = arguments.size() == 1;
 
-				for (int index = 1; index < argc; ++index)
+				for (CommandLineArguments::size_type index = 1; index < arguments.size(); ++index)
 				{
-					const std::string_view arg = ArgumentAt(argv, index);
+					const std::string_view arg = arguments[index];
 
 					if (arg == "--demo")
 					{
-						if (!ApplyDemoOption(argc, argv, index, result)) return Invalid(result);
+						if (!ApplyDemoOption(arguments, index, result)) return Invalid(result);
 					}
 					else if (arg == "--smoke-frames")
 					{
-						if (!ApplySmokeFramesOption(argc, argv, index, result)) return Invalid(result);
+						if (!ApplySmokeFramesOption(arguments, index, result)) return Invalid(result);
 					}
 					else if (arg == "--all-demos")
 					{
@@ -175,26 +169,24 @@ namespace ve::launcher
 			}
 
 		private:
-			[[nodiscard]] bool ApplyDemoOption(int argc,
-				char** argv,
-				int& index,
+			[[nodiscard]] bool ApplyDemoOption(const CommandLineArguments& arguments,
+				CommandLineArguments::size_type& index,
 				LaunchParseResult& result) const noexcept
 			{
 				std::string_view demo{};
-				if (!TryReadValue(argc, argv, index, demo)) return false;
+				if (!TryReadValue(arguments, index, demo)) return false;
 
 				result.options.demo_name = demo;
 				result.options.launch_all = demos_.IsSuiteAlias(demo);
 				return true;
 			}
 
-			[[nodiscard]] bool ApplySmokeFramesOption(int argc,
-				char** argv,
-				int& index,
+			[[nodiscard]] bool ApplySmokeFramesOption(const CommandLineArguments& arguments,
+				CommandLineArguments::size_type& index,
 				LaunchParseResult& result) const noexcept
 			{
 				std::string_view smoke_frames{};
-				if (!TryReadValue(argc, argv, index, smoke_frames)) return false;
+				if (!TryReadValue(arguments, index, smoke_frames)) return false;
 				return positive_ints_.TryParse(smoke_frames, result.options.smoke_frames);
 			}
 
@@ -204,17 +196,14 @@ namespace ve::launcher
 				return result;
 			}
 
-			[[nodiscard]] static bool TryReadValue(int argc,
-				char** argv,
-				int& index,
+			[[nodiscard]] static bool TryReadValue(const CommandLineArguments& arguments,
+				CommandLineArguments::size_type& index,
 				std::string_view& value) noexcept
 			{
-				if (index + 1 >= argc) return false;
+				if (index + 1 >= arguments.size()) return false;
 
 				++index;
-				if (argv == nullptr || argv[index] == nullptr) return false;
-
-				value = argv[index];
+				value = arguments[index];
 				return true;
 			}
 
@@ -225,14 +214,14 @@ namespace ve::launcher
 		class CommandLineRunner final
 		{
 		public:
-			[[nodiscard]] int Run(int argc, char** argv) const
+			[[nodiscard]] int Run(const CommandLineArguments& arguments) const
 			{
-				const LaunchParseResult parsed = LaunchArgumentParser{ demos_ }.Parse(argc, argv);
+				const LaunchParseResult parsed = LaunchArgumentParser{ demos_ }.Parse(arguments);
 				if (!parsed.ok) return -1;
 
 				if (parsed.options.launch_all)
 				{
-					return LaunchDemoSuite(ArgumentAt(argv, 0), parsed.options.smoke_frames);
+					return LaunchDemoSuite(ExecutablePath(arguments), parsed.options.smoke_frames);
 				}
 
 				return RunNamedDemo(parsed.options.demo_name, parsed.options.smoke_frames);
@@ -265,20 +254,25 @@ namespace ve::launcher
 				}
 			}
 
+			[[nodiscard]] static std::string_view ExecutablePath(const CommandLineArguments& arguments) noexcept
+			{
+				return arguments.empty() ? std::string_view{} : arguments.front();
+			}
+
 			DemoCatalog demos_{};
 			DemoProcessLauncher process_launcher_{};
 			SmokeFrameLimiter smoke_limiter_{};
 		};
 	}
 
-	LaunchParseResult ParseLaunchArguments(int argc, char** argv) noexcept
+	LaunchParseResult ParseLaunchArguments(const CommandLineArguments& arguments) noexcept
 	{
 		const DemoCatalog demos{};
-		return LaunchArgumentParser{ demos }.Parse(argc, argv);
+		return LaunchArgumentParser{ demos }.Parse(arguments);
 	}
 
-	int RunCommandLine(int argc, char** argv)
+	int RunCommandLine(const CommandLineArguments& arguments)
 	{
-		return CommandLineRunner{}.Run(argc, argv);
+		return CommandLineRunner{}.Run(arguments);
 	}
 }

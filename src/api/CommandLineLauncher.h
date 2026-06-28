@@ -1,9 +1,12 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
 
 namespace ve::launcher
 {
+	using CommandLineArguments = std::vector<std::string_view>;
+
 	struct LaunchOptions
 	{
 		std::string_view demo_name = "desert";
@@ -17,6 +20,6 @@ namespace ve::launcher
 		bool ok = true;
 	};
 
-	[[nodiscard]] LaunchParseResult ParseLaunchArguments(int argc, char** argv) noexcept;
-	[[nodiscard]] int RunCommandLine(int argc, char** argv);
+	[[nodiscard]] LaunchParseResult ParseLaunchArguments(const CommandLineArguments& arguments) noexcept;
+	[[nodiscard]] int RunCommandLine(const CommandLineArguments& arguments);
 }
