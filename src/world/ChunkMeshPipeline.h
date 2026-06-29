@@ -8,7 +8,6 @@ namespace ve::world::mesh
 	class ChunkMeshPipeline
 	{
 	public:
-		// TODO: Add per-chunk in-flight tracking so duplicate mesh jobs are coalesced instead of queued repeatedly.
 		/**
 		 * Creates the async mesh pipeline.
 		 *

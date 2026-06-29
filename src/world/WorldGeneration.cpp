@@ -6,11 +6,11 @@ namespace ve::world
 	bool World::ApplyGeneratedChunk(const generation::ChunkGenerationResult& result)
 	{
 		// TODO: Preserve generation provenance so save files can distinguish authored edits from procedural terrain.
-		Chunk* chunk = FindChunk(result.chunk_x, result.chunk_z);
+		Chunk* chunk = FindChunk(result.chunkCoordinateX, result.chunkCoordinateZ);
 		if (!chunk || !chunk->ReplaceBlocks(result.blocks)) return false;
 		++_revision;
-		MarkGeneratedChunkNeighborhoodDirty(result.chunk_x, result.chunk_z);
-		RecordChunkGenerated(result.chunk_x, result.chunk_z);
+		MarkGeneratedChunkNeighborhoodDirty(result.chunkCoordinateX, result.chunkCoordinateZ);
+		RecordChunkGenerated(result.chunkCoordinateX, result.chunkCoordinateZ);
 		return true;
 	}
 

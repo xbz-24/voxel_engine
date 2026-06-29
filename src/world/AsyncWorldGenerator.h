@@ -12,14 +12,14 @@ namespace ve::world::generation
 {
 	struct ChunkGenerationRequest
 	{
-		int chunk_x = 0;
-		int chunk_z = 0;
+		int chunkCoordinateX = 0;
+		int chunkCoordinateZ = 0;
 	};
 
 	struct ChunkGenerationResult
 	{
-		int chunk_x = 0;
-		int chunk_z = 0;
+		int chunkCoordinateX = 0;
+		int chunkCoordinateZ = 0;
 		ve::core::StaticArray<ve::blocks::BlockId, terrain::ChunkBlockCount> blocks{};
 	};
 

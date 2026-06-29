@@ -22,3 +22,15 @@ TEST_CASE("background task queue records worker telemetry")
 	CHECK(stats.longestQueueLatency.count() >= 0);
 	CHECK(stats.longestExecutionTime.count() >= 0);
 }
+
+TEST_CASE("background task queue rejects empty tasks before workers run them")
+{
+	ve::tasks::BackgroundTaskQueue queue(1);
+	ve::tasks::BackgroundTask emptyTask;
+
+	CHECK(!queue.Enqueue(emptyTask));
+	const ve::tasks::BackgroundTaskQueueStats stats = queue.Stats();
+	CHECK(stats.acceptedTaskCount == 0U);
+	CHECK(stats.rejectedTaskCount == 1U);
+	CHECK(stats.pendingTaskCount == 0U);
+}

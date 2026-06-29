@@ -18,13 +18,13 @@ namespace ve::engine
 		/**
 		 * Creates world and player-facing gameplay state.
 		 *
-		 * @param world_size_chunks Number of chunks along one side of the world.
-		 * @param asset_paths Optional resolved asset paths used to load block metadata for legacy gameplay/rendering.
-		 * @param texture_loading Whether the block registry should upload legacy face textures.
+		 * @param worldSizeChunks Number of chunks along one side of the world.
+		 * @param assetPaths Optional resolved asset paths used to load block metadata for legacy gameplay/rendering.
+		 * @param textureLoading Whether the block registry should upload legacy face textures.
 		 */
-		explicit GameModel(int world_size_chunks,
-			const ve::assets::AssetPaths* asset_paths = nullptr,
-			ve::blocks::BlockRegistry::TextureLoading texture_loading = ve::blocks::BlockRegistry::TextureLoading::LoadTextures);
+		explicit GameModel(int worldSizeChunks,
+			const ve::assets::AssetPaths* assetPaths = nullptr,
+			ve::blocks::BlockRegistry::TextureLoading textureLoading = ve::blocks::BlockRegistry::TextureLoading::LoadTextures);
 
 		/** @return Mutable camera controlled by gameplay input. */
 		Camera& MutableCamera() noexcept;
@@ -46,8 +46,8 @@ namespace ve::engine
 		[[nodiscard]] int PumpAsyncWorldGeneration();
 		/** @return Number of terrain tasks waiting to start. */
 		[[nodiscard]] ve::core::Index PendingWorldGenerationCount() const;
-		/** @param block_registry Block metadata. @param render_distance_chunks Chunk radius around the camera. */
-		void PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& block_registry, int render_distance_chunks);
+		/** @param blockRegistry Block metadata. @param renderDistanceChunks Chunk radius around the camera. */
+		void PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int renderDistanceChunks);
 
 	private:
 		Camera camera_;

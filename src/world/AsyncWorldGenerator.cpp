@@ -18,8 +18,8 @@ namespace ve::world::generation
 		ChunkGenerationResult GenerateChunk(ChunkGenerationRequest request)
 		{
 			terrain::BlockStorage storage{};
-			terrain::GenerateChunkTerrain(request.chunk_x, request.chunk_z, storage);
-			ChunkGenerationResult result{ request.chunk_x, request.chunk_z, {} };
+			terrain::GenerateChunkTerrain(request.chunkCoordinateX, request.chunkCoordinateZ, storage);
+			ChunkGenerationResult result{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
 			CopyStorage(storage, result);
 			return result;
 		}

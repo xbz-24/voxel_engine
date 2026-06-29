@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <vector>
 #include <utility>
 
@@ -17,9 +18,9 @@ namespace ve::world
 
 		struct PrioritizedChunk
 		{
-			int chunk_x = 0;
-			int chunk_z = 0;
-			int distance_squared = 0;
+			int chunkCoordinateX = 0;
+			int chunkCoordinateZ = 0;
+			int distanceFromCameraSquared = 0;
 		};
 
 		int CameraChunkCoordinate(float coordinate) noexcept
@@ -32,8 +33,8 @@ namespace ve::world
 	void World::UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline)
 	{
 		meshPipeline.CollectCompletedBuilds();
-		auto upload_backlog = meshPipeline.DrainUploadBacklog();
-		for (ve::world::mesh::ChunkMeshBuildOutput& output : upload_backlog)
+		std::vector<ve::world::mesh::ChunkMeshBuildOutput> uploadBacklog = meshPipeline.DrainUploadBacklog();
+		for (ve::world::mesh::ChunkMeshBuildOutput& output : uploadBacklog)
 		{
 			TryUploadChunkMeshOutput(std::move(output));
 		}
@@ -44,8 +45,8 @@ namespace ve::world
 	{
 		const ChunkViewRange range = BuildChunkViewRange(cameraPosition, _worldSize, renderDistanceChunks);
 		if (!HasChunks(range)) return;
-		const int camera_chunk_x = CameraChunkCoordinate(cameraPosition.x);
-		const int camera_chunk_z = CameraChunkCoordinate(cameraPosition.z);
+		const int cameraChunkCoordinateX = CameraChunkCoordinate(cameraPosition.x);
+		const int cameraChunkCoordinateZ = CameraChunkCoordinate(cameraPosition.z);
 		std::vector<PrioritizedChunk> candidates;
 		candidates.reserve(static_cast<std::size_t>((range.maxChunkX - range.minChunkX + 1) * (range.maxChunkZ - range.minChunkZ + 1)));
 		for (int chunkX = range.minChunkX; chunkX <= range.maxChunkX; chunkX++)
@@ -54,28 +55,37 @@ namespace ve::world
 			{
 				const Chunk* chunk = FindChunk(chunkX, chunkZ);
 				if (!chunk || !chunk->IsGenerated() || !chunk->NeedsMeshBuild()) continue;
-				const int dx = chunkX - camera_chunk_x;
-				const int dz = chunkZ - camera_chunk_z;
-				candidates.push_back(PrioritizedChunk{ chunkX, chunkZ, dx * dx + dz * dz });
+				const int chunkDistanceFromCameraX = chunkX - cameraChunkCoordinateX;
+				const int chunkDistanceFromCameraZ = chunkZ - cameraChunkCoordinateZ;
+				candidates.push_back(PrioritizedChunk{
+					chunkX,
+					chunkZ,
+					(chunkDistanceFromCameraX * chunkDistanceFromCameraX) +
+						(chunkDistanceFromCameraZ * chunkDistanceFromCameraZ)
+				});
 			}
 		}
 		std::sort(candidates.begin(), candidates.end(), [](const PrioritizedChunk& left, const PrioritizedChunk& right)
 		{
-			if (left.distance_squared != right.distance_squared) return left.distance_squared < right.distance_squared;
-			if (left.chunk_x != right.chunk_x) return left.chunk_x < right.chunk_x;
-			return left.chunk_z < right.chunk_z;
+			if (left.distanceFromCameraSquared != right.distanceFromCameraSquared)
+			{
+				return left.distanceFromCameraSquared < right.distanceFromCameraSquared;
+			}
+			if (left.chunkCoordinateX != right.chunkCoordinateX) return left.chunkCoordinateX < right.chunkCoordinateX;
+			return left.chunkCoordinateZ < right.chunkCoordinateZ;
 		});
 
-		int scheduled_count = 0;
+		int scheduledBuildCount = 0;
 		for (const PrioritizedChunk& candidate : candidates)
 		{
-			if (scheduled_count >= kMaxChunkMeshRequestsPerFrame) break;
-			Chunk* chunk = FindChunk(candidate.chunk_x, candidate.chunk_z);
+			if (scheduledBuildCount >= kMaxChunkMeshRequestsPerFrame) break;
+			Chunk* chunk = FindChunk(candidate.chunkCoordinateX, candidate.chunkCoordinateZ);
 			if (!chunk || !chunk->TryReserveMeshBuild()) continue;
-			auto request = CaptureChunkMeshBuildRequest(candidate.chunk_x, candidate.chunk_z);
+			std::optional<ve::world::mesh::ChunkMeshBuildRequest> request =
+				CaptureChunkMeshBuildRequest(candidate.chunkCoordinateX, candidate.chunkCoordinateZ);
 			if (request && meshPipeline.RequestBuild(std::move(*request), blockRegistry))
 			{
-				++scheduled_count;
+				++scheduledBuildCount;
 			}
 			else
 			{

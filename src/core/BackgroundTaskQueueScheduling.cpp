@@ -27,6 +27,13 @@ namespace ve::tasks
 	 */
 	bool BackgroundTaskQueue::Enqueue(BackgroundTask task, BackgroundTaskOptions options)
 	{
+		if (!task)
+		{
+			std::lock_guard<std::mutex> taskLock(_taskMutex);
+			_stats.rejectedTaskCount++;
+			return false;
+		}
+
 		{
 			std::lock_guard<std::mutex> taskLock(_taskMutex);
 			if (_isStopping)
