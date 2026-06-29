@@ -19,23 +19,23 @@ namespace ve::simulation
 		/** Clears density and velocity values to zero. */
 		void Clear();
 
-		/** @param x Cell X. @param y Cell Y. @param amount Density amount added to the cell. */
-		void AddDensity(int x, int y, float amount);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param amount Density amount added to the cell. */
+		void AddDensity(int cell_x, int cell_y, float amount);
 
-		/** @param x Cell X. @param y Cell Y. @param velocity Velocity amount added to the cell. */
-		void AddVelocity(int x, int y, const glm::vec2& velocity);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param velocity Velocity amount added to the cell. */
+		void AddVelocity(int cell_x, int cell_y, const glm::vec2& velocity);
 
-		/** @param x Cell X. @param y Cell Y. @param density New density value. */
-		void SetDensity(int x, int y, float density);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param density New density value. */
+		void SetDensity(int cell_x, int cell_y, float density);
 
-		/** @param x Cell X. @param y Cell Y. @param velocity New velocity value. */
-		void SetVelocity(int x, int y, const glm::vec2& velocity);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param velocity New velocity value. */
+		void SetVelocity(int cell_x, int cell_y, const glm::vec2& velocity);
 
-		/** @param x Cell X. @param y Cell Y. @return Density sampled at a clamped cell. */
-		[[nodiscard]] float DensityAt(int x, int y) const noexcept;
+		/** @param cell_x Cell X. @param cell_y Cell Y. @return Density sampled at a clamped cell. */
+		[[nodiscard]] float DensityAt(int cell_x, int cell_y) const noexcept;
 
-		/** @param x Cell X. @param y Cell Y. @return Velocity sampled at a clamped cell. */
-		[[nodiscard]] glm::vec2 VelocityAt(int x, int y) const noexcept;
+		/** @param cell_x Cell X. @param cell_y Cell Y. @return Velocity sampled at a clamped cell. */
+		[[nodiscard]] glm::vec2 VelocityAt(int cell_x, int cell_y) const noexcept;
 
 		/** @param position Continuous grid position. @return Bilinear density sample. */
 		[[nodiscard]] float SampleDensity(const glm::vec2& position) const noexcept;
@@ -50,8 +50,8 @@ namespace ve::simulation
 		[[nodiscard]] int Height() const noexcept;
 
 	private:
-		/** @param x Cell X. @param y Cell Y. @return Clamped flat cell index. */
-		[[nodiscard]] ve::core::Index CellIndex(int x, int y) const noexcept;
+		/** @param cell_x Cell X. @param cell_y Cell Y. @return Clamped flat cell index. */
+		[[nodiscard]] ve::core::Index CellIndex(int cell_x, int cell_y) const noexcept;
 
 		int width_ = 1;
 		int height_ = 1;

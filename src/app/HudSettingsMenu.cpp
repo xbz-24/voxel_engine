@@ -37,20 +37,20 @@ namespace ve::ui
 	{
 		const float width = static_cast<float>(frame.window.GetWidth());
 		const float height = static_cast<float>(frame.window.GetHeight());
-		ve::rendering::DrawTexturedQuad(_textures.menuBackground, 0.0f, 0.0f, width, height);
+		ve::rendering::DrawTexturedQuad(textures_.menu_background, 0.0f, 0.0f, width, height);
 
-		const float panelWidth = 520.0f;
-		const float panelX = (width - panelWidth) * 0.5f;
-		const float firstRowY = (height * 0.5f) - 112.0f;
-		DrawSettingsHeader(panelX, firstRowY);
+		const float panel_width = 520.0f;
+		const float panel_x = (width - panel_width) * 0.5f;
+		const float first_row_y = (height * 0.5f) - 112.0f;
+		DrawSettingsHeader(panel_x, first_row_y);
 
-		for (std::size_t rowIndex = 0; rowIndex < Rows.size(); rowIndex++)
+		for (std::size_t row_index = 0; row_index < Rows.size(); ++row_index)
 		{
-			const SettingsRow& row = Rows[rowIndex];
-			DrawSettingsRow(frame, row.option, row.label, rowIndex, panelX, firstRowY);
+			const SettingsRow& row = Rows[row_index];
+			DrawSettingsRow(frame, row.option, row.label, row_index, panel_x, first_row_y);
 		}
 
-		DrawSettingsSlider(frame, panelX, firstRowY);
-		DrawText("Selected: " + std::to_string(RowIndex(frame.settingsMenu.selectedOption) + 1), panelX + 198.0f, firstRowY + 304.0f, 1.1f);
+		DrawSettingsSlider(frame, panel_x, first_row_y);
+		DrawText("Selected: " + std::to_string(RowIndex(frame.settings_menu.selectedOption) + 1), panel_x + 198.0f, first_row_y + 304.0f, 1.1f);
 	}
 }

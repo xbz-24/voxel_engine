@@ -62,32 +62,39 @@ namespace ve::rendering
 	}
 	void VulkanGpuChunkRenderer::AppendFaceMesh(const BlockFaceGeometry& face,
 		const ve::world::World& world,
-		int x,
-		int y,
-		int z,
+		int block_x,
+		int block_y,
+		int block_z,
 		ve::blocks::BlockId block,
 		std::vector<VoxelVertex>& vertices,
 		std::vector<std::uint32_t>& indices) const
 	{
-		const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
-		const ve::blocks::SolidBlockColor color = ve::blocks::JitteredSolidColor(block, x, y, z);
-		const glm::ivec3 block_coordinate{ x, y, z };
-		const glm::vec3 origin{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z) };
+		const std::uint32_t first_face_vertex_index = static_cast<std::uint32_t>(vertices.size());
+		const ve::blocks::SolidBlockColor color = ve::blocks::JitteredSolidColor(block, block_x, block_y, block_z);
+		const glm::ivec3 block_coordinate{ block_x, block_y, block_z };
+		const glm::vec3 block_origin{
+			static_cast<float>(block_x),
+			static_cast<float>(block_y),
+			static_cast<float>(block_z)
+		};
 		for (std::size_t corner = 0; corner < face.corners.size(); ++corner)
 		{
-			const glm::vec3 position = origin + face.corners[corner];
-			const float light = std::clamp(face.light * BlockLightBoost(block) * CornerOcclusion(world, face, block_coordinate, corner), 0.20f, 1.70f);
+			const glm::vec3 vertex_position = block_origin + face.corners[corner];
+			const float vertex_light = std::clamp(
+				face.light * BlockLightBoost(block) * CornerOcclusion(world, face, block_coordinate, corner),
+				0.20f,
+				1.70f);
 			vertices.push_back(VoxelVertex{
-				position.x,
-				position.y,
-				position.z,
+				vertex_position.x,
+				vertex_position.y,
+				vertex_position.z,
 				color.r,
 				color.g,
 				color.b,
 				color.a,
-				light
+				vertex_light
 			});
 		}
-		AppendQuadIndices(indices, base);
+		AppendQuadIndices(indices, first_face_vertex_index);
 	}
 }

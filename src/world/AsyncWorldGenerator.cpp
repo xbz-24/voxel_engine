@@ -8,10 +8,10 @@ namespace ve::world::generation
 		void CopyStorage(const terrain::BlockStorage& storage, ChunkGenerationResult& result)
 		{
 			ve::core::Index write_index = 0;
-			for (int x = 0; x < terrain::ChunkWidth; x++)
-				for (int y = 0; y < terrain::ChunkHeight; y++)
-					for (int z = 0; z < terrain::ChunkDepth; z++)
-						result.blocks[write_index++] = storage[x][y][z];
+			for (int local_block_x = 0; local_block_x < terrain::ChunkWidth; local_block_x++)
+				for (int local_block_y = 0; local_block_y < terrain::ChunkHeight; local_block_y++)
+					for (int local_block_z = 0; local_block_z < terrain::ChunkDepth; local_block_z++)
+						result.blocks[write_index++] = storage[local_block_x][local_block_y][local_block_z];
 		}
 
 		/// Generates one chunk result completely on a worker thread.
@@ -49,9 +49,9 @@ namespace ve::world::generation
 	/// Queues every chunk in a square world for background generation.
 	void AsyncWorldGenerator::RequestGrid(const FlatWorldSpawnSettings& settings)
 	{
-		for (int x = 0; x < settings.worldSizeChunks; x++)
-			for (int z = 0; z < settings.worldSizeChunks; z++)
-				RequestChunk(ChunkGenerationRequest{ x, z });
+		for (int chunk_x = 0; chunk_x < settings.worldSizeChunks; chunk_x++)
+			for (int chunk_z = 0; chunk_z < settings.worldSizeChunks; chunk_z++)
+				RequestChunk(ChunkGenerationRequest{ chunk_x, chunk_z });
 	}
 
 	/// Drains completed generated chunks without blocking the game thread.

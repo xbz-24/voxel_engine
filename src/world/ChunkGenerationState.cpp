@@ -11,24 +11,24 @@ using ve::blocks::BlockId;
  */
 void Chunk::Generate()
 {
-	ve::world::terrain::GenerateChunkTerrain(_chunkX, _chunkZ, blocks);
-	_isGenerated = true;
-	_isMeshBuildQueued = false;
+	ve::world::terrain::GenerateChunkTerrain(chunk_x_, chunk_z_, blocks_);
+	is_generated_ = true;
+	is_mesh_build_queued_ = false;
 	MarkDirty();
 }
 
 /**
  * Replaces all local block data with generated terrain.
  *
- * @param generatedBlocks Flat block data in chunk-local x/y/z order.
+ * @param generated_blocks Flat block data in chunk-local x/y/z order.
  * @return True when the input size matched this chunk.
  */
-bool Chunk::ReplaceBlocks(std::span<const BlockId> generatedBlocks)
+bool Chunk::ReplaceBlocks(std::span<const BlockId> generated_blocks)
 {
-	if (generatedBlocks.size() != ve::world::terrain::ChunkBlockCount) return false;
-	std::copy(generatedBlocks.begin(), generatedBlocks.end(), &blocks[0][0][0]);
-	_isGenerated = true;
-	_isMeshBuildQueued = false;
+	if (generated_blocks.size() != ve::world::terrain::ChunkBlockCount) return false;
+	std::copy(generated_blocks.begin(), generated_blocks.end(), &blocks_[0][0][0]);
+	is_generated_ = true;
+	is_mesh_build_queued_ = false;
 	MarkDirty();
 	return true;
 }
@@ -40,5 +40,5 @@ bool Chunk::ReplaceBlocks(std::span<const BlockId> generatedBlocks)
  */
 bool Chunk::IsGenerated() const noexcept
 {
-	return _isGenerated;
+	return is_generated_;
 }

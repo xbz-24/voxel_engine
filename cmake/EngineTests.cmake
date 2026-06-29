@@ -3,6 +3,7 @@ if (VE_BUILD_TESTS)
     add_executable(engine_tests
         ${VE_LAUNCHER_SOURCES}
         Tests/EngineSmokeTests.cpp
+        Tests/FrameGraphTests.cpp
         Tests/GraphicsCommandTests.cpp
         Tests/GraphicsGeometryTests.cpp
         Tests/NetworkProtocolTests.cpp

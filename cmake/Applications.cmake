@@ -1,8 +1,10 @@
 set(VE_LAUNCHER_SOURCES
+    "${VE_SOURCE_ROOT}/api/CommandLineDemoCatalog.cpp"
     "${VE_SOURCE_ROOT}/api/CommandLineLauncher.cpp"
     "${VE_SOURCE_ROOT}/api/CommandLineLauncher.h"
     "${VE_SOURCE_ROOT}/api/CommandLineLauncherInternal.h"
     "${VE_SOURCE_ROOT}/api/CommandLineLauncherParsing.cpp"
+    "${VE_SOURCE_ROOT}/api/CommandLineSmokeFrames.cpp"
 )
 
 add_executable(voxel_engine main.cpp ${VE_LAUNCHER_SOURCES} "${VE_SOURCE_ROOT}/app/main.rc")

@@ -27,16 +27,20 @@ namespace ve::rendering
 		return blocks[index];
 	}
 
-	std::uint32_t VulkanRasterCpuTexture::Sample(float u, float v) const noexcept
+	std::uint32_t VulkanRasterCpuTexture::Sample(float texture_u, float texture_v) const noexcept
 	{
 		if (pixels.empty()) return PackRgb({ 132, 132, 132 });
 
-		const float wrapped_u = u - std::floor(u);
-		const float wrapped_v = v - std::floor(v);
-		const auto x = static_cast<std::uint32_t>(std::clamp(wrapped_u, 0.0f, 0.9999f) * static_cast<float>(width));
-		const auto y = static_cast<std::uint32_t>(std::clamp(1.0f - wrapped_v, 0.0f, 0.9999f) * static_cast<float>(height));
-		const std::size_t index = static_cast<std::size_t>(std::min(y, height - 1u)) * width + std::min(x, width - 1u);
-		return pixels[index];
+		const float wrapped_u = texture_u - std::floor(texture_u);
+		const float wrapped_v = texture_v - std::floor(texture_v);
+		const auto sample_x = static_cast<std::uint32_t>(
+			std::clamp(wrapped_u, 0.0f, 0.9999f) * static_cast<float>(width));
+		const auto sample_y = static_cast<std::uint32_t>(
+			std::clamp(1.0f - wrapped_v, 0.0f, 0.9999f) * static_cast<float>(height));
+		const std::size_t pixel_index =
+			static_cast<std::size_t>(std::min(sample_y, height - 1u)) * width +
+			std::min(sample_x, width - 1u);
+		return pixels[pixel_index];
 	}
 
 	std::span<const std::uint32_t> VulkanSoftwareVoxelRasterizer::Pixels() const noexcept

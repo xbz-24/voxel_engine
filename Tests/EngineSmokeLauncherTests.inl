@@ -6,9 +6,9 @@ TEST_CASE("command line launcher defaults to the demo suite")
 		ve::launcher::ParseLaunchArguments(arguments);
 
 	CHECK(parsed.ok);
-	CHECK(parsed.options.launch_all);
-	CHECK(parsed.options.demo_name == "desert");
-	CHECK(parsed.options.smoke_frames == 0);
+	CHECK(parsed.options.launch_demo_suite);
+	CHECK(parsed.options.selected_demo_name == "desert");
+	CHECK(parsed.options.smoke_frame_limit == 0);
 }
 
 TEST_CASE("command line launcher parses single demo smoke runs")
@@ -19,9 +19,9 @@ TEST_CASE("command line launcher parses single demo smoke runs")
 		ve::launcher::ParseLaunchArguments(arguments);
 
 	CHECK(parsed.ok);
-	CHECK(!parsed.options.launch_all);
-	CHECK(parsed.options.demo_name == "aqua");
-	CHECK(parsed.options.smoke_frames == 3);
+	CHECK(!parsed.options.launch_demo_suite);
+	CHECK(parsed.options.selected_demo_name == "aqua");
+	CHECK(parsed.options.smoke_frame_limit == 3);
 }
 
 TEST_CASE("command line launcher parses demo suite aliases")
@@ -32,9 +32,9 @@ TEST_CASE("command line launcher parses demo suite aliases")
 		ve::launcher::ParseLaunchArguments(arguments);
 
 	CHECK(parsed.ok);
-	CHECK(parsed.options.launch_all);
-	CHECK(parsed.options.demo_name == "all-demos");
-	CHECK(parsed.options.smoke_frames == 2);
+	CHECK(parsed.options.launch_demo_suite);
+	CHECK(parsed.options.selected_demo_name == "all-demos");
+	CHECK(parsed.options.smoke_frame_limit == 2);
 }
 
 TEST_CASE("command line launcher rejects invalid arguments")

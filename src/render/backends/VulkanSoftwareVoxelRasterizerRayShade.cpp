@@ -20,8 +20,8 @@ namespace ve::rendering
 		const glm::vec3 point = origin + (direction * std::max(hit.distance, 0.0f));
 		const auto fract = [](float value)
 		{
-			const float f = value - std::floor(value);
-			return std::clamp(f, 0.0f, 0.9999f);
+			const float fractional_part = value - std::floor(value);
+			return std::clamp(fractional_part, 0.0f, 0.9999f);
 		};
 		if (hit.normal.y != 0) return { fract(point.x), fract(point.z) };
 		if (hit.normal.x != 0) return { fract(point.z), fract(point.y) };

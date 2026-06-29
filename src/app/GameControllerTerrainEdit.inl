@@ -12,47 +12,55 @@ namespace ve::engine
 			return std::ranges::find(materials, block) != materials.end();
 		}
 
-		[[nodiscard]] bool SetBlockIfChanged(ve::world::World& world, const glm::ivec3& position, ve::blocks::BlockId block)
+		[[nodiscard]] bool SetBlockIfChanged(ve::world::World& world, const glm::ivec3& block_position, ve::blocks::BlockId block)
 		{
-			return world.GetBlock(position) != block && world.SetBlock(position, block);
+			return world.GetBlock(block_position) != block && world.SetBlock(block_position, block);
 		}
 
 		[[nodiscard]] bool CarveRoundedHole(ve::world::World& world,
 			const ve::blocks::BlockRegistry& block_registry,
-			const glm::ivec3& center)
+			const glm::ivec3& tunnel_center)
 		{
 			bool changed = false;
-			constexpr int radius = 3;
-			constexpr int depth = 6;
-			for (int dx = -radius; dx <= radius; ++dx)
+			constexpr int tunnel_radius = 3;
+			constexpr int tunnel_depth = 6;
+			for (int offset_x = -tunnel_radius; offset_x <= tunnel_radius; ++offset_x)
 			{
-				for (int dz = -radius; dz <= radius; ++dz)
+				for (int offset_z = -tunnel_radius; offset_z <= tunnel_radius; ++offset_z)
 				{
-					const float horizontal = static_cast<float>((dx * dx) + (dz * dz)) / static_cast<float>(radius * radius);
-					if (horizontal > 1.10f) continue;
-					for (int dy = 0; dy >= -depth; --dy)
+					const float normalized_horizontal_distance =
+						static_cast<float>((offset_x * offset_x) + (offset_z * offset_z)) /
+						static_cast<float>(tunnel_radius * tunnel_radius);
+					if (normalized_horizontal_distance > 1.10f) continue;
+					for (int offset_y = 0; offset_y >= -tunnel_depth; --offset_y)
 					{
-						const float vertical = static_cast<float>(dy * dy) / static_cast<float>(depth * depth);
-						if (horizontal + (vertical * 0.72f) > 1.0f) continue;
-						const glm::ivec3 position = center + glm::ivec3{ dx, dy, dz };
-						const ve::blocks::BlockId block = world.GetBlock(position);
+						const float normalized_vertical_distance =
+							static_cast<float>(offset_y * offset_y) /
+							static_cast<float>(tunnel_depth * tunnel_depth);
+						if (normalized_horizontal_distance + (normalized_vertical_distance * 0.72f) > 1.0f) continue;
+						const glm::ivec3 block_position = tunnel_center + glm::ivec3{ offset_x, offset_y, offset_z };
+						const ve::blocks::BlockId block = world.GetBlock(block_position);
 						if (!block_registry.IsSolid(block) || !IsTunnelMaterial(block)) continue;
-						changed = SetBlockIfChanged(world, position, ve::blocks::BlockId::Air) || changed;
+						changed = SetBlockIfChanged(world, block_position, ve::blocks::BlockId::Air) || changed;
 					}
 				}
 			}
 
-			for (int dx = -(radius + 1); dx <= radius + 1; ++dx)
+			for (int offset_x = -(tunnel_radius + 1); offset_x <= tunnel_radius + 1; ++offset_x)
 			{
-				for (int dz = -(radius + 1); dz <= radius + 1; ++dz)
+				for (int offset_z = -(tunnel_radius + 1); offset_z <= tunnel_radius + 1; ++offset_z)
 				{
-					const int distance_sq = (dx * dx) + (dz * dz);
-					if (distance_sq < (radius * radius) || distance_sq > ((radius + 1) * (radius + 1))) continue;
-					const glm::ivec3 rim = center + glm::ivec3{ dx, 0, dz };
-					const ve::blocks::BlockId block = world.GetBlock(rim);
+					const int rim_distance_squared = (offset_x * offset_x) + (offset_z * offset_z);
+					if (rim_distance_squared < (tunnel_radius * tunnel_radius) ||
+						rim_distance_squared > ((tunnel_radius + 1) * (tunnel_radius + 1))) continue;
+					const glm::ivec3 rim_position = tunnel_center + glm::ivec3{ offset_x, 0, offset_z };
+					const ve::blocks::BlockId block = world.GetBlock(rim_position);
 					if (!IsTunnelMaterial(block)) continue;
-					const ve::blocks::BlockId rim_block = ((dx + dz) & 1) == 0 ? ve::blocks::BlockId::MossBlock : ve::blocks::BlockId::MossyCobblestone;
-					changed = SetBlockIfChanged(world, rim, rim_block) || changed;
+					const ve::blocks::BlockId rim_block =
+						((offset_x + offset_z) & 1) == 0 ?
+						ve::blocks::BlockId::MossBlock :
+						ve::blocks::BlockId::MossyCobblestone;
+					changed = SetBlockIfChanged(world, rim_position, rim_block) || changed;
 				}
 			}
 			return changed;

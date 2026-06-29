@@ -19,11 +19,11 @@ namespace ve::simulation
 		/** @param settings Grid size and solver quality settings. */
 		explicit NavierStokesFluidSimulation(const NavierStokesFluidSettings& settings = {});
 
-		/** @param x Cell X. @param y Cell Y. @param amount Density source amount. */
-		void AddDensity(int x, int y, float amount);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param amount Density source amount. */
+		void AddDensity(int cell_x, int cell_y, float amount);
 
-		/** @param x Cell X. @param y Cell Y. @param velocity Velocity source amount. */
-		void AddVelocity(int x, int y, const glm::vec2& velocity);
+		/** @param cell_x Cell X. @param cell_y Cell Y. @param velocity Velocity source amount. */
+		void AddVelocity(int cell_x, int cell_y, const glm::vec2& velocity);
 
 		/** @param delta_seconds Time step in seconds. */
 		void Step(float delta_seconds);
@@ -42,10 +42,10 @@ namespace ve::simulation
 		void SolvePressure();
 		/** Subtracts pressure gradient from velocity. */
 		void SubtractPressureGradient();
-		/** @param x Cell X. @param y Cell Y. @return Clamped pressure value. */
-		[[nodiscard]] float PressureAt(int x, int y) const noexcept;
-		/** @param x Cell X. @param y Cell Y. @return Clamped flat index. */
-		[[nodiscard]] ve::core::Index Index(int x, int y) const noexcept;
+		/** @param cell_x Cell X. @param cell_y Cell Y. @return Clamped pressure value. */
+		[[nodiscard]] float PressureAt(int cell_x, int cell_y) const noexcept;
+		/** @param cell_x Cell X. @param cell_y Cell Y. @return Clamped flat index. */
+		[[nodiscard]] ve::core::Index Index(int cell_x, int cell_y) const noexcept;
 
 		NavierStokesFluidSettings settings_;
 		FluidGrid current_;

@@ -60,8 +60,8 @@ namespace ve::rendering
 		void ReleaseTextureResources();
 		void ReleasePipelineResources();
 		void RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
-		void AppendVisibleBlockFaces(const ve::world::World& world, int x, int y, int z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
-		void AppendFaceMesh(const BlockFaceGeometry& face, const ve::world::World& world, int x, int y, int z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void AppendVisibleBlockFaces(const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void AppendFaceMesh(const BlockFaceGeometry& face, const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		VulkanBackend* backend_ = nullptr;

@@ -24,22 +24,40 @@ namespace ve::simulation
 	}
 
 	/** Adds density to one cell. */
-	void FluidGrid::AddDensity(int x, int y, float amount) { density_[CellIndex(x, y)] += amount; }
+	void FluidGrid::AddDensity(int cell_x, int cell_y, float amount)
+	{
+		density_[CellIndex(cell_x, cell_y)] += amount;
+	}
 
 	/** Adds velocity to one cell. */
-	void FluidGrid::AddVelocity(int x, int y, const glm::vec2& velocity) { velocity_[CellIndex(x, y)] += velocity; }
+	void FluidGrid::AddVelocity(int cell_x, int cell_y, const glm::vec2& velocity)
+	{
+		velocity_[CellIndex(cell_x, cell_y)] += velocity;
+	}
 
 	/** Sets density for one cell. */
-	void FluidGrid::SetDensity(int x, int y, float density) { density_[CellIndex(x, y)] = density; }
+	void FluidGrid::SetDensity(int cell_x, int cell_y, float density)
+	{
+		density_[CellIndex(cell_x, cell_y)] = density;
+	}
 
 	/** Sets velocity for one cell. */
-	void FluidGrid::SetVelocity(int x, int y, const glm::vec2& velocity) { velocity_[CellIndex(x, y)] = velocity; }
+	void FluidGrid::SetVelocity(int cell_x, int cell_y, const glm::vec2& velocity)
+	{
+		velocity_[CellIndex(cell_x, cell_y)] = velocity;
+	}
 
 	/** Returns density from a clamped cell. */
-	float FluidGrid::DensityAt(int x, int y) const noexcept { return density_[CellIndex(x, y)]; }
+	float FluidGrid::DensityAt(int cell_x, int cell_y) const noexcept
+	{
+		return density_[CellIndex(cell_x, cell_y)];
+	}
 
 	/** Returns velocity from a clamped cell. */
-	glm::vec2 FluidGrid::VelocityAt(int x, int y) const noexcept { return velocity_[CellIndex(x, y)]; }
+	glm::vec2 FluidGrid::VelocityAt(int cell_x, int cell_y) const noexcept
+	{
+		return velocity_[CellIndex(cell_x, cell_y)];
+	}
 
 	/** Returns the grid width. */
 	int FluidGrid::Width() const noexcept { return width_; }
@@ -48,10 +66,10 @@ namespace ve::simulation
 	int FluidGrid::Height() const noexcept { return height_; }
 
 	/** Converts cell coordinates to a clamped flat index. */
-	ve::core::Index FluidGrid::CellIndex(int x, int y) const noexcept
+	ve::core::Index FluidGrid::CellIndex(int cell_x, int cell_y) const noexcept
 	{
-		const int clamped_x = std::clamp(x, 0, width_ - 1);
-		const int clamped_y = std::clamp(y, 0, height_ - 1);
+		const int clamped_x = std::clamp(cell_x, 0, width_ - 1);
+		const int clamped_y = std::clamp(cell_y, 0, height_ - 1);
 		return static_cast<ve::core::Index>(clamped_y * width_ + clamped_x);
 	}
 }

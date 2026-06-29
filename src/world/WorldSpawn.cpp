@@ -13,12 +13,12 @@ namespace ve::world
 	{
 		_chunks.clear();
 		_worldSize = settings.worldSizeChunks;
-		for (int x = 0; x < settings.worldSizeChunks; x++)
+		for (int chunk_x = 0; chunk_x < settings.worldSizeChunks; chunk_x++)
 		{
-			for (int z = 0; z < settings.worldSizeChunks; z++)
+			for (int chunk_z = 0; chunk_z < settings.worldSizeChunks; chunk_z++)
 			{
-				_chunks.emplace_back(x, z, ChunkGenerationMode::GenerateNow);
-				RecordChunkGenerated(x, z);
+				_chunks.emplace_back(chunk_x, chunk_z, ChunkGenerationMode::GenerateNow);
+				RecordChunkGenerated(chunk_x, chunk_z);
 			}
 		}
 		++_revision;
@@ -29,9 +29,9 @@ namespace ve::world
 	{
 		_chunks.clear();
 		_worldSize = settings.worldSizeChunks;
-		for (int x = 0; x < settings.worldSizeChunks; x++)
-			for (int z = 0; z < settings.worldSizeChunks; z++)
-				_chunks.emplace_back(x, z, ChunkGenerationMode::Empty);
+		for (int chunk_x = 0; chunk_x < settings.worldSizeChunks; chunk_x++)
+			for (int chunk_z = 0; chunk_z < settings.worldSizeChunks; chunk_z++)
+				_chunks.emplace_back(chunk_x, chunk_z, ChunkGenerationMode::Empty);
 		++_revision;
 	}
 }

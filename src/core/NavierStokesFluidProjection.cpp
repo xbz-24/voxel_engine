@@ -8,13 +8,17 @@ namespace ve::simulation
 	void NavierStokesFluidSimulation::ComputeDivergence()
 	{
 		std::fill(pressure_.begin(), pressure_.end(), 0.0f);
-		for (int y = 0; y < current_.Height(); ++y)
+		for (int cell_y = 0; cell_y < current_.Height(); ++cell_y)
 		{
-			for (int x = 0; x < current_.Width(); ++x)
+			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const float horizontal = current_.VelocityAt(x + 1, y).x - current_.VelocityAt(x - 1, y).x;
-				const float vertical = current_.VelocityAt(x, y + 1).y - current_.VelocityAt(x, y - 1).y;
-				divergence_[Index(x, y)] = -0.5f * (horizontal + vertical);
+				const float horizontal_change =
+					current_.VelocityAt(cell_x + 1, cell_y).x -
+					current_.VelocityAt(cell_x - 1, cell_y).x;
+				const float vertical_change =
+					current_.VelocityAt(cell_x, cell_y + 1).y -
+					current_.VelocityAt(cell_x, cell_y - 1).y;
+				divergence_[Index(cell_x, cell_y)] = -0.5f * (horizontal_change + vertical_change);
 			}
 		}
 	}
@@ -25,12 +29,15 @@ namespace ve::simulation
 		ve::core::DynamicArray<float> next_pressure = pressure_;
 		for (int iteration = 0; iteration < settings_.pressure_iterations; ++iteration)
 		{
-			for (int y = 0; y < current_.Height(); ++y)
+			for (int cell_y = 0; cell_y < current_.Height(); ++cell_y)
 			{
-				for (int x = 0; x < current_.Width(); ++x)
+				for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 				{
-					const float neighbor_sum = PressureAt(x - 1, y) + PressureAt(x + 1, y) + PressureAt(x, y - 1) + PressureAt(x, y + 1);
-					next_pressure[Index(x, y)] = (divergence_[Index(x, y)] + neighbor_sum) * 0.25f;
+					const float horizontal_pressure = PressureAt(cell_x - 1, cell_y) + PressureAt(cell_x + 1, cell_y);
+					const float vertical_pressure = PressureAt(cell_x, cell_y - 1) + PressureAt(cell_x, cell_y + 1);
+					const float neighbor_pressure = horizontal_pressure + vertical_pressure;
+					next_pressure[Index(cell_x, cell_y)] =
+						(divergence_[Index(cell_x, cell_y)] + neighbor_pressure) * 0.25f;
 				}
 			}
 			pressure_.swap(next_pressure);
@@ -40,12 +47,18 @@ namespace ve::simulation
 	/** Projects velocity by subtracting the pressure gradient. */
 	void NavierStokesFluidSimulation::SubtractPressureGradient()
 	{
-		for (int y = 0; y < current_.Height(); ++y)
+		for (int cell_y = 0; cell_y < current_.Height(); ++cell_y)
 		{
-			for (int x = 0; x < current_.Width(); ++x)
+			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const glm::vec2 gradient{ PressureAt(x + 1, y) - PressureAt(x - 1, y), PressureAt(x, y + 1) - PressureAt(x, y - 1) };
-				current_.SetVelocity(x, y, current_.VelocityAt(x, y) - gradient * 0.5f);
+				const glm::vec2 pressure_gradient{
+					PressureAt(cell_x + 1, cell_y) - PressureAt(cell_x - 1, cell_y),
+					PressureAt(cell_x, cell_y + 1) - PressureAt(cell_x, cell_y - 1)
+				};
+				current_.SetVelocity(
+					cell_x,
+					cell_y,
+					current_.VelocityAt(cell_x, cell_y) - pressure_gradient * 0.5f);
 			}
 		}
 	}

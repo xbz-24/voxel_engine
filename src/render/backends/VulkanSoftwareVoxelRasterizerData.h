@@ -29,10 +29,10 @@ namespace ve::rendering
 
 	struct VulkanRasterCachedSampleRay
 	{
-		std::uint32_t x = 0;
-		std::uint32_t y = 0;
-		std::uint32_t x_end = 0;
-		std::uint32_t y_end = 0;
+		std::uint32_t begin_x = 0;
+		std::uint32_t begin_y = 0;
+		std::uint32_t end_x = 0;
+		std::uint32_t end_y = 0;
 		glm::vec3 direction{ 0.0f, 0.0f, -1.0f };
 	};
 
@@ -42,7 +42,7 @@ namespace ve::rendering
 		std::uint32_t width = 1;
 		std::uint32_t height = 1;
 
-		[[nodiscard]] std::uint32_t Sample(float u, float v) const noexcept;
+		[[nodiscard]] std::uint32_t Sample(float texture_u, float texture_v) const noexcept;
 	};
 
 	struct VulkanRasterTextureLibrary

@@ -10,42 +10,46 @@ namespace ve::rendering
 	{
 		// TODO: Replace full-world rebuilds with dirty chunk meshes cached across World::Revision() changes.
 		const ve::world::WorldMetrics metrics = world.Metrics();
-		const int width = metrics.worldSizeChunks * Chunk::CHUNK_WIDTH;
-		const int height = Chunk::CHUNK_HEIGHT;
-		const int depth = metrics.worldSizeChunks * Chunk::CHUNK_DEPTH;
+		const int world_width_blocks = metrics.worldSizeChunks * Chunk::CHUNK_WIDTH;
+		const int world_height_blocks = Chunk::CHUNK_HEIGHT;
+		const int world_depth_blocks = metrics.worldSizeChunks * Chunk::CHUNK_DEPTH;
 		vertices.clear();
 		indices.clear();
-		const std::size_t column_count = static_cast<std::size_t>(std::max(width, 0)) * static_cast<std::size_t>(std::max(depth, 0));
-		vertices.reserve(std::max<std::size_t>(140'000u, column_count * 16u));
-		indices.reserve(std::max<std::size_t>(210'000u, column_count * 24u));
+		const std::size_t world_column_count = static_cast<std::size_t>(std::max(world_width_blocks, 0)) *
+			static_cast<std::size_t>(std::max(world_depth_blocks, 0));
+		vertices.reserve(std::max<std::size_t>(140'000u, world_column_count * 16u));
+		indices.reserve(std::max<std::size_t>(210'000u, world_column_count * 24u));
 
-		for (int x = 0; x < width; ++x)
+		for (int block_x = 0; block_x < world_width_blocks; ++block_x)
 		{
-			for (int y = 0; y < height; ++y)
+			for (int block_y = 0; block_y < world_height_blocks; ++block_y)
 			{
-				for (int z = 0; z < depth; ++z)
+				for (int block_z = 0; block_z < world_depth_blocks; ++block_z)
 				{
-					const ve::blocks::BlockId block = world.GetBlock(x, y, z);
+					const ve::blocks::BlockId block = world.GetBlock(block_x, block_y, block_z);
 					if (!IsRenderableBlock(block)) continue;
-					AppendVisibleBlockFaces(world, x, y, z, block, vertices, indices);
+					AppendVisibleBlockFaces(world, block_x, block_y, block_z, block, vertices, indices);
 				}
 			}
 		}
 	}
 	void VulkanGpuChunkRenderer::AppendVisibleBlockFaces(const ve::world::World& world,
-		int x,
-		int y,
-		int z,
+		int block_x,
+		int block_y,
+		int block_z,
 		ve::blocks::BlockId block,
 		std::vector<VoxelVertex>& vertices,
 		std::vector<std::uint32_t>& indices) const
 	{
 		for (const BlockFaceGeometry& face : ChunkFaces())
 		{
-			const ve::blocks::BlockId neighbor = world.GetBlock(x + face.neighbor_offset.x, y + face.neighbor_offset.y, z + face.neighbor_offset.z);
-			if (!OccludesNeighborFaces(neighbor))
+			const ve::blocks::BlockId neighbor_block = world.GetBlock(
+				block_x + face.neighbor_offset.x,
+				block_y + face.neighbor_offset.y,
+				block_z + face.neighbor_offset.z);
+			if (!OccludesNeighborFaces(neighbor_block))
 			{
-				AppendFaceMesh(face, world, x, y, z, block, vertices, indices);
+				AppendFaceMesh(face, world, block_x, block_y, block_z, block, vertices, indices);
 			}
 		}
 	}

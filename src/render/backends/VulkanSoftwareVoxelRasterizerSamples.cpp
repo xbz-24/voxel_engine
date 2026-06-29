@@ -23,16 +23,16 @@ namespace ve::rendering
 
 			const Rgb color = hit.hit ? ShadeHit(hit, sample.direction, base_color, work.max_ray_distance, work.fog_strength) : base_color;
 			const std::uint32_t packed = PackColor(color, work.format);
-			if (sample.x_end == sample.x + 1u && sample.y_end == sample.y + 1u)
+			if (sample.end_x == sample.begin_x + 1u && sample.end_y == sample.begin_y + 1u)
 			{
-				render_pixels_[(static_cast<std::size_t>(sample.y) * render_extent_.width) + sample.x] = packed;
+				render_pixels_[(static_cast<std::size_t>(sample.begin_y) * render_extent_.width) + sample.begin_x] = packed;
 				continue;
 			}
 
-			for (std::uint32_t fill_y = sample.y; fill_y < sample.y_end; ++fill_y)
+			for (std::uint32_t fill_y = sample.begin_y; fill_y < sample.end_y; ++fill_y)
 			{
 				std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(fill_y) * render_extent_.width);
-				std::fill(row + sample.x, row + sample.x_end, packed);
+				std::fill(row + sample.begin_x, row + sample.end_x, packed);
 			}
 		}
 	}

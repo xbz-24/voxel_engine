@@ -1,74 +1,84 @@
-	WorldConfig& WorldConfig::AddFloor(int y, int radius, Block block)
+	WorldConfig& WorldConfig::AddFloor(int block_y, int radius, Block block)
 	{
-		return AddFloor(0, y, 0, radius, block);
+		return AddFloor(0, block_y, 0, radius, block);
 	}
 
-	WorldConfig& WorldConfig::AddFloor(int center_x, int y, int center_z, int radius, Block block)
+	WorldConfig& WorldConfig::AddFloor(int center_x, int block_y, int center_z, int radius, Block block)
 	{
 		return FillBox(
 			center_x - radius,
-			y,
+			block_y,
 			center_z - radius,
 			center_x + radius,
-			y,
+			block_y,
 			center_z + radius,
 			block);
 	}
 
-	WorldConfig& WorldConfig::AddPlatform(int y, int radius, Block block)
+	WorldConfig& WorldConfig::AddPlatform(int block_y, int radius, Block block)
 	{
-		return AddFloor(y, radius, block);
+		return AddFloor(block_y, radius, block);
 	}
 
-	WorldConfig& WorldConfig::AddBox(int x1, int y1, int z1, int x2, int y2, int z2, Block block)
+	WorldConfig& WorldConfig::AddBox(int first_x, int first_y, int first_z, int second_x, int second_y, int second_z, Block block)
 	{
-		return FillBox(x1, y1, z1, x2, y2, z2, block);
+		return FillBox(first_x, first_y, first_z, second_x, second_y, second_z, block);
 	}
 
-	WorldConfig& WorldConfig::AddColumn(int x, int y, int z, int height, Block block)
+	WorldConfig& WorldConfig::AddColumn(int block_x, int base_y, int block_z, int height, Block block)
 	{
 		if (height <= 0)
 		{
 			return *this;
 		}
-		return FillBox(x, y, z, x, y + height - 1, z, block);
+		return FillBox(block_x, base_y, block_z, block_x, base_y + height - 1, block_z, block);
 	}
 
-	WorldConfig& WorldConfig::AddLamp(int x, int y, int z, Block block)
+	WorldConfig& WorldConfig::AddLamp(int block_x, int block_y, int block_z, Block block)
 	{
-		return SetBlock(x, y, z, block);
+		return SetBlock(block_x, block_y, block_z, block);
 	}
 
-	WorldConfig& WorldConfig::AddLightPost(int x, int y, int z, int height, Block post, Block light)
+	WorldConfig& WorldConfig::AddLightPost(int block_x, int base_y, int block_z, int height, Block post, Block light)
 	{
 		if (height <= 0)
 		{
-			return AddLamp(x, y, z, light);
+			return AddLamp(block_x, base_y, block_z, light);
 		}
-		return AddColumn(x, y, z, height, post)
-			.AddLamp(x, y + height, z, light);
+		return AddColumn(block_x, base_y, block_z, height, post)
+			.AddLamp(block_x, base_y + height, block_z, light);
 	}
 
-	WorldConfig& WorldConfig::AddPathX(int x1, int x2, int y, int z, int half_width, Block block)
+	WorldConfig& WorldConfig::AddPathX(int start_x, int end_x, int block_y, int center_z, int half_width, Block block)
 	{
-		return FillBox(x1, y, z - half_width, x2, y, z + half_width, block);
+		return FillBox(start_x, block_y, center_z - half_width, end_x, block_y, center_z + half_width, block);
 	}
 
-	WorldConfig& WorldConfig::AddPathZ(int x, int y, int z1, int z2, int half_width, Block block)
+	WorldConfig& WorldConfig::AddPathZ(int center_x, int block_y, int start_z, int end_z, int half_width, Block block)
 	{
-		return FillBox(x - half_width, y, z1, x + half_width, y, z2, block);
+		return FillBox(center_x - half_width, block_y, start_z, center_x + half_width, block_y, end_z, block);
 	}
 
-	WorldConfig& WorldConfig::AddBridgeX(int x1, int x2, int y, int z, int half_width, Block deck, Block rail)
+	WorldConfig& WorldConfig::AddBridgeX(int start_x, int end_x, int block_y, int center_z, int half_width, Block deck, Block rail)
 	{
-		return FillBox(x1, y, z - half_width, x2, y, z + half_width, deck)
-			.FillBox(x1, y + 1, z - half_width - 1, x2, y + 1, z - half_width - 1, rail)
-			.FillBox(x1, y + 1, z + half_width + 1, x2, y + 1, z + half_width + 1, rail);
+		const int deck_min_z = center_z - half_width;
+		const int deck_max_z = center_z + half_width;
+		const int north_rail_z = deck_min_z - 1;
+		const int south_rail_z = deck_max_z + 1;
+
+		return FillBox(start_x, block_y, deck_min_z, end_x, block_y, deck_max_z, deck)
+			.FillBox(start_x, block_y + 1, north_rail_z, end_x, block_y + 1, north_rail_z, rail)
+			.FillBox(start_x, block_y + 1, south_rail_z, end_x, block_y + 1, south_rail_z, rail);
 	}
 
-	WorldConfig& WorldConfig::AddBridgeZ(int x, int y, int z1, int z2, int half_width, Block deck, Block rail)
+	WorldConfig& WorldConfig::AddBridgeZ(int center_x, int block_y, int start_z, int end_z, int half_width, Block deck, Block rail)
 	{
-		return FillBox(x - half_width, y, z1, x + half_width, y, z2, deck)
-			.FillBox(x - half_width - 1, y + 1, z1, x - half_width - 1, y + 1, z2, rail)
-			.FillBox(x + half_width + 1, y + 1, z1, x + half_width + 1, y + 1, z2, rail);
+		const int deck_min_x = center_x - half_width;
+		const int deck_max_x = center_x + half_width;
+		const int west_rail_x = deck_min_x - 1;
+		const int east_rail_x = deck_max_x + 1;
+
+		return FillBox(deck_min_x, block_y, start_z, deck_max_x, block_y, end_z, deck)
+			.FillBox(west_rail_x, block_y + 1, start_z, west_rail_x, block_y + 1, end_z, rail)
+			.FillBox(east_rail_x, block_y + 1, start_z, east_rail_x, block_y + 1, end_z, rail);
 	}

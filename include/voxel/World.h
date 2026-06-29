@@ -15,9 +15,9 @@ namespace voxel
 		int z = 0;
 	};
 
-	[[nodiscard]] constexpr BlockPosition At(int x, int y, int z) noexcept
+	[[nodiscard]] constexpr BlockPosition At(int block_x, int block_y, int block_z) noexcept
 	{
-		return { x, y, z };
+		return { block_x, block_y, block_z };
 	}
 
 	struct BlockBox
@@ -55,26 +55,26 @@ namespace voxel
 
 		WorldConfig& WithSizeChunks(int value) noexcept;
 		WorldConfig& SetBlock(BlockPosition position, Block block);
-		WorldConfig& SetBlock(int x, int y, int z, Block block);
+		WorldConfig& SetBlock(int block_x, int block_y, int block_z, Block block);
 		WorldConfig& FillBox(BlockBox box, Block block);
 		WorldConfig& FillBox(BlockPosition first, BlockPosition second, Block block);
-		WorldConfig& FillBox(int x1, int y1, int z1, int x2, int y2, int z2, Block block);
-		WorldConfig& ClearBox(int x1, int y1, int z1, int x2, int y2, int z2);
-		WorldConfig& AddFloor(int y, int radius, Block block);
-		WorldConfig& AddFloor(int center_x, int y, int center_z, int radius, Block block);
-		WorldConfig& AddPlatform(int y, int radius, Block block);
-		WorldConfig& AddBox(int x1, int y1, int z1, int x2, int y2, int z2, Block block);
-		WorldConfig& AddColumn(int x, int y, int z, int height, Block block);
-		WorldConfig& AddLamp(int x, int y, int z, Block block = SeaLantern);
-		WorldConfig& AddLightPost(int x, int y, int z, int height = 4, Block post = OakLog, Block light = SeaLantern);
-		WorldConfig& AddPathX(int x1, int x2, int y, int z, int half_width = 1, Block block = Gravel);
-		WorldConfig& AddPathZ(int x, int y, int z1, int z2, int half_width = 1, Block block = Gravel);
-		WorldConfig& AddBridgeX(int x1, int x2, int y, int z, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
-		WorldConfig& AddBridgeZ(int x, int y, int z1, int z2, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
-		WorldConfig& AddHouse(int x, int y, int z, int radius = 3, Block walls = OakPlanks, Block roof = Bricks);
-		WorldConfig& AddPond(int x, int y, int z, int radius = 3, Block water = Water, Block rim = MossyCobblestone);
-		WorldConfig& AddGarden(int x, int y, int z, int half_width = 2, int half_depth = 3, Block soil = Dirt, Block crop = HayBlock);
-		WorldConfig& AddTree(int x, int y, int z, Block trunk = OakLog, Block leaves = OakLeaves);
+		WorldConfig& FillBox(int first_x, int first_y, int first_z, int second_x, int second_y, int second_z, Block block);
+		WorldConfig& ClearBox(int first_x, int first_y, int first_z, int second_x, int second_y, int second_z);
+		WorldConfig& AddFloor(int block_y, int radius, Block block);
+		WorldConfig& AddFloor(int center_x, int block_y, int center_z, int radius, Block block);
+		WorldConfig& AddPlatform(int block_y, int radius, Block block);
+		WorldConfig& AddBox(int first_x, int first_y, int first_z, int second_x, int second_y, int second_z, Block block);
+		WorldConfig& AddColumn(int block_x, int base_y, int block_z, int height, Block block);
+		WorldConfig& AddLamp(int block_x, int block_y, int block_z, Block block = SeaLantern);
+		WorldConfig& AddLightPost(int block_x, int base_y, int block_z, int height = 4, Block post = OakLog, Block light = SeaLantern);
+		WorldConfig& AddPathX(int start_x, int end_x, int block_y, int center_z, int half_width = 1, Block block = Gravel);
+		WorldConfig& AddPathZ(int center_x, int block_y, int start_z, int end_z, int half_width = 1, Block block = Gravel);
+		WorldConfig& AddBridgeX(int start_x, int end_x, int block_y, int center_z, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
+		WorldConfig& AddBridgeZ(int center_x, int block_y, int start_z, int end_z, int half_width = 1, Block deck = OakPlanks, Block rail = OakLog);
+		WorldConfig& AddHouse(int center_x, int base_y, int center_z, int radius = 3, Block walls = OakPlanks, Block roof = Bricks);
+		WorldConfig& AddPond(int center_x, int block_y, int center_z, int radius = 3, Block water = Water, Block rim = MossyCobblestone);
+		WorldConfig& AddGarden(int center_x, int block_y, int center_z, int half_width = 2, int half_depth = 3, Block soil = Dirt, Block crop = HayBlock);
+		WorldConfig& AddTree(int trunk_x, int base_y, int trunk_z, Block trunk = OakLog, Block leaves = OakLeaves);
 	};
 
 	[[nodiscard]] WorldConfig World(int size_chunks);

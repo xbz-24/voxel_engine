@@ -2,94 +2,53 @@
 
 #include "CommandLineLauncherInternal.h"
 
-#include <array>
-
 namespace ve::launcher
 {
-	std::span<const DemoProcess> DemoSuite() noexcept
-	{
-		static constexpr std::array<DemoProcess, 3> kDemoSuite{ {
-			DemoProcess{ "aqua", std::chrono::seconds{ 5 } },
-			DemoProcess{ "sponza", std::chrono::seconds{ 8 } },
-			DemoProcess{ "voxeldemo", std::chrono::seconds{ 0 } }
-		} };
-		return kDemoSuite;
-	}
-
-	bool IsAquaDemo(std::string_view demo) noexcept
-	{
-		return demo == "aqua" || demo == "konosuba" || demo == "konosuba-aqua";
-	}
-
-	bool IsSponzaDemo(std::string_view demo) noexcept
-	{
-		return demo == "sponza" || demo == "atrium" || demo == "sponza-atrium" ||
-			demo == "coliseo" || demo == "coliseum";
-	}
-
-	bool IsSuiteAlias(std::string_view demo) noexcept
-	{
-		return demo == "all" || demo == "all-demos" || demo == "demo-all";
-	}
-
-	bool TryParsePositiveFrameCount(std::string_view text, int& value) noexcept
-	{
-		constexpr int kMaxFrameCount = 100000;
-		if (text.empty()) return false;
-
-		int parsed = 0;
-		for (const char ch : text)
-		{
-			if (ch < '0' || ch > '9') return false;
-			const int digit = ch - '0';
-			if (parsed > (kMaxFrameCount - digit) / 10) return false;
-			parsed = (parsed * 10) + digit;
-		}
-
-		if (parsed <= 0) return false;
-		value = parsed;
-		return true;
-	}
-
 	namespace
 	{
 		[[nodiscard]] bool TryReadValue(const CommandLineArguments& arguments,
-			CommandLineArguments::size_type& index,
-			std::string_view& value) noexcept
+			CommandLineArguments::size_type& argument_index,
+			std::string_view& option_value) noexcept
 		{
-			if (index + 1 >= arguments.size()) return false;
-			value = arguments[++index];
+			if (argument_index + 1 >= arguments.size()) return false;
+			option_value = arguments[++argument_index];
 			return true;
 		}
 
-		[[nodiscard]] LaunchParseResult Invalid(LaunchParseResult result) noexcept
+		[[nodiscard]] LaunchParseResult MarkInvalid(LaunchParseResult parse_result) noexcept
 		{
-			result.ok = false;
-			return result;
+			parse_result.ok = false;
+			return parse_result;
 		}
 	}
 
 	LaunchParseResult ParseLaunchArguments(const CommandLineArguments& arguments) noexcept
 	{
-		LaunchParseResult result{};
-		result.options.launch_all = arguments.size() == 1;
-		for (CommandLineArguments::size_type index = 1; index < arguments.size(); ++index)
+		LaunchParseResult parse_result{};
+		parse_result.options.launch_demo_suite = arguments.size() == 1;
+		for (CommandLineArguments::size_type argument_index = 1; argument_index < arguments.size(); ++argument_index)
 		{
-			const std::string_view arg = arguments[index];
-			if (arg == "--demo")
+			const std::string_view current_argument = arguments[argument_index];
+			if (current_argument == "--demo")
 			{
-				if (!TryReadValue(arguments, index, result.options.demo_name)) return Invalid(result);
-				result.options.launch_all = IsSuiteAlias(result.options.demo_name);
+				if (!TryReadValue(arguments, argument_index, parse_result.options.selected_demo_name))
+				{
+					return MarkInvalid(parse_result);
+				}
+				parse_result.options.launch_demo_suite = IsDemoSuiteAlias(parse_result.options.selected_demo_name);
 			}
-			else if (arg == "--smoke-frames")
+			else if (current_argument == "--smoke-frames")
 			{
-				std::string_view frames{};
-				if (!TryReadValue(arguments, index, frames) ||
-					!TryParsePositiveFrameCount(frames, result.options.smoke_frames)) return Invalid(result);
+				std::string_view frame_limit_text{};
+				if (!TryReadValue(arguments, argument_index, frame_limit_text) ||
+					!TryParseSmokeFrameLimit(frame_limit_text, parse_result.options.smoke_frame_limit))
+				{
+					return MarkInvalid(parse_result);
+				}
 			}
-			else if (arg == "--all-demos") result.options.launch_all = true;
-			else return Invalid(result);
+			else if (current_argument == "--all-demos") parse_result.options.launch_demo_suite = true;
+			else return MarkInvalid(parse_result);
 		}
-		return result;
+		return parse_result;
 	}
 }

@@ -2,17 +2,15 @@
 
 #include "GraphicsFacade.h"
 #include "GraphicsResourcePool.h"
-#include "FrameGraph.h"
 #include "MortonCode.h"
 #include "RenderCommandSorter.h"
 
-#include <string>
-#include <utility>
-#include <vector>
+#include <cstddef>
+#include <type_traits>
+#include <variant>
 
 namespace
 {
-	// TODO: Extend this executor to validate command payloads once text/textured primitives land.
 	class RecordingRenderCommandExecutor final : public ve::rendering::RenderCommandExecutor
 	{
 	public:
@@ -20,9 +18,36 @@ namespace
 		void Execute(const ve::rendering::RenderCommandList& command_list) override
 		{
 			executed_command_count = command_list.Count();
+			triangle_command_count = 0;
+			rect_command_count = 0;
+			cube_command_count = 0;
+
+			for (const ve::rendering::RenderCommand& command : command_list.Commands())
+			{
+				std::visit(
+					[this](const auto& payload) {
+						using PayloadType = std::decay_t<decltype(payload)>;
+						if constexpr (std::is_same_v<PayloadType, ve::rendering::DrawTriangle2DCommand>)
+						{
+							++triangle_command_count;
+						}
+						else if constexpr (std::is_same_v<PayloadType, ve::rendering::DrawRect2DCommand>)
+						{
+							++rect_command_count;
+						}
+						else if constexpr (std::is_same_v<PayloadType, ve::rendering::DrawCube3DCommand>)
+						{
+							++cube_command_count;
+						}
+					},
+					command.payload);
+			}
 		}
 
 		std::size_t executed_command_count = 0;
+		std::size_t triangle_command_count = 0;
+		std::size_t rect_command_count = 0;
+		std::size_t cube_command_count = 0;
 	};
 }
 
@@ -79,66 +104,7 @@ TEST_CASE("graphics facade records and submits common primitives")
 
 	CHECK(graphics.PendingCommandCount() == 3U);
 	CHECK(executor.executed_command_count == 3U);
-}
-
-TEST_CASE("frame graph records resource dependencies")
-{
-	ve::rendering::FrameGraph graph;
-	const ve::rendering::FrameGraphResourceHandle color = graph.DeclareResource("color");
-	const ve::rendering::FrameGraphResourceHandle depth = graph.DeclareResource("depth");
-
-	ve::rendering::FrameGraphPass pass{};
-	pass.name = "geometry";
-	pass.writes = { color, depth };
-	graph.AddPass(std::move(pass));
-
-	REQUIRE(graph.ResourceCount() == 2U);
-	REQUIRE(graph.PassCount() == 1U);
-	CHECK(graph.Passes().front().writes.size() == 2U);
-	CHECK(graph.Passes().front().writes.front() == color);
-}
-
-TEST_CASE("frame graph executes producers before consumers")
-{
-	ve::rendering::FrameGraph graph;
-	const ve::rendering::FrameGraphResourceHandle color = graph.DeclareResource("color");
-	std::vector<int> execution_order;
-
-	ve::rendering::FrameGraphPass consumer{};
-	consumer.name = "tonemap";
-	consumer.reads = { color };
-	consumer.execute = [&execution_order](ve::rendering::FrameGraphContext&) {
-		execution_order.push_back(2);
-	};
-	graph.AddPass(std::move(consumer));
-
-	ve::rendering::FrameGraphPass producer{};
-	producer.name = "geometry";
-	producer.writes = { color };
-	producer.execute = [&execution_order](ve::rendering::FrameGraphContext&) {
-		execution_order.push_back(1);
-	};
-	graph.AddPass(std::move(producer));
-
-	ve::rendering::FrameGraphContext context{};
-	graph.Execute(context);
-
-	CHECK(execution_order == std::vector<int>{ 1, 2 });
-	CHECK(context.frame_index == 1U);
-}
-
-TEST_CASE("frame graph validation reports missing producers")
-{
-	ve::rendering::FrameGraph graph;
-	const ve::rendering::FrameGraphResourceHandle imported = graph.DeclareResource("history");
-
-	ve::rendering::FrameGraphPass pass{};
-	pass.name = "temporal resolve";
-	pass.reads = { imported };
-	graph.AddPass(std::move(pass));
-
-	const ve::core::DynamicArray<std::string> issues = graph.Validate();
-
-	REQUIRE(issues.size() == 1U);
-	CHECK(issues.front() == "FrameGraph pass 'temporal resolve' reads resource 'history' without a producer");
+	CHECK(executor.triangle_command_count == 1U);
+	CHECK(executor.rect_command_count == 1U);
+	CHECK(executor.cube_command_count == 1U);
 }

@@ -9,9 +9,9 @@ namespace ve::launcher
 
 	struct LaunchOptions
 	{
-		std::string_view demo_name = "desert";
-		int smoke_frames = 0;
-		bool launch_all = false;
+		std::string_view selected_demo_name = "desert";
+		int smoke_frame_limit = 0;
+		bool launch_demo_suite = false;
 	};
 
 	struct LaunchParseResult

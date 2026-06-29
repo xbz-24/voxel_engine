@@ -17,14 +17,14 @@ namespace ve::rendering
 			static_cast<std::size_t>(world_snapshot_.depth);
 		world_snapshot_.blocks.resize(block_count);
 
-		std::size_t index = 0;
-		for (int x = 0; x < world_snapshot_.width; ++x)
+		std::size_t snapshot_block_index = 0;
+		for (int block_x = 0; block_x < world_snapshot_.width; ++block_x)
 		{
-			for (int y = 0; y < world_snapshot_.height; ++y)
+			for (int block_y = 0; block_y < world_snapshot_.height; ++block_y)
 			{
-				for (int z = 0; z < world_snapshot_.depth; ++z)
+				for (int block_z = 0; block_z < world_snapshot_.depth; ++block_z)
 				{
-					world_snapshot_.blocks[index++] = world.GetBlock(x, y, z);
+					world_snapshot_.blocks[snapshot_block_index++] = world.GetBlock(block_x, block_y, block_z);
 				}
 			}
 		}

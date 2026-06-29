@@ -30,9 +30,9 @@ namespace voxel
 		return *this;
 	}
 
-	RuntimeCommands& RuntimeCommands::SetBlock(int x, int y, int z, Block block)
+	RuntimeCommands& RuntimeCommands::SetBlock(int block_x, int block_y, int block_z, Block block)
 	{
-		return SetBlock(At(x, y, z), block);
+		return SetBlock(At(block_x, block_y, block_z), block);
 	}
 
 	RuntimeCommands& RuntimeCommands::FillBox(BlockBox box, Block block)
@@ -46,14 +46,38 @@ namespace voxel
 		return *this;
 	}
 
-	RuntimeCommands& RuntimeCommands::FillBox(int x1, int y1, int z1, int x2, int y2, int z2, Block block)
+	RuntimeCommands& RuntimeCommands::FillBox(
+		int first_block_x,
+		int first_block_y,
+		int first_block_z,
+		int second_block_x,
+		int second_block_y,
+		int second_block_z,
+		Block block)
 	{
-		return FillBox(Box(At(x1, y1, z1), At(x2, y2, z2)), block);
+		return FillBox(
+			Box(
+				At(first_block_x, first_block_y, first_block_z),
+				At(second_block_x, second_block_y, second_block_z)),
+			block);
 	}
 
-	RuntimeCommands& RuntimeCommands::ClearBox(int x1, int y1, int z1, int x2, int y2, int z2)
+	RuntimeCommands& RuntimeCommands::ClearBox(
+		int first_block_x,
+		int first_block_y,
+		int first_block_z,
+		int second_block_x,
+		int second_block_y,
+		int second_block_z)
 	{
-		return FillBox(x1, y1, z1, x2, y2, z2, Air);
+		return FillBox(
+			first_block_x,
+			first_block_y,
+			first_block_z,
+			second_block_x,
+			second_block_y,
+			second_block_z,
+			Air);
 	}
 
 	RuntimeCommands& RuntimeCommands::RequestClose() noexcept

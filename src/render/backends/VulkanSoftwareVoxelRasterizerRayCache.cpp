@@ -3,6 +3,7 @@
 #include "Camera.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cmath>
 
 #include <glm/geometric.hpp>
@@ -30,21 +31,32 @@ namespace ve::rendering
 			return;
 		}
 
-		const float width = static_cast<float>(render_extent_.width);
-		const float height = static_cast<float>(render_extent_.height);
-		const float aspect = width / height;
+		const float render_width = static_cast<float>(render_extent_.width);
+		const float render_height = static_cast<float>(render_extent_.height);
+		const float aspect = render_width / render_height;
 		const float tan_half_fov = std::tan(glm::radians(35.0f));
 		ray_cache_.clear();
-		ray_cache_.reserve(((render_extent_.width + sample_step - 1u) / sample_step) * ((render_extent_.height + sample_step - 1u) / sample_step));
+		const std::uint32_t sample_columns = (render_extent_.width + sample_step - 1u) / sample_step;
+		const std::uint32_t sample_rows = (render_extent_.height + sample_step - 1u) / sample_step;
+		ray_cache_.reserve(static_cast<std::size_t>(sample_columns) * sample_rows);
 
-		for (std::uint32_t y = 0; y < render_extent_.height; y += sample_step)
+		for (std::uint32_t sample_y = 0; sample_y < render_extent_.height; sample_y += sample_step)
 		{
-			for (std::uint32_t x = 0; x < render_extent_.width; x += sample_step)
+			for (std::uint32_t sample_x = 0; sample_x < render_extent_.width; sample_x += sample_step)
 			{
-				const float screen_x = ((static_cast<float>(x) + 0.5f) / width) * 2.0f - 1.0f;
-				const float screen_y = 1.0f - ((static_cast<float>(y) + 0.5f) / height) * 2.0f;
-				ray_cache_.push_back({ x, y, std::min(x + sample_step, render_extent_.width), std::min(y + sample_step, render_extent_.height),
-					glm::normalize(forward + (right * screen_x * tan_half_fov * aspect) + (up * screen_y * tan_half_fov)) });
+				const float screen_x = ((static_cast<float>(sample_x) + 0.5f) / render_width) * 2.0f - 1.0f;
+				const float screen_y = 1.0f - ((static_cast<float>(sample_y) + 0.5f) / render_height) * 2.0f;
+				const glm::vec3 ray_direction = glm::normalize(
+					forward +
+					(right * screen_x * tan_half_fov * aspect) +
+					(up * screen_y * tan_half_fov));
+				ray_cache_.push_back({
+					.begin_x = sample_x,
+					.begin_y = sample_y,
+					.end_x = std::min(sample_x + sample_step, render_extent_.width),
+					.end_y = std::min(sample_y + sample_step, render_extent_.height),
+					.direction = ray_direction
+				});
 			}
 		}
 

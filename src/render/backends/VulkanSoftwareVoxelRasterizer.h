@@ -65,16 +65,26 @@ namespace ve::rendering
 		void DrawCrosshair(VkFormat format);
 		void DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawTuningPanel(const VulkanSoftwareVoxelRasterizerFrame& frame);
-		void DrawText(const char* text, std::uint32_t x, std::uint32_t y, std::uint32_t scale, std::uint32_t color);
-		void DrawFilledRect(std::uint32_t x, std::uint32_t y, std::uint32_t width, std::uint32_t height, std::uint32_t color);
+		void DrawText(
+			const char* text,
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t scale,
+			std::uint32_t color);
+		void DrawFilledRect(
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t width,
+			std::uint32_t height,
+			std::uint32_t color);
 		bool Slider(const VulkanSoftwareVoxelRasterizerFrame& frame,
 			const char* label,
 			float& value,
 			float min_value,
 			float max_value,
-			std::uint32_t x,
-			std::uint32_t y,
-			std::uint32_t width);
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t control_width);
 
 		VkExtent2D extent_{};
 		VkExtent2D render_extent_{};

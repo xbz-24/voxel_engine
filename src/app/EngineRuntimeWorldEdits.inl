@@ -27,13 +27,13 @@
 			const int max_y = std::max(edit.min_y, edit.max_y);
 			const int max_z = std::max(edit.min_z, edit.max_z);
 
-			for (int z = min_z; z <= max_z; ++z)
+			for (int edit_block_z = min_z; edit_block_z <= max_z; ++edit_block_z)
 			{
-				for (int y = min_y; y <= max_y; ++y)
+				for (int edit_block_y = min_y; edit_block_y <= max_y; ++edit_block_y)
 				{
-					for (int x = min_x; x <= max_x; ++x)
+					for (int edit_block_x = min_x; edit_block_x <= max_x; ++edit_block_x)
 					{
-						(void)world.SetBlock(x, y, z, edit.block);
+						(void)world.SetBlock(edit_block_x, edit_block_y, edit_block_z, edit.block);
 					}
 				}
 			}

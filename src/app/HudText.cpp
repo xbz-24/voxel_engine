@@ -4,7 +4,7 @@ namespace ve::ui
 {
 	void HudRenderer::DrawText(const std::string& text, float x, float y, float scale)
 	{
-		glBindTexture(GL_TEXTURE_2D, _textures.font);
+		glBindTexture(GL_TEXTURE_2D, textures_.font);
 		glBegin(GL_QUADS);
 		const float charSize = 10.0f * scale;
 		const float uvStep = 1.0f / 16.0f;

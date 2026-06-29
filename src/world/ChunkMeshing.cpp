@@ -8,40 +8,40 @@
 using ve::blocks::BlockRegistry;
 
 /// Builds a CPU mesh and uploads it immediately on the calling thread.
-void Chunk::BuildMesh(const BlockRegistry& blockRegistry, const ve::world::mesh::NeighborChunks& neighbors)
+void Chunk::BuildMesh(const BlockRegistry& block_registry, const ve::world::mesh::NeighborChunks& neighbors)
 {
-	UploadMesh(ve::world::mesh::BuildChunkMesh(*this, blockRegistry, neighbors));
+	UploadMesh(ve::world::mesh::BuildChunkMesh(*this, block_registry, neighbors));
 }
 
 /// Uploads finished CPU mesh data to this chunk's GPU buffer.
-void Chunk::UploadMesh(ve::world::mesh::ChunkMeshBuildResult meshBuildResult)
+void Chunk::UploadMesh(ve::world::mesh::ChunkMeshBuildResult mesh_build_result)
 {
-	_mesh.Upload(meshBuildResult.vertices, std::move(meshBuildResult.batches));
-	_isMeshBuilt = true;
-	_isMeshBuildQueued = false;
+	mesh_.Upload(mesh_build_result.vertices, std::move(mesh_build_result.batches));
+	is_mesh_built_ = true;
+	is_mesh_build_queued_ = false;
 }
 
 /// Returns the uploaded render mesh resource.
 const ve::rendering::ChunkGpuMesh& Chunk::RenderMesh() const noexcept
 {
-	return _mesh;
+	return mesh_;
 }
 
 /// Returns a read-only mesh input view over this chunk's block storage.
 ve::world::mesh::ChunkMeshInput Chunk::CreateMeshInput() const noexcept
 {
-	const auto* firstBlock = &blocks[0][0][0];
+	const auto* first_block = &blocks_[0][0][0];
 	return ve::world::mesh::ChunkMeshInput{
-		_chunkX,
-		_chunkZ,
-		std::span<const ve::blocks::BlockId>(firstBlock, ve::world::mesh::ChunkBlockCount)
+		chunk_x_,
+		chunk_z_,
+		std::span<const ve::blocks::BlockId>(first_block, ve::world::mesh::ChunkBlockCount)
 	};
 }
 
 /// Reports whether this chunk needs a fresh mesh.
 bool Chunk::NeedsMeshBuild() const noexcept
 {
-	return !_isMeshBuilt;
+	return !is_mesh_built_;
 }
 
 /**
@@ -51,13 +51,13 @@ bool Chunk::NeedsMeshBuild() const noexcept
  */
 bool Chunk::TryReserveMeshBuild() noexcept
 {
-	if (!NeedsMeshBuild() || _isMeshBuildQueued) return false;
-	_isMeshBuildQueued = true;
+	if (!NeedsMeshBuild() || is_mesh_build_queued_) return false;
+	is_mesh_build_queued_ = true;
 	return true;
 }
 
 /// Releases a failed async mesh reservation without marking the current mesh valid.
 void Chunk::CancelMeshBuildReservation() noexcept
 {
-	_isMeshBuildQueued = false;
+	is_mesh_build_queued_ = false;
 }

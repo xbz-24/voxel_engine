@@ -46,24 +46,33 @@
 			}
 			else if (command == "set")
 			{
-				int x = 0;
-				int y = 0;
-				int z = 0;
-				int block = 0;
-				file >> x >> y >> z >> block;
-				world.SetBlock(x, y, z, FromSerializedBlock(block));
+				int block_x = 0;
+				int block_y = 0;
+				int block_z = 0;
+				int serialized_block = 0;
+				file >> block_x >> block_y >> block_z >> serialized_block;
+				world.SetBlock(block_x, block_y, block_z, FromSerializedBlock(serialized_block));
 			}
 			else if (command == "fill")
 			{
-				int x1 = 0;
-				int y1 = 0;
-				int z1 = 0;
-				int x2 = 0;
-				int y2 = 0;
-				int z2 = 0;
-				int block = 0;
-				file >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> block;
-				world.FillBox(x1, y1, z1, x2, y2, z2, FromSerializedBlock(block));
+				int first_block_x = 0;
+				int first_block_y = 0;
+				int first_block_z = 0;
+				int second_block_x = 0;
+				int second_block_y = 0;
+				int second_block_z = 0;
+				int serialized_block = 0;
+				file >> first_block_x >> first_block_y >> first_block_z >>
+					second_block_x >> second_block_y >> second_block_z >>
+					serialized_block;
+				world.FillBox(
+					first_block_x,
+					first_block_y,
+					first_block_z,
+					second_block_x,
+					second_block_y,
+					second_block_z,
+					FromSerializedBlock(serialized_block));
 			}
 			else
 			{

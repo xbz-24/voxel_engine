@@ -16,20 +16,20 @@ namespace ve::rendering
 	void VulkanSoftwareVoxelRasterizer::RebuildUpscaleLookup()
 	{
 		upscale_x_ranges_.resize(render_extent_.width);
-		for (std::uint32_t x = 0; x < render_extent_.width; ++x)
+		for (std::uint32_t render_pixel_x = 0; render_pixel_x < render_extent_.width; ++render_pixel_x)
 		{
-			upscale_x_ranges_[x] = {
-				CeilDiv(static_cast<std::uint64_t>(x) * extent_.width, render_extent_.width),
-				CeilDiv(static_cast<std::uint64_t>(x + 1u) * extent_.width, render_extent_.width)
+			upscale_x_ranges_[render_pixel_x] = {
+				CeilDiv(static_cast<std::uint64_t>(render_pixel_x) * extent_.width, render_extent_.width),
+				CeilDiv(static_cast<std::uint64_t>(render_pixel_x + 1u) * extent_.width, render_extent_.width)
 			};
 		}
 
 		upscale_y_ranges_.resize(render_extent_.height);
-		for (std::uint32_t y = 0; y < render_extent_.height; ++y)
+		for (std::uint32_t render_pixel_y = 0; render_pixel_y < render_extent_.height; ++render_pixel_y)
 		{
-			upscale_y_ranges_[y] = {
-				CeilDiv(static_cast<std::uint64_t>(y) * extent_.height, render_extent_.height),
-				CeilDiv(static_cast<std::uint64_t>(y + 1u) * extent_.height, render_extent_.height)
+			upscale_y_ranges_[render_pixel_y] = {
+				CeilDiv(static_cast<std::uint64_t>(render_pixel_y) * extent_.height, render_extent_.height),
+				CeilDiv(static_cast<std::uint64_t>(render_pixel_y + 1u) * extent_.height, render_extent_.height)
 			};
 		}
 	}
@@ -57,7 +57,13 @@ namespace ve::rendering
 			for (std::uint32_t source_x = 0; source_x < render_extent_.width; ++source_x)
 			{
 				const UpscaleRange x_range = upscale_x_ranges_[source_x];
-				if (x_range.begin < x_range.end) std::fill(first_destination_row + x_range.begin, first_destination_row + x_range.end, source_row[source_x]);
+				if (x_range.begin < x_range.end)
+				{
+					std::fill(
+						first_destination_row + x_range.begin,
+						first_destination_row + x_range.end,
+						source_row[source_x]);
+				}
 			}
 
 			for (std::uint32_t destination_y = y_range.begin + 1u; destination_y < y_range.end; ++destination_y)

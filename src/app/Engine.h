@@ -76,11 +76,11 @@ private:
 	/** Builds immutable HUD data for the current OpenGL frame. */
 	ve::ui::HudFrameInfo CreateHudFrame(const ve::engine::Window& window,
 		const Camera& camera,
-		const ve::time::FrameTimer& frameTimer,
+		const ve::time::FrameTimer& frame_timer,
 		const ve::gameplay::BlockSelection& selection,
-		const ve::blocks::BlockRegistry& blockRegistry,
+		const ve::blocks::BlockRegistry& block_registry,
 		const ve::world::World& world,
-		ve::blocks::BlockId selectedPlacementBlock) const;
+		ve::blocks::BlockId selected_placement_block) const;
 
 	/** Releases OpenGL objects still owned directly by Engine. */
 	void ReleaseRenderCaches();

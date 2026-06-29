@@ -19,7 +19,7 @@ namespace ve::ui
 	}
 
 	HudRenderer::HudRenderer(const ve::assets::AssetPaths& paths)
-		: _textures{
+		: textures_{
 			LoadHudTexture(paths.crosshairTexture),
 			LoadHudTexture(paths.hotbarTexture),
 			LoadHudTexture(paths.hotbarSelectionTexture),
@@ -51,13 +51,13 @@ namespace ve::ui
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 
-		if (frame.settingsMenu.isOpen)
+		if (frame.settings_menu.isOpen)
 		{
 			DrawSettingsMenu(frame);
 		}
 		else
 		{
-			DrawSurvivalHud(frame.window, frame.blockRegistry, frame.selectedPlacementBlock);
+			DrawSurvivalHud(frame.window, frame.block_registry, frame.selected_placement_block);
 			DrawDebugOverlay(frame);
 		}
 

@@ -6,35 +6,43 @@
 			std::size_t& budget)
 		{
 			if (budget == 0) return;
-			const int x = static_cast<int>(std::round(position.x));
-			const int y = static_cast<int>(std::round(position.y));
-			const int z = static_cast<int>(std::round(position.z));
-			if (!IsInside(bounds, x, y, z)) return;
-			const std::uint64_t key = VoxelKey(x, y, z);
-			if (!occupied.insert(key).second) return;
-			SetBlock(world, bounds, x, y, z, block);
+			const int block_x = static_cast<int>(std::round(position.x));
+			const int block_y = static_cast<int>(std::round(position.y));
+			const int block_z = static_cast<int>(std::round(position.z));
+			if (!IsInside(bounds, block_x, block_y, block_z)) return;
+			const std::uint64_t voxel_key = VoxelKey(block_x, block_y, block_z);
+			if (!occupied.insert(voxel_key).second) return;
+			SetBlock(world, bounds, block_x, block_y, block_z, block);
 			--budget;
 		}
 
 		void VoxelizeTriangle(ve::world::World& world,
 			const DemoBounds& bounds,
 			std::unordered_set<std::uint64_t>& occupied,
-			glm::vec3 a,
-			glm::vec3 b,
-			glm::vec3 c,
+			glm::vec3 first_vertex,
+			glm::vec3 second_vertex,
+			glm::vec3 third_vertex,
 			BlockId block,
 			std::size_t& budget)
 		{
-			const float longest = std::max({ glm::length(a - b), glm::length(b - c), glm::length(c - a) });
-			const int samples = std::clamp(static_cast<int>(std::ceil(longest * 1.55f)), 1, 24);
-			for (int u = 0; u <= samples && budget > 0; ++u)
+			const float longest_edge = std::max({
+				glm::length(first_vertex - second_vertex),
+				glm::length(second_vertex - third_vertex),
+				glm::length(third_vertex - first_vertex)
+			});
+			const int sample_count = std::clamp(static_cast<int>(std::ceil(longest_edge * 1.55f)), 1, 24);
+			for (int barycentric_u_step = 0; barycentric_u_step <= sample_count && budget > 0; ++barycentric_u_step)
 			{
-				for (int v = 0; v <= samples - u && budget > 0; ++v)
+				for (int barycentric_v_step = 0; barycentric_v_step <= sample_count - barycentric_u_step && budget > 0; ++barycentric_v_step)
 				{
-					const float fu = static_cast<float>(u) / static_cast<float>(samples);
-					const float fv = static_cast<float>(v) / static_cast<float>(samples);
-					const float fw = 1.0f - fu - fv;
-					PlaceImportedVoxel(world, bounds, occupied, (a * fu) + (b * fv) + (c * fw), block, budget);
+					const float barycentric_u = static_cast<float>(barycentric_u_step) / static_cast<float>(sample_count);
+					const float barycentric_v = static_cast<float>(barycentric_v_step) / static_cast<float>(sample_count);
+					const float barycentric_w = 1.0f - barycentric_u - barycentric_v;
+					const glm::vec3 sampled_position =
+						(first_vertex * barycentric_u) +
+						(second_vertex * barycentric_v) +
+						(third_vertex * barycentric_w);
+					PlaceImportedVoxel(world, bounds, occupied, sampled_position, block, budget);
 				}
 			}
 		}
@@ -67,18 +75,39 @@
 			{
 				for (std::size_t index = 0; index + 2 < mesh.indices.size() && voxel_budget > 0; index += 3)
 				{
-					const std::uint32_t ai = mesh.indices[index];
-					const std::uint32_t bi = mesh.indices[index + 1u];
-					const std::uint32_t ci = mesh.indices[index + 2u];
-					if (ai >= mesh.vertices.size() || bi >= mesh.vertices.size() || ci >= mesh.vertices.size()) continue;
-					const glm::vec3 source_centroid = (mesh.vertices[ai].position + mesh.vertices[bi].position + mesh.vertices[ci].position) / 3.0f;
-					const glm::vec2 source_uv = (mesh.vertices[ai].texture_coordinates + mesh.vertices[bi].texture_coordinates + mesh.vertices[ci].texture_coordinates) / 3.0f;
+					const std::uint32_t first_vertex_index = mesh.indices[index];
+					const std::uint32_t second_vertex_index = mesh.indices[index + 1u];
+					const std::uint32_t third_vertex_index = mesh.indices[index + 2u];
+					if (first_vertex_index >= mesh.vertices.size() ||
+						second_vertex_index >= mesh.vertices.size() ||
+						third_vertex_index >= mesh.vertices.size()) continue;
+
+					const ve::assets::ImportedVertex& first_source_vertex = mesh.vertices[first_vertex_index];
+					const ve::assets::ImportedVertex& second_source_vertex = mesh.vertices[second_vertex_index];
+					const ve::assets::ImportedVertex& third_source_vertex = mesh.vertices[third_vertex_index];
+					const glm::vec3 source_centroid =
+						(first_source_vertex.position + second_source_vertex.position + third_source_vertex.position) / 3.0f;
+					const glm::vec2 source_uv =
+						(first_source_vertex.texture_coordinates +
+							second_source_vertex.texture_coordinates +
+							third_source_vertex.texture_coordinates) / 3.0f;
 					const std::optional<ve::blocks::SolidBlockColor> sampled_color = SampleMaterialColor(model, mesh, source_uv, texture_cache);
 					const BlockId block = BlockForImportedTriangle(model, mesh, source_centroid, minimum, maximum, sampled_color);
-					const glm::vec3 a = ModelToVoxelPosition(mesh.vertices[ai].position, minimum, target_origin, scale);
-					const glm::vec3 b = ModelToVoxelPosition(mesh.vertices[bi].position, minimum, target_origin, scale);
-					const glm::vec3 c = ModelToVoxelPosition(mesh.vertices[ci].position, minimum, target_origin, scale);
-					VoxelizeTriangle(world, bounds, occupied, a, b, c, block, voxel_budget);
+					const glm::vec3 first_voxel_vertex =
+						ModelToVoxelPosition(first_source_vertex.position, minimum, target_origin, scale);
+					const glm::vec3 second_voxel_vertex =
+						ModelToVoxelPosition(second_source_vertex.position, minimum, target_origin, scale);
+					const glm::vec3 third_voxel_vertex =
+						ModelToVoxelPosition(third_source_vertex.position, minimum, target_origin, scale);
+					VoxelizeTriangle(
+						world,
+						bounds,
+						occupied,
+						first_voxel_vertex,
+						second_voxel_vertex,
+						third_voxel_vertex,
+						block,
+						voxel_budget);
 				}
 			}
 			return !occupied.empty();

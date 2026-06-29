@@ -18,14 +18,20 @@ namespace ve::rendering
 		const std::uint32_t bar_x = std::min<std::uint32_t>(20u, render_extent_.width);
 		const std::uint32_t bar_width = std::min(desired_bar_width, render_extent_.width - bar_x);
 		const std::uint32_t bar_end_x = std::min(bar_x + bar_width, render_extent_.width);
-		for (std::uint32_t y = bar_y; y < bar_y + 96u && y < render_extent_.height; ++y)
+		for (std::uint32_t bar_pixel_y = bar_y;
+			bar_pixel_y < bar_y + 96u && bar_pixel_y < render_extent_.height;
+			++bar_pixel_y)
 		{
-			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(y) * render_extent_.width);
+			std::uint32_t* row =
+				render_pixels_.data() + (static_cast<std::size_t>(bar_pixel_y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, shadow);
 		}
-		for (std::uint32_t y = bar_y; y < bar_y + 4u && y < render_extent_.height; ++y)
+		for (std::uint32_t bar_pixel_y = bar_y;
+			bar_pixel_y < bar_y + 4u && bar_pixel_y < render_extent_.height;
+			++bar_pixel_y)
 		{
-			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(y) * render_extent_.width);
+			std::uint32_t* row =
+				render_pixels_.data() + (static_cast<std::size_t>(bar_pixel_y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, accent);
 		}
 
@@ -35,12 +41,36 @@ namespace ve::rendering
 		std::array<char, 64> resolution_line{};
 		std::array<char, 64> sampling_line{};
 		const double milliseconds = std::max(frame.delta_seconds, 0.0) * 1000.0;
-		if (frame.displayed_fps > 0) std::snprintf(fps_line.data(), fps_line.size(), "FPS %d   %.1f MS", frame.displayed_fps, milliseconds);
-		else std::snprintf(fps_line.data(), fps_line.size(), "FPS --   %.1f MS", milliseconds);
+		if (frame.displayed_fps > 0)
+		{
+			std::snprintf(fps_line.data(), fps_line.size(), "FPS %d   %.1f MS", frame.displayed_fps, milliseconds);
+		}
+		else
+		{
+			std::snprintf(fps_line.data(), fps_line.size(), "FPS --   %.1f MS", milliseconds);
+		}
 
-		std::snprintf(cpu_line.data(), cpu_line.size(), "SNAP %.1f RAST %.1f UI %.1f", frame.previous_timing.snapshot_cpu_ms, frame.previous_timing.raster_cpu_ms, frame.previous_timing.upscale_cpu_ms);
-		std::snprintf(vk_line.data(), vk_line.size(), "COPY %.1f VK %.1f", frame.previous_timing.upload_cpu_ms, frame.previous_timing.present_cpu_ms);
-		std::snprintf(resolution_line.data(), resolution_line.size(), "OUT %uX%u IN %uX%u", extent_.width, extent_.height, frame.previous_timing.render_extent.width, frame.previous_timing.render_extent.height);
+		std::snprintf(
+			cpu_line.data(),
+			cpu_line.size(),
+			"SNAP %.1f RAST %.1f UI %.1f",
+			frame.previous_timing.snapshot_cpu_ms,
+			frame.previous_timing.raster_cpu_ms,
+			frame.previous_timing.upscale_cpu_ms);
+		std::snprintf(
+			vk_line.data(),
+			vk_line.size(),
+			"COPY %.1f VK %.1f",
+			frame.previous_timing.upload_cpu_ms,
+			frame.previous_timing.present_cpu_ms);
+		std::snprintf(
+			resolution_line.data(),
+			resolution_line.size(),
+			"OUT %uX%u IN %uX%u",
+			extent_.width,
+			extent_.height,
+			frame.previous_timing.render_extent.width,
+			frame.previous_timing.render_extent.height);
 		std::snprintf(sampling_line.data(), sampling_line.size(), "STEP %u TH %u", frame.previous_timing.sample_step, frame.previous_timing.worker_count);
 
 		DrawText("VULKAN VOXEL DEMO", bar_x + 8u, bar_y + 9u, 1u, text);
