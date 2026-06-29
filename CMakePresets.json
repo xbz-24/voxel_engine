@@ -45,47 +45,35 @@
       "displayName": "Build voxel engine",
       "configurePreset": "windows-vcpkg",
       "configuration": "Debug",
-      "targets": [
-        "voxel_engine"
-      ]
+      "targets": ["voxel_engine"]
     },
     {
       "name": "windows-vcpkg-test-build",
       "displayName": "Build voxel engine tests",
       "configurePreset": "windows-vcpkg",
       "configuration": "Debug",
-      "targets": [
-        "engine_tests"
-      ]
+      "targets": ["engine_tests"]
     },
     {
       "name": "windows-visual-studio-build",
       "displayName": "Build Visual Studio solution",
       "configurePreset": "windows-visual-studio",
       "configuration": "Debug",
-      "targets": [
-        "voxel_engine"
-      ]
+      "targets": ["voxel_engine"]
     },
     {
       "name": "windows-visual-studio-strict",
       "displayName": "Strict Debug: latest C++ and warnings as errors",
       "configurePreset": "windows-visual-studio",
       "configuration": "Debug",
-      "targets": [
-        "voxel_engine",
-        "engine_tests"
-      ]
+      "targets": ["voxel_engine", "engine_tests"]
     },
     {
       "name": "windows-visual-studio-asan",
       "displayName": "Build with AddressSanitizer",
       "configurePreset": "windows-visual-studio-asan",
       "configuration": "Debug",
-      "targets": [
-        "voxel_engine",
-        "engine_tests"
-      ]
+      "targets": ["voxel_engine", "engine_tests"]
     }
   ],
   "testPresets": [

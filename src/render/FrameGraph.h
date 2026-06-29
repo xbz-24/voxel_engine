@@ -35,7 +35,6 @@ namespace ve::rendering
 	class FrameGraph
 	{
 	public:
-		// TODO: Topologically sort passes by declared reads/writes and validate missing producers.
 		/** @param name Debug name for a transient frame resource. @return Handle used by passes. */
 		[[nodiscard]] FrameGraphResourceHandle DeclareResource(std::string name);
 
@@ -47,6 +46,9 @@ namespace ve::rendering
 
 		/** @param context Per-frame render context. */
 		void Execute(FrameGraphContext& context);
+
+		/** @return Validation issues for declared passes and resources. */
+		[[nodiscard]] ve::core::DynamicArray<std::string> Validate() const;
 
 		/** Removes every registered pass. */
 		void Clear();
