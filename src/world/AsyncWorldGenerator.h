@@ -26,8 +26,8 @@ namespace ve::world::generation
 	class AsyncWorldGenerator
 	{
 	public:
-		/** @param worker_count Number of CPU terrain workers. */
-		explicit AsyncWorldGenerator(ve::core::Index worker_count);
+		/** @param workerCount Number of CPU terrain workers. */
+		explicit AsyncWorldGenerator(ve::core::Index workerCount);
 
 		/** @param request Chunk coordinate to generate. @return True when queued. */
 		bool RequestChunk(ChunkGenerationRequest request);
@@ -42,8 +42,8 @@ namespace ve::world::generation
 		ve::core::Index PendingTaskCount() const;
 
 	private:
-		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completed_chunks_;
-		ve::tasks::BackgroundTaskQueue background_tasks_;
-		std::atomic<ve::core::Index> outstanding_requests_ = 0;
+		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completedChunks_;
+		ve::tasks::BackgroundTaskQueue backgroundTaskQueue_;
+		std::atomic<ve::core::Index> outstandingRequestCount_ = 0;
 	};
 }

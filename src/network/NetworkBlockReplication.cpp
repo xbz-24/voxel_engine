@@ -49,7 +49,11 @@ namespace ve::network
 	/// Builds a network message from a local block-change event.
 	NetworkMessage BuildBlockMutationMessage(const ve::world::BlockChangedEvent& blockChangedEvent)
 	{
+		constexpr std::uint32_t untrackedMutationId = 0;
+		constexpr std::uint32_t localAuthorPlayerId = 0;
 		const BlockMutationPayload blockMutation{
+			untrackedMutationId,
+			localAuthorPlayerId,
 			blockChangedEvent.worldBlockPosition.x,
 			blockChangedEvent.worldBlockPosition.y,
 			blockChangedEvent.worldBlockPosition.z,

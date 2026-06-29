@@ -36,14 +36,17 @@ TEST_CASE("public engine rejects invalid config before runtime startup")
 
 TEST_CASE("public world serialization roundtrips config edits")
 {
-	const std::filesystem::path path = std::filesystem::temp_directory_path() / "voxel_public_world_roundtrip.voxelscene";
+	const auto uniquePathSuffix = std::chrono::steady_clock::now().time_since_epoch().count();
+	const std::filesystem::path path = std::filesystem::temp_directory_path() /
+		("voxel_public_world_roundtrip_" + std::to_string(uniquePathSuffix) + ".voxelscene");
 	const voxel::WorldConfig original = voxel::World(5)
 		.SetBlock(1, 2, 3, voxel::DiamondOre)
 		.FillBox(-1, 0, -1, 1, 0, 1, voxel::Grass);
 
 	REQUIRE(voxel::SaveWorldConfig(original, path.string()));
 	const voxel::WorldConfig loaded = voxel::LoadWorldConfig(path.string());
-	std::filesystem::remove(path);
+	std::error_code cleanupError;
+	std::filesystem::remove(path, cleanupError);
 
 	CHECK(loaded.size_chunks == 5);
 	REQUIRE(loaded.edits.size() == 2);

@@ -11,9 +11,19 @@
 
 	std::optional<PlayerSnapshotPayload> TryDeserializePlayerSnapshot(std::span<const std::byte> payloadBytes)
 	{
-		if (payloadBytes.size() != sizeof(PlayerSnapshotPayload)) return std::nullopt;
+		PayloadReader reader(payloadBytes);
 		PlayerSnapshotPayload playerSnapshot{};
-		std::memcpy(&playerSnapshot, payloadBytes.data(), sizeof(playerSnapshot));
+		if (!reader.Read(playerSnapshot.playerId)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.simulationTickId)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.positionX)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.positionY)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.positionZ)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.velocityX)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.velocityY)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.velocityZ)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.yawDegrees)) return std::nullopt;
+		if (!reader.Read(playerSnapshot.pitchDegrees)) return std::nullopt;
+		if (!reader.IsFinished()) return std::nullopt;
 		return playerSnapshot;
 	}
 
@@ -21,6 +31,8 @@
 	{
 		PayloadReader reader(payloadBytes);
 		BlockMutationPayload blockMutation{};
+		if (!reader.Read(blockMutation.mutationId)) return std::nullopt;
+		if (!reader.Read(blockMutation.authorPlayerId)) return std::nullopt;
 		if (!reader.Read(blockMutation.blockX)) return std::nullopt;
 		if (!reader.Read(blockMutation.blockY)) return std::nullopt;
 		if (!reader.Read(blockMutation.blockZ)) return std::nullopt;

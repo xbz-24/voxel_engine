@@ -7,29 +7,29 @@ namespace
 		void Write(const Value& value)
 		{
 			static_assert(std::is_trivially_copyable_v<Value>);
-			const auto* first_byte = reinterpret_cast<const std::byte*>(&value);
-			bytes_.insert(bytes_.end(), first_byte, first_byte + sizeof(Value));
+			const auto* firstSerializedByte = reinterpret_cast<const std::byte*>(&value);
+			_payloadBytes.insert(_payloadBytes.end(), firstSerializedByte, firstSerializedByte + sizeof(Value));
 		}
 
-		void WriteBytes(std::span<const std::byte> bytes)
+		void WriteBytes(std::span<const std::byte> sourceBytes)
 		{
-			bytes_.insert(bytes_.end(), bytes.begin(), bytes.end());
+			_payloadBytes.insert(_payloadBytes.end(), sourceBytes.begin(), sourceBytes.end());
 		}
 
 		[[nodiscard]] ve::network::ByteBuffer Finish() &&
 		{
-			return std::move(bytes_);
+			return std::move(_payloadBytes);
 		}
 
 	private:
-		ve::network::ByteBuffer bytes_;
+		ve::network::ByteBuffer _payloadBytes;
 	};
 
 	class PayloadReader
 	{
 	public:
-		explicit PayloadReader(std::span<const std::byte> bytes) noexcept
-			: bytes_(bytes)
+		explicit PayloadReader(std::span<const std::byte> serializedPayloadBytes) noexcept
+			: _serializedPayloadBytes(serializedPayloadBytes)
 		{
 		}
 
@@ -37,20 +37,20 @@ namespace
 		bool Read(Value& output)
 		{
 			static_assert(std::is_trivially_copyable_v<Value>);
-			if (offset_ > bytes_.size()) return false;
-			if (bytes_.size() - offset_ < sizeof(Value)) return false;
-			std::memcpy(&output, bytes_.data() + offset_, sizeof(Value));
-			offset_ += sizeof(Value);
+			if (_readOffset > _serializedPayloadBytes.size()) return false;
+			if (_serializedPayloadBytes.size() - _readOffset < sizeof(Value)) return false;
+			std::memcpy(&output, _serializedPayloadBytes.data() + _readOffset, sizeof(Value));
+			_readOffset += sizeof(Value);
 			return true;
 		}
 
 		[[nodiscard]] bool IsFinished() const noexcept
 		{
-			return offset_ == bytes_.size();
+			return _readOffset == _serializedPayloadBytes.size();
 		}
 
 	private:
-		std::span<const std::byte> bytes_;
-		std::size_t offset_ = 0;
+		std::span<const std::byte> _serializedPayloadBytes;
+		std::size_t _readOffset = 0;
 	};
 }

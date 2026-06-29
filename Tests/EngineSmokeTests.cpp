@@ -17,13 +17,18 @@
 #include <atomic>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 #include "EngineSmokeImporterFixture.inl"
+#include "BackgroundTaskQueueTests.inl"
+#include "BackgroundTaskQueueSchedulingTests.inl"
 #include "EngineSmokeCoreTests.inl"
 #include "EngineSmokeLauncherTests.inl"
 #include "EngineSmokeAssetTests.inl"

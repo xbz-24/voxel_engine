@@ -1,30 +1,36 @@
 #include "NetworkProtocol.h"
 
+#include <cstddef>
 #include <cstring>
+#include <utility>
 
-namespace
-{
-	/// Appends raw bytes for one packet header field.
-	template <typename Value>
-	void AppendField(ve::network::ByteBuffer& bytes, const Value& value)
-	{
-		const auto* firstByte = reinterpret_cast<const std::byte*>(&value);
-		bytes.insert(bytes.end(), firstByte, firstByte + sizeof(Value));
-	}
-}
+#include "NetworkPacketHeaderCodec.inl"
 
 namespace ve::network
 {
-	ByteBuffer BuildPacket(NetworkMessageType messageType, std::span<const std::byte> payloadBytes)
+	ByteBuffer BuildPacket(
+		NetworkMessageType messageType,
+		std::span<const std::byte> payloadBytes,
+		std::uint32_t sequenceNumber)
 	{
 		if (payloadBytes.size() > static_cast<std::size_t>(MaxPacketPayloadByteCount)) return {};
+		if (!IsKnownMessageType(messageType)) return {};
 		ByteBuffer packetBytes;
-		const PacketHeader packetHeader{ ProtocolMagic, ProtocolVersion, messageType, static_cast<std::uint32_t>(payloadBytes.size()) };
+		const PacketHeader packetHeader{
+			ProtocolMagic,
+			ProtocolVersion,
+			messageType,
+			sequenceNumber,
+			static_cast<std::uint32_t>(payloadBytes.size()),
+			CalculatePayloadChecksum(payloadBytes)
+		};
 		packetBytes.reserve(PacketHeaderByteCount + payloadBytes.size());
-		AppendField(packetBytes, packetHeader.magic);
-		AppendField(packetBytes, packetHeader.version);
-		AppendField(packetBytes, packetHeader.messageType);
-		AppendField(packetBytes, packetHeader.payloadByteCount);
+		AppendHeaderField(packetBytes, packetHeader.magic);
+		AppendHeaderField(packetBytes, packetHeader.version);
+		AppendHeaderField(packetBytes, packetHeader.messageType);
+		AppendHeaderField(packetBytes, packetHeader.sequenceNumber);
+		AppendHeaderField(packetBytes, packetHeader.payloadByteCount);
+		AppendHeaderField(packetBytes, packetHeader.payloadChecksum);
 		packetBytes.insert(packetBytes.end(), payloadBytes.begin(), payloadBytes.end());
 		return packetBytes;
 	}
@@ -33,11 +39,15 @@ namespace ve::network
 	{
 		if (headerBytes.size() != PacketHeaderByteCount) return std::nullopt;
 		PacketHeader packetHeader{};
-		std::memcpy(&packetHeader.magic, headerBytes.data(), sizeof(packetHeader.magic));
-		std::memcpy(&packetHeader.version, headerBytes.data() + 4, sizeof(packetHeader.version));
-		std::memcpy(&packetHeader.messageType, headerBytes.data() + 6, sizeof(packetHeader.messageType));
-		std::memcpy(&packetHeader.payloadByteCount, headerBytes.data() + 8, sizeof(packetHeader.payloadByteCount));
+		std::size_t headerByteOffset = 0;
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.magic);
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.version);
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.messageType);
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.sequenceNumber);
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadByteCount);
+		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadChecksum);
 		if (packetHeader.magic != ProtocolMagic || packetHeader.version != ProtocolVersion) return std::nullopt;
+		if (!IsKnownMessageType(packetHeader.messageType)) return std::nullopt;
 		if (packetHeader.payloadByteCount > MaxPacketPayloadByteCount) return std::nullopt;
 		return packetHeader;
 	}
@@ -45,12 +55,14 @@ namespace ve::network
 	std::optional<NetworkMessage> TryParsePacket(std::span<const std::byte> packetBytes)
 	{
 		if (packetBytes.size() < PacketHeaderByteCount) return std::nullopt;
-		const std::span<const std::byte> header_bytes(packetBytes.data(), PacketHeaderByteCount);
-		const std::optional<PacketHeader> packet_header = TryParsePacketHeader(header_bytes);
-		if (!packet_header.has_value()) return std::nullopt;
-		const std::size_t payload_byte_count = packet_header->payloadByteCount;
-		if (packetBytes.size() - PacketHeaderByteCount != payload_byte_count) return std::nullopt;
-		ByteBuffer payloadBytes(packetBytes.begin() + PacketHeaderByteCount, packetBytes.end());
-		return NetworkMessage{ packet_header->messageType, std::move(payloadBytes) };
+		const std::span<const std::byte> packetHeaderBytes(packetBytes.data(), PacketHeaderByteCount);
+		const std::optional<PacketHeader> packetHeader = TryParsePacketHeader(packetHeaderBytes);
+		if (!packetHeader.has_value()) return std::nullopt;
+		const std::size_t payloadByteCount = packetHeader->payloadByteCount;
+		if (packetBytes.size() - PacketHeaderByteCount != payloadByteCount) return std::nullopt;
+		const std::span<const std::byte> payloadBytes(packetBytes.data() + PacketHeaderByteCount, payloadByteCount);
+		if (CalculatePayloadChecksum(payloadBytes) != packetHeader->payloadChecksum) return std::nullopt;
+		ByteBuffer messagePayloadBytes(payloadBytes.begin(), payloadBytes.end());
+		return NetworkMessage{ packetHeader->messageType, std::move(messagePayloadBytes) };
 	}
 }

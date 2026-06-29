@@ -21,7 +21,6 @@ namespace ve::network
 
 	NetworkPumpStats NetworkSession::ApplyServerMessages(ve::world::World& world)
 	{
-		// TODO: Deduplicate echoed mutations so the origin client can reconcile prediction cleanly.
 		NetworkPumpStats stats;
 		for (const MultiplayerInboundMessage& inboundMessage : _server.DrainIncomingMessages())
 		{
@@ -29,7 +28,7 @@ namespace ve::network
 			if (ApplyNetworkBlockMutation(world, inboundMessage.message))
 			{
 				stats.blockMutationsApplied++;
-				_server.Broadcast(inboundMessage.message);
+				_server.BroadcastExcept(inboundMessage.connectionId, inboundMessage.message);
 				stats.messagesPublished++;
 			}
 		}

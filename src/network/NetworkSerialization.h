@@ -16,10 +16,16 @@ namespace ve::network
 	 */
 	struct PlayerSnapshotPayload
 	{
-		// TODO: Add timestamp/tick id and velocity for interpolation and reconciliation.
-		std::uint32_t playerId;
-		float positionX, positionY, positionZ;
-		float yawDegrees, pitchDegrees;
+		std::uint32_t playerId = 0;
+		std::uint32_t simulationTickId = 0;
+		float positionX = 0.0f;
+		float positionY = 0.0f;
+		float positionZ = 0.0f;
+		float velocityX = 0.0f;
+		float velocityY = 0.0f;
+		float velocityZ = 0.0f;
+		float yawDegrees = 0.0f;
+		float pitchDegrees = 0.0f;
 	};
 
 	/**
@@ -27,9 +33,12 @@ namespace ve::network
 	 */
 	struct BlockMutationPayload
 	{
-		// TODO: Add mutation id and author id so clients can de-duplicate predicted edits.
-		std::int32_t blockX, blockY, blockZ;
-		std::uint8_t blockId;
+		std::uint32_t mutationId = 0;
+		std::uint32_t authorPlayerId = 0;
+		std::int32_t blockX = 0;
+		std::int32_t blockY = 0;
+		std::int32_t blockZ = 0;
+		std::uint8_t blockId = 0;
 	};
 
 	/**
@@ -43,7 +52,7 @@ namespace ve::network
 	/**
 	 * Serializes one player transform update.
 	 *
-	 * @param playerSnapshot Player id, position, yaw, and pitch.
+	 * @param playerSnapshot Player id, tick, position, velocity, yaw, and pitch.
 	 * @return Payload bytes for a PlayerSnapshot message.
 	 */
 	ByteBuffer SerializePlayerSnapshot(const PlayerSnapshotPayload& playerSnapshot);
@@ -51,7 +60,7 @@ namespace ve::network
 	/**
 	 * Serializes one block mutation.
 	 *
-	 * @param blockMutation Block coordinate and target block id.
+	 * @param blockMutation Mutation metadata plus block coordinate and target block id.
 	 * @return Payload bytes for a BlockMutation message.
 	 */
 	ByteBuffer SerializeBlockMutation(const BlockMutationPayload& blockMutation);

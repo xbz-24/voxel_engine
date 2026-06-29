@@ -1,6 +1,6 @@
 #include "BackgroundTaskQueue.h"
 
-#include <utility>
+#include <chrono>
 
 namespace ve::tasks
 {
@@ -23,23 +23,6 @@ namespace ve::tasks
 	}
 
 	/**
-	 * Pushes one task for a worker thread.
-	 *
-	 * @param task Callable executed by a background worker.
-	 * @return True when the task was accepted.
-	 */
-	bool BackgroundTaskQueue::Enqueue(BackgroundTask task)
-	{
-		{
-			std::lock_guard<std::mutex> taskLock(_taskMutex);
-			if (_isStopping) return false;
-			_tasks.push(std::move(task));
-		}
-		_taskAvailable.notify_one();
-		return true;
-	}
-
-	/**
 	 * Reports queued work that has not started yet.
 	 *
 	 * @return Number of pending tasks.
@@ -51,10 +34,24 @@ namespace ve::tasks
 	}
 
 	/**
+	 * Copies queue counters and timing telemetry.
+	 *
+	 * @return Current queue stats snapshot.
+	 */
+	BackgroundTaskQueueStats BackgroundTaskQueue::Stats() const
+	{
+		std::lock_guard<std::mutex> taskLock(_taskMutex);
+		BackgroundTaskQueueStats stats = _stats;
+		stats.pendingTaskCount = _tasks.size();
+		return stats;
+	}
+
+	/**
 	 * Requests all workers to stop and waits for them.
 	 */
 	void BackgroundTaskQueue::Stop()
 	{
+		const std::chrono::steady_clock::time_point shutdownStartTime = std::chrono::steady_clock::now();
 		{
 			std::lock_guard<std::mutex> taskLock(_taskMutex);
 			_isStopping = true;
@@ -62,6 +59,7 @@ namespace ve::tasks
 		for (std::jthread& worker : _workers) worker.request_stop();
 		_taskAvailable.notify_all();
 		_workers.clear();
+		RecordShutdownWait(std::chrono::steady_clock::now() - shutdownStartTime);
 	}
 
 }
