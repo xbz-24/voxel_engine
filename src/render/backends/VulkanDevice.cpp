@@ -1,62 +1,15 @@
 #include "VulkanDevice.h"
 
+#include "VulkanDeviceExtensions.h"
+
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <vector>
 
 namespace ve::rendering
 {
 	namespace
 	{
-		bool DeviceSupportsExtension(VkPhysicalDevice physical_device, const char* extension_name)
-		{
-			std::uint32_t extension_count = 0;
-			if (vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, nullptr) != VK_SUCCESS) return false;
-			std::vector<VkExtensionProperties> extensions(extension_count);
-			if (extension_count > 0 && vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, extensions.data()) != VK_SUCCESS) return false;
-			return std::ranges::any_of(extensions, [extension_name](const VkExtensionProperties& extension)
-			{
-				return std::strcmp(extension.extensionName, extension_name) == 0;
-			});
-		}
-
-		bool AppendSupportedOptionalExtension(
-			std::vector<const char*>& extensions,
-			VkPhysicalDevice physical_device,
-			const char* extension_name)
-		{
-			if (!DeviceSupportsExtension(physical_device, extension_name)) return false;
-			const auto existing = std::ranges::find_if(extensions, [extension_name](const char* enabled_extension)
-			{
-				return std::strcmp(enabled_extension, extension_name) == 0;
-			});
-			if (existing == extensions.end()) extensions.push_back(extension_name);
-			return true;
-		}
-
-		bool DeviceSupportsRequiredExtensions(
-			VkPhysicalDevice physical_device,
-			const VulkanDeviceSettings& settings)
-		{
-			return std::ranges::all_of(settings.required_extensions, [physical_device](const char* extension_name)
-			{
-				return DeviceSupportsExtension(physical_device, extension_name);
-			});
-		}
-
-		std::vector<const char*> SelectEnabledDeviceExtensions(
-			VkPhysicalDevice physical_device,
-			const VulkanDeviceSettings& settings)
-		{
-			std::vector<const char*> extensions = settings.required_extensions;
-			for (const char* optional_extension : settings.optional_extensions)
-			{
-				(void)AppendSupportedOptionalExtension(extensions, physical_device, optional_extension);
-			}
-			return extensions;
-		}
-
 		/** @param queue_family Queue family index. @param priority Queue priority storage. @return Queue create info. */
 		VkDeviceQueueCreateInfo CreateQueueInfo(std::uint32_t queue_family, const float& priority) noexcept
 		{
@@ -83,13 +36,13 @@ namespace ve::rendering
 		const VulkanDeviceSettings& settings)
 	{
 		Release();
-		if (!DeviceSupportsRequiredExtensions(physical_device, settings)) return false;
+		if (!VulkanDeviceSupportsRequiredExtensions(physical_device, settings)) return false;
 		std::array queue_infos{
 			CreateQueueInfo(queues.graphics_family, settings.queue_priority),
 			CreateQueueInfo(queues.present_family, settings.queue_priority)
 		};
 		const bool same_queue = queues.graphics_family == queues.present_family;
-		const std::vector<const char*> extensions = SelectEnabledDeviceExtensions(physical_device, settings);
+		const std::vector<const char*> extensions = SelectEnabledVulkanDeviceExtensions(physical_device, settings);
 		VkDeviceCreateInfo create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		create_info.queueCreateInfoCount = same_queue ? 1u : 2u;
 		create_info.pQueueCreateInfos = queue_infos.data();

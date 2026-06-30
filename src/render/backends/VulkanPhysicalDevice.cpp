@@ -1,39 +1,13 @@
 #include "VulkanPhysicalDevice.h"
 
 #include "CoreTypes.h"
+#include "VulkanDeviceExtensions.h"
 #include "VulkanSwapchainSupport.h"
-
-#include <algorithm>
-#include <cstring>
-#include <span>
-#include <vector>
 
 namespace ve::rendering
 {
 	namespace
 	{
-		bool DeviceSupportsExtension(VkPhysicalDevice physical_device, const char* extension_name)
-		{
-			std::uint32_t extension_count = 0;
-			if (vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, nullptr) != VK_SUCCESS) return false;
-			std::vector<VkExtensionProperties> extensions(extension_count);
-			if (extension_count > 0 && vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, extensions.data()) != VK_SUCCESS) return false;
-			return std::ranges::any_of(extensions, [extension_name](const VkExtensionProperties& extension)
-			{
-				return std::strcmp(extension.extensionName, extension_name) == 0;
-			});
-		}
-
-		bool DeviceSupportsExtensions(
-			VkPhysicalDevice physical_device,
-			std::span<const char* const> required_extensions)
-		{
-			return std::ranges::all_of(required_extensions, [physical_device](const char* extension_name)
-			{
-				return DeviceSupportsExtension(physical_device, extension_name);
-			});
-		}
-
 		/** @param device GPU to query. @param surface Surface requiring presentation. @return Graphics/present queue indices. */
 		VulkanQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 		{
@@ -59,7 +33,7 @@ namespace ve::rendering
 			VulkanQueueFamilyIndices& queue_families)
 		{
 			if (criteria.surface == VK_NULL_HANDLE) return false;
-			if (!DeviceSupportsExtensions(candidate, criteria.required_device_extensions)) return false;
+			if (!VulkanDeviceSupportsExtensions(candidate, criteria.required_device_extensions)) return false;
 			queue_families = FindQueueFamilies(candidate, criteria.surface);
 			if (!queue_families.IsComplete()) return false;
 			return !criteria.settings.require_swapchain_support ||
