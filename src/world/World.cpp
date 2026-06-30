@@ -50,7 +50,25 @@ namespace ve::world
 	 */
 	WorldMetrics World::Metrics() const noexcept
 	{
-		return WorldMetrics{ _worldSize, _chunks.size(), _chunks.capacity() };
+		std::size_t chunksNeedingMeshBuild = 0;
+		std::size_t chunksWithQueuedMeshBuild = 0;
+		for (const Chunk& chunk : _chunks)
+		{
+			if (chunk.NeedsMeshBuild()) chunksNeedingMeshBuild++;
+			if (chunk.HasPendingMeshBuildReservation()) chunksWithQueuedMeshBuild++;
+		}
+		return WorldMetrics{
+			_worldSize,
+			_chunks.size(),
+			_chunks.capacity(),
+			chunksNeedingMeshBuild,
+			chunksWithQueuedMeshBuild,
+			0,
+			_chunks.capacity() * sizeof(Chunk),
+			_levelSpawn.MemoryCapacityBytes(),
+			_levelSpawn.MemoryBytesUsed(),
+			_pendingEvents.size()
+		};
 	}
 
 	std::uint64_t World::Revision() const noexcept

@@ -11,14 +11,13 @@ namespace ve::world
 	/// Spawns a square grid of generated chunks.
 	void World::SpawnFlatGrid(const FlatWorldSpawnSettings& settings)
 	{
-		_chunks.clear();
-		_worldSize = settings.worldSizeChunks;
-		for (int chunk_x = 0; chunk_x < settings.worldSizeChunks; chunk_x++)
+		ResetChunkStorageForRespawn(settings.worldSizeChunks);
+		for (int chunkCoordinateX = 0; chunkCoordinateX < settings.worldSizeChunks; chunkCoordinateX++)
 		{
-			for (int chunk_z = 0; chunk_z < settings.worldSizeChunks; chunk_z++)
+			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
 			{
-				_chunks.emplace_back(chunk_x, chunk_z, ChunkGenerationMode::GenerateNow);
-				RecordChunkGenerated(chunk_x, chunk_z);
+				_chunks.emplace_back(chunkCoordinateX, chunkCoordinateZ, ChunkGenerationMode::GenerateNow);
+				RecordChunkGenerated(chunkCoordinateX, chunkCoordinateZ);
 			}
 		}
 		++_revision;
@@ -27,11 +26,17 @@ namespace ve::world
 	/// Spawns a square grid of air chunks ready for async generation.
 	void World::SpawnEmptyGrid(const FlatWorldSpawnSettings& settings)
 	{
-		_chunks.clear();
-		_worldSize = settings.worldSizeChunks;
-		for (int chunk_x = 0; chunk_x < settings.worldSizeChunks; chunk_x++)
-			for (int chunk_z = 0; chunk_z < settings.worldSizeChunks; chunk_z++)
-				_chunks.emplace_back(chunk_x, chunk_z, ChunkGenerationMode::Empty);
+		ResetChunkStorageForRespawn(settings.worldSizeChunks);
+		for (int chunkCoordinateX = 0; chunkCoordinateX < settings.worldSizeChunks; chunkCoordinateX++)
+			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
+				_chunks.emplace_back(chunkCoordinateX, chunkCoordinateZ, ChunkGenerationMode::Empty);
 		++_revision;
+	}
+
+	void World::ResetChunkStorageForRespawn(int worldSizeChunks)
+	{
+		_chunks.clear();
+		_pendingEvents.clear();
+		_worldSize = worldSizeChunks;
 	}
 }

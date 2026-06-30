@@ -27,10 +27,16 @@ namespace ve::world
 	 */
 	struct WorldMetrics
 	{
-		// TODO: Include dirty chunk counts, mesh backlog, memory usage, and generation backlog in world diagnostics.
-		int worldSizeChunks;
-		std::size_t loadedChunks;
-		std::size_t chunkCapacity;
+		int worldSizeInChunks;
+		std::size_t loadedChunkCount;
+		std::size_t reservedChunkCapacity;
+		std::size_t chunksNeedingMeshBuild;
+		std::size_t chunksWithQueuedMeshBuild;
+		std::size_t pendingWorldGenerationTaskCount;
+		std::size_t reservedChunkStorageBytes;
+		std::size_t levelArenaCapacityBytes;
+		std::size_t levelArenaUsedBytes;
+		std::size_t pendingWorldEventCount;
 	};
 
 	/**

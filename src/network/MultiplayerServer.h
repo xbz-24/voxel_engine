@@ -5,6 +5,7 @@
 #include "ThreadSafeMessageQueue.h"
 
 #include <atomic>
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -30,9 +31,10 @@ namespace ve::network
 		 * Starts listening for TCP clients on a worker thread.
 		 *
 		 * @param listenSettings Endpoint and backlog for the listening socket.
+		 * @param maxConnectedClients Maximum open client sockets accepted at once.
 		 * @return True when the server socket was opened.
 		 */
-		bool Start(const TcpListenSettings& listenSettings);
+		bool Start(const TcpListenSettings& listenSettings, std::size_t maxConnectedClients);
 
 		/**
 		 * Closes all sockets and stops all worker threads.
@@ -62,7 +64,12 @@ namespace ve::network
 		std::vector<MultiplayerInboundMessage> DrainIncomingMessages();
 
 	private:
-		struct ConnectedClient { std::uint32_t connectionId; std::shared_ptr<TcpSocket> socket; };
+		struct ConnectedClient
+		{
+			std::uint32_t connectionId;
+			std::shared_ptr<TcpSocket> socket;
+			std::uint32_t nextOutboundSequenceNumber = 1;
+		};
 		void AcceptClientsUntilStopped(std::stop_token stopToken);
 		void ReceiveClientMessages(std::stop_token stopToken, std::uint32_t connectionId, std::shared_ptr<TcpSocket> clientSocket);
 
@@ -73,6 +80,7 @@ namespace ve::network
 		std::jthread _acceptThread;
 		std::mutex _clientsMutex;
 		std::atomic_uint32_t _nextConnectionId = 1;
+		std::size_t _maxConnectedClients = 8;
 		ThreadSafeMessageQueue<MultiplayerInboundMessage> _incomingMessages;
 	};
 }

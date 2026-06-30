@@ -19,21 +19,21 @@ namespace ve::world::mesh
 			const float height = static_cast<float>(face.height);
 			if (face.direction == MeshFaceDirection::Top || face.direction == MeshFaceDirection::Bottom)
 			{
-				offset.x *= width;
-				offset.z *= height;
+				offset.local_position_x *= width;
+				offset.local_position_z *= height;
 			}
 			else if (face.direction == MeshFaceDirection::Front || face.direction == MeshFaceDirection::Back)
 			{
-				offset.x *= width;
-				offset.y *= height;
+				offset.local_position_x *= width;
+				offset.local_position_y *= height;
 			}
 			else
 			{
-				offset.z *= width;
-				offset.y *= height;
+				offset.local_position_z *= width;
+				offset.local_position_y *= height;
 			}
-			offset.u *= width;
-			offset.v *= height;
+			offset.texture_u *= width;
+			offset.texture_v *= height;
 			return offset;
 		}
 
@@ -50,14 +50,14 @@ namespace ve::world::mesh
 			{
 				const FaceVertexOffset scaledOffset = ScaleOffset(face, offset);
 				vertices.push_back(ve::rendering::ChunkVertex{
-					face.x + scaledOffset.x,
-					face.y + scaledOffset.y,
-					face.z + scaledOffset.z,
-					scaledOffset.u,
-					scaledOffset.v,
-					face.r,
-					face.g,
-					face.b
+					face.world_center_x + scaledOffset.local_position_x,
+					face.world_center_y + scaledOffset.local_position_y,
+					face.world_center_z + scaledOffset.local_position_z,
+					scaledOffset.texture_u,
+					scaledOffset.texture_v,
+					face.red,
+					face.green,
+					face.blue
 				});
 			}
 		}

@@ -55,6 +55,13 @@ namespace ve::engine
 		return appliedChunkCount;
 	}
 
+	ve::world::WorldMetrics GameModel::GetWorldMetrics() const
+	{
+		ve::world::WorldMetrics worldMetrics = world_.Metrics();
+		worldMetrics.pendingWorldGenerationTaskCount = world_generator_.PendingTaskCount();
+		return worldMetrics;
+	}
+
 	ve::core::Index GameModel::PendingWorldGenerationCount() const
 	{
 		return world_generator_.PendingTaskCount();

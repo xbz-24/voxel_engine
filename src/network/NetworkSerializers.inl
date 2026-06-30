@@ -2,11 +2,18 @@ namespace ve::network
 {
 	ByteBuffer SerializeClientHello(const std::string& playerName)
 	{
+		return SerializeClientHello(ClientHelloPayload{ playerName, SupportedProtocolCapabilityFlags });
+	}
+
+	ByteBuffer SerializeClientHello(const ClientHelloPayload& clientHello)
+	{
 		PayloadWriter writer;
-		const std::size_t boundedNameByteCount = std::min(playerName.size(), static_cast<std::size_t>(MaxPlayerNameByteCount));
+		const std::size_t boundedNameByteCount =
+			std::min(clientHello.playerName.size(), static_cast<std::size_t>(MaxPlayerNameByteCount));
 		const std::uint16_t nameByteCount = static_cast<std::uint16_t>(boundedNameByteCount);
 		writer.Write(nameByteCount);
-		writer.WriteBytes(std::as_bytes(std::span(playerName.data(), boundedNameByteCount)));
+		writer.WriteBytes(std::as_bytes(std::span(clientHello.playerName.data(), boundedNameByteCount)));
+		writer.Write(clientHello.capabilityFlags & SupportedProtocolCapabilityFlags);
 		return std::move(writer).Finish();
 	}
 

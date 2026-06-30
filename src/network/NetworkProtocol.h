@@ -10,9 +10,12 @@ namespace ve::network
 {
 	inline constexpr std::uint32_t ProtocolMagic = 0x56454E54;
 	inline constexpr std::uint16_t ProtocolVersion = 2;
-	// TODO: Add protocol capability negotiation before changing payload shapes in multiplayer saves.
 	inline constexpr std::uint32_t PacketHeaderByteCount = 20;
 	inline constexpr std::uint32_t MaxPacketPayloadByteCount = 64U * 1024U;
+	inline constexpr std::uint32_t ProtocolCapabilityPlayerSnapshots = 1U << 0U;
+	inline constexpr std::uint32_t ProtocolCapabilityBlockMutations = 1U << 1U;
+	inline constexpr std::uint32_t SupportedProtocolCapabilityFlags =
+		ProtocolCapabilityPlayerSnapshots | ProtocolCapabilityBlockMutations;
 
 	struct PacketHeader
 	{

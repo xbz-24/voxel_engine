@@ -66,3 +66,26 @@ TEST_CASE("network client hello enforces bounded player names")
 	const std::array<std::byte, sizeof(std::uint16_t)> emptyNamePayloadBytes{};
 	CHECK(!ve::network::TryDeserializeClientHello(emptyNamePayloadBytes).has_value());
 }
+
+TEST_CASE("network client hello carries protocol capability flags")
+{
+	const ve::network::ClientHelloPayload clientHello{
+		"Renato",
+		ve::network::ProtocolCapabilityBlockMutations
+	};
+	ve::network::ByteBuffer serializedPayloadBytes = ve::network::SerializeClientHello(clientHello);
+
+	const std::optional<ve::network::ClientHelloPayload> decodedClientHello =
+		ve::network::TryDeserializeClientHelloPayload(serializedPayloadBytes);
+
+	REQUIRE(decodedClientHello.has_value());
+	CHECK(decodedClientHello->playerName == "Renato");
+	CHECK(decodedClientHello->capabilityFlags == ve::network::ProtocolCapabilityBlockMutations);
+	CHECK(ve::network::TryDeserializeClientHello(serializedPayloadBytes) == "Renato");
+
+	const std::uint32_t unknownCapabilityFlag = 1U << 31U;
+	std::memcpy(serializedPayloadBytes.data() + serializedPayloadBytes.size() - sizeof(unknownCapabilityFlag),
+		&unknownCapabilityFlag,
+		sizeof(unknownCapabilityFlag));
+	CHECK(!ve::network::TryDeserializeClientHelloPayload(serializedPayloadBytes).has_value());
+}

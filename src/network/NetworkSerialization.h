@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NetworkTypes.h"
+#include "NetworkProtocol.h"
 
 #include <cstdint>
 #include <optional>
@@ -10,6 +10,15 @@
 namespace ve::network
 {
 	inline constexpr std::uint16_t MaxPlayerNameByteCount = 32;
+
+	/**
+	 * Client handshake payload sent before gameplay messages.
+	 */
+	struct ClientHelloPayload
+	{
+		std::string playerName;
+		std::uint32_t capabilityFlags = SupportedProtocolCapabilityFlags;
+	};
 
 	/**
 	 * Player transform replicated from client to server.
@@ -50,6 +59,14 @@ namespace ve::network
 	ByteBuffer SerializeClientHello(const std::string& playerName);
 
 	/**
+	 * Serializes the first client identity and capability packet.
+	 *
+	 * @param clientHello Display name plus supported protocol capabilities.
+	 * @return Payload bytes for a ClientHello message.
+	 */
+	ByteBuffer SerializeClientHello(const ClientHelloPayload& clientHello);
+
+	/**
 	 * Serializes one player transform update.
 	 *
 	 * @param playerSnapshot Player id, tick, position, velocity, yaw, and pitch.
@@ -72,6 +89,14 @@ namespace ve::network
 	 * @return Player name, or empty when the payload length is invalid.
 	 */
 	std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> payloadBytes);
+
+	/**
+	 * Decodes a ClientHello payload with protocol capabilities.
+	 *
+	 * @param payloadBytes Payload bytes from a ClientHello message.
+	 * @return Client hello data, or empty when the payload is invalid.
+	 */
+	std::optional<ClientHelloPayload> TryDeserializeClientHelloPayload(std::span<const std::byte> payloadBytes);
 
 	/**
 	 * Decodes a PlayerSnapshot payload.

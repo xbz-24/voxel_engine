@@ -74,6 +74,7 @@ namespace ve::network
 		std::jthread _receiveThread;
 		std::mutex _sendMutex;
 		std::atomic_bool _isConnected = false;
+		std::atomic_uint32_t _nextOutboundSequenceNumber = 1;
 		ThreadSafeMessageQueue<NetworkMessage> _incomingMessages;
 	};
 }

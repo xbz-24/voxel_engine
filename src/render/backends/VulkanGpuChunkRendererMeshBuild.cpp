@@ -10,9 +10,9 @@ namespace ve::rendering
 	{
 		// TODO: Replace full-world rebuilds with dirty chunk meshes cached across World::Revision() changes.
 		const ve::world::WorldMetrics metrics = world.Metrics();
-		const int world_width_blocks = metrics.worldSizeChunks * Chunk::CHUNK_WIDTH;
+		const int world_width_blocks = metrics.worldSizeInChunks * Chunk::CHUNK_WIDTH;
 		const int world_height_blocks = Chunk::CHUNK_HEIGHT;
-		const int world_depth_blocks = metrics.worldSizeChunks * Chunk::CHUNK_DEPTH;
+		const int world_depth_blocks = metrics.worldSizeInChunks * Chunk::CHUNK_DEPTH;
 		vertices.clear();
 		indices.clear();
 		const std::size_t world_column_count = static_cast<std::size_t>(std::max(world_width_blocks, 0)) *

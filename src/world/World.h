@@ -56,13 +56,13 @@ namespace ve::world
 		ChunkRenderItemList ExtractVisibleChunks(const WorldRenderRequest& request) const;
 
 		/// Reads a block from world coordinates.
-		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
+		ve::blocks::BlockId GetBlock(int globalBlockX, int globalBlockY, int globalBlockZ) const;
 
 		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(const glm::ivec3& position) const;
 
 		/// Writes a block in world coordinates and marks affected chunks dirty.
-		bool SetBlock(int globalX, int globalY, int globalZ, ve::blocks::BlockId blockId);
+		bool SetBlock(int globalBlockX, int globalBlockY, int globalBlockZ, ve::blocks::BlockId blockId);
 
 		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
@@ -93,7 +93,9 @@ namespace ve::world
 		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks);
 
 	private:
-		// TODO: Replace linear chunk lookup with coordinate-indexed storage before raising world size limits.
+		/// Clears chunk storage and stale events before spawning a replacement world.
+		void ResetChunkStorageForRespawn(int worldSizeChunks);
+
 		/// Returns the chunk that contains a chunk-grid coordinate.
 		Chunk* FindChunk(int chunkX, int chunkZ);
 

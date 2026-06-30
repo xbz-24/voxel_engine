@@ -30,8 +30,8 @@ namespace ve::world::generation
 		/** @return True when a compute program has been assigned. */
 		[[nodiscard]] bool HasProgram() const noexcept;
 
-		/** @param groups_x X work groups. @param groups_y Y work groups. @param groups_z Z work groups. */
-		void Dispatch(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) const;
+		/** @return True when compute terrain work was submitted. */
+		[[nodiscard]] bool Dispatch(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) const;
 
 	private:
 		ve::rendering::ComputeProgramHandle compute_program_;

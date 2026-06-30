@@ -63,6 +63,10 @@ namespace ve::network
 		const std::span<const std::byte> payloadBytes(packetBytes.data() + PacketHeaderByteCount, payloadByteCount);
 		if (CalculatePayloadChecksum(payloadBytes) != packetHeader->payloadChecksum) return std::nullopt;
 		ByteBuffer messagePayloadBytes(payloadBytes.begin(), payloadBytes.end());
-		return NetworkMessage{ packetHeader->messageType, std::move(messagePayloadBytes) };
+		return NetworkMessage{
+			packetHeader->messageType,
+			std::move(messagePayloadBytes),
+			packetHeader->sequenceNumber
+		};
 	}
 }

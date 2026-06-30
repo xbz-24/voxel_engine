@@ -17,7 +17,9 @@ namespace ve::network
 			if (connectedClient.connectionId == excludedConnectionId) continue;
 			if (connectedClient.socket && connectedClient.socket->IsOpen())
 			{
-				SendNetworkMessage(*connectedClient.socket, message);
+				NetworkMessage outboundMessage = message;
+				outboundMessage.sequenceNumber = connectedClient.nextOutboundSequenceNumber++;
+				SendNetworkMessage(*connectedClient.socket, outboundMessage);
 			}
 		}
 	}

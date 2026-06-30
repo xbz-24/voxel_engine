@@ -4,8 +4,13 @@
 
 namespace ve::world::mesh
 {
-	void CollectChunkFaces(const ChunkMeshInput& meshInput, const ve::blocks::BlockRegistry& blockRegistry, const NeighborMeshInputs& neighbors, std::vector<MeshFace>& faces)
+	void CollectChunkFaces(
+		const ChunkMeshInput& mesh_input,
+		const ve::blocks::BlockRegistry& block_registry,
+		const NeighborMeshInputs& neighbors,
+		std::vector<MeshFace>& faces,
+		ChunkMeshBuildDiagnostics* diagnostics)
 	{
-		GreedyChunkMesher{ meshInput, blockRegistry, neighbors }.CollectFaces(faces);
+		GreedyChunkMesher{ mesh_input, block_registry, neighbors }.CollectFaces(faces, diagnostics);
 	}
 }

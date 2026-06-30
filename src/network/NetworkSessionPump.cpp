@@ -3,11 +3,61 @@
 #include "NetworkBlockReplication.h"
 #include "World.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <unordered_map>
+
 namespace ve::network
 {
+	namespace
+	{
+		constexpr std::size_t MaxInboundBlockMutationsAppliedPerPeerPerPump = 64;
+		constexpr std::size_t MaxInboundBlockMutationsAppliedToClientPerPump = 128;
+
+		bool IsBlockMutationMessage(const NetworkMessage& message) noexcept
+		{
+			return message.messageType == NetworkMessageType::BlockMutation;
+		}
+
+		bool HasValidBlockMutationPayload(const NetworkMessage& message)
+		{
+			return TryReadBlockMutationMessage(message).has_value();
+		}
+
+		bool TryAcceptBlockMutationForPump(
+			NetworkPumpStats& pumpStats,
+			const NetworkMessage& message,
+			NetworkSequenceTracker& sequenceTracker,
+			std::size_t& appliedBlockMutationCount,
+			std::size_t maxAppliedBlockMutationCount)
+		{
+			if (!IsBlockMutationMessage(message))
+			{
+				pumpStats.messagesIgnored++;
+				return false;
+			}
+			if (!HasValidBlockMutationPayload(message))
+			{
+				pumpStats.invalidMessagesRejected++;
+				return false;
+			}
+			if (appliedBlockMutationCount >= maxAppliedBlockMutationCount)
+			{
+				pumpStats.messagesRejectedByRateLimit++;
+				return false;
+			}
+			++appliedBlockMutationCount;
+			if (!sequenceTracker.TryAccept(message.sequenceNumber))
+			{
+				pumpStats.messagesRejectedBySequence++;
+				return false;
+			}
+			return true;
+		}
+	}
+
 	NetworkPumpStats NetworkSession::ApplyIncomingMessages(ve::world::World& world)
 	{
-		// TODO: Add per-peer rate limiting and validation before applying remote world mutations.
 		if (_mode == NetworkSessionMode::Hosting)
 		{
 			return ApplyServerMessages(world);
@@ -21,32 +71,57 @@ namespace ve::network
 
 	NetworkPumpStats NetworkSession::ApplyServerMessages(ve::world::World& world)
 	{
-		NetworkPumpStats stats;
+		NetworkPumpStats pumpStats;
+		std::unordered_map<std::uint32_t, std::size_t> appliedBlockMutationCountByConnectionId;
 		for (const MultiplayerInboundMessage& inboundMessage : _server.DrainIncomingMessages())
 		{
-			stats.messagesReceived++;
+			pumpStats.messagesReceived++;
+			std::size_t& appliedBlockMutationCount =
+				appliedBlockMutationCountByConnectionId[inboundMessage.connectionId];
+			NetworkSequenceTracker& clientSequenceTracker =
+				_clientSequenceTrackersByConnectionId[inboundMessage.connectionId];
+			if (!TryAcceptBlockMutationForPump(
+				pumpStats,
+				inboundMessage.message,
+				clientSequenceTracker,
+				appliedBlockMutationCount,
+				MaxInboundBlockMutationsAppliedPerPeerPerPump)) continue;
 			if (ApplyNetworkBlockMutation(world, inboundMessage.message))
 			{
-				stats.blockMutationsApplied++;
+				pumpStats.blockMutationsApplied++;
 				_server.BroadcastExcept(inboundMessage.connectionId, inboundMessage.message);
-				stats.messagesPublished++;
+				pumpStats.messagesPublished++;
+			}
+			else
+			{
+				pumpStats.invalidMessagesRejected++;
 			}
 		}
-		return stats;
+		return pumpStats;
 	}
 
 	NetworkPumpStats NetworkSession::ApplyClientMessages(ve::world::World& world)
 	{
-		// TODO: Add ordered delivery/replay handling before clients receive multi-chunk world snapshots.
-		NetworkPumpStats stats;
+		NetworkPumpStats pumpStats;
+		std::size_t appliedBlockMutationCountForClient = 0;
 		for (const NetworkMessage& message : _client.DrainIncomingMessages())
 		{
-			stats.messagesReceived++;
+			pumpStats.messagesReceived++;
+			if (!TryAcceptBlockMutationForPump(
+				pumpStats,
+				message,
+				_serverToClientSequenceTracker,
+				appliedBlockMutationCountForClient,
+				MaxInboundBlockMutationsAppliedToClientPerPump)) continue;
 			if (ApplyNetworkBlockMutation(world, message))
 			{
-				stats.blockMutationsApplied++;
+				pumpStats.blockMutationsApplied++;
+			}
+			else
+			{
+				pumpStats.invalidMessagesRejected++;
 			}
 		}
-		return stats;
+		return pumpStats;
 	}
 }

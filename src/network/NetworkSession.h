@@ -2,11 +2,14 @@
 
 #include "MultiplayerClient.h"
 #include "MultiplayerServer.h"
+#include "NetworkSequenceTracker.h"
 #include "WorldEvent.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <string>
+#include <unordered_map>
 
 namespace ve::world
 {
@@ -24,9 +27,10 @@ namespace ve::network
 
 	struct NetworkHostSettings
 	{
-		// TODO: Add max players, auth mode, tick rate, and world snapshot policy.
+		// TODO: Add auth mode, tick rate, and world snapshot policy.
 		std::uint16_t port = 25565;
 		int pendingConnectionBacklog = 8;
+		std::size_t maxConnectedClients = 8;
 	};
 
 	struct NetworkJoinSettings
@@ -40,6 +44,10 @@ namespace ve::network
 		std::size_t messagesReceived = 0;
 		std::size_t blockMutationsApplied = 0;
 		std::size_t messagesPublished = 0;
+		std::size_t messagesIgnored = 0;
+		std::size_t messagesRejectedByRateLimit = 0;
+		std::size_t messagesRejectedBySequence = 0;
+		std::size_t invalidMessagesRejected = 0;
 	};
 
 	class NetworkSession
@@ -70,5 +78,7 @@ namespace ve::network
 		NetworkSessionMode _mode = NetworkSessionMode::Offline;
 		MultiplayerClient _client;
 		MultiplayerServer _server;
+		NetworkSequenceTracker _serverToClientSequenceTracker;
+		std::unordered_map<std::uint32_t, NetworkSequenceTracker> _clientSequenceTrackersByConnectionId;
 	};
 }

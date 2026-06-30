@@ -49,8 +49,8 @@ namespace ve::engine
 		[[nodiscard]] DemoBounds BoundsFor(const ve::world::World& world) noexcept
 		{
 			const ve::world::WorldMetrics metrics = world.Metrics();
-			const int width = metrics.worldSizeChunks * Chunk::CHUNK_WIDTH;
-			const int depth = metrics.worldSizeChunks * Chunk::CHUNK_DEPTH;
+			const int width = metrics.worldSizeInChunks * Chunk::CHUNK_WIDTH;
+			const int depth = metrics.worldSizeInChunks * Chunk::CHUNK_DEPTH;
 			return DemoBounds{ width, depth, ve::world::terrain::ChunkHeight, width / 2, depth / 2 };
 		}
 

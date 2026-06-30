@@ -2,6 +2,14 @@
 
 namespace ve::world::generation
 {
+	namespace
+	{
+		bool HasDispatchWork(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) noexcept
+		{
+			return groups_x > 0 && groups_y > 0 && groups_z > 0;
+		}
+	}
+
 	/// Creates a compute terrain dispatcher.
 	ComputeTerrainGenerator::ComputeTerrainGenerator(ve::rendering::ComputeProgramHandle compute_program,
 		const ve::rendering::ComputeDispatcher* dispatcher) noexcept
@@ -33,11 +41,11 @@ namespace ve::world::generation
 		return compute_program_.IsValid();
 	}
 
-	/// Dispatches terrain generation work groups and flushes shader writes.
-	void ComputeTerrainGenerator::Dispatch(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) const
+	/// Dispatches terrain generation work groups and reports whether work was submitted.
+	bool ComputeTerrainGenerator::Dispatch(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) const
 	{
-		// TODO: Return dispatch success/failure so callers can fall back to CPU terrain generation deterministically.
-		if (!IsSupported() || !HasProgram()) return;
+		if (!IsSupported() || !HasProgram() || !HasDispatchWork(groups_x, groups_y, groups_z)) return false;
 		dispatcher_->Dispatch(compute_program_, { groups_x, groups_y, groups_z });
+		return true;
 	}
 }

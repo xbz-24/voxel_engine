@@ -1,7 +1,7 @@
 		void ResetDemoWorld(ve::world::World& world)
 		{
 			const ve::world::WorldMetrics metrics = world.Metrics();
-			world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ metrics.worldSizeChunks });
+			world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ metrics.worldSizeInChunks });
 		}
 
 		void FillEllipsoid(ve::world::World& world,

@@ -44,6 +44,8 @@ namespace ve::engine
 		const ve::blocks::BlockRegistry* GetBlockRegistry() const noexcept;
 		/** Applies completed async terrain chunks to the world. */
 		[[nodiscard]] int PumpAsyncWorldGeneration();
+		/** @return World metrics combined with async generation backlog owned by the model. */
+		[[nodiscard]] ve::world::WorldMetrics GetWorldMetrics() const;
 		/** @return Number of terrain tasks waiting to start. */
 		[[nodiscard]] ve::core::Index PendingWorldGenerationCount() const;
 		/** @param blockRegistry Block metadata. @param renderDistanceChunks Chunk radius around the camera. */

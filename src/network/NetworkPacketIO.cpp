@@ -7,7 +7,7 @@ namespace ve::network
 {
 	bool SendNetworkMessage(const TcpSocket& socket, const NetworkMessage& message)
 	{
-		const ByteBuffer packetBytes = BuildPacket(message.messageType, message.payloadBytes);
+		const ByteBuffer packetBytes = BuildPacket(message.messageType, message.payloadBytes, message.sequenceNumber);
 		if (packetBytes.empty()) return false;
 		return socket.SendBytes(packetBytes);
 	}

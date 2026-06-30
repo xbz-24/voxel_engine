@@ -43,12 +43,13 @@ TEST_CASE("network packet parser rejects truncated and corrupted packets")
 	CHECK(!ve::network::TryParsePacket(corruptHeaderPacketBytes).has_value());
 
 	std::vector<std::byte> corruptPayloadPacketBytes(packet.begin(), packet.end());
-	corruptPayloadPacketBytes.back() = std::byte{ 0 };
+	corruptPayloadPacketBytes.back() = std::byte{ 0x7f };
 	CHECK(!ve::network::TryParsePacket(corruptPayloadPacketBytes).has_value());
 
 	const std::optional<ve::network::NetworkMessage> parsed = ve::network::TryParsePacket(packet);
 	REQUIRE(parsed.has_value());
 	CHECK(parsed->messageType == ve::network::NetworkMessageType::ClientHello);
+	CHECK(parsed->sequenceNumber == 0U);
 	CHECK(ve::network::TryDeserializeClientHello(parsed->payloadBytes) == "Renato");
 }
 
@@ -58,9 +59,12 @@ TEST_CASE("network packet header carries sequence numbers")
 	const ve::network::ByteBuffer packet = ve::network::BuildPacket(ve::network::NetworkMessageType::ClientHello, payload, 42);
 	const std::span<const std::byte> packetHeaderBytes(packet.data(), ve::network::PacketHeaderByteCount);
 	const std::optional<ve::network::PacketHeader> header = ve::network::TryParsePacketHeader(packetHeaderBytes);
+	const std::optional<ve::network::NetworkMessage> parsed = ve::network::TryParsePacket(packet);
 
 	REQUIRE(header.has_value());
+	REQUIRE(parsed.has_value());
 	CHECK(header->sequenceNumber == 42U);
+	CHECK(parsed->sequenceNumber == 42U);
 	CHECK(header->payloadByteCount == static_cast<std::uint32_t>(payload.size()));
 }
 

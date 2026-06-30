@@ -7,9 +7,9 @@ namespace ve::rendering
 	void VulkanSoftwareVoxelRasterizer::CaptureWorldSnapshot(const ve::world::World& world)
 	{
 		const ve::world::WorldMetrics metrics = world.Metrics();
-		world_snapshot_.width = metrics.worldSizeChunks * ve::world::terrain::ChunkWidth;
+		world_snapshot_.width = metrics.worldSizeInChunks * ve::world::terrain::ChunkWidth;
 		world_snapshot_.height = ve::world::terrain::ChunkHeight;
-		world_snapshot_.depth = metrics.worldSizeChunks * ve::world::terrain::ChunkDepth;
+		world_snapshot_.depth = metrics.worldSizeInChunks * ve::world::terrain::ChunkDepth;
 
 		const std::size_t block_count =
 			static_cast<std::size_t>(world_snapshot_.width) *

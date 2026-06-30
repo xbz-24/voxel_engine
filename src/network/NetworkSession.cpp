@@ -11,7 +11,9 @@ namespace ve::network
 	bool NetworkSession::HostGame(const NetworkHostSettings& settings)
 	{
 		Stop();
-		const bool started = _server.Start(TcpListenSettings{ NetworkEndpoint{ "", settings.port }, settings.pendingConnectionBacklog });
+		const bool started = _server.Start(
+			TcpListenSettings{ NetworkEndpoint{ "", settings.port }, settings.pendingConnectionBacklog },
+			settings.maxConnectedClients);
 		_mode = started ? NetworkSessionMode::Hosting : NetworkSessionMode::Offline;
 		if (started) VE_LOG_CATEGORY_INFO(ve::log::category::Network, "Network host started");
 		return started;
@@ -30,6 +32,8 @@ namespace ve::network
 	{
 		_client.Disconnect();
 		_server.Stop();
+		_serverToClientSequenceTracker.Reset();
+		_clientSequenceTrackersByConnectionId.clear();
 		_mode = NetworkSessionMode::Offline;
 	}
 

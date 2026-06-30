@@ -55,6 +55,9 @@ public:
 	/** @return True when this chunk was reserved for one async mesh task. */
 	bool TryReserveMeshBuild() noexcept;
 
+	/** @return True when this chunk is waiting for an already queued async mesh task. */
+	bool HasPendingMeshBuildReservation() const noexcept;
+
 	/** Releases a mesh reservation when the async task could not be queued. */
 	void CancelMeshBuildReservation() noexcept;
 

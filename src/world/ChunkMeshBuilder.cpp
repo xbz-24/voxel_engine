@@ -38,8 +38,8 @@ namespace ve::world::mesh
 		class ChunkMeshAssembler
 		{
 		public:
-			explicit ChunkMeshAssembler(std::vector<MeshFace> faces)
-				: faces_(std::move(faces))
+			ChunkMeshAssembler(std::vector<MeshFace> faces, ChunkMeshBuildDiagnostics diagnostics)
+				: faces_(std::move(faces)), diagnostics_(diagnostics)
 			{
 				SortFacesByTexture(faces_);
 			}
@@ -47,6 +47,7 @@ namespace ve::world::mesh
 			[[nodiscard]] ChunkMeshBuildResult Build() const
 			{
 				ChunkMeshBuildResult result;
+				result.diagnostics = diagnostics_;
 				result.vertices.reserve(faces_.size() * 4);
 				if (faces_.empty())
 				{
@@ -66,33 +67,48 @@ namespace ve::world::mesh
 					AppendFaceVertices(face, result.vertices);
 				}
 				AppendBatch(result, current_texture, batch_start);
+				result.diagnostics.vertex_count = result.vertices.size();
+				result.diagnostics.batch_count = result.batches.size();
 				return result;
 			}
 
 		private:
 			std::vector<MeshFace> faces_;
+			ChunkMeshBuildDiagnostics diagnostics_;
 		};
 	}
 
-	ChunkMeshBuildResult BuildChunkMesh(const ChunkMeshInput& meshInput, const ve::blocks::BlockRegistry& blockRegistry, const NeighborMeshInputs& neighbors)
+	ChunkMeshBuildResult BuildChunkMesh(
+		const ChunkMeshInput& mesh_input,
+		const ve::blocks::BlockRegistry& block_registry,
+		const NeighborMeshInputs& neighbors)
 	{
 		std::vector<MeshFace> faces;
-		CollectChunkFaces(meshInput, blockRegistry, neighbors, faces);
-		return ChunkMeshAssembler{ std::move(faces) }.Build();
+		ChunkMeshBuildDiagnostics diagnostics;
+		CollectChunkFaces(mesh_input, block_registry, neighbors, faces, &diagnostics);
+		ChunkMeshAssembler chunk_mesh_assembler(std::move(faces), diagnostics);
+		return chunk_mesh_assembler.Build();
 	}
 
-	ChunkMeshBuildResult BuildChunkMesh(const Chunk& chunk, const ve::blocks::BlockRegistry& blockRegistry, const NeighborChunks& neighbors)
+	ChunkMeshBuildResult BuildChunkMesh(
+		const Chunk& chunk,
+		const ve::blocks::BlockRegistry& block_registry,
+		const NeighborChunks& neighbors)
 	{
-		const ChunkMeshInput chunkInput = chunk.CreateMeshInput();
-		const std::optional<ChunkMeshInput> west = neighbors.west ? std::optional(neighbors.west->CreateMeshInput()) : std::nullopt;
-		const std::optional<ChunkMeshInput> east = neighbors.east ? std::optional(neighbors.east->CreateMeshInput()) : std::nullopt;
-		const std::optional<ChunkMeshInput> north = neighbors.north ? std::optional(neighbors.north->CreateMeshInput()) : std::nullopt;
-		const std::optional<ChunkMeshInput> south = neighbors.south ? std::optional(neighbors.south->CreateMeshInput()) : std::nullopt;
-		return BuildChunkMesh(chunkInput, blockRegistry, NeighborMeshInputs{
-			west ? &*west : nullptr,
-			east ? &*east : nullptr,
-			north ? &*north : nullptr,
-			south ? &*south : nullptr
+		const ChunkMeshInput chunk_mesh_input = chunk.CreateMeshInput();
+		const std::optional<ChunkMeshInput> west_neighbor_input =
+			neighbors.west ? std::optional(neighbors.west->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> east_neighbor_input =
+			neighbors.east ? std::optional(neighbors.east->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> north_neighbor_input =
+			neighbors.north ? std::optional(neighbors.north->CreateMeshInput()) : std::nullopt;
+		const std::optional<ChunkMeshInput> south_neighbor_input =
+			neighbors.south ? std::optional(neighbors.south->CreateMeshInput()) : std::nullopt;
+		return BuildChunkMesh(chunk_mesh_input, block_registry, NeighborMeshInputs{
+			west_neighbor_input ? &*west_neighbor_input : nullptr,
+			east_neighbor_input ? &*east_neighbor_input : nullptr,
+			north_neighbor_input ? &*north_neighbor_input : nullptr,
+			south_neighbor_input ? &*south_neighbor_input : nullptr
 		});
 	}
 }
