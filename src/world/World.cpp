@@ -64,6 +64,8 @@ namespace ve::world
 			chunksNeedingMeshBuild,
 			chunksWithQueuedMeshBuild,
 			0,
+			0,
+			0,
 			_chunks.capacity() * sizeof(Chunk),
 			_levelSpawn.MemoryCapacityBytes(),
 			_levelSpawn.MemoryBytesUsed(),

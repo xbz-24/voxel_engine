@@ -17,7 +17,11 @@
 		const auto texture_loading = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan
 			? ve::blocks::BlockRegistry::TextureLoading::MetadataOnly
 			: ve::blocks::BlockRegistry::TextureLoading::LoadTextures;
-		model_ = std::make_unique<GameModel>(world_size_chunks, &asset_paths_, texture_loading);
+		model_ = std::make_unique<GameModel>(
+			world_size_chunks,
+			&asset_paths_,
+			texture_loading,
+			engine_.create_info_.terrain_generation);
 		vulkan_demo_settings_.scene.preset = engine_.create_info_.vulkan_demo_preset;
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		callback_context_.camera = &model_->MutableCamera();

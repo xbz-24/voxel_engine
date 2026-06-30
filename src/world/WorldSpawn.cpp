@@ -16,7 +16,11 @@ namespace ve::world
 		{
 			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
 			{
-				_chunks.emplace_back(chunkCoordinateX, chunkCoordinateZ, ChunkGenerationMode::GenerateNow);
+				_chunks.emplace_back(
+					chunkCoordinateX,
+					chunkCoordinateZ,
+					ChunkGenerationMode::GenerateNow,
+					settings.terrainGeneration);
 				RecordChunkGenerated(chunkCoordinateX, chunkCoordinateZ);
 			}
 		}

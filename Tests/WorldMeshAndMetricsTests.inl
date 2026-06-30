@@ -16,6 +16,7 @@ namespace
 	{
 		chunkBlocks[LocalBlockIndex(localBlockX, localBlockY, localBlockZ)] = blockId;
 	}
+
 }
 
 TEST_CASE("chunk mesh diagnostics count visible and culled block faces")
@@ -54,6 +55,8 @@ TEST_CASE("world metrics include dirty chunks and reserved chunk bytes")
 	CHECK(metrics.reservedChunkCapacity == 4U);
 	CHECK(metrics.chunksNeedingMeshBuild == 4U);
 	CHECK(metrics.chunksWithQueuedMeshBuild == 0U);
+	CHECK(metrics.pendingChunkMeshTaskCount == 0U);
+	CHECK(metrics.pendingChunkMeshUploadCount == 0U);
 	CHECK(metrics.pendingWorldGenerationTaskCount == 0U);
 	CHECK(metrics.reservedChunkStorageBytes >= metrics.reservedChunkCapacity * sizeof(::Chunk));
 	CHECK(metrics.levelArenaCapacityBytes >= metrics.levelArenaUsedBytes);

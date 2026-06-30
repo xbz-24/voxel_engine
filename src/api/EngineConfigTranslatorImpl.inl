@@ -16,6 +16,7 @@
 				result.vsync = config.window.vsync;
 				result.show_debug_overlay = config.show_debug_overlay;
 				result.world_size_chunks = std::max(1, config.world.size_chunks);
+				result.terrain_generation = ToInternalTerrainGeneration(config.world);
 				result.render_distance_chunks = std::max(0, config.render_distance_chunks);
 				result.world_edits.reserve(config.world.edits.size());
 				for (const WorldEdit& edit : config.world.edits)
@@ -55,7 +56,10 @@
 						callback(Diagnostics{
 							diagnostics.fps,
 							diagnostics.pending_world_events,
-							diagnostics.render_distance_chunks
+							diagnostics.render_distance_chunks,
+							diagnostics.pending_chunk_mesh_tasks,
+							diagnostics.pending_chunk_mesh_uploads,
+							diagnostics.pending_world_generation_tasks
 						});
 					};
 				}

@@ -14,6 +14,7 @@ namespace ve::world::generation
 	{
 		int chunkCoordinateX = 0;
 		int chunkCoordinateZ = 0;
+		TerrainGenerationSettings terrainGeneration{};
 	};
 
 	struct ChunkGenerationResult

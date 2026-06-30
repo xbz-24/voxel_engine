@@ -9,9 +9,9 @@ using ve::blocks::BlockId;
 /**
  * Fills block data using procedural terrain generation.
  */
-void Chunk::Generate()
+void Chunk::Generate(const ve::world::TerrainGenerationSettings& terrain_generation)
 {
-	ve::world::terrain::GenerateChunkTerrain(chunk_x_, chunk_z_, blocks_);
+	ve::world::terrain::GenerateChunkTerrain(chunk_x_, chunk_z_, terrain_generation, blocks_);
 	is_generated_ = true;
 	is_mesh_build_queued_ = false;
 	MarkDirty();

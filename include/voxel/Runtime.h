@@ -80,6 +80,9 @@ namespace voxel
 		double fps = 0.0;
 		int pending_world_events = 0;
 		int render_distance_chunks = 0;
+		int pending_chunk_mesh_tasks = 0;
+		int pending_chunk_mesh_uploads = 0;
+		int pending_world_generation_tasks = 0;
 	};
 
 	using UpdateCallback = std::function<void(FrameContext&)>;

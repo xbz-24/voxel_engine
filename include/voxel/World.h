@@ -2,6 +2,7 @@
 
 #include "voxel/Blocks.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -45,15 +46,50 @@ namespace voxel
 		Block block = Block::Air;
 	};
 
+	enum class TerrainGenerator
+	{
+		Procedural,
+		Flat
+	};
+
+	enum class TerrainBiome
+	{
+		Temperate,
+		Desert,
+		Alpine
+	};
+
+	struct TerrainPalette
+	{
+		Block bedrock = Bedrock;
+		Block deep_stone = Deepslate;
+		Block stone = Stone;
+		Block surface = Grass;
+		Block subsurface = Dirt;
+		Block high_elevation_surface = Snow;
+		Block dry_surface_patch = Sand;
+		Block gravel_patch = Gravel;
+	};
+
 	struct WorldConfig
 	{
-		// TODO: Add seed, terrain generator selection, biome settings, and vertical world bounds to the public world config.
+		// TODO: Add vertical world bounds once runtime chunks are no longer fixed to ChunkHeight.
 		int size_chunks = 8;
+		std::uint32_t terrain_seed = 0;
+		int base_surface_height = 40;
+		TerrainGenerator terrain_generator = TerrainGenerator::Procedural;
+		TerrainBiome terrain_biome = TerrainBiome::Temperate;
+		TerrainPalette terrain_palette{};
 		std::vector<WorldEdit> edits;
 
 		[[nodiscard]] static WorldConfig SizeChunks(int value);
 
 		WorldConfig& WithSizeChunks(int value) noexcept;
+		WorldConfig& WithTerrainSeed(std::uint32_t value) noexcept;
+		WorldConfig& WithBaseSurfaceHeight(int value) noexcept;
+		WorldConfig& WithTerrainGenerator(TerrainGenerator value) noexcept;
+		WorldConfig& WithTerrainBiome(TerrainBiome value) noexcept;
+		WorldConfig& WithTerrainPalette(TerrainPalette value) noexcept;
 		WorldConfig& SetBlock(BlockPosition position, Block block);
 		WorldConfig& SetBlock(int block_x, int block_y, int block_z, Block block);
 		WorldConfig& FillBox(BlockBox box, Block block);

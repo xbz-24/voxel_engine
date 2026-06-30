@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Block.h"
+
 #include <cstddef>
+#include <cstdint>
 
 namespace ve::world
 {
@@ -13,13 +16,47 @@ namespace ve::world
 		std::size_t chunkCapacity;
 	};
 
+	enum class TerrainSpawnBiome
+	{
+		Temperate,
+		Desert,
+		Alpine
+	};
+
+	enum class TerrainGeneratorKind
+	{
+		Procedural,
+		Flat
+	};
+
+	struct TerrainBlockPalette
+	{
+		ve::blocks::BlockId bedrockBlock = ve::blocks::BlockId::Bedrock;
+		ve::blocks::BlockId deepStoneBlock = ve::blocks::BlockId::Deepslate;
+		ve::blocks::BlockId stoneBlock = ve::blocks::BlockId::Stone;
+		ve::blocks::BlockId surfaceBlock = ve::blocks::BlockId::Grass;
+		ve::blocks::BlockId subsurfaceBlock = ve::blocks::BlockId::Dirt;
+		ve::blocks::BlockId highElevationSurfaceBlock = ve::blocks::BlockId::Snow;
+		ve::blocks::BlockId drySurfacePatchBlock = ve::blocks::BlockId::Sand;
+		ve::blocks::BlockId gravelPatchBlock = ve::blocks::BlockId::Gravel;
+	};
+
+	struct TerrainGenerationSettings
+	{
+		std::uint32_t terrainSeed = 0;
+		int baseSurfaceHeight = 40;
+		TerrainSpawnBiome spawnBiome = TerrainSpawnBiome::Temperate;
+		TerrainGeneratorKind terrainGenerator = TerrainGeneratorKind::Procedural;
+		TerrainBlockPalette blockPalette{};
+	};
+
 	/**
 	 * Settings used to generate a flat square chunk grid.
 	 */
 	struct FlatWorldSpawnSettings
 	{
-		// TODO: Add seed, base height, block palette, and spawn biome to flat/procedural generation settings.
-		int worldSizeChunks;
+		int worldSizeChunks = 0;
+		TerrainGenerationSettings terrainGeneration{};
 	};
 
 	/**
@@ -32,6 +69,8 @@ namespace ve::world
 		std::size_t reservedChunkCapacity;
 		std::size_t chunksNeedingMeshBuild;
 		std::size_t chunksWithQueuedMeshBuild;
+		std::size_t pendingChunkMeshTaskCount;
+		std::size_t pendingChunkMeshUploadCount;
 		std::size_t pendingWorldGenerationTaskCount;
 		std::size_t reservedChunkStorageBytes;
 		std::size_t levelArenaCapacityBytes;

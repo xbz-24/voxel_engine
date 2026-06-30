@@ -24,7 +24,8 @@ namespace ve::engine
 		 */
 		explicit GameModel(int worldSizeChunks,
 			const ve::assets::AssetPaths* assetPaths = nullptr,
-			ve::blocks::BlockRegistry::TextureLoading textureLoading = ve::blocks::BlockRegistry::TextureLoading::LoadTextures);
+			ve::blocks::BlockRegistry::TextureLoading textureLoading = ve::blocks::BlockRegistry::TextureLoading::LoadTextures,
+			const ve::world::TerrainGenerationSettings& terrainGeneration = {});
 
 		/** @return Mutable camera controlled by gameplay input. */
 		Camera& MutableCamera() noexcept;

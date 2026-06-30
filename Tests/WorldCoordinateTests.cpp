@@ -42,3 +42,4 @@ TEST_CASE("chunk mesh input returns air outside chunk storage")
 
 #include "WorldMeshAndMetricsTests.inl"
 #include "WorldComputeTerrainTests.inl"
+#include "WorldTerrainGenerationTests.inl"

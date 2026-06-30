@@ -46,14 +46,21 @@
 
 		if (engine_.create_info_.on_diagnostics)
 		{
-			const size_t pending_event_count = model_ != nullptr ? model_->GetWorld().PendingEventCount() : 0U;
-			const int pending_events = pending_event_count > static_cast<size_t>(std::numeric_limits<int>::max())
-				? std::numeric_limits<int>::max()
-				: static_cast<int>(pending_event_count);
+			const auto to_diagnostic_counter = [](std::size_t value)
+			{
+				return value > static_cast<std::size_t>(std::numeric_limits<int>::max())
+					? std::numeric_limits<int>::max()
+					: static_cast<int>(value);
+			};
+			const ve::world::WorldMetrics world_metrics =
+				model_ != nullptr ? model_->GetWorldMetrics() : ve::world::WorldMetrics{};
 			engine_.create_info_.on_diagnostics(RuntimeDiagnostics{
 				static_cast<double>(frame_timer_.DisplayedFps()),
-				pending_events,
-				engine_._runtimeSettings.renderDistanceChunks
+				to_diagnostic_counter(world_metrics.pendingWorldEventCount),
+				engine_._runtimeSettings.renderDistanceChunks,
+				to_diagnostic_counter(world_metrics.pendingChunkMeshTaskCount),
+				to_diagnostic_counter(world_metrics.pendingChunkMeshUploadCount),
+				to_diagnostic_counter(world_metrics.pendingWorldGenerationTaskCount)
 			});
 		}
 	}

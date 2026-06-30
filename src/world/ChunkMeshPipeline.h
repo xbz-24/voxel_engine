@@ -3,8 +3,16 @@
 #include "AsyncChunkMeshScheduler.h"
 #include "ChunkMeshUploadQueue.h"
 
+#include <cstddef>
+
 namespace ve::world::mesh
 {
+	struct ChunkMeshPipelineStats
+	{
+		std::size_t pendingBuildTaskCount = 0;
+		std::size_t pendingUploadCount = 0;
+	};
+
 	class ChunkMeshPipeline
 	{
 	public:
@@ -42,8 +50,10 @@ namespace ve::world::mesh
 		/** @return Mesh outputs waiting for GPU upload. */
 		std::size_t PendingUploadCount() const;
 
+		/** @return Snapshot of async build and upload backlog counters. */
+		ChunkMeshPipelineStats Stats() const;
+
 	private:
-		// TODO: Surface pipeline stats to renderer diagnostics and public API callbacks.
 		AsyncChunkMeshScheduler _scheduler;
 		ChunkMeshUploadQueue _uploadQueue;
 	};

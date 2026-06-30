@@ -9,7 +9,8 @@ namespace ve::engine
 {
 	GameModel::GameModel(int worldSizeChunks,
 		const ve::assets::AssetPaths* assetPaths,
-		ve::blocks::BlockRegistry::TextureLoading textureLoading)
+		ve::blocks::BlockRegistry::TextureLoading textureLoading,
+		const ve::world::TerrainGenerationSettings& terrainGeneration)
 		: world_(ve::world::CreateInfoForSquareWorld(worldSizeChunks)),
 		  world_generator_(ve::tasks::DefaultWorkerCount()),
 		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
@@ -18,7 +19,7 @@ namespace ve::engine
 		{
 			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*assetPaths, textureLoading);
 		}
-		const ve::world::FlatWorldSpawnSettings settings{ worldSizeChunks };
+		const ve::world::FlatWorldSpawnSettings settings{ worldSizeChunks, terrainGeneration };
 		world_.SpawnEmptyGrid(settings);
 		world_generator_.RequestGrid(settings);
 	}
@@ -58,6 +59,9 @@ namespace ve::engine
 	ve::world::WorldMetrics GameModel::GetWorldMetrics() const
 	{
 		ve::world::WorldMetrics worldMetrics = world_.Metrics();
+		const ve::world::mesh::ChunkMeshPipelineStats meshPipelineStats = mesh_pipeline_.Stats();
+		worldMetrics.pendingChunkMeshTaskCount = meshPipelineStats.pendingBuildTaskCount;
+		worldMetrics.pendingChunkMeshUploadCount = meshPipelineStats.pendingUploadCount;
 		worldMetrics.pendingWorldGenerationTaskCount = world_generator_.PendingTaskCount();
 		return worldMetrics;
 	}

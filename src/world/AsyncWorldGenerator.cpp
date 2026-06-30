@@ -5,23 +5,30 @@ namespace ve::world::generation
 	namespace
 	{
 		/// Copies generated chunk storage into a flat result buffer.
-		void CopyStorage(const terrain::BlockStorage& storage, ChunkGenerationResult& result)
+		void CopyGeneratedStorage(
+			const terrain::BlockStorage& generatedBlockStorage,
+			ChunkGenerationResult& generationResult)
 		{
 			ve::core::Index destinationBlockIndex = 0;
-			for (int localBlockX = 0; localBlockX < terrain::ChunkWidth; localBlockX++)
-				for (int localBlockY = 0; localBlockY < terrain::ChunkHeight; localBlockY++)
-					for (int localBlockZ = 0; localBlockZ < terrain::ChunkDepth; localBlockZ++)
-						result.blocks[destinationBlockIndex++] = storage[localBlockX][localBlockY][localBlockZ];
+			for (int localBlockCoordinateX = 0; localBlockCoordinateX < terrain::ChunkWidth; localBlockCoordinateX++)
+				for (int localBlockCoordinateY = 0; localBlockCoordinateY < terrain::ChunkHeight; localBlockCoordinateY++)
+					for (int localBlockCoordinateZ = 0; localBlockCoordinateZ < terrain::ChunkDepth; localBlockCoordinateZ++)
+						generationResult.blocks[destinationBlockIndex++] =
+							generatedBlockStorage[localBlockCoordinateX][localBlockCoordinateY][localBlockCoordinateZ];
 		}
 
 		/// Generates one chunk result completely on a worker thread.
 		ChunkGenerationResult GenerateChunk(ChunkGenerationRequest request)
 		{
-			terrain::BlockStorage storage{};
-			terrain::GenerateChunkTerrain(request.chunkCoordinateX, request.chunkCoordinateZ, storage);
-			ChunkGenerationResult result{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
-			CopyStorage(storage, result);
-			return result;
+			terrain::BlockStorage generatedBlockStorage{};
+			terrain::GenerateChunkTerrain(
+				request.chunkCoordinateX,
+				request.chunkCoordinateZ,
+				request.terrainGeneration,
+				generatedBlockStorage);
+			ChunkGenerationResult generationResult{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
+			CopyGeneratedStorage(generatedBlockStorage, generationResult);
+			return generationResult;
 		}
 	}
 
@@ -51,7 +58,7 @@ namespace ve::world::generation
 	{
 		for (int chunkX = 0; chunkX < settings.worldSizeChunks; chunkX++)
 			for (int chunkZ = 0; chunkZ < settings.worldSizeChunks; chunkZ++)
-				RequestChunk(ChunkGenerationRequest{ chunkX, chunkZ });
+				RequestChunk(ChunkGenerationRequest{ chunkX, chunkZ, settings.terrainGeneration });
 	}
 
 	/// Drains completed generated chunks without blocking the game thread.

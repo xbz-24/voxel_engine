@@ -24,7 +24,11 @@ public:
 	static constexpr int CHUNK_DEPTH = ve::world::terrain::ChunkDepth;
 
 	/// Creates a chunk at chunk-grid coordinates.
-	Chunk(int chunk_x, int chunk_z, ChunkGenerationMode generation_mode = ChunkGenerationMode::GenerateNow);
+	Chunk(
+		int chunk_coordinate_x,
+		int chunk_coordinate_z,
+		ChunkGenerationMode generation_mode = ChunkGenerationMode::GenerateNow,
+		const ve::world::TerrainGenerationSettings& terrain_generation = {});
 
 	/// Releases the uploaded GPU mesh if one was built.
 	~Chunk();
@@ -39,7 +43,7 @@ public:
 	Chunk& operator=(Chunk&& other) noexcept;
 
 	/// Fills block data using procedural terrain generation.
-	void Generate();
+	void Generate(const ve::world::TerrainGenerationSettings& terrain_generation = {});
 
 	/**
 	 * Replaces all local block data with generated terrain.

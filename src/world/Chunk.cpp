@@ -6,15 +6,19 @@
 #include <utility>
 
 using ve::blocks::BlockId;
-Chunk::Chunk(int chunk_x, int chunk_z, ChunkGenerationMode generation_mode)
-	: chunk_x_(chunk_x),
-	  chunk_z_(chunk_z),
+Chunk::Chunk(
+	int chunk_coordinate_x,
+	int chunk_coordinate_z,
+	ChunkGenerationMode generation_mode,
+	const ve::world::TerrainGenerationSettings& terrain_generation)
+	: chunk_x_(chunk_coordinate_x),
+	  chunk_z_(chunk_coordinate_z),
 	  mesh_revision_(0),
 	  is_mesh_built_(false),
 	  is_generated_(false),
 	  is_mesh_build_queued_(false)
 {
-	if (generation_mode == ChunkGenerationMode::GenerateNow) Generate();
+	if (generation_mode == ChunkGenerationMode::GenerateNow) Generate(terrain_generation);
 	else std::fill(&blocks_[0][0][0], &blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
 }
 Chunk::~Chunk() = default;

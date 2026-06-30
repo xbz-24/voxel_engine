@@ -13,6 +13,7 @@ namespace
 		}
 		return static_cast<voxel::Block>(static_cast<std::uint8_t>(value));
 	}
+
 }
 
 namespace voxel

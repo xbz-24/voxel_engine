@@ -14,6 +14,57 @@
 			return result;
 		}
 
+		[[nodiscard]] ve::world::TerrainGeneratorKind ToInternalTerrainGenerator(TerrainGenerator generator) noexcept
+		{
+			switch (generator)
+			{
+			case TerrainGenerator::Flat:
+				return ve::world::TerrainGeneratorKind::Flat;
+			case TerrainGenerator::Procedural:
+			default:
+				return ve::world::TerrainGeneratorKind::Procedural;
+			}
+		}
+
+		[[nodiscard]] ve::world::TerrainSpawnBiome ToInternalTerrainBiome(TerrainBiome biome) noexcept
+		{
+			switch (biome)
+			{
+			case TerrainBiome::Desert:
+				return ve::world::TerrainSpawnBiome::Desert;
+			case TerrainBiome::Alpine:
+				return ve::world::TerrainSpawnBiome::Alpine;
+			case TerrainBiome::Temperate:
+			default:
+				return ve::world::TerrainSpawnBiome::Temperate;
+			}
+		}
+
+		[[nodiscard]] ve::world::TerrainBlockPalette ToInternalTerrainPalette(TerrainPalette palette) noexcept
+		{
+			return ve::world::TerrainBlockPalette{
+				ToInternalBlock(palette.bedrock),
+				ToInternalBlock(palette.deep_stone),
+				ToInternalBlock(palette.stone),
+				ToInternalBlock(palette.surface),
+				ToInternalBlock(palette.subsurface),
+				ToInternalBlock(palette.high_elevation_surface),
+				ToInternalBlock(palette.dry_surface_patch),
+				ToInternalBlock(palette.gravel_patch)
+			};
+		}
+
+		[[nodiscard]] ve::world::TerrainGenerationSettings ToInternalTerrainGeneration(const WorldConfig& world) noexcept
+		{
+			return ve::world::TerrainGenerationSettings{
+				world.terrain_seed,
+				world.base_surface_height,
+				ToInternalTerrainBiome(world.terrain_biome),
+				ToInternalTerrainGenerator(world.terrain_generator),
+				ToInternalTerrainPalette(world.terrain_palette)
+			};
+		}
+
 		[[nodiscard]] glm::vec3 ToInternalVec3(Vec3 value) noexcept
 		{
 			return { value.x, value.y, value.z };

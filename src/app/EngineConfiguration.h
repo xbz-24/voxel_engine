@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Block.h"
 #include "VulkanMinecraftDemoSettings.h"
+#include "WorldConfiguration.h"
 
 #include <glm/glm.hpp>
 
@@ -64,6 +65,9 @@ namespace ve::engine
 		double fps = 0.0;
 		int pending_world_events = 0;
 		int render_distance_chunks = 0;
+		int pending_chunk_mesh_tasks = 0;
+		int pending_chunk_mesh_uploads = 0;
+		int pending_world_generation_tasks = 0;
 	};
 
 	struct EngineCreateInfo
@@ -78,6 +82,7 @@ namespace ve::engine
 		bool has_custom_camera = false;
 		ve::rendering::VulkanMinecraftDemoPreset vulkan_demo_preset = ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
 		int world_size_chunks = 8;
+		ve::world::TerrainGenerationSettings terrain_generation{};
 		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;
 		std::vector<WorldBlockEdit> world_edits;
 		std::function<void(RuntimeFrameContext&)> on_update;

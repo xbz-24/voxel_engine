@@ -5,6 +5,7 @@
 
 		file << "voxel-world-config 1\n";
 		file << "size " << world.size_chunks << '\n';
+		SaveWorldTerrainConfig(file, world);
 		for (const WorldEdit& edit : world.edits)
 		{
 			if (edit.kind == WorldEdit::Kind::FillBox)
@@ -43,6 +44,10 @@
 				int size_chunks = world.size_chunks;
 				file >> size_chunks;
 				world.WithSizeChunks(size_chunks);
+			}
+			else if (TryLoadWorldTerrainCommand(world, command, file))
+			{
+				continue;
 			}
 			else if (command == "set")
 			{

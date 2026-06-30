@@ -3,6 +3,8 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	bool update_called = false;
 	bool diagnostics_called = false;
 	bool log_called = false;
+	int observed_pending_chunk_mesh_tasks = 0;
+	int observed_pending_chunk_mesh_uploads = 0;
 
 	voxel::AssetCatalog assets{};
 	assets.Texture("grass", "assets/grass.png")
@@ -44,9 +46,11 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 				.ClearBox(2, 64, 2, 3, 65, 3)
 				.RequestClose();
 		})
-		.OnDiagnostics([&diagnostics_called](const voxel::Diagnostics& diagnostics) {
+		.OnDiagnostics([&](const voxel::Diagnostics& diagnostics) {
 			diagnostics_called = true;
 			CHECK(diagnostics.render_distance_chunks >= 0);
+			observed_pending_chunk_mesh_tasks = diagnostics.pending_chunk_mesh_tasks;
+			observed_pending_chunk_mesh_uploads = diagnostics.pending_chunk_mesh_uploads;
 		})
 		.OnLog([&log_called](const std::string& line) {
 			log_called = true;
@@ -77,8 +81,10 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	CHECK(frame.commands.world_edits.size() == 2);
 	CHECK(frame.commands.request_close);
 
-	config.on_diagnostics(voxel::Diagnostics{ 60.0, 2, 4 });
+	config.on_diagnostics(voxel::Diagnostics{ 60.0, 2, 4, 5, 6, 7 });
 	CHECK(diagnostics_called);
+	CHECK(observed_pending_chunk_mesh_tasks == 5);
+	CHECK(observed_pending_chunk_mesh_uploads == 6);
 
 	config.on_log("public api log");
 	CHECK(log_called);

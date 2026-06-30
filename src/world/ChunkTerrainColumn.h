@@ -16,10 +16,14 @@ namespace ve::world::terrain::detail
 	};
 
 	[[nodiscard]] TerrainColumn BuildTerrainColumn(
-		int chunk_x,
-		int chunk_z,
+		int chunk_coordinate_x,
+		int chunk_coordinate_z,
 		int local_block_x,
-		int local_block_z);
+		int local_block_z,
+		const ve::world::TerrainGenerationSettings& terrain_generation);
 
-	void FillTerrainColumn(const TerrainColumn& column, BlockStorage& blocks);
+	void FillTerrainColumn(
+		const TerrainColumn& column,
+		const ve::world::TerrainGenerationSettings& terrain_generation,
+		BlockStorage& blocks);
 }
