@@ -19,6 +19,13 @@ void ve::engine::Window::Update()
 	glfwPollEvents();
 }
 
+std::vector<ve::engine::WindowEvent> ve::engine::Window::DrainEvents()
+{
+	std::vector<WindowEvent> events;
+	events.swap(_eventQueue);
+	return events;
+}
+
 bool ve::engine::Window::ShouldClose() const
 {
 	return static_cast<bool>(glfwWindowShouldClose(_window));
@@ -78,12 +85,21 @@ void* ve::engine::Window::GetCallbackUserData(GLFWwindow* window)
 	return context ? context->userData : nullptr;
 }
 
+void ve::engine::Window::RecordFramebufferResize(int width, int height)
+{
+	_width = width;
+	_height = height;
+	_eventQueue.push_back(WindowEvent{
+		.kind = WindowEvent::Kind::FramebufferResized,
+		.framebuffer_resized = WindowFramebufferResizeEvent{ width, height }
+	});
+}
+
 void ve::engine::Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
 {
 	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
 	if (context && context->window)
 	{
-		context->window->_width = width;
-		context->window->_height = height;
+		context->window->RecordFramebufferResize(width, height);
 	}
 }

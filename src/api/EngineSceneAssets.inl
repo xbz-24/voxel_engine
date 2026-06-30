@@ -18,6 +18,12 @@ namespace voxel
 		}
 	}
 
+	AssetCatalog& AssetCatalog::SearchRoot(std::string path)
+	{
+		search_roots.push_back(std::move(path));
+		return *this;
+	}
+
 	AssetCatalog& AssetCatalog::Texture(std::string name, std::string path)
 	{
 		textures.push_back(TextureAsset{ std::move(name), std::move(path) });

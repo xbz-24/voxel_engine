@@ -33,7 +33,9 @@ namespace ve::engine
 	/** Resolves asset paths and configures logger sinks. */
 	void EngineRuntime::PrepareAssetsAndLogging()
 	{
-		asset_paths_ = ve::assets::Resolve();
+		ve::assets::AssetPathResolveOptions asset_path_options;
+		asset_path_options.search_roots = engine_.create_info_.asset_search_roots;
+		asset_paths_ = ve::assets::Resolve(asset_path_options);
 		ve::log::SetCallback(engine_.create_info_.on_log);
 		engine_.ConfigureRuntimeLogging(asset_paths_);
 	}

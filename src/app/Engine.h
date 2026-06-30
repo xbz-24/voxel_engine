@@ -70,8 +70,8 @@ private:
 	/** Configures console and file logging after asset paths are resolved. */
 	void ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths);
 
-	/** Rebuilds cached projection matrices when the framebuffer size changes. */
-	void UpdateProjectionIfWindowChanged(const ve::engine::Window& window);
+	/** Rebuilds cached projection matrices from queued framebuffer resize events. */
+	void UpdateProjectionIfWindowChanged(ve::engine::Window& window);
 
 	/** Builds immutable HUD data for the current OpenGL frame. */
 	ve::ui::HudFrameInfo CreateHudFrame(const ve::engine::Window& window,
@@ -96,6 +96,9 @@ private:
 
 	/** Rebuilds 3D and 2D projection matrices after window size changes. */
 	void UpdateProjections(int width, int height);
+
+	/** Applies a new framebuffer size when it differs from the cached size. */
+	void ApplyFramebufferSize(int width, int height);
 
 	/** Draws the cached OpenGL cloud layer. */
 	void RenderClouds();

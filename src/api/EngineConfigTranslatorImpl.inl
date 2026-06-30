@@ -7,7 +7,12 @@
 				result.window.title = config.window.title;
 				result.window.width = std::max(1, config.window.width);
 				result.window.height = std::max(1, config.window.height);
+				result.window.display_index = std::max(0, config.window.monitor_index);
+				result.window.refresh_rate_hertz = std::max(0, config.window.refresh_rate_hertz);
 				result.window.fullscreen = config.window.fullscreen;
+				result.window.resizable = config.window.resizable;
+				result.window.high_dpi_framebuffer = config.window.high_dpi_framebuffer;
+				result.window.capture_cursor_on_start = config.window.capture_cursor_on_start;
 				result.render_backend.preferred_api = ToInternalApi(config.graphics_api);
 				result.vulkan_demo_preset = ToInternalDemoPreset(config.demo_scene);
 				result.camera_position = ToInternalVec3(config.camera.position);
@@ -18,6 +23,11 @@
 				result.world_size_chunks = std::max(1, config.world.size_chunks);
 				result.terrain_generation = ToInternalTerrainGeneration(config.world);
 				result.render_distance_chunks = std::max(0, config.render_distance_chunks);
+				result.asset_search_roots.reserve(config.assets.search_roots.size());
+				for (const std::string& search_root : config.assets.search_roots)
+				{
+					result.asset_search_roots.emplace_back(search_root);
+				}
 				result.world_edits.reserve(config.world.edits.size());
 				for (const WorldEdit& edit : config.world.edits)
 				{

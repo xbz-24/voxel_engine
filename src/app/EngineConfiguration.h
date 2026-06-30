@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
@@ -67,6 +68,7 @@ namespace ve::engine
 		int world_size_chunks = 8;
 		ve::world::TerrainGenerationSettings terrain_generation{};
 		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;
+		std::vector<std::filesystem::path> asset_search_roots;
 		std::vector<WorldBlockEdit> world_edits;
 		std::function<void(RuntimeFrameContext&)> on_update;
 		std::function<void(const RuntimeDiagnostics&)> on_diagnostics;

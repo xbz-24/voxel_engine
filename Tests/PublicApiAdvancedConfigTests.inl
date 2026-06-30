@@ -7,7 +7,8 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	int observed_pending_chunk_mesh_uploads = 0;
 
 	voxel::AssetCatalog assets{};
-	assets.Texture("grass", "assets/grass.png")
+	assets.SearchRoot("assets")
+		.Texture("grass", "assets/grass.png")
 		.Model("crate", "assets/crate.obj")
 		.Sound("click", "assets/click.wav");
 
@@ -30,7 +31,16 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 			.At({ 1.0f, 2.0f, 3.0f })
 			.Model("crate")
 			.Material("glowing"))
-		.Add(voxel::Light::Sun({ -1.0f, -2.0f, -1.0f }, 3.0f))
+		.Add(voxel::Light::Sun({ -1.0f, -2.0f, -1.0f }, 3.0f)
+			.CastShadows()
+			.UseIntensityUnit(voxel::LightIntensityUnit::Lux))
+		.Add(voxel::Light::Spot({ 2.0f, 4.0f, 2.0f },
+			{ -1.0f, -1.0f, 0.0f },
+			{ 1.0f, 0.8f, 0.6f, 1.0f },
+			350.0f,
+			24.0f,
+			12.0f,
+			40.0f).UseIntensityUnit(voxel::LightIntensityUnit::Candela))
 		.EnvironmentSettings(voxel::Environment{}
 			.TimeOfDay(18.0f)
 			.Fog({ 0.4f, 0.5f, 0.7f, 1.0f }, 0.02f));
@@ -58,6 +68,8 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 		});
 
 	CHECK(config.assets.textures.size() == 1);
+	REQUIRE(config.assets.search_roots.size() == 1);
+	CHECK(config.assets.search_roots[0] == "assets");
 	CHECK(config.assets.models.size() == 1);
 	CHECK(config.assets.sounds.size() == 1);
 	REQUIRE(config.materials.materials.size() == 1);
@@ -68,9 +80,16 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	CHECK(config.materials.materials[0].roughness == doctest::Approx(0.0f));
 	CHECK(config.materials.materials[0].emission == doctest::Approx(0.0f));
 	CHECK(config.materials.materials[0].normal_texture == "normal");
+	CHECK(config.materials.Validate().empty());
 	REQUIRE(config.scene_graph.entities.size() == 1);
 	CHECK(config.scene_graph.entities[0].transform.position.z == doctest::Approx(3.0f));
-	REQUIRE(config.scene_graph.lights.size() == 1);
+	REQUIRE(config.scene_graph.lights.size() == 2);
+	CHECK(config.scene_graph.lights[0].shadows.enabled);
+	CHECK(config.scene_graph.lights[0].intensity_unit == voxel::LightIntensityUnit::Lux);
+	CHECK(config.scene_graph.lights[1].kind == voxel::LightKind::Spot);
+	CHECK(config.scene_graph.lights[1].inner_cone_degrees == doctest::Approx(12.0f));
+	CHECK(config.scene_graph.lights[1].outer_cone_degrees == doctest::Approx(40.0f));
+	CHECK(config.scene_graph.lights[1].intensity_unit == voxel::LightIntensityUnit::Candela);
 	CHECK(config.scene_graph.environment.time_of_day == doctest::Approx(18.0f));
 
 	voxel::FrameContext frame{};

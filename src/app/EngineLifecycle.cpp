@@ -3,6 +3,8 @@
 #include "Logger.h"
 #include "RenderBackendSelector.h"
 
+#include <algorithm>
+
 /// Initializes the native window and applies runtime window options.
 bool EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
@@ -36,15 +38,34 @@ void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& as
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");
 }
 
-/// Updates projection matrices only when the window dimensions changed.
-void EngineApplication::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
+/// Updates projection matrices from resize events queued by the window backend.
+void EngineApplication::UpdateProjectionIfWindowChanged(ve::engine::Window& window)
 {
-	if (window.GetWidth() == _window_state.current_width && window.GetHeight() == _window_state.current_height)
+	for (const ve::engine::WindowEvent& event : window.DrainEvents())
+	{
+		if (event.kind == ve::engine::WindowEvent::Kind::FramebufferResized)
+		{
+			ApplyFramebufferSize(event.framebuffer_resized.width, event.framebuffer_resized.height);
+		}
+	}
+
+	if (_window_state.current_width == 0 || _window_state.current_height == 0)
+	{
+		ApplyFramebufferSize(window.GetWidth(), window.GetHeight());
+	}
+}
+
+/// Updates projection matrices only when the framebuffer dimensions changed.
+void EngineApplication::ApplyFramebufferSize(int width, int height)
+{
+	const int clamped_width = std::max(1, width);
+	const int clamped_height = std::max(1, height);
+	if (clamped_width == _window_state.current_width && clamped_height == _window_state.current_height)
 	{
 		return;
 	}
-	_window_state.current_width = window.GetWidth();
-	_window_state.current_height = window.GetHeight();
+	_window_state.current_width = clamped_width;
+	_window_state.current_height = clamped_height;
 	UpdateProjections(_window_state.current_width, _window_state.current_height);
 }
 

@@ -2,34 +2,6 @@ namespace voxel
 {
 	namespace
 	{
-		template <typename AssetT>
-		void ValidateAssets(const std::vector<AssetT>& assets,
-			std::string_view kind,
-			bool require_existing_files,
-			std::vector<std::string>& issues)
-		{
-			std::set<std::string> names;
-			for (const AssetT& asset : assets)
-			{
-				if (asset.name.empty())
-				{
-					issues.push_back(std::string{ kind } + " asset name must not be empty");
-				}
-				else if (!names.insert(asset.name).second)
-				{
-					issues.push_back(std::string{ kind } + " asset name is duplicated: " + asset.name);
-				}
-				if (asset.path.empty())
-				{
-					issues.push_back(std::string{ kind } + " asset path must not be empty");
-				}
-				else if (require_existing_files && !std::filesystem::exists(asset.path))
-				{
-					issues.push_back(std::string{ kind } + " asset path does not exist: " + asset.path);
-				}
-			}
-		}
-
 		class EngineConfigValidator final : public detail::IEngineConfigValidator
 		{
 		public:
@@ -43,6 +15,14 @@ namespace voxel
 				if (config.window.height <= 0)
 				{
 					issues.push_back("window.height must be greater than zero");
+				}
+				if (config.window.monitor_index < 0)
+				{
+					issues.push_back("window.monitor_index must be zero or greater");
+				}
+				if (config.window.refresh_rate_hertz < 0)
+				{
+					issues.push_back("window.refresh_rate_hertz must be zero or greater");
 				}
 				if (config.world.size_chunks <= 0)
 				{
@@ -58,6 +38,8 @@ namespace voxel
 				}
 				std::vector<std::string> asset_issues = config.assets.Validate();
 				issues.insert(issues.end(), asset_issues.begin(), asset_issues.end());
+				std::vector<std::string> material_issues = config.materials.Validate();
+				issues.insert(issues.end(), material_issues.begin(), material_issues.end());
 				if (!config.assets.textures.empty() || !config.assets.models.empty() || !config.assets.sounds.empty())
 				{
 					issues.push_back("AssetCatalog runtime loading is not implemented");

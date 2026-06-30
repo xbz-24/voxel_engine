@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 namespace ve::assets
 {
@@ -27,11 +28,15 @@ namespace ve::assets
 		std::filesystem::path menuSliderHandleTexture;
 	};
 
+	struct AssetPathResolveOptions
+	{
+		std::vector<std::filesystem::path> search_roots;
+	};
+
 	/**
-	 * Builds asset paths relative to the configured project root.
+	 * Builds asset paths relative to the first configured or discovered asset root.
 	 *
 	 * @return Resolved asset path bundle.
 	 */
-	// TODO: Stop relying on ROOT_DIR for packaged builds; prefer executable-relative and user-specified search roots.
-	AssetPaths Resolve();
+	AssetPaths Resolve(const AssetPathResolveOptions& options = {});
 }

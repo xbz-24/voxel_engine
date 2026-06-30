@@ -26,10 +26,12 @@ namespace voxel
 
 	struct AssetCatalog
 	{
+		std::vector<std::string> search_roots;
 		std::vector<TextureAsset> textures;
 		std::vector<ModelAsset> models;
 		std::vector<SoundAsset> sounds;
 
+		AssetCatalog& SearchRoot(std::string path);
 		AssetCatalog& Texture(std::string name, std::string path);
 		AssetCatalog& Model(std::string name, std::string path);
 		AssetCatalog& Sound(std::string name, std::string path);

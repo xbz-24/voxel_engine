@@ -11,6 +11,7 @@
 #include "RigidBodyWorld.h"
 #include "SimdFloat4.h"
 #include "ModelAssetLibrary.h"
+#include "PhysicsBvh.h"
 
 #include <glm/geometric.hpp>
 
