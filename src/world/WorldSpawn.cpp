@@ -20,7 +20,8 @@ namespace ve::world
 					chunkCoordinateX,
 					chunkCoordinateZ,
 					ChunkGenerationMode::GenerateNow,
-					settings.terrainGeneration);
+					settings.terrainGeneration,
+					CreateChunkRenderMeshResource());
 				RecordChunkGenerated(chunkCoordinateX, chunkCoordinateZ);
 			}
 		}
@@ -33,7 +34,12 @@ namespace ve::world
 		ResetChunkStorageForRespawn(settings.worldSizeChunks);
 		for (int chunkCoordinateX = 0; chunkCoordinateX < settings.worldSizeChunks; chunkCoordinateX++)
 			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
-				_chunks.emplace_back(chunkCoordinateX, chunkCoordinateZ, ChunkGenerationMode::Empty);
+				_chunks.emplace_back(
+					chunkCoordinateX,
+					chunkCoordinateZ,
+					ChunkGenerationMode::Empty,
+					ve::world::TerrainGenerationSettings{},
+					CreateChunkRenderMeshResource());
 		++_revision;
 	}
 

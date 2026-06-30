@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Block.h"
 #include "VulkanMinecraftDemoSettings.h"
+#include "WorldBlockEdit.h"
 #include "WorldConfiguration.h"
 
 #include <glm/glm.hpp>
@@ -15,28 +16,10 @@
 
 namespace ve::engine
 {
-	struct WorldBlockEdit
-	{
-		// TODO: Replace this internal mirror with a shared command translator so public and network edits cannot drift.
-		enum class Kind
-		{
-			SetBlock,
-			FillBox
-		};
-
-		Kind kind = Kind::SetBlock;
-		int min_x = 0;
-		int min_y = 0;
-		int min_z = 0;
-		int max_x = 0;
-		int max_y = 0;
-		int max_z = 0;
-		ve::blocks::BlockId block = ve::blocks::BlockId::Air;
-	};
+	using WorldBlockEdit = ve::world::WorldBlockEdit;
 
 	struct RuntimeInputSnapshot
 	{
-		// TODO: Carry action states from the central input system instead of sampling a small hard-coded subset.
 		bool move_forward = false;
 		bool move_left = false;
 		bool move_back = false;

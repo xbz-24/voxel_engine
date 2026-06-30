@@ -17,6 +17,9 @@ namespace ve::rendering
 		 */
 		ChunkGpuMesh();
 
+		/** Creates a chunk mesh backed by a backend-owned render resource. */
+		explicit ChunkGpuMesh(std::unique_ptr<RenderMesh> render_mesh_resource) noexcept;
+
 		/**
 		 * Releases the GPU buffer owned by this mesh.
 		 */
@@ -47,6 +50,9 @@ namespace ve::rendering
 		 */
 		void Upload(const std::vector<ChunkVertex>& vertices, std::vector<ChunkMeshBatch> batches);
 
+		/** @return Last CPU mesh payload uploaded to this chunk. */
+		[[nodiscard]] MeshDescription CpuMesh() const noexcept;
+
 		/**
 		 * Draws all texture batches from the uploaded GPU buffer.
 		 */
@@ -59,5 +65,7 @@ namespace ve::rendering
 
 	private:
 		std::unique_ptr<RenderMesh> _mesh;
+		std::vector<ChunkVertex> cpu_vertices_;
+		std::vector<ChunkMeshBatch> cpu_batches_;
 	};
 }

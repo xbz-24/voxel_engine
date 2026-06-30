@@ -1,25 +1,23 @@
 	ve::rendering::VulkanDemoInput EngineRuntime::CaptureVulkanDemoInput()
 	{
-		double mouse_x = 0.0;
-		double mouse_y = 0.0;
 		int window_width = 1;
 		int window_height = 1;
 		GLFWwindow* native_window = window_.GetNativeWindow();
+		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(native_window);
 
-		glfwGetCursorPos(native_window, &mouse_x, &mouse_y);
 		glfwGetWindowSize(native_window, &window_width, &window_height);
 
 		const double scale_x = static_cast<double>(window_.GetWidth()) / static_cast<double>(std::max(window_width, 1));
 		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));
 
-		vulkan_input_.Update(native_window);
+		runtime_input_actions_.Update(runtime_input_snapshot);
 		return ve::rendering::VulkanDemoInput{
-			mouse_x * scale_x,
-			mouse_y * scale_y,
-			vulkan_input_.IsDown(VulkanInputController::Action::LeftClick),
-			vulkan_input_.IsJustPressed(VulkanInputController::Action::LeftClick),
-			vulkan_input_.IsJustPressed(VulkanInputController::Action::F1),
-			vulkan_input_.IsJustPressed(VulkanInputController::Action::F2)
+			runtime_input_snapshot.mouse_x * scale_x,
+			runtime_input_snapshot.mouse_y * scale_y,
+			runtime_input_actions_.IsDown(RuntimeInputAction::PrimaryAction),
+			runtime_input_actions_.WasJustPressed(RuntimeInputAction::PrimaryAction),
+			runtime_input_actions_.WasJustPressed(RuntimeInputAction::ToggleDebugOverlay),
+			runtime_input_actions_.WasJustPressed(RuntimeInputAction::ToggleRenderMode)
 		};
 	}
 

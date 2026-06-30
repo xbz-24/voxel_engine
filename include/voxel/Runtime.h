@@ -8,7 +8,6 @@
 
 namespace voxel
 {
-	// TODO: Expand this into a key/mouse/gamepad action map instead of hard-coding demo controls.
 	enum class Key
 	{
 		Unknown,
@@ -20,6 +19,19 @@ namespace voxel
 		Escape,
 		F1,
 		F2
+	};
+
+	enum class InputAction
+	{
+		MoveForward,
+		MoveLeft,
+		MoveBack,
+		MoveRight,
+		Jump,
+		Cancel,
+		ToggleDebugOverlay,
+		ToggleRenderMode,
+		PrimaryAction
 	};
 
 	struct InputSnapshot
@@ -37,6 +49,7 @@ namespace voxel
 		double mouse_y = 0.0;
 
 		[[nodiscard]] bool IsDown(Key key) const noexcept;
+		[[nodiscard]] bool IsActive(InputAction action) const noexcept;
 	};
 
 	struct RuntimeCommands
@@ -47,6 +60,7 @@ namespace voxel
 		RuntimeCommands& SetBlock(BlockPosition position, Block block);
 		RuntimeCommands& SetBlock(int block_x, int block_y, int block_z, Block block);
 		RuntimeCommands& FillBox(BlockBox box, Block block);
+		RuntimeCommands& FillBox(BlockPosition first, BlockPosition second, Block block);
 		RuntimeCommands& FillBox(
 			int first_block_x,
 			int first_block_y,
@@ -55,6 +69,7 @@ namespace voxel
 			int second_block_y,
 			int second_block_z,
 			Block block);
+		RuntimeCommands& ClearBox(BlockPosition first, BlockPosition second);
 		RuntimeCommands& ClearBox(
 			int first_block_x,
 			int first_block_y,

@@ -1,6 +1,7 @@
 #include "GameModel.h"
 
 #include "Logger.h"
+#include "RenderBackend.h"
 #include "WorkerPolicy.h"
 
 #include <string>
@@ -10,11 +11,13 @@ namespace ve::engine
 	GameModel::GameModel(int worldSizeChunks,
 		const ve::assets::AssetPaths* assetPaths,
 		ve::blocks::BlockRegistry::TextureLoading textureLoading,
-		const ve::world::TerrainGenerationSettings& terrainGeneration)
+		const ve::world::TerrainGenerationSettings& terrainGeneration,
+		const ve::rendering::RenderBackend* renderBackend)
 		: world_(ve::world::CreateInfoForSquareWorld(worldSizeChunks)),
 		  world_generator_(ve::tasks::DefaultWorkerCount()),
 		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
 	{
+		world_.SetRenderBackend(renderBackend);
 		if (assetPaths != nullptr)
 		{
 			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*assetPaths, textureLoading);

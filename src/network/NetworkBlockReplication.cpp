@@ -2,6 +2,7 @@
 
 #include "NetworkSerialization.h"
 #include "World.h"
+#include "WorldBlockEdit.h"
 
 #include <cstdint>
 
@@ -86,11 +87,15 @@ namespace ve::network
 		return ToBlockInteraction(*blockMutation);
 	}
 
-	/// Applies a received BlockMutation message to the world.
 	bool ApplyNetworkBlockMutation(ve::world::World& world, const NetworkMessage& message)
 	{
 		std::optional<ve::gameplay::BlockInteraction> blockInteraction = TryReadBlockMutationMessage(message);
 		if (!blockInteraction) return false;
-		return ve::gameplay::ApplyBlockInteraction(world, *blockInteraction);
+		return ve::world::ApplyWorldBlockEdit(world,
+			ve::world::MakeSingleBlockEdit(
+				blockInteraction->position.x,
+				blockInteraction->position.y,
+				blockInteraction->position.z,
+				blockInteraction->blockId));
 	}
 }

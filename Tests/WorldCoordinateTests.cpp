@@ -2,13 +2,18 @@
 
 #include "AssetPaths.h"
 #include "BlockRegistry.h"
+#include "ChunkGpuMesh.h"
 #include "ChunkMeshBuilder.h"
 #include "ChunkMeshInput.h"
 #include "ComputeTerrainGenerator.h"
+#include "RenderBackend.h"
 #include "World.h"
+#include "WorldBlockEdit.h"
 #include "WorldCoordinates.h"
 
 #include <cstddef>
+#include <memory>
+#include <utility>
 #include <vector>
 
 TEST_CASE("world coordinates floor divide and modulo negative positions")

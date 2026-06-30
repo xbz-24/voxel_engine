@@ -1,5 +1,7 @@
 #include "World.h"
 
+#include "RenderBackend.h"
+
 namespace ve::world
 {
 	namespace
@@ -37,10 +39,21 @@ namespace ve::world
 	World::World(std::size_t chunkCount)
 		: _levelSpawn(EstimateWorldArenaBytes(chunkCount)),
 		  _chunks(ChunkAllocator(&_levelSpawn.MemoryResource())),
+		  active_render_backend_(nullptr),
 		  _worldSize(0),
 		  _revision(0)
 	{
 		_chunks.reserve(chunkCount);
+	}
+
+	void World::SetRenderBackend(const ve::rendering::RenderBackend* renderBackend) noexcept
+	{
+		active_render_backend_ = renderBackend;
+	}
+
+	std::unique_ptr<ve::rendering::RenderMesh> World::CreateChunkRenderMeshResource() const
+	{
+		return active_render_backend_ != nullptr ? active_render_backend_->CreateMeshResource() : nullptr;
 	}
 
 	/**

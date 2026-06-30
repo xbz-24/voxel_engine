@@ -3,6 +3,7 @@
 #include "ChunkTerrain.h"
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 
 using ve::blocks::BlockId;
@@ -10,8 +11,10 @@ Chunk::Chunk(
 	int chunk_coordinate_x,
 	int chunk_coordinate_z,
 	ChunkGenerationMode generation_mode,
-	const ve::world::TerrainGenerationSettings& terrain_generation)
-	: chunk_x_(chunk_coordinate_x),
+	const ve::world::TerrainGenerationSettings& terrain_generation,
+	std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource)
+	: mesh_(std::move(render_mesh_resource)),
+	  chunk_x_(chunk_coordinate_x),
 	  chunk_z_(chunk_coordinate_z),
 	  mesh_revision_(0),
 	  is_mesh_built_(false),

@@ -1,3 +1,13 @@
+	namespace
+	{
+		[[nodiscard]] int ToDiagnosticCounter(std::size_t value) noexcept
+		{
+			return value > static_cast<std::size_t>(std::numeric_limits<int>::max())
+				? std::numeric_limits<int>::max()
+				: static_cast<int>(value);
+		}
+	}
+
 	/** Updates frame-scoped state before gameplay systems run. */
 	void EngineRuntime::BeginRuntimeFrame()
 	{
@@ -14,53 +24,32 @@
 	{
 		if (!engine_.create_info_.on_update && !engine_.create_info_.on_diagnostics) return;
 
-		double mouse_x = 0.0;
-		double mouse_y = 0.0;
 		GLFWwindow* native_window = window_.GetNativeWindow();
-		glfwGetCursorPos(native_window, &mouse_x, &mouse_y);
-
-		RuntimeInputSnapshot input{};
-		input.move_forward = glfwGetKey(native_window, GLFW_KEY_W) == GLFW_PRESS;
-		input.move_left = glfwGetKey(native_window, GLFW_KEY_A) == GLFW_PRESS;
-		input.move_back = glfwGetKey(native_window, GLFW_KEY_S) == GLFW_PRESS;
-		input.move_right = glfwGetKey(native_window, GLFW_KEY_D) == GLFW_PRESS;
-		input.jump = glfwGetKey(native_window, GLFW_KEY_SPACE) == GLFW_PRESS;
-		input.escape = glfwGetKey(native_window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
-		input.f1 = glfwGetKey(native_window, GLFW_KEY_F1) == GLFW_PRESS;
-		input.f2 = glfwGetKey(native_window, GLFW_KEY_F2) == GLFW_PRESS;
-		input.primary_action = glfwGetMouseButton(native_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-		input.mouse_x = mouse_x;
-		input.mouse_y = mouse_y;
+		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(native_window);
 
 		if (engine_.create_info_.on_update)
 		{
-			RuntimeFrameContext frame{};
-			frame.delta_seconds = static_cast<float>(frame_timer_.DeltaSeconds());
-			frame.elapsed_seconds = static_cast<float>(elapsed_seconds_);
-			frame.fps = frame_timer_.DisplayedFps();
-			frame.input = input;
-			engine_.create_info_.on_update(frame);
-			ApplyWorldEdits(frame.world_edits);
-			if (frame.request_close) window_.Close();
+			RuntimeFrameContext runtime_frame_context{};
+			runtime_frame_context.delta_seconds = static_cast<float>(frame_timer_.DeltaSeconds());
+			runtime_frame_context.elapsed_seconds = static_cast<float>(elapsed_seconds_);
+			runtime_frame_context.fps = frame_timer_.DisplayedFps();
+			runtime_frame_context.input = runtime_input_snapshot;
+			engine_.create_info_.on_update(runtime_frame_context);
+			ApplyWorldEdits(runtime_frame_context.world_edits);
+			if (runtime_frame_context.request_close) window_.Close();
 		}
 
 		if (engine_.create_info_.on_diagnostics)
 		{
-			const auto to_diagnostic_counter = [](std::size_t value)
-			{
-				return value > static_cast<std::size_t>(std::numeric_limits<int>::max())
-					? std::numeric_limits<int>::max()
-					: static_cast<int>(value);
-			};
 			const ve::world::WorldMetrics world_metrics =
 				model_ != nullptr ? model_->GetWorldMetrics() : ve::world::WorldMetrics{};
 			engine_.create_info_.on_diagnostics(RuntimeDiagnostics{
 				static_cast<double>(frame_timer_.DisplayedFps()),
-				to_diagnostic_counter(world_metrics.pendingWorldEventCount),
+				ToDiagnosticCounter(world_metrics.pendingWorldEventCount),
 				engine_._runtimeSettings.renderDistanceChunks,
-				to_diagnostic_counter(world_metrics.pendingChunkMeshTaskCount),
-				to_diagnostic_counter(world_metrics.pendingChunkMeshUploadCount),
-				to_diagnostic_counter(world_metrics.pendingWorldGenerationTaskCount)
+				ToDiagnosticCounter(world_metrics.pendingChunkMeshTaskCount),
+				ToDiagnosticCounter(world_metrics.pendingChunkMeshUploadCount),
+				ToDiagnosticCounter(world_metrics.pendingWorldGenerationTaskCount)
 			});
 		}
 	}

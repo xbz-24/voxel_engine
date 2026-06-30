@@ -22,6 +22,8 @@ namespace ve::input
 		S,
 		D,
 		F,
+		F1,
+		F2,
 		F3,
 		LeftBracket,
 		RightBracket,

@@ -1,17 +1,23 @@
 		[[nodiscard]] ve::engine::WorldBlockEdit ToInternalWorldEdit(const WorldEdit& edit)
 		{
-			ve::engine::WorldBlockEdit result{};
-			result.kind = edit.kind == WorldEdit::Kind::FillBox
-				? ve::engine::WorldBlockEdit::Kind::FillBox
-				: ve::engine::WorldBlockEdit::Kind::SetBlock;
-			result.min_x = edit.kind == WorldEdit::Kind::FillBox ? edit.box.minimum.x : edit.position.x;
-			result.min_y = edit.kind == WorldEdit::Kind::FillBox ? edit.box.minimum.y : edit.position.y;
-			result.min_z = edit.kind == WorldEdit::Kind::FillBox ? edit.box.minimum.z : edit.position.z;
-			result.max_x = edit.kind == WorldEdit::Kind::FillBox ? edit.box.maximum.x : edit.position.x;
-			result.max_y = edit.kind == WorldEdit::Kind::FillBox ? edit.box.maximum.y : edit.position.y;
-			result.max_z = edit.kind == WorldEdit::Kind::FillBox ? edit.box.maximum.z : edit.position.z;
-			result.block = ToInternalBlock(edit.block);
-			return result;
+			const ve::blocks::BlockId internal_block = ToInternalBlock(edit.block);
+			if (edit.kind == WorldEdit::Kind::FillBox)
+			{
+				return ve::world::MakeBlockBoxEdit(
+					edit.box.minimum.x,
+					edit.box.minimum.y,
+					edit.box.minimum.z,
+					edit.box.maximum.x,
+					edit.box.maximum.y,
+					edit.box.maximum.z,
+					internal_block);
+			}
+
+			return ve::world::MakeSingleBlockEdit(
+				edit.position.x,
+				edit.position.y,
+				edit.position.z,
+				internal_block);
 		}
 
 		[[nodiscard]] ve::world::TerrainGeneratorKind ToInternalTerrainGenerator(TerrainGenerator generator) noexcept

@@ -21,7 +21,8 @@
 			world_size_chunks,
 			&asset_paths_,
 			texture_loading,
-			engine_.create_info_.terrain_generation);
+			engine_.create_info_.terrain_generation,
+			backend_.get());
 		vulkan_demo_settings_.scene.preset = engine_.create_info_.vulkan_demo_preset;
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		callback_context_.camera = &model_->MutableCamera();

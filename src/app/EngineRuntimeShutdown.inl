@@ -38,3 +38,5 @@
 		model_.reset();
 		VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
 	}
+
+}

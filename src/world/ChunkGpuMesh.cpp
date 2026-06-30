@@ -5,8 +5,12 @@
 namespace ve::rendering
 {
 	ChunkGpuMesh::ChunkGpuMesh()
-		// TODO: Create this through the active RenderBackend so chunk storage is not implicitly OpenGL-only.
-		: _mesh(CreateOpenGLRenderMesh())
+		: ChunkGpuMesh(nullptr)
+	{
+	}
+
+	ChunkGpuMesh::ChunkGpuMesh(std::unique_ptr<RenderMesh> render_mesh_resource) noexcept
+		: _mesh(std::move(render_mesh_resource))
 	{
 	}
 
@@ -23,15 +27,22 @@ namespace ve::rendering
 		{
 			Release();
 			_mesh = std::move(other._mesh);
+			cpu_vertices_ = std::move(other.cpu_vertices_);
+			cpu_batches_ = std::move(other.cpu_batches_);
 		}
 		return *this;
 	}
 
 	void ChunkGpuMesh::Upload(const std::vector<ChunkVertex>& vertices, std::vector<ChunkMeshBatch> batches)
 	{
-		// TODO: Preserve a backend-neutral CPU mesh payload here and let the renderer choose OpenGL buffers or Vulkan buffers.
-		if (_mesh == nullptr) _mesh = CreateOpenGLRenderMesh();
-		_mesh->Upload(MeshDescription{ vertices, batches });
+		cpu_vertices_ = vertices;
+		cpu_batches_ = std::move(batches);
+		if (_mesh != nullptr) _mesh->Upload(CpuMesh());
+	}
+
+	MeshDescription ChunkGpuMesh::CpuMesh() const noexcept
+	{
+		return MeshDescription{ cpu_vertices_, cpu_batches_ };
 	}
 
 	void ChunkGpuMesh::Draw() const
@@ -42,5 +53,7 @@ namespace ve::rendering
 	void ChunkGpuMesh::Release()
 	{
 		if (_mesh != nullptr) _mesh->Release();
+		cpu_vertices_.clear();
+		cpu_batches_.clear();
 	}
 }

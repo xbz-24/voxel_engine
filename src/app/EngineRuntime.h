@@ -8,29 +8,14 @@
 #include "GameModel.h"
 #include "RenderBackend.h"
 #include "RenderView.h"
+#include "RuntimeInput.h"
 #include "VulkanFrameRenderer.h"
 
-#include <bitset>
 #include <memory>
 
 namespace ve::engine
 {
 	class OpenGLRenderView;
-
-	// TODO: Replace this Vulkan-only controller with the public action map used by both rendering paths.
-	class VulkanInputController
-	{
-	public:
-		enum class Action : size_t { LeftClick, F1, F2, Count };
-
-		void Update(GLFWwindow* window);
-		bool IsDown(Action action) const;
-		bool IsJustPressed(Action action) const;
-
-	private:
-		std::bitset<static_cast<size_t>(Action::Count)> current_state_;
-		std::bitset<static_cast<size_t>(Action::Count)> previous_state_;
-	};
 
 	/** Owns the active runtime systems created by EngineApplication::Run. */
 	class EngineRuntime
@@ -77,7 +62,7 @@ namespace ve::engine
 		ve::rendering::VulkanFrameRenderer vulkan_frame_renderer_;
 		// TODO: Move demo settings out of core runtime once public scenes drive Vulkan rendering.
 		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
-		VulkanInputController vulkan_input_;
+		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;

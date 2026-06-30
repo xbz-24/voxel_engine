@@ -1,7 +1,5 @@
 #include "OpenGLCompatibilityBackend.h"
 
-#include "RenderBackendCatalog.h"
-
 #include <GL/glew.h>
 
 namespace ve::rendering
@@ -10,11 +8,6 @@ namespace ve::rendering
 	RenderBackendCapabilities OpenGLCompatibilityBackend::Capabilities() const noexcept
 	{
 		return { false, false, false, true };
-	}
-
-	RenderBackendMigrationStatus OpenGLCompatibilityBackend::MigrationStatus() const noexcept
-	{
-		return RenderBackendCatalog::Find(Api()).migration;
 	}
 
 	/** Returns the compatibility API identifier. */

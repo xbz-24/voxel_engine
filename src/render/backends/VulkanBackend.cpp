@@ -1,7 +1,6 @@
 #include "VulkanBackend.h"
 
 #include "Logger.h"
-#include "RenderBackendCatalog.h"
 #include "Window.h"
 
 namespace ve::rendering
@@ -60,11 +59,6 @@ namespace ve::rendering
 	RenderBackendCapabilities VulkanBackend::Capabilities() const noexcept
 	{
 		return { true, true, false, context_.IsInitialized() };
-	}
-
-	RenderBackendMigrationStatus VulkanBackend::MigrationStatus() const noexcept
-	{
-		return RenderBackendCatalog::Find(Api()).migration;
 	}
 
 	/** Returns the Vulkan API identifier. */

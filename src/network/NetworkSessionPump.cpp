@@ -28,8 +28,8 @@ namespace ve::network
 			NetworkPumpStats& pumpStats,
 			const NetworkMessage& message,
 			NetworkSequenceTracker& sequenceTracker,
-			std::size_t& appliedBlockMutationCount,
-			std::size_t maxAppliedBlockMutationCount)
+			std::size_t& acceptedBlockMutationCount,
+			std::size_t maxAcceptedBlockMutationCount)
 		{
 			if (!IsBlockMutationMessage(message))
 			{
@@ -41,17 +41,17 @@ namespace ve::network
 				pumpStats.invalidMessagesRejected++;
 				return false;
 			}
-			if (appliedBlockMutationCount >= maxAppliedBlockMutationCount)
+			if (acceptedBlockMutationCount >= maxAcceptedBlockMutationCount)
 			{
 				pumpStats.messagesRejectedByRateLimit++;
 				return false;
 			}
-			++appliedBlockMutationCount;
 			if (!sequenceTracker.TryAccept(message.sequenceNumber))
 			{
 				pumpStats.messagesRejectedBySequence++;
 				return false;
 			}
+			++acceptedBlockMutationCount;
 			return true;
 		}
 	}
@@ -72,19 +72,19 @@ namespace ve::network
 	NetworkPumpStats NetworkSession::ApplyServerMessages(ve::world::World& world)
 	{
 		NetworkPumpStats pumpStats;
-		std::unordered_map<std::uint32_t, std::size_t> appliedBlockMutationCountByConnectionId;
+		std::unordered_map<std::uint32_t, std::size_t> acceptedBlockMutationCountByConnectionId;
 		for (const MultiplayerInboundMessage& inboundMessage : _server.DrainIncomingMessages())
 		{
 			pumpStats.messagesReceived++;
-			std::size_t& appliedBlockMutationCount =
-				appliedBlockMutationCountByConnectionId[inboundMessage.connectionId];
+			std::size_t& acceptedBlockMutationCount =
+				acceptedBlockMutationCountByConnectionId[inboundMessage.connectionId];
 			NetworkSequenceTracker& clientSequenceTracker =
 				_clientSequenceTrackersByConnectionId[inboundMessage.connectionId];
 			if (!TryAcceptBlockMutationForPump(
 				pumpStats,
 				inboundMessage.message,
 				clientSequenceTracker,
-				appliedBlockMutationCount,
+				acceptedBlockMutationCount,
 				MaxInboundBlockMutationsAppliedPerPeerPerPump)) continue;
 			if (ApplyNetworkBlockMutation(world, inboundMessage.message))
 			{
@@ -103,7 +103,7 @@ namespace ve::network
 	NetworkPumpStats NetworkSession::ApplyClientMessages(ve::world::World& world)
 	{
 		NetworkPumpStats pumpStats;
-		std::size_t appliedBlockMutationCountForClient = 0;
+		std::size_t acceptedBlockMutationCountForClient = 0;
 		for (const NetworkMessage& message : _client.DrainIncomingMessages())
 		{
 			pumpStats.messagesReceived++;
@@ -111,7 +111,7 @@ namespace ve::network
 				pumpStats,
 				message,
 				_serverToClientSequenceTracker,
-				appliedBlockMutationCountForClient,
+				acceptedBlockMutationCountForClient,
 				MaxInboundBlockMutationsAppliedToClientPerPump)) continue;
 			if (ApplyNetworkBlockMutation(world, message))
 			{

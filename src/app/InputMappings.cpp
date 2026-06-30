@@ -23,6 +23,8 @@ namespace ve::input::detail
 		case Key::S: return GLFW_KEY_S;
 		case Key::D: return GLFW_KEY_D;
 		case Key::F: return GLFW_KEY_F;
+		case Key::F1: return GLFW_KEY_F1;
+		case Key::F2: return GLFW_KEY_F2;
 		case Key::F3: return GLFW_KEY_F3;
 		case Key::LeftBracket: return GLFW_KEY_LEFT_BRACKET;
 		case Key::RightBracket: return GLFW_KEY_RIGHT_BRACKET;

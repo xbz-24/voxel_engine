@@ -11,9 +11,6 @@ namespace ve::rendering
 		/** @return Feature set exposed by the compatibility renderer. */
 		[[nodiscard]] RenderBackendCapabilities Capabilities() const noexcept override;
 
-		/** @return Current backend-neutral migration coverage. */
-		[[nodiscard]] RenderBackendMigrationStatus MigrationStatus() const noexcept override;
-
 		/** @return API represented by this backend. */
 		[[nodiscard]] GraphicsApi Api() const noexcept override;
 

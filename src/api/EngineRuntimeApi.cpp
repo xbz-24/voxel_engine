@@ -19,6 +19,23 @@ namespace voxel
 		}
 	}
 
+	bool InputSnapshot::IsActive(InputAction action) const noexcept
+	{
+		switch (action)
+		{
+		case InputAction::MoveForward: return move_forward;
+		case InputAction::MoveLeft: return move_left;
+		case InputAction::MoveBack: return move_back;
+		case InputAction::MoveRight: return move_right;
+		case InputAction::Jump: return jump;
+		case InputAction::Cancel: return escape;
+		case InputAction::ToggleDebugOverlay: return f1;
+		case InputAction::ToggleRenderMode: return f2;
+		case InputAction::PrimaryAction: return primary_action;
+		default: return false;
+		}
+	}
+
 	RuntimeCommands& RuntimeCommands::SetBlock(BlockPosition position, Block block)
 	{
 		world_edits.push_back(WorldEdit{
@@ -46,6 +63,11 @@ namespace voxel
 		return *this;
 	}
 
+	RuntimeCommands& RuntimeCommands::FillBox(BlockPosition first, BlockPosition second, Block block)
+	{
+		return FillBox(Box(first, second), block);
+	}
+
 	RuntimeCommands& RuntimeCommands::FillBox(
 		int first_block_x,
 		int first_block_y,
@@ -60,6 +82,11 @@ namespace voxel
 				At(first_block_x, first_block_y, first_block_z),
 				At(second_block_x, second_block_y, second_block_z)),
 			block);
+	}
+
+	RuntimeCommands& RuntimeCommands::ClearBox(BlockPosition first, BlockPosition second)
+	{
+		return FillBox(first, second, Air);
 	}
 
 	RuntimeCommands& RuntimeCommands::ClearBox(

@@ -8,6 +8,7 @@
 #include "ChunkTerrain.h"
 
 #include <cstdint>
+#include <memory>
 #include <span>
 
 enum class ChunkGenerationMode
@@ -28,7 +29,8 @@ public:
 		int chunk_coordinate_x,
 		int chunk_coordinate_z,
 		ChunkGenerationMode generation_mode = ChunkGenerationMode::GenerateNow,
-		const ve::world::TerrainGenerationSettings& terrain_generation = {});
+		const ve::world::TerrainGenerationSettings& terrain_generation = {},
+		std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource = nullptr);
 
 	/// Releases the uploaded GPU mesh if one was built.
 	~Chunk();

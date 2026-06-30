@@ -35,9 +35,6 @@ namespace ve::rendering
 		/** @return Render backend capabilities exposed to high-level systems. */
 		[[nodiscard]] RenderBackendCapabilities Capabilities() const noexcept override;
 
-		/** @return Current backend-neutral migration coverage. */
-		[[nodiscard]] RenderBackendMigrationStatus MigrationStatus() const noexcept override;
-
 		/** @return API represented by this backend. */
 		[[nodiscard]] GraphicsApi Api() const noexcept override;
 

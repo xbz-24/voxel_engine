@@ -1,5 +1,6 @@
 #include "RenderBackend.h"
 
+#include "RenderBackendCatalog.h"
 #include "RenderBackendSelector.h"
 
 namespace ve::rendering
@@ -12,8 +13,7 @@ namespace ve::rendering
 
 	RenderBackendMigrationStatus RenderBackend::MigrationStatus() const noexcept
 	{
-		// TODO: Feed this from backend self-tests once runtime smoke coverage exists for every API.
-		return {};
+		return RenderBackendCatalog::Find(Api()).migration;
 	}
 
 	std::unique_ptr<RenderMesh> RenderBackend::CreateMeshResource() const

@@ -75,11 +75,23 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 
 	voxel::FrameContext frame{};
 	frame.input.f1 = true;
+	frame.input.primary_action = true;
 	config.on_update(frame);
 	CHECK(update_called);
 	CHECK(frame.input.IsDown(voxel::Key::F1));
+	CHECK(frame.input.IsActive(voxel::InputAction::ToggleDebugOverlay));
+	CHECK(frame.input.IsActive(voxel::InputAction::PrimaryAction));
 	CHECK(frame.commands.world_edits.size() == 2);
 	CHECK(frame.commands.request_close);
+
+	voxel::RuntimeCommands typed_commands{};
+	typed_commands.FillBox(voxel::At(5, 64, 5), voxel::At(4, 63, 4), voxel::Stone)
+		.ClearBox(voxel::At(5, 65, 5), voxel::At(4, 65, 4));
+	REQUIRE(typed_commands.world_edits.size() == 2);
+	CHECK(typed_commands.world_edits[0].box.minimum.x == 4);
+	CHECK(typed_commands.world_edits[0].box.minimum.y == 63);
+	CHECK(typed_commands.world_edits[0].box.maximum.z == 5);
+	CHECK(typed_commands.world_edits[1].block == voxel::Air);
 
 	config.on_diagnostics(voxel::Diagnostics{ 60.0, 2, 4, 5, 6, 7 });
 	CHECK(diagnostics_called);

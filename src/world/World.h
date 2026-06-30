@@ -12,9 +12,16 @@
 
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <memory>
 #include <memory_resource>
 #include <optional>
 #include <vector>
+
+namespace ve::rendering
+{
+	class RenderBackend;
+	class RenderMesh;
+}
 
 namespace ve::world
 {
@@ -35,6 +42,9 @@ namespace ve::world
 		World& operator=(const World&) = delete;
 		World(World&&) = delete;
 		World& operator=(World&&) = delete;
+
+		/** @param renderBackend Backend used to create mesh resources for chunks spawned after this call. */
+		void SetRenderBackend(const ve::rendering::RenderBackend* renderBackend) noexcept;
 
 		/** @param worldSize Number of chunks along each world side. */
 		void SpawnFlatGrid(int worldSize);
@@ -114,6 +124,9 @@ namespace ve::world
 		/// Records a block changed event.
 		void RecordBlockChanged(const glm::ivec3& position, ve::blocks::BlockId previousBlockId, ve::blocks::BlockId newBlockId);
 
+		/** @return Backend-owned mesh resource for one chunk, or null when the active backend is headless for chunk meshes. */
+		std::unique_ptr<ve::rendering::RenderMesh> CreateChunkRenderMeshResource() const;
+
 		/// Marks a generated chunk and its direct neighbors dirty.
 		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
@@ -121,6 +134,7 @@ namespace ve::world
 		// TODO: Persist dirty chunk metadata separately from Chunk so serialization can stream only changed regions.
 		ChunkList _chunks;
 		std::vector<WorldEvent> _pendingEvents;
+		const ve::rendering::RenderBackend* active_render_backend_;
 		int _worldSize;
 		std::uint64_t _revision;
 	};
