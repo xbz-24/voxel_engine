@@ -40,4 +40,13 @@ namespace ve::rendering
 		extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 		return extent;
 	}
+
+	std::uint32_t ChooseSwapchainImageCount(
+		const VkSurfaceCapabilitiesKHR& capabilities,
+		std::uint32_t extra_image_count) noexcept
+	{
+		std::uint32_t image_count = capabilities.minImageCount + extra_image_count;
+		if (capabilities.maxImageCount > 0) image_count = std::min(image_count, capabilities.maxImageCount);
+		return image_count;
+	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderBackend.h"
+#include "VulkanBackendSettings.h"
 #include "VulkanContext.h"
 #include "VulkanDevice.h"
 #include "VulkanMemoryAllocator.h"
@@ -12,12 +13,6 @@ namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
-	struct VulkanBackendSettings
-	{
-		// TODO: Add swapchain, validation, device feature, and allocator knobs needed by public EngineConfig.
-		VulkanContextSettings context{};
-	};
-
 	/** High-level object that owns Vulkan startup state for the renderer. */
 	class VulkanBackend final : public RenderBackend
 	{

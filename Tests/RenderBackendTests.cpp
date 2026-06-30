@@ -5,6 +5,7 @@
 #include "RenderBackendCatalog.h"
 #include "RenderBackendFactory.h"
 #include "RenderBackendSelector.h"
+#include "VulkanBackendSettings.h"
 #include "VulkanChunkMeshTranslator.h"
 #include "VulkanRenderView.h"
 #include "VulkanSwapchainChoices.h"

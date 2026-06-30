@@ -12,28 +12,40 @@ namespace ve::rendering
 	/** Creates a Vulkan swapchain for the selected device and surface. */
 	bool VulkanSwapchain::Create(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, int width, int height, bool is_vsync_enabled)
 	{
+		VulkanSwapchainSettings settings{};
+		settings.width = width;
+		settings.height = height;
+		settings.enable_vsync = is_vsync_enabled;
+		return Create(physical_device, device, surface, settings);
+	}
+
+	bool VulkanSwapchain::Create(
+		VkPhysicalDevice physical_device,
+		VkDevice device,
+		VkSurfaceKHR surface,
+		const VulkanSwapchainSettings& settings)
+	{
 		Release();
 		device_ = device;
 		const VulkanSwapchainSupportDetails support = QuerySwapchainSupport(physical_device, surface);
 		if (!support.IsComplete()) return false;
 		const VkSurfaceFormatKHR surface_format = ChooseSwapchainSurfaceFormat(support.formats);
-		const VkPresentModeKHR present_mode = ChooseSwapchainPresentMode(support.present_modes, is_vsync_enabled);
-		extent_ = ChooseSwapchainExtent(support.capabilities, width, height);
-		std::uint32_t image_count = support.capabilities.minImageCount + 1;
-		if (support.capabilities.maxImageCount > 0) image_count = std::min(image_count, support.capabilities.maxImageCount);
+		const VkPresentModeKHR present_mode = ChooseSwapchainPresentMode(support.present_modes, settings.enable_vsync);
+		extent_ = ChooseSwapchainExtent(support.capabilities, settings.width, settings.height);
+		std::uint32_t image_count = ChooseSwapchainImageCount(support.capabilities, settings.extra_image_count);
 		VkSwapchainCreateInfoKHR create_info{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 		create_info.surface = surface;
 		create_info.minImageCount = image_count;
 		create_info.imageFormat = surface_format.format;
 		create_info.imageColorSpace = surface_format.colorSpace;
 		create_info.imageExtent = extent_;
-		create_info.imageArrayLayers = 1;
-		create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		create_info.imageArrayLayers = settings.image_array_layers;
+		create_info.imageUsage = settings.image_usage;
 		create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		create_info.preTransform = support.capabilities.currentTransform;
-		create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		create_info.compositeAlpha = settings.composite_alpha;
 		create_info.presentMode = present_mode;
-		create_info.clipped = VK_TRUE;
+		create_info.clipped = settings.clipped;
 		if (vkCreateSwapchainKHR(device_, &create_info, nullptr, &swapchain_) != VK_SUCCESS) return false;
 		image_format_ = surface_format.format;
 		vkGetSwapchainImagesKHR(device_, swapchain_, &image_count, nullptr);

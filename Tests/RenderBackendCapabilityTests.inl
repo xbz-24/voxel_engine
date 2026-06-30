@@ -33,3 +33,15 @@ TEST_CASE("vulkan swapchain choices prefer uncapped present and srgb")
 	CHECK(ve::rendering::ChooseSwapchainPresentMode(modes, true) == VK_PRESENT_MODE_FIFO_KHR);
 	CHECK(ve::rendering::ChooseSwapchainPresentMode(low_latency_modes, true) == VK_PRESENT_MODE_FIFO_KHR);
 }
+
+TEST_CASE("vulkan swapchain image count is derived from explicit settings")
+{
+	VkSurfaceCapabilitiesKHR capabilities{};
+	capabilities.minImageCount = 2;
+
+	CHECK(ve::rendering::ChooseSwapchainImageCount(capabilities) == 3U);
+	CHECK(ve::rendering::ChooseSwapchainImageCount(capabilities, 0U) == 2U);
+
+	capabilities.maxImageCount = 3;
+	CHECK(ve::rendering::ChooseSwapchainImageCount(capabilities, 4U) == 3U);
+}

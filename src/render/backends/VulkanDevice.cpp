@@ -21,6 +21,42 @@ namespace ve::rendering
 			});
 		}
 
+		bool AppendSupportedOptionalExtension(
+			std::vector<const char*>& extensions,
+			VkPhysicalDevice physical_device,
+			const char* extension_name)
+		{
+			if (!DeviceSupportsExtension(physical_device, extension_name)) return false;
+			const auto existing = std::ranges::find_if(extensions, [extension_name](const char* enabled_extension)
+			{
+				return std::strcmp(enabled_extension, extension_name) == 0;
+			});
+			if (existing == extensions.end()) extensions.push_back(extension_name);
+			return true;
+		}
+
+		bool DeviceSupportsRequiredExtensions(
+			VkPhysicalDevice physical_device,
+			const VulkanDeviceSettings& settings)
+		{
+			return std::ranges::all_of(settings.required_extensions, [physical_device](const char* extension_name)
+			{
+				return DeviceSupportsExtension(physical_device, extension_name);
+			});
+		}
+
+		std::vector<const char*> SelectEnabledDeviceExtensions(
+			VkPhysicalDevice physical_device,
+			const VulkanDeviceSettings& settings)
+		{
+			std::vector<const char*> extensions = settings.required_extensions;
+			for (const char* optional_extension : settings.optional_extensions)
+			{
+				(void)AppendSupportedOptionalExtension(extensions, physical_device, optional_extension);
+			}
+			return extensions;
+		}
+
 		/** @param queue_family Queue family index. @param priority Queue priority storage. @return Queue create info. */
 		VkDeviceQueueCreateInfo CreateQueueInfo(std::uint32_t queue_family, const float& priority) noexcept
 		{
@@ -38,15 +74,22 @@ namespace ve::rendering
 	/** Creates the logical device and stores queues. */
 	bool VulkanDevice::Create(VkPhysicalDevice physical_device, const VulkanQueueFamilyIndices& queues)
 	{
+		return Create(physical_device, queues, VulkanDeviceSettings{});
+	}
+
+	bool VulkanDevice::Create(
+		VkPhysicalDevice physical_device,
+		const VulkanQueueFamilyIndices& queues,
+		const VulkanDeviceSettings& settings)
+	{
 		Release();
-		const float queue_priority = 1.0f;
-		std::array queue_infos{ CreateQueueInfo(queues.graphics_family, queue_priority), CreateQueueInfo(queues.present_family, queue_priority) };
+		if (!DeviceSupportsRequiredExtensions(physical_device, settings)) return false;
+		std::array queue_infos{
+			CreateQueueInfo(queues.graphics_family, settings.queue_priority),
+			CreateQueueInfo(queues.present_family, settings.queue_priority)
+		};
 		const bool same_queue = queues.graphics_family == queues.present_family;
-		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-		if (DeviceSupportsExtension(physical_device, "VK_KHR_portability_subset"))
-		{
-			extensions.push_back("VK_KHR_portability_subset");
-		}
+		const std::vector<const char*> extensions = SelectEnabledDeviceExtensions(physical_device, settings);
 		VkDeviceCreateInfo create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		create_info.queueCreateInfoCount = same_queue ? 1u : 2u;
 		create_info.pQueueCreateInfos = queue_infos.data();

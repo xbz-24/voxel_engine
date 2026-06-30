@@ -13,6 +13,22 @@ TEST_CASE("vulkan render view exposes vulkan hpp handles")
 	CHECK(view.AsOpenGLRenderView() == nullptr);
 }
 
+TEST_CASE("vulkan backend settings expose startup requirements")
+{
+	const ve::rendering::VulkanBackendSettings settings{};
+
+	CHECK(settings.physical_device.require_swapchain_support);
+	REQUIRE(settings.device.required_extensions.size() == 1U);
+	CHECK(std::string{ settings.device.required_extensions.front() } == VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	REQUIRE(settings.device.optional_extensions.size() == 1U);
+	CHECK(std::string{ settings.device.optional_extensions.front() } == "VK_KHR_portability_subset");
+	CHECK(settings.swapchain.width == 0);
+	CHECK(settings.swapchain.height == 0);
+	CHECK(settings.swapchain.extra_image_count == 1U);
+	CHECK((settings.swapchain.image_usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0);
+	CHECK((settings.swapchain.image_usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) != 0);
+}
+
 TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
 {
 	ve::world::mesh::ChunkMeshBuildResult mesh;

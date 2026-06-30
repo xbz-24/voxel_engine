@@ -2,6 +2,7 @@
 
 #include "VulkanSwapchainSupport.h"
 
+#include <cstdint>
 #include <span>
 
 namespace ve::rendering
@@ -14,4 +15,9 @@ namespace ve::rendering
 
 	/** @param capabilities Surface capabilities. @param width Desired width. @param height Desired height. @return Valid image extent. */
 	[[nodiscard]] VkExtent2D ChooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height) noexcept;
+
+	/** @param capabilities Surface capabilities. @param extra_image_count Images above the surface minimum. @return Valid swapchain image count. */
+	[[nodiscard]] std::uint32_t ChooseSwapchainImageCount(
+		const VkSurfaceCapabilitiesKHR& capabilities,
+		std::uint32_t extra_image_count = 1) noexcept;
 }
