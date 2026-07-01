@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include "RenderApi.h"
+#include "WindowCreateInfo.h"
+#include "WindowEvents.h"
 
 #include <string>
 #include <string_view>
@@ -11,36 +13,6 @@
 
 namespace ve::engine
 {
-	struct WindowFramebufferResizeEvent
-	{
-		int width = 0;
-		int height = 0;
-	};
-
-	struct WindowEvent
-	{
-		enum class Kind
-		{
-			FramebufferResized
-		};
-
-		Kind kind = Kind::FramebufferResized;
-		WindowFramebufferResizeEvent framebuffer_resized{};
-	};
-
-	struct WindowCreateInfo
-	{
-		std::string title = "Voxel Engine v1.0.0";
-		int width = 1280;
-		int height = 720;
-		int display_index = 0;
-		int refresh_rate_hertz = 0;
-		bool fullscreen = false;
-		bool resizable = true;
-		bool high_dpi_framebuffer = true;
-		bool capture_cursor_on_start = false;
-	};
-
 	class Window
 	{
 	public:

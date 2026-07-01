@@ -25,6 +25,18 @@ namespace ve::rendering
 			}
 			return false;
 		}
+
+		[[nodiscard]] const FrameGraphResourceDescriptor& Resource(
+			const ve::core::DynamicArray<FrameGraphResourceDescriptor>& resources,
+			FrameGraphResourceHandle handle) noexcept
+		{
+			return resources[handle.index];
+		}
+
+		[[nodiscard]] bool ResourceIsImported(const FrameGraphResourceDescriptor& descriptor) noexcept
+		{
+			return descriptor.imported || descriptor.lifetime == FrameGraphResourceLifetime::Imported;
+		}
 	}
 
 	ve::core::DynamicArray<std::string> FrameGraph::Validate() const
@@ -40,10 +52,11 @@ namespace ve::rendering
 					continue;
 				}
 
-				if (!AnyPassWritesResource(passes_, resource_read_by_pass))
+				const FrameGraphResourceDescriptor& resource = Resource(resources_, resource_read_by_pass);
+				if (!ResourceIsImported(resource) && !AnyPassWritesResource(passes_, resource_read_by_pass))
 				{
 					validation_issues.push_back("FrameGraph pass '" + pass.name + "' reads resource '" +
-						resources_[resource_read_by_pass.index] + "' without a producer");
+						resource.name + "' without a producer");
 				}
 			}
 

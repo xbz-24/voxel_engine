@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string_view>
+
 namespace ve::rendering
 {
 	/** Identifies the graphics backend requested by high-level engine code. */
@@ -10,13 +13,29 @@ namespace ve::rendering
 		DirectX12
 	};
 
-	/** Describes broad backend features exposed to the rest of the engine. */
+	/** Describes a backend feature, including why it may need a newer API surface. */
+	struct RenderFeatureSupport
+	{
+		bool supported = false;
+		std::uint32_t required_major_version = 0;
+		std::uint32_t required_minor_version = 0;
+		std::string_view required_extension;
+	};
+
+	/** Conservative limits exposed before a concrete device is selected. */
+	struct RenderBackendLimits
+	{
+		std::uint32_t max_texture_dimension_2d = 0;
+		std::uint32_t max_color_attachments = 0;
+	};
+
+	/** Describes backend features and baseline limits exposed to the rest of the engine. */
 	struct RenderBackendCapabilities
 	{
-		// TODO: Replace coarse booleans with feature/version structs that include limits and required extensions.
-		bool supports_compute = false;
-		bool supports_indirect_draw = false;
-		bool supports_ray_tracing = false;
+		RenderFeatureSupport compute;
+		RenderFeatureSupport indirect_draw;
+		RenderFeatureSupport ray_tracing;
+		RenderBackendLimits limits;
 		bool is_available = false;
 	};
 

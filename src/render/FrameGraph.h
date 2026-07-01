@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreTypes.h"
+#include "FrameGraphResource.h"
 
 #include <functional>
 #include <string>
@@ -12,14 +13,6 @@ namespace ve::rendering
 	{
 		// TODO: Carry backend command encoder, frame resources, and render stats instead of only a frame index.
 		ve::core::Index frame_index = 0;
-	};
-
-	/** Stable per-graph identifier for a declared render resource. */
-	struct FrameGraphResourceHandle
-	{
-		ve::core::Index index = 0;
-
-		[[nodiscard]] friend bool operator==(FrameGraphResourceHandle, FrameGraphResourceHandle) noexcept = default;
 	};
 
 	/** Executable render graph node registered by high-level render code. */
@@ -37,6 +30,9 @@ namespace ve::rendering
 	public:
 		/** @param name Debug name for a transient frame resource. @return Handle used by passes. */
 		[[nodiscard]] FrameGraphResourceHandle DeclareResource(std::string name);
+
+		/** @param descriptor Full resource metadata. @return Handle used by passes. */
+		[[nodiscard]] FrameGraphResourceHandle DeclareResource(FrameGraphResourceDescriptor descriptor);
 
 		/** @param name Debug name for the pass. @param execute Callback run during Execute. */
 		void AddPass(std::string name, std::function<void(FrameGraphContext&)> execute);
@@ -62,9 +58,11 @@ namespace ve::rendering
 		/** @return Read-only pass declarations in execution order. */
 		[[nodiscard]] const ve::core::DynamicArray<FrameGraphPass>& Passes() const noexcept;
 
+		/** @return Read-only resource descriptors. */
+		[[nodiscard]] const ve::core::DynamicArray<FrameGraphResourceDescriptor>& Resources() const noexcept;
+
 	private:
-		// TODO: Promote string resource names to descriptors with format, size, lifetime, and import/export flags.
-		ve::core::DynamicArray<std::string> resources_;
+		ve::core::DynamicArray<FrameGraphResourceDescriptor> resources_;
 		ve::core::DynamicArray<FrameGraphPass> passes_;
 	};
 }

@@ -4,8 +4,12 @@ TEST_CASE("opengl compatibility backend exposes conservative capabilities")
 	const ve::rendering::RenderBackendCapabilities capabilities = backend.Capabilities();
 
 	CHECK(backend.Api() == ve::rendering::GraphicsApi::OpenGLCompatibility);
-	CHECK(!capabilities.supports_compute);
-	CHECK(!capabilities.supports_ray_tracing);
+	CHECK(!capabilities.compute.supported);
+	CHECK(capabilities.compute.required_major_version == 4U);
+	CHECK(capabilities.compute.required_minor_version == 3U);
+	CHECK(std::string{ capabilities.compute.required_extension } == "GL_ARB_compute_shader");
+	CHECK(!capabilities.ray_tracing.supported);
+	CHECK(capabilities.limits.max_color_attachments >= 4U);
 	CHECK(capabilities.is_available);
 }
 
@@ -15,6 +19,8 @@ TEST_CASE("directx backend is declared but unavailable until implemented")
 	const ve::rendering::RenderBackendCapabilities capabilities = backend.Capabilities();
 
 	CHECK(backend.Api() == ve::rendering::GraphicsApi::DirectX12);
+	CHECK(capabilities.compute.supported);
+	CHECK(capabilities.ray_tracing.supported);
 	CHECK(!capabilities.is_available);
 	CHECK(std::string{ backend.Name() } == "DirectX12");
 }

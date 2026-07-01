@@ -48,7 +48,7 @@ int ve::engine::Window::GetHeight() const
 
 float ve::engine::Window::GetAspectRatio() const
 {
-	return static_cast<float>(_width) / static_cast<float>(_height);
+	return static_cast<float>(_width) / static_cast<float>(GetHeight());
 }
 
 ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept

@@ -37,7 +37,7 @@ namespace
 
 		ve::rendering::RenderBackendCapabilities Capabilities() const noexcept override
 		{
-			return ve::rendering::RenderBackendCapabilities{ false, false, false, true };
+			return ve::rendering::RenderBackendCapabilities{ .is_available = true };
 		}
 
 		std::unique_ptr<ve::rendering::RenderMesh> CreateMeshResource() const override

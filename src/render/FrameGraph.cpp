@@ -4,8 +4,17 @@ namespace ve::rendering
 {
 	FrameGraphResourceHandle FrameGraph::DeclareResource(std::string name)
 	{
+		FrameGraphResourceDescriptor descriptor{};
+		descriptor.name = ve::core::Move(name);
+		return DeclareResource(ve::core::Move(descriptor));
+	}
+
+	FrameGraphResourceHandle FrameGraph::DeclareResource(FrameGraphResourceDescriptor descriptor)
+	{
 		const FrameGraphResourceHandle handle{ resources_.size() };
-		resources_.push_back(ve::core::Move(name));
+		descriptor.imported = descriptor.imported || descriptor.lifetime == FrameGraphResourceLifetime::Imported;
+		descriptor.exported = descriptor.exported || descriptor.lifetime == FrameGraphResourceLifetime::Exported;
+		resources_.push_back(ve::core::Move(descriptor));
 		return handle;
 	}
 
@@ -36,4 +45,9 @@ namespace ve::rendering
 	ve::core::Index FrameGraph::ResourceCount() const noexcept { return resources_.size(); }
 
 	const ve::core::DynamicArray<FrameGraphPass>& FrameGraph::Passes() const noexcept { return passes_; }
+
+	const ve::core::DynamicArray<FrameGraphResourceDescriptor>& FrameGraph::Resources() const noexcept
+	{
+		return resources_;
+	}
 }

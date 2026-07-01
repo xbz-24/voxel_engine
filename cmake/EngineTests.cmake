@@ -10,6 +10,7 @@ if (VE_BUILD_TESTS)
         Tests/NetworkProtocolTests.cpp
         Tests/PublicApiCompileTests.cpp
         Tests/RenderBackendTests.cpp
+        Tests/WindowTests.cpp
         Tests/WorldCoordinateTests.cpp
     )
     target_include_directories(engine_tests PRIVATE "${VE_SOURCE_ROOT}/api")

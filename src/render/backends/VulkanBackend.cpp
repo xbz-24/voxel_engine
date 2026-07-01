@@ -59,7 +59,18 @@ namespace ve::rendering
 	/** Returns capabilities expected from the Vulkan renderer path. */
 	RenderBackendCapabilities VulkanBackend::Capabilities() const noexcept
 	{
-		return { true, true, false, context_.IsInitialized() };
+		return RenderBackendCapabilities{
+			.compute = RenderFeatureSupport{ .supported = true, .required_major_version = 1 },
+			.indirect_draw = RenderFeatureSupport{ .supported = true, .required_major_version = 1 },
+			.ray_tracing = RenderFeatureSupport{
+				.supported = false,
+				.required_major_version = 1,
+				.required_minor_version = 2,
+				.required_extension = "VK_KHR_ray_tracing_pipeline"
+			},
+			.limits = RenderBackendLimits{ .max_texture_dimension_2d = 16384, .max_color_attachments = 8 },
+			.is_available = context_.IsInitialized()
+		};
 	}
 
 	/** Returns the Vulkan API identifier. */

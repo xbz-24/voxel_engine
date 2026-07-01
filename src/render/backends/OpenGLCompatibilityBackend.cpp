@@ -7,7 +7,22 @@ namespace ve::rendering
 	/** Returns conservative capabilities for the legacy OpenGL path. */
 	RenderBackendCapabilities OpenGLCompatibilityBackend::Capabilities() const noexcept
 	{
-		return { false, false, false, true };
+		return RenderBackendCapabilities{
+			.compute = RenderFeatureSupport{
+				.supported = false,
+				.required_major_version = 4,
+				.required_minor_version = 3,
+				.required_extension = "GL_ARB_compute_shader"
+			},
+			.indirect_draw = RenderFeatureSupport{
+				.supported = false,
+				.required_major_version = 4,
+				.required_minor_version = 0
+			},
+			.ray_tracing = RenderFeatureSupport{ .supported = false },
+			.limits = RenderBackendLimits{ .max_texture_dimension_2d = 4096, .max_color_attachments = 4 },
+			.is_available = true
+		};
 	}
 
 	/** Returns the compatibility API identifier. */
