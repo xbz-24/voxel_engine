@@ -26,27 +26,27 @@ namespace ve::world
 			glm::vec3 camera_forward,
 			glm::mat4 view_projection_matrix,
 			int render_distance_chunks) noexcept
-			: blockRegistry(registry),
-			  cameraPosition(camera_position),
-			  cameraForward(camera_forward),
-			  viewProjection(view_projection_matrix),
-			  renderDistanceChunks(render_distance_chunks)
+			: block_registry(registry),
+			  camera_position(camera_position),
+			  camera_forward(camera_forward),
+			  view_projection(view_projection_matrix),
+			  render_distance_chunks(render_distance_chunks)
 		{
 		}
 
-		const ve::blocks::BlockRegistry& blockRegistry;
-		glm::vec3 cameraPosition;
-		glm::vec3 cameraForward;
-		glm::mat4 viewProjection;
-		int renderDistanceChunks;
+		const ve::blocks::BlockRegistry& block_registry;
+		glm::vec3 camera_position;
+		glm::vec3 camera_forward;
+		glm::mat4 view_projection;
+		int render_distance_chunks;
 	};
 
 	/** Backend-neutral visible chunk render payload. */
 	struct ChunkRenderItem
 	{
 		const ve::rendering::ChunkGpuMesh* mesh = nullptr;
-		int chunkX = 0;
-		int chunkZ = 0;
+		int chunk_x = 0;
+		int chunk_z = 0;
 	};
 
 	using ChunkRenderItemList = std::vector<ChunkRenderItem>;

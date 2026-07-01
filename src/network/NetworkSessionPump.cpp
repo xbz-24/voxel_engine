@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 
 namespace ve::network
@@ -19,12 +20,7 @@ namespace ve::network
 			return message.messageType == NetworkMessageType::BlockMutation;
 		}
 
-		bool HasValidBlockMutationPayload(const NetworkMessage& message)
-		{
-			return TryReadBlockMutationMessage(message).has_value();
-		}
-
-		bool TryAcceptBlockMutationForPump(
+		std::optional<ve::gameplay::BlockInteraction> TryAcceptBlockMutationForPump(
 			NetworkPumpStats& pumpStats,
 			const NetworkMessage& message,
 			NetworkSequenceTracker& sequenceTracker,
@@ -34,25 +30,26 @@ namespace ve::network
 			if (!IsBlockMutationMessage(message))
 			{
 				pumpStats.messagesIgnored++;
-				return false;
+				return std::nullopt;
 			}
-			if (!HasValidBlockMutationPayload(message))
+			std::optional<ve::gameplay::BlockInteraction> blockInteraction = TryReadBlockMutationMessage(message);
+			if (!blockInteraction)
 			{
 				pumpStats.invalidMessagesRejected++;
-				return false;
+				return std::nullopt;
 			}
 			if (acceptedBlockMutationCount >= maxAcceptedBlockMutationCount)
 			{
 				pumpStats.messagesRejectedByRateLimit++;
-				return false;
+				return std::nullopt;
 			}
 			if (!sequenceTracker.TryAccept(message.sequenceNumber))
 			{
 				pumpStats.messagesRejectedBySequence++;
-				return false;
+				return std::nullopt;
 			}
 			++acceptedBlockMutationCount;
-			return true;
+			return blockInteraction;
 		}
 	}
 
@@ -80,17 +77,17 @@ namespace ve::network
 				acceptedBlockMutationCountByConnectionId[inboundMessage.connectionId];
 			NetworkSequenceTracker& clientSequenceTracker =
 				_clientSequenceTrackersByConnectionId[inboundMessage.connectionId];
-			if (!TryAcceptBlockMutationForPump(
+			const std::optional<ve::gameplay::BlockInteraction> blockInteraction = TryAcceptBlockMutationForPump(
 				pumpStats,
 				inboundMessage.message,
 				clientSequenceTracker,
 				acceptedBlockMutationCount,
-				MaxInboundBlockMutationsAppliedPerPeerPerPump)) continue;
-			if (ApplyNetworkBlockMutation(world, inboundMessage.message))
+				MaxInboundBlockMutationsAppliedPerPeerPerPump);
+			if (!blockInteraction) continue;
+			if (ApplyNetworkBlockMutation(world, *blockInteraction))
 			{
 				pumpStats.blockMutationsApplied++;
-				_server.BroadcastExcept(inboundMessage.connectionId, inboundMessage.message);
-				pumpStats.messagesPublished++;
+				pumpStats.messagesPublished += _server.BroadcastExcept(inboundMessage.connectionId, inboundMessage.message);
 			}
 			else
 			{
@@ -107,13 +104,14 @@ namespace ve::network
 		for (const NetworkMessage& message : _client.DrainIncomingMessages())
 		{
 			pumpStats.messagesReceived++;
-			if (!TryAcceptBlockMutationForPump(
+			const std::optional<ve::gameplay::BlockInteraction> blockInteraction = TryAcceptBlockMutationForPump(
 				pumpStats,
 				message,
 				_serverToClientSequenceTracker,
 				acceptedBlockMutationCountForClient,
-				MaxInboundBlockMutationsAppliedToClientPerPump)) continue;
-			if (ApplyNetworkBlockMutation(world, message))
+				MaxInboundBlockMutationsAppliedToClientPerPump);
+			if (!blockInteraction) continue;
+			if (ApplyNetworkBlockMutation(world, *blockInteraction))
 			{
 				pumpStats.blockMutationsApplied++;
 			}

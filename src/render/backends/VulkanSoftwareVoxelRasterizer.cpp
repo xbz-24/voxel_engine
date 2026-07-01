@@ -24,12 +24,14 @@ namespace ve::rendering
 			((static_cast<std::size_t>(position.x) * static_cast<std::size_t>(height)) +
 				static_cast<std::size_t>(position.y)) *
 			static_cast<std::size_t>(depth) + static_cast<std::size_t>(position.z);
+		if (index >= blocks.size()) return ve::blocks::BlockId::Air;
 		return blocks[index];
 	}
 
 	std::uint32_t VulkanRasterCpuTexture::Sample(float texture_u, float texture_v) const noexcept
 	{
-		if (pixels.empty()) return PackRgb({ 132, 132, 132 });
+		const std::uint32_t fallback_color = PackRgb({ 132, 132, 132 });
+		if (pixels.empty() || width == 0u || height == 0u) return fallback_color;
 
 		const float wrapped_u = texture_u - std::floor(texture_u);
 		const float wrapped_v = texture_v - std::floor(texture_v);
@@ -40,6 +42,7 @@ namespace ve::rendering
 		const std::size_t pixel_index =
 			static_cast<std::size_t>(std::min(sample_y, height - 1u)) * width +
 			std::min(sample_x, width - 1u);
+		if (pixel_index >= pixels.size()) return fallback_color;
 		return pixels[pixel_index];
 	}
 

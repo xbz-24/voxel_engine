@@ -4,13 +4,14 @@
 
 namespace ve::network
 {
-	void MultiplayerServer::Broadcast(const NetworkMessage& message)
+	std::size_t MultiplayerServer::Broadcast(const NetworkMessage& message)
 	{
-		BroadcastExcept(0, message);
+		return BroadcastExcept(0, message);
 	}
 
-	void MultiplayerServer::BroadcastExcept(std::uint32_t excludedConnectionId, const NetworkMessage& message)
+	std::size_t MultiplayerServer::BroadcastExcept(std::uint32_t excludedConnectionId, const NetworkMessage& message)
 	{
+		std::size_t sent_message_count = 0;
 		std::lock_guard<std::mutex> clientsLock(_clientsMutex);
 		for (ConnectedClient& connectedClient : _connectedClients)
 		{
@@ -19,8 +20,12 @@ namespace ve::network
 			{
 				NetworkMessage outboundMessage = message;
 				outboundMessage.sequenceNumber = connectedClient.nextOutboundSequenceNumber++;
-				SendNetworkMessage(*connectedClient.socket, outboundMessage);
+				if (SendNetworkMessage(*connectedClient.socket, outboundMessage))
+				{
+					++sent_message_count;
+				}
 			}
 		}
+		return sent_message_count;
 	}
 }

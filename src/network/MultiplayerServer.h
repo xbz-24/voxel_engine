@@ -45,16 +45,18 @@ namespace ve::network
 		 * Sends one protocol message to every connected client.
 		 *
 		 * @param message Message to send to every open client socket.
+		 * @return Number of connected clients that accepted the write.
 		 */
-		void Broadcast(const NetworkMessage& message);
+		std::size_t Broadcast(const NetworkMessage& message);
 
 		/**
 		 * Sends one protocol message to every connected client except one origin.
 		 *
 		 * @param excludedConnectionId Client connection id that should not receive the message.
 		 * @param message Message to send to every other open client socket.
+		 * @return Number of connected clients that accepted the write.
 		 */
-		void BroadcastExcept(std::uint32_t excludedConnectionId, const NetworkMessage& message);
+		std::size_t BroadcastExcept(std::uint32_t excludedConnectionId, const NetworkMessage& message);
 
 		/**
 		 * Returns received client messages without blocking the game thread.

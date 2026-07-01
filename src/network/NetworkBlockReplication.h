@@ -47,4 +47,15 @@ namespace ve::network
 	 * @return True when the message was valid and the world accepted the edit.
 	 */
 	bool ApplyNetworkBlockMutation(ve::world::World& world, const NetworkMessage& message);
+
+	/**
+	 * Applies an already decoded block mutation to the world.
+	 *
+	 * @param world World receiving the remote block edit.
+	 * @param blockInteraction Decoded interaction from a valid BlockMutation payload.
+	 * @return True when the world accepted the edit.
+	 */
+	bool ApplyNetworkBlockMutation(
+		ve::world::World& world,
+		const ve::gameplay::BlockInteraction& blockInteraction);
 }

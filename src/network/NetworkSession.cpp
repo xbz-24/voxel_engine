@@ -51,8 +51,7 @@ namespace ve::network
 	{
 		if (_mode == NetworkSessionMode::Hosting)
 		{
-			_server.Broadcast(message);
-			return 1;
+			return _server.Broadcast(message);
 		}
 
 		if (_mode != NetworkSessionMode::Joined) return 0;

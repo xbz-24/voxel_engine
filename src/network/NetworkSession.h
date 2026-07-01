@@ -60,7 +60,7 @@ namespace ve::network
 		bool JoinGame(const NetworkJoinSettings& settings);
 		/** Stops client/server workers and returns to offline mode. */
 		void Stop();
-		/** @param worldEvents Events drained from the world. @return Number of messages published. */
+		/** @param worldEvents Events drained from the world. @return Number of outbound message writes accepted. */
 		std::size_t PublishWorldEvents(std::span<const ve::world::WorldEvent> worldEvents);
 		/** @param world World receiving remote mutations. @return Receive/apply counters for this pump. */
 		NetworkPumpStats ApplyIncomingMessages(ve::world::World& world);

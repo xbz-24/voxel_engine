@@ -22,7 +22,7 @@ namespace ve::world
 	{
 		// TODO: Return stable chunk ids and mesh revision data so render backends can cache visibility without owning World internals.
 		ChunkRenderItemList items;
-		const ChunkViewRange range = BuildChunkViewRange(request.cameraPosition, _worldSize, request.renderDistanceChunks);
+		const ChunkViewRange range = BuildChunkViewRange(request.camera_position, _worldSize, request.render_distance_chunks);
 		if (!HasChunks(range))
 		{
 			return items;

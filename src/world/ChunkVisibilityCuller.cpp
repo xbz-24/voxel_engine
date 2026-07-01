@@ -6,14 +6,14 @@
 namespace ve::world::visibility
 {
 	ChunkVisibilityCuller::ChunkVisibilityCuller(const WorldRenderRequest& request)
-		: request_(request), frustum_(ve::rendering::Frustum::FromViewProjection(request.viewProjection))
+		: request_(request), frustum_(ve::rendering::Frustum::FromViewProjection(request.view_projection))
 	{
 	}
 
 	bool ChunkVisibilityCuller::IsChunkVisible(int chunk_x, int chunk_z) const
 	{
 		if (!IntersectsFrustum(chunk_x, chunk_z)) return false;
-		return IsChunkInView(request_.cameraPosition, request_.cameraForward, chunk_x, chunk_z);
+		return IsChunkInView(request_.camera_position, request_.camera_forward, chunk_x, chunk_z);
 	}
 
 	bool ChunkVisibilityCuller::IntersectsFrustum(int chunk_x, int chunk_z) const

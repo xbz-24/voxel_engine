@@ -8,6 +8,8 @@
 #include "VulkanBackendSettings.h"
 #include "VulkanChunkMeshTranslator.h"
 #include "VulkanRenderView.h"
+#include "VulkanSoftwareRasterizerColor.h"
+#include "VulkanSoftwareVoxelRasterizerData.h"
 #include "VulkanSwapchainChoices.h"
 
 #include <array>

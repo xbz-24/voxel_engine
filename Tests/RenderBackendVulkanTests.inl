@@ -51,3 +51,28 @@ TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
 	CHECK(payload.draw.index_count == 6u);
 	CHECK(payload.draw.instance_count == 1u);
 }
+
+TEST_CASE("vulkan software rasterizer data rejects malformed samples")
+{
+	ve::rendering::VulkanRasterFrameWorldSnapshot snapshot;
+	snapshot.width = 1;
+	snapshot.height = 1;
+	snapshot.depth = 1;
+
+	CHECK(snapshot.GetBlock({ 0, 0, 0 }) == ve::blocks::BlockId::Air);
+	snapshot.blocks = { ve::blocks::BlockId::Stone };
+	CHECK(snapshot.GetBlock({ 0, 0, 0 }) == ve::blocks::BlockId::Stone);
+	CHECK(snapshot.GetBlock({ 1, 0, 0 }) == ve::blocks::BlockId::Air);
+
+	ve::rendering::VulkanRasterCpuTexture malformed_texture;
+	malformed_texture.pixels = { 0x00abcdefU };
+	malformed_texture.width = 0U;
+	malformed_texture.height = 1U;
+	CHECK(malformed_texture.Sample(0.5f, 0.5f) == ve::rendering::PackRgb({ 132, 132, 132 }));
+
+	ve::rendering::VulkanRasterCpuTexture valid_texture;
+	valid_texture.pixels = { 0x00123456U };
+	valid_texture.width = 1U;
+	valid_texture.height = 1U;
+	CHECK(valid_texture.Sample(0.5f, 0.5f) == 0x00123456U);
+}

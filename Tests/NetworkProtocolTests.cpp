@@ -2,6 +2,7 @@
 
 #include "NetworkProtocol.h"
 #include "NetworkBlockReplication.h"
+#include "MultiplayerServer.h"
 #include "NetworkSequenceTracker.h"
 #include "NetworkSerialization.h"
 #include "World.h"
@@ -54,4 +55,16 @@ TEST_CASE("network block mutation applies through shared world edit command")
 
 	CHECK(ve::network::ApplyNetworkBlockMutation(world, message));
 	CHECK(world.GetBlock(3, 12, 4) == ve::blocks::BlockId::Stone);
+}
+
+TEST_CASE("multiplayer server broadcast reports actual recipient writes")
+{
+	ve::network::MultiplayerServer server;
+	const ve::network::NetworkMessage message{
+		ve::network::NetworkMessageType::Ping,
+		{}
+	};
+
+	CHECK(server.Broadcast(message) == 0U);
+	CHECK(server.BroadcastExcept(1U, message) == 0U);
 }
