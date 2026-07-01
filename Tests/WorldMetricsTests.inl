@@ -39,6 +39,25 @@ TEST_CASE("world respawn clears stale pending events")
 	CHECK(world.PendingEventCount() == 0U);
 }
 
+TEST_CASE("world event drain can filter event types")
+{
+	ve::world::World world(ve::world::CreateInfoForSquareWorld(1));
+
+	world.SpawnFlatGrid(ve::world::FlatWorldSpawnSettings{ 1 });
+	CHECK(world.SetBlock(0, 1, 0, ve::blocks::BlockId::Air));
+
+	std::vector<ve::world::WorldEvent> block_events =
+		world.DrainEvents(ve::world::WorldEventFilter::BlockChangesOnly());
+	REQUIRE(block_events.size() == 1U);
+	CHECK(block_events.front().Type() == ve::world::WorldEventType::BlockChanged);
+	CHECK(world.PendingEventCount() == 1U);
+
+	std::vector<ve::world::WorldEvent> chunk_events = world.DrainEvents();
+	REQUIRE(chunk_events.size() == 1U);
+	CHECK(chunk_events.front().Type() == ve::world::WorldEventType::ChunkGenerated);
+	CHECK(world.PendingEventCount() == 0U);
+}
+
 TEST_CASE("world rejects out-of-height air writes instead of reporting a no-op success")
 {
 	ve::world::World world(ve::world::CreateInfoForSquareWorld(1));
@@ -46,4 +65,22 @@ TEST_CASE("world rejects out-of-height air writes instead of reporting a no-op s
 
 	CHECK(!world.SetBlock(0, -1, 0, ve::blocks::BlockId::Air));
 	CHECK(!world.SetBlock(0, ::Chunk::CHUNK_HEIGHT, 0, ve::blocks::BlockId::Air));
+}
+
+TEST_CASE("chunk tracks procedural and authored content provenance")
+{
+	Chunk empty_chunk(0, 0, ChunkGenerationMode::Empty);
+
+	CHECK(empty_chunk.Provenance() == ChunkContentProvenance::Empty);
+	CHECK(!empty_chunk.HasProceduralTerrain());
+	CHECK(!empty_chunk.HasAuthoredEdits());
+
+	empty_chunk.Generate();
+	CHECK(empty_chunk.Provenance() == ChunkContentProvenance::ProceduralTerrain);
+	CHECK(empty_chunk.HasProceduralTerrain());
+	CHECK(!empty_chunk.HasAuthoredEdits());
+
+	CHECK(empty_chunk.SetBlock(0, 1, 0, ve::blocks::BlockId::DiamondOre));
+	CHECK(empty_chunk.Provenance() == ChunkContentProvenance::ProceduralTerrainWithAuthoredEdits);
+	CHECK(empty_chunk.HasAuthoredEdits());
 }

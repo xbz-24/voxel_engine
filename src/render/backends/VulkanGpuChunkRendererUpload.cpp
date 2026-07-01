@@ -6,6 +6,15 @@ namespace ve::rendering
 {
 	namespace
 	{
+		void ReleaseBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& memory, VkDeviceSize& capacity_bytes)
+		{
+			if (buffer != VK_NULL_HANDLE) vkDestroyBuffer(device, buffer, nullptr);
+			if (memory != VK_NULL_HANDLE) vkFreeMemory(device, memory, nullptr);
+			buffer = VK_NULL_HANDLE;
+			memory = VK_NULL_HANDLE;
+			capacity_bytes = 0;
+		}
+
 		struct BufferCopyContext
 		{
 			VkBuffer source = VK_NULL_HANDLE;
@@ -35,17 +44,30 @@ namespace ve::rendering
 		VkDeviceSize byte_size,
 		VkBufferUsageFlags usage,
 		VkBuffer& buffer,
-		VkDeviceMemory& memory) const
+		VkDeviceMemory& memory,
+		VkDeviceSize& capacity_bytes) const
 	{
 		VkBuffer staging = VK_NULL_HANDLE;
 		VkDeviceMemory staging_memory = VK_NULL_HANDLE;
 		if (!CreateHostBuffer(byte_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, staging, staging_memory) ||
-			!CopyToDeviceBuffer(staging_memory, source, byte_size) ||
-			!CreateBuffer(byte_size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory))
+			!CopyToDeviceBuffer(staging_memory, source, byte_size))
 		{
 			if (staging != VK_NULL_HANDLE) vkDestroyBuffer(device_, staging, nullptr);
 			if (staging_memory != VK_NULL_HANDLE) vkFreeMemory(device_, staging_memory, nullptr);
 			return false;
+		}
+
+		if (buffer == VK_NULL_HANDLE || capacity_bytes < byte_size)
+		{
+			ReleaseBuffer(device_, buffer, memory, capacity_bytes);
+			const VkBufferUsageFlags device_usage = usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+			if (!CreateBuffer(byte_size, device_usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory))
+			{
+				vkDestroyBuffer(device_, staging, nullptr);
+				vkFreeMemory(device_, staging_memory, nullptr);
+				return false;
+			}
+			capacity_bytes = byte_size;
 		}
 
 		BufferCopyContext context{ staging, buffer, byte_size };

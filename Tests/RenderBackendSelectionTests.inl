@@ -19,6 +19,29 @@ TEST_CASE("render backend selector defaults to vulkan when legacy rendering is g
 	CHECK(!configuration.allow_opengl_compatibility_fallback);
 }
 
+TEST_CASE("render backend selector supports best available and headless policies")
+{
+	const ve::rendering::RenderBackendConfiguration best_available{
+		.preferred_api = ve::rendering::GraphicsApi::DirectX12,
+		.selection_policy = ve::rendering::RenderBackendSelectionPolicy::BestAvailable
+	};
+	const ve::rendering::RenderBackendSelection best_available_selection =
+		ve::rendering::RenderBackendSelector::Select(best_available);
+
+	CHECK(best_available_selection.api == ve::rendering::GraphicsApi::Vulkan);
+	CHECK(!best_available_selection.headless);
+
+	const ve::rendering::RenderBackendConfiguration headless{
+		.preferred_api = ve::rendering::GraphicsApi::DirectX12,
+		.selection_policy = ve::rendering::RenderBackendSelectionPolicy::Headless
+	};
+	const ve::rendering::RenderBackendSelection headless_selection =
+		ve::rendering::RenderBackendSelector::Select(headless);
+
+	CHECK(headless_selection.api == ve::rendering::GraphicsApi::DirectX12);
+	CHECK(headless_selection.headless);
+}
+
 TEST_CASE("render backend catalog exposes vulkan as the default api")
 {
 	const ve::rendering::RenderBackendDescriptor& backend = ve::rendering::RenderBackendCatalog::DefaultBackend();

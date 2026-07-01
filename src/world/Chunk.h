@@ -17,6 +17,14 @@ enum class ChunkGenerationMode
 	Empty
 };
 
+enum class ChunkContentProvenance
+{
+	Empty,
+	ProceduralTerrain,
+	AuthoredEdits,
+	ProceduralTerrainWithAuthoredEdits
+};
+
 class Chunk
 {
 public:
@@ -57,6 +65,15 @@ public:
 
 	/** @return True when this chunk contains generated terrain data. */
 	bool IsGenerated() const noexcept;
+
+	/** @return True when this chunk contains procedural terrain data. */
+	bool HasProceduralTerrain() const noexcept;
+
+	/** @return True when this chunk contains authored block edits after generation/load. */
+	bool HasAuthoredEdits() const noexcept;
+
+	/** @return Combined content provenance for serialization and tooling. */
+	ChunkContentProvenance Provenance() const noexcept;
 
 	/** @return True when this chunk was reserved for one async mesh task. */
 	bool TryReserveMeshBuild() noexcept;
@@ -126,6 +143,8 @@ private:
 	bool is_mesh_built_;
 	bool is_generated_;
 	bool is_mesh_build_queued_;
+	bool has_procedural_terrain_;
+	bool has_authored_edits_;
 
 	/// Checks if a local coordinate belongs to this chunk.
 	bool ContainsLocalBlock(int local_block_x, int local_block_y, int local_block_z) const;

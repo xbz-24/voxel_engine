@@ -50,11 +50,24 @@ namespace ve::rendering
 		bool has_runtime_smoke_test = false;
 	};
 
+	enum class RenderBackendSelectionPolicy
+	{
+		ExactBackendOnly,
+		BestAvailable,
+		Headless
+	};
+
 	/** Stores backend selection rules used during startup. */
 	struct RenderBackendConfiguration
 	{
-		// TODO: Add validation/selection policy for "best available", "exact backend only", and "headless" modes.
 		GraphicsApi preferred_api = GraphicsApi::Vulkan;
+		RenderBackendSelectionPolicy selection_policy = RenderBackendSelectionPolicy::ExactBackendOnly;
 		bool allow_opengl_compatibility_fallback = false;
+	};
+
+	struct RenderBackendSelection
+	{
+		GraphicsApi api = GraphicsApi::Vulkan;
+		bool headless = false;
 	};
 }

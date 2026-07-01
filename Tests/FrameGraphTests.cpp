@@ -55,10 +55,13 @@ TEST_CASE("frame graph executes producers before consumers")
 	graph.AddPass(std::move(producer));
 
 	ve::rendering::FrameGraphContext context{};
+	ve::rendering::FrameGraphExecutionStats stats{};
+	context.stats = &stats;
 	graph.Execute(context);
 
 	CHECK(execution_order == std::vector<int>{ 1, 2 });
 	CHECK(context.frame_index == 1U);
+	CHECK(stats.executed_pass_count == 2U);
 }
 
 TEST_CASE("frame graph validation reports missing producers")

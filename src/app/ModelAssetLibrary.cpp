@@ -54,7 +54,10 @@ namespace ve::assets
 			<< "|triangulate=" << options.triangulate
 			<< "|generate_normals=" << options.generate_normals
 			<< "|flip_uvs=" << options.flip_uvs
-			<< "|optimize_meshes=" << options.optimize_meshes;
+			<< "|optimize_meshes=" << options.optimize_meshes
+			<< "|unit_scale=" << options.unit_scale
+			<< "|coordinate_system=" << static_cast<int>(options.coordinate_system)
+			<< "|material_policy=" << static_cast<int>(options.material_policy);
 		return stream.str();
 	}
 }

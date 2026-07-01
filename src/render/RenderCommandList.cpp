@@ -1,5 +1,7 @@
 #include "RenderCommandList.h"
 
+#include <utility>
+
 namespace ve::rendering
 {
 	/** Reserves command capacity to avoid repeated allocations during a frame. */
@@ -26,6 +28,18 @@ namespace ve::rendering
 		commands_.push_back(RenderCommand{ sort_key, DrawRect2DCommand{ rect, color, false, line_width } });
 	}
 
+	/** Queues a textured 2D quad command. */
+	void RenderCommandList::DrawTexturedQuad(TextureHandle texture, ScreenRect rect, ColorRgba tint, RenderSortKey sort_key)
+	{
+		commands_.push_back(RenderCommand{ sort_key, DrawTexturedQuad2DCommand{ texture, rect, tint } });
+	}
+
+	/** Queues a text command. */
+	void RenderCommandList::DrawText(std::string text, glm::vec2 origin, float scale, ColorRgba color, RenderSortKey sort_key)
+	{
+		commands_.push_back(RenderCommand{ sort_key, DrawText2DCommand{ std::move(text), origin, scale, color } });
+	}
+
 	/** Queues a filled 3D cube command. */
 	void RenderCommandList::DrawSolidCube(glm::vec3 center, glm::vec3 size, ColorRgba color, RenderSortKey sort_key)
 	{
@@ -36,6 +50,29 @@ namespace ve::rendering
 	void RenderCommandList::DrawWireCube(glm::vec3 center, glm::vec3 size, ColorRgba color, float line_width, RenderSortKey sort_key)
 	{
 		commands_.push_back(RenderCommand{ sort_key, DrawCube3DCommand{ center, size, color, false, line_width } });
+	}
+
+	/** Queues an instanced mesh command. */
+	void RenderCommandList::DrawInstancedMesh(
+		std::uint64_t mesh_id,
+		std::uint32_t instance_count,
+		glm::mat4 transform,
+		ColorRgba tint,
+		RenderSortKey sort_key)
+	{
+		commands_.push_back(RenderCommand{ sort_key, DrawInstancedMeshCommand{ mesh_id, instance_count, transform, tint } });
+	}
+
+	/** Queues a scissor enable command. */
+	void RenderCommandList::SetScissorRect(ScreenRect rect, RenderSortKey sort_key)
+	{
+		commands_.push_back(RenderCommand{ sort_key, ScissorRectCommand{ rect, true } });
+	}
+
+	/** Queues a scissor disable command. */
+	void RenderCommandList::ClearScissorRect(RenderSortKey sort_key)
+	{
+		commands_.push_back(RenderCommand{ sort_key, ScissorRectCommand{ {}, false } });
 	}
 
 	/** Returns read-only queued commands. */

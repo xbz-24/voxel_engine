@@ -28,6 +28,7 @@ namespace ve::rendering
 	}
 	bool VulkanGpuChunkRenderer::IsInitialized() const noexcept { return initialized_; }
 	std::uint32_t VulkanGpuChunkRenderer::IndexCount() const noexcept { return index_count_; }
+	const VulkanGpuChunkMeshStats& VulkanGpuChunkRenderer::MeshStats() const noexcept { return mesh_stats_; }
 	VkRenderPass VulkanGpuChunkRenderer::RenderPass() const noexcept { return render_pass_; }
 	std::uint32_t VulkanGpuChunkRenderer::FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
 	{

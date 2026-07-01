@@ -76,6 +76,45 @@ namespace ve::physics
 	/// Reports the number of built BVH nodes.
 	ve::core::Index PhysicsBvh::NodeCount() const noexcept { return nodes_.size(); }
 
+	/// Updates one proxy and refits ancestor bounds without rebuilding tree topology.
+	bool PhysicsBvh::UpdateProxyBounds(unsigned int proxy_id, const Aabb& bounds)
+	{
+		for (BvhNode& node : nodes_)
+		{
+			if (!node.is_leaf || proxies_[node.proxy_index].id != proxy_id) continue;
+			proxies_[node.proxy_index].bounds = bounds;
+			node.bounds = bounds;
+			RefitAncestors(node.parent);
+			return true;
+		}
+		return false;
+	}
+
+	/// Recomputes one internal node from its children.
+	void PhysicsBvh::RefitNodeBounds(int node_index)
+	{
+		BvhNode& node = nodes_[static_cast<ve::core::Index>(node_index)];
+		if (node.is_leaf)
+		{
+			node.bounds = proxies_[node.proxy_index].bounds;
+			return;
+		}
+
+		const BvhNode& left_child = nodes_[static_cast<ve::core::Index>(node.left_child)];
+		const BvhNode& right_child = nodes_[static_cast<ve::core::Index>(node.right_child)];
+		node.bounds = MergeBounds(left_child.bounds, right_child.bounds);
+	}
+
+	/// Walks upward and refreshes parent bounds.
+	void PhysicsBvh::RefitAncestors(int node_index)
+	{
+		while (node_index >= 0)
+		{
+			RefitNodeBounds(node_index);
+			node_index = nodes_[static_cast<ve::core::Index>(node_index)].parent;
+		}
+	}
+
 	/// Converts one internal node to stable debug metadata.
 	PhysicsBvh::NodeDebugInfo PhysicsBvh::DebugNode(ve::core::Index node_index) const
 	{

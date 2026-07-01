@@ -1,12 +1,33 @@
 #include "World.h"
 
+#include <utility>
+
 namespace ve::world
 {
 	/// Moves pending world events out of the world.
 	std::vector<WorldEvent> World::DrainEvents()
 	{
+		return DrainEvents(WorldEventFilter::All());
+	}
+
+	/// Moves matching pending world events out of the world.
+	std::vector<WorldEvent> World::DrainEvents(const WorldEventFilter& filter)
+	{
 		std::vector<WorldEvent> drainedEvents;
-		drainedEvents.swap(_pendingEvents);
+		std::vector<WorldEvent> retainedEvents;
+		retainedEvents.reserve(_pendingEvents.size());
+		for (WorldEvent& pendingEvent : _pendingEvents)
+		{
+			if (filter.Includes(pendingEvent.Type()))
+			{
+				drainedEvents.push_back(std::move(pendingEvent));
+			}
+			else
+			{
+				retainedEvents.push_back(std::move(pendingEvent));
+			}
+		}
+		_pendingEvents = std::move(retainedEvents);
 		return drainedEvents;
 	}
 

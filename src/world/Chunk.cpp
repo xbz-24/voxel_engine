@@ -19,7 +19,9 @@ Chunk::Chunk(
 	  mesh_revision_(0),
 	  is_mesh_built_(false),
 	  is_generated_(false),
-	  is_mesh_build_queued_(false)
+	  is_mesh_build_queued_(false),
+	  has_procedural_terrain_(false),
+	  has_authored_edits_(false)
 {
 	if (generation_mode == ChunkGenerationMode::GenerateNow) Generate(terrain_generation);
 	else std::fill(&blocks_[0][0][0], &blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
@@ -32,7 +34,9 @@ Chunk::Chunk(Chunk&& other) noexcept
 	  mesh_revision_(other.mesh_revision_),
 	  is_mesh_built_(other.is_mesh_built_),
 	  is_generated_(other.is_generated_),
-	  is_mesh_build_queued_(other.is_mesh_build_queued_)
+	  is_mesh_build_queued_(other.is_mesh_build_queued_),
+	  has_procedural_terrain_(other.has_procedural_terrain_),
+	  has_authored_edits_(other.has_authored_edits_)
 {
 	std::copy(&other.blocks_[0][0][0], &other.blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks_[0][0][0]);
 	other.is_mesh_built_ = false;
@@ -51,6 +55,8 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 	is_mesh_built_ = other.is_mesh_built_;
 	is_generated_ = other.is_generated_;
 	is_mesh_build_queued_ = other.is_mesh_build_queued_;
+	has_procedural_terrain_ = other.has_procedural_terrain_;
+	has_authored_edits_ = other.has_authored_edits_;
 	std::copy(&other.blocks_[0][0][0], &other.blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks_[0][0][0]);
 	other.is_mesh_built_ = false;
 	return *this;
@@ -80,6 +86,7 @@ bool Chunk::SetBlock(int local_block_x, int local_block_y, int local_block_z, Bl
 	}
 
 	blocks_[local_block_x][local_block_y][local_block_z] = block_id;
+	has_authored_edits_ = true;
 	MarkDirty();
 	return true;
 }

@@ -8,11 +8,18 @@
 
 namespace ve::rendering
 {
+	struct FrameGraphExecutionStats
+	{
+		ve::core::Index executed_pass_count = 0;
+	};
+
 	/** Per-frame data passed into render graph pass callbacks. */
 	struct FrameGraphContext
 	{
-		// TODO: Carry backend command encoder, frame resources, and render stats instead of only a frame index.
 		ve::core::Index frame_index = 0;
+		void* backend_command_encoder = nullptr;
+		void* frame_resources = nullptr;
+		FrameGraphExecutionStats* stats = nullptr;
 	};
 
 	/** Executable render graph node registered by high-level render code. */

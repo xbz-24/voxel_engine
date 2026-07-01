@@ -82,10 +82,12 @@ namespace ve::rendering
 	/// Executes passes in dependency order.
 	void FrameGraph::Execute(FrameGraphContext& context)
 	{
+		if (context.stats != nullptr) context.stats->executed_pass_count = 0;
 		for (const ve::core::Index pass_index : BuildExecutionOrder(passes_))
 		{
 			FrameGraphPass& pass = passes_[pass_index];
 			if (pass.execute) pass.execute(context);
+			if (context.stats != nullptr) context.stats->executed_pass_count++;
 		}
 		context.frame_index++;
 	}

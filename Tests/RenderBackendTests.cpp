@@ -5,6 +5,7 @@
 #include "RenderBackendCatalog.h"
 #include "RenderBackendFactory.h"
 #include "RenderBackendSelector.h"
+#include "TextureLoader.h"
 #include "VulkanBackendSettings.h"
 #include "VulkanChunkMeshTranslator.h"
 #include "VulkanRenderView.h"
@@ -20,3 +21,29 @@
 #include "RenderBackendSelectionTests.inl"
 #include "RenderBackendCapabilityTests.inl"
 #include "RenderBackendVulkanTests.inl"
+
+TEST_CASE("decoded image validates rgba8 metadata and payload size")
+{
+	ve::rendering::DecodedImage image;
+	image.width = 2;
+	image.height = 1;
+	image.source_channel_count = 3;
+	image.rgba = {
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 }
+	};
+
+	CHECK(image.pixel_format == ve::rendering::ImagePixelFormat::Rgba8);
+	CHECK(image.color_space == ve::rendering::TextureColorSpace::Srgb);
+	CHECK(image.mip_level_count == 1);
+	CHECK(image.IsValid());
+
+	image.rgba.pop_back();
+	CHECK(!image.IsValid());
+}

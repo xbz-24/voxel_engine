@@ -10,6 +10,34 @@ TEST_CASE("ecs registry creates and destroys alive entities")
 	CHECK(world.AliveCount() == 0);
 }
 
+TEST_CASE("ecs world stores components behind generation-safe entity handles")
+{
+	struct PositionComponent
+	{
+		glm::vec3 value{ 0.0f };
+	};
+
+	ve::ecs::EcsWorld world;
+	const ve::ecs::Entity entity = world.CreateEntity();
+	PositionComponent* position = world.EmplaceComponent<PositionComponent>(
+		entity,
+		PositionComponent{ glm::vec3{ 1.0f, 2.0f, 3.0f } });
+
+	REQUIRE(position != nullptr);
+	CHECK(world.HasComponent<PositionComponent>(entity));
+	CHECK(world.ComponentCount<PositionComponent>() == 1U);
+	CHECK(world.FindComponent<PositionComponent>(entity)->value.y == doctest::Approx(2.0f));
+
+	CHECK(world.DestroyEntity(entity));
+	CHECK(!world.HasComponent<PositionComponent>(entity));
+	CHECK(world.ComponentCount<PositionComponent>() == 0U);
+
+	const ve::ecs::Entity recycled_entity = world.CreateEntity();
+	CHECK(recycled_entity.id == entity.id);
+	CHECK(recycled_entity.generation != entity.generation);
+	CHECK(world.FindComponent<PositionComponent>(entity) == nullptr);
+}
+
 TEST_CASE("physics bounds report overlapping boxes")
 {
 	const ve::physics::Aabb left{ glm::vec3{ 0.0f }, glm::vec3{ 2.0f } };
@@ -50,6 +78,11 @@ TEST_CASE("physics bvh exposes parent depth metadata")
 	bvh.QueryOverlaps({ { -0.5f, -0.5f, -0.5f }, { 1.5f, 1.5f, 1.5f } }, overlapped_ids);
 	REQUIRE(overlapped_ids.size() == 1);
 	CHECK(overlapped_ids.front() == 11);
+
+	CHECK(bvh.UpdateProxyBounds(22, { { 0.25f, 0.25f, 0.25f }, { 0.75f, 0.75f, 0.75f } }));
+	overlapped_ids.clear();
+	bvh.QueryOverlaps({ { -0.5f, -0.5f, -0.5f }, { 1.5f, 1.5f, 1.5f } }, overlapped_ids);
+	CHECK(overlapped_ids.size() == 2U);
 }
 
 TEST_CASE("rigid body world integrates gravity")

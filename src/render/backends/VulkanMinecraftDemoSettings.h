@@ -60,6 +60,8 @@ namespace ve::rendering
 		double delta_seconds = 0.0;
 		double gpu_frame_ms = 0.0;
 		double present_cpu_ms = 0.0;
+		double mesh_rebuild_cpu_ms = 0.0;
+		double mesh_upload_cpu_ms = 0.0;
 		std::uint32_t index_count = 0;
 		std::uint64_t world_revision = 0;
 		bool gpu_timing_valid = false;

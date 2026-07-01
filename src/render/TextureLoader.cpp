@@ -10,7 +10,11 @@ namespace ve::rendering
 {
 	bool DecodedImage::IsValid() const noexcept
 	{
-		return width > 0 && height > 0 && !rgba.empty();
+		const std::size_t expected_byte_count =
+			static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+		return width > 0 && height > 0 && mip_level_count > 0 &&
+			pixel_format == ImagePixelFormat::Rgba8 &&
+			rgba.size() == expected_byte_count;
 	}
 
 	DecodedImage DecodeImageFile(const char* path)
@@ -30,6 +34,7 @@ namespace ve::rendering
 		DecodedImage image;
 		image.width = width;
 		image.height = height;
+		image.source_channel_count = sourceChannels;
 		const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
 		image.rgba.resize(byte_count);
 		std::memcpy(image.rgba.data(), data, byte_count);

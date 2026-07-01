@@ -7,7 +7,6 @@
 
 namespace ve::physics
 {
-	// TODO: Support incremental refit/update so moving entities do not require full BVH rebuilds every frame.
 	class PhysicsBvh
 	{
 	public:
@@ -27,6 +26,9 @@ namespace ve::physics
 
 		/** @param bounds Query box. @param output_ids Receives overlapping proxy ids. */
 		void QueryOverlaps(const Aabb& bounds, ve::core::DynamicArray<unsigned int>& output_ids) const;
+
+		/** @param proxy_id Proxy id to update. @param bounds New bounds. @return True when the proxy existed. */
+		bool UpdateProxyBounds(unsigned int proxy_id, const Aabb& bounds);
 
 		/** @return True when no nodes were built. */
 		[[nodiscard]] bool IsEmpty() const noexcept;
@@ -54,6 +56,12 @@ namespace ve::physics
 
 		/** @param node_index Node to query. @param bounds Query box. @param output_ids Receives ids. */
 		void QueryNode(int node_index, const Aabb& bounds, ve::core::DynamicArray<unsigned int>& output_ids) const;
+
+		/** @param node_index Node whose subtree bounds should be recomputed. */
+		void RefitNodeBounds(int node_index);
+
+		/** @param node_index First ancestor to refit. */
+		void RefitAncestors(int node_index);
 
 		ve::core::DynamicArray<PhysicsProxy> proxies_;
 		ve::core::DynamicArray<BvhNode> nodes_;

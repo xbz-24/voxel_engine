@@ -11,12 +11,27 @@
 namespace ve::rendering
 {
 	// TODO: Introduce TextureResource/TextureUploader interfaces so decoded pixels are shared and upload remains backend-specific.
+	enum class ImagePixelFormat
+	{
+		Unknown,
+		Rgba8
+	};
+
+	enum class TextureColorSpace
+	{
+		Linear,
+		Srgb
+	};
+
 	/** CPU-side decoded RGBA8 image data. */
 	struct DecodedImage
 	{
-		// TODO: Add image format metadata, mip levels, and color-space intent for material-aware uploads.
 		int width = 0;
 		int height = 0;
+		int source_channel_count = 0;
+		int mip_level_count = 1;
+		ImagePixelFormat pixel_format = ImagePixelFormat::Rgba8;
+		TextureColorSpace color_space = TextureColorSpace::Srgb;
 		std::vector<std::uint8_t> rgba;
 
 		[[nodiscard]] bool IsValid() const noexcept;

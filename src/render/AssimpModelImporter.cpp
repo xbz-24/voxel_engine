@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <algorithm>
 #include <cctype>
+#include <utility>
 
 namespace
 {
@@ -57,8 +58,37 @@ namespace ve::assets
 		const aiScene* scene = importer.ReadFile(model_path.string(), BuildPostProcessFlags(options));
 		if (!scene || !scene->HasMeshes()) return std::nullopt;
 		ImportedModel model{ model_path };
-		for (unsigned int index = 0; index < scene->mNumMaterials; index++) model.materials.push_back(ReadMaterial(*scene->mMaterials[index], model_path.parent_path()));
-		for (unsigned int index = 0; index < scene->mNumMeshes; index++) model.meshes.push_back(ReadMesh(*scene->mMeshes[index]));
+		model.source_animation_count = scene->mNumAnimations;
+		if (model.source_animation_count > 0)
+		{
+			model.diagnostics.push_back(ModelImportDiagnostic{
+				ModelImportDiagnosticSeverity::Warning,
+				"Source model contains animations; animation curves are counted but not imported into runtime clips yet."
+			});
+		}
+		if (options.unit_scale != 1.0f)
+		{
+			model.diagnostics.push_back(ModelImportDiagnostic{
+				ModelImportDiagnosticSeverity::Info,
+				"Applied unit scale to imported vertex positions."
+			});
+		}
+		for (unsigned int index = 0; index < scene->mNumMaterials; index++)
+		{
+			ImportedMaterial material = ReadMaterial(*scene->mMaterials[index], model_path.parent_path());
+			if (!material.albedo_texture.empty() && !std::filesystem::exists(material.albedo_texture))
+			{
+				model.diagnostics.push_back(ModelImportDiagnostic{
+					ModelImportDiagnosticSeverity::Warning,
+					"Referenced material texture is missing: " + material.albedo_texture.string()
+				});
+			}
+			model.materials.push_back(std::move(material));
+		}
+		for (unsigned int index = 0; index < scene->mNumMeshes; index++)
+		{
+			model.meshes.push_back(ReadMesh(*scene->mMeshes[index], options));
+		}
 		return model;
 	}
 }

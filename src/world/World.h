@@ -85,7 +85,9 @@ namespace ve::world
 
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
-		// TODO: Add event subscription filters so renderer, networking, and gameplay do not all drain the same queue.
+
+		/** @param filter Event type filter. @return Matching events while leaving non-matching events queued. */
+		std::vector<WorldEvent> DrainEvents(const WorldEventFilter& filter);
 
 		/** @return Number of events waiting for consumers. */
 		std::size_t PendingEventCount() const noexcept;

@@ -53,6 +53,8 @@
 			if (stats.gpu_timing_valid) ImGui::Text("GPU frame %.2f ms", stats.gpu_frame_ms);
 			else ImGui::TextUnformatted("GPU frame pending");
 			ImGui::Text("Present CPU %.2f ms", stats.present_cpu_ms);
+			ImGui::Text("Mesh rebuild CPU %.2f ms", stats.mesh_rebuild_cpu_ms);
+			ImGui::Text("Mesh upload CPU %.2f ms", stats.mesh_upload_cpu_ms);
 			ImGui::Text("Indices %u", stats.index_count);
 			ImGui::Text("World revision %llu", static_cast<unsigned long long>(stats.world_revision));
 			ImGui::Text("Renderer %s", stats.gpu_renderer_active ? "Vulkan GPU" : "CPU fallback");

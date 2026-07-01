@@ -22,7 +22,7 @@ namespace
 namespace ve::assets
 {
 	/// Converts one Assimp mesh into engine-owned vertex/index data.
-	ImportedMesh AssimpModelImporter::ReadMesh(const aiMesh& mesh)
+	ImportedMesh AssimpModelImporter::ReadMesh(const aiMesh& mesh, const ModelImportOptions& options)
 	{
 		ImportedMesh imported_mesh;
 		imported_mesh.name = mesh.mName.C_Str();
@@ -31,7 +31,7 @@ namespace ve::assets
 		for (unsigned int vertex_index = 0; vertex_index < mesh.mNumVertices; vertex_index++)
 		{
 			imported_mesh.vertices.push_back(ImportedVertex{
-				ReadVector3(mesh.mVertices[vertex_index]),
+				ReadVector3(mesh.mVertices[vertex_index]) * options.unit_scale,
 				mesh.HasNormals() ? ReadVector3(mesh.mNormals[vertex_index]) : glm::vec3(0.0f, 1.0f, 0.0f),
 				ReadTexCoord(mesh, vertex_index)
 			});

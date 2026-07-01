@@ -24,11 +24,14 @@ namespace ve::rendering
 		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
 		if (gpu_chunk_renderer_.NeedsWorldMeshUpdate(world) && !WaitForAllInFlightFrames()) return false;
 		if (!gpu_chunk_renderer_.EnsureWorldMesh(world)) return false;
+		const VulkanGpuChunkMeshStats& mesh_stats = gpu_chunk_renderer_.MeshStats();
 		imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
 			displayed_fps,
 			delta_seconds,
 			completed_frame_timing.gpu_copy_ms,
 			completed_frame_timing.present_cpu_ms,
+			mesh_stats.last_rebuild_cpu_ms,
+			mesh_stats.last_upload_cpu_ms,
 			gpu_chunk_renderer_.IndexCount(),
 			world.Revision(),
 			completed_frame_timing.has_gpu_copy_timing,

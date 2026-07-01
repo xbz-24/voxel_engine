@@ -12,9 +12,12 @@ namespace ve::rendering
 		if (index_memory_ != VK_NULL_HANDLE) vkFreeMemory(device_, index_memory_, nullptr);
 		vertex_buffer_ = VK_NULL_HANDLE;
 		vertex_memory_ = VK_NULL_HANDLE;
+		vertex_buffer_capacity_bytes_ = 0;
 		index_buffer_ = VK_NULL_HANDLE;
 		index_memory_ = VK_NULL_HANDLE;
+		index_buffer_capacity_bytes_ = 0;
 		index_count_ = 0u;
+		mesh_stats_ = VulkanGpuChunkMeshStats{};
 		mesh_valid_ = false;
 		mesh_revision_ = 0u;
 	}

@@ -8,6 +8,9 @@ namespace ve::rendering
 	class RenderBackendSelector
 	{
 	public:
+		/** @param configuration User or engine preference. @return Selected API plus headless mode flag. */
+		[[nodiscard]] static RenderBackendSelection Select(const RenderBackendConfiguration& configuration) noexcept;
+
 		/** @param configuration User or engine preference. @return Selected API. */
 		[[nodiscard]] static GraphicsApi SelectApi(const RenderBackendConfiguration& configuration) noexcept;
 

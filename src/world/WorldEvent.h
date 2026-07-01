@@ -18,6 +18,33 @@ namespace ve::world
 		ChunkGenerated
 	};
 
+	struct WorldEventFilter
+	{
+		bool include_block_changed = true;
+		bool include_chunk_generated = true;
+
+		[[nodiscard]] static constexpr WorldEventFilter All() noexcept
+		{
+			return {};
+		}
+
+		[[nodiscard]] static constexpr WorldEventFilter BlockChangesOnly() noexcept
+		{
+			return WorldEventFilter{ true, false };
+		}
+
+		[[nodiscard]] static constexpr WorldEventFilter ChunkGenerationOnly() noexcept
+		{
+			return WorldEventFilter{ false, true };
+		}
+
+		[[nodiscard]] constexpr bool Includes(WorldEventType type) const noexcept
+		{
+			return (type == WorldEventType::BlockChanged && include_block_changed) ||
+				(type == WorldEventType::ChunkGenerated && include_chunk_generated);
+		}
+	};
+
 	/**
 	 * Describes one block mutation accepted by the world.
 	 */
