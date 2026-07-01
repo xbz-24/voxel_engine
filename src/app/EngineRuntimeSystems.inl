@@ -71,7 +71,10 @@
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan backend initialization failed");
 			return false;
 		}
-		if (!vulkan_frame_renderer_.Initialize(vulkan_backend, window_, asset_paths_.blockTexturesDirectory))
+		if (!vulkan_frame_renderer_.Initialize(vulkan_backend,
+			window_,
+			asset_paths_.blockTexturesDirectory,
+			engine_.create_info_.show_debug_overlay))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
 			return false;

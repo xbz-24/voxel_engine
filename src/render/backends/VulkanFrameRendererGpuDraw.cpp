@@ -15,9 +15,19 @@ namespace ve::rendering
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
-		VulkanMinecraftDemoSettings& minecraft_demo_settings)
+		VulkanMinecraftDemoSettings& minecraft_demo_settings,
+		const VulkanGpuFrameControls& controls)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
+		if (!controls.overlay_enabled)
+		{
+			minecraft_demo_settings.show_controls = false;
+			minecraft_demo_settings.show_imgui_demo_window = false;
+		}
+		else if (controls.toggle_controls)
+		{
+			minecraft_demo_settings.show_controls = !minecraft_demo_settings.show_controls;
+		}
 		const VkFence fence = frames_[current_frame_].in_flight;
 		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
 		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
@@ -25,18 +35,21 @@ namespace ve::rendering
 		if (gpu_chunk_renderer_.NeedsWorldMeshUpdate(world) && !WaitForAllInFlightFrames()) return false;
 		if (!gpu_chunk_renderer_.EnsureWorldMesh(world)) return false;
 		const VulkanGpuChunkMeshStats& mesh_stats = gpu_chunk_renderer_.MeshStats();
-		imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
-			displayed_fps,
-			delta_seconds,
-			completed_frame_timing.gpu_copy_ms,
-			completed_frame_timing.present_cpu_ms,
-			mesh_stats.last_rebuild_cpu_ms,
-			mesh_stats.last_upload_cpu_ms,
-			gpu_chunk_renderer_.IndexCount(),
-			world.Revision(),
-			completed_frame_timing.has_gpu_copy_timing,
-			true
-		});
+		if (controls.overlay_enabled)
+		{
+			imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
+				displayed_fps,
+				delta_seconds,
+				completed_frame_timing.gpu_copy_ms,
+				completed_frame_timing.present_cpu_ms,
+				mesh_stats.last_rebuild_cpu_ms,
+				mesh_stats.last_upload_cpu_ms,
+				gpu_chunk_renderer_.IndexCount(),
+				world.Revision(),
+				completed_frame_timing.has_gpu_copy_timing,
+				true
+			});
+		}
 		std::uint32_t image_index = 0;
 		const auto present_start = std::chrono::steady_clock::now();
 		const VkResult acquire_result = AcquireSwapchainImage(device_, *backend_, frames_[current_frame_].image_available, image_index);

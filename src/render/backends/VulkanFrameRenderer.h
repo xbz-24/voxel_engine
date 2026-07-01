@@ -55,6 +55,8 @@ namespace ve::rendering
 		[[nodiscard]] bool WantsKeyboardInput() const noexcept;
 
 	private:
+		struct VulkanGpuFrameControls;
+
 		[[nodiscard]] bool CreateCommandResources();
 		[[nodiscard]] bool CreateSynchronization();
 		[[nodiscard]] bool CreateTimestampQueries();
@@ -67,7 +69,8 @@ namespace ve::rendering
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
-			VulkanMinecraftDemoSettings& minecraft_demo_settings);
+			VulkanMinecraftDemoSettings& minecraft_demo_settings,
+			const VulkanGpuFrameControls& controls);
 		[[nodiscard]] bool DrawSoftwareFrame(const ve::world::World& world,
 			const Camera& camera,
 			int displayed_fps,
@@ -79,6 +82,12 @@ namespace ve::rendering
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		static constexpr std::size_t kFramesInFlight = 2;
+		struct VulkanGpuFrameControls
+		{
+			bool overlay_enabled = false;
+			bool toggle_controls = false;
+		};
+
 		struct FrameResources
 		{
 			VulkanUploadBuffer upload_buffer;
@@ -109,6 +118,7 @@ namespace ve::rendering
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
 		ve::core::DynamicArray<VkFence> images_in_flight_;
 		std::size_t current_frame_ = 0;
+		bool imgui_overlay_enabled_ = true;
 		bool logged_first_frame_ = false;
 	};
 }
