@@ -20,7 +20,6 @@ namespace ve::world
 
 	ChunkRenderItemList World::ExtractVisibleChunks(const WorldRenderRequest& request) const
 	{
-		// TODO: Return stable chunk ids and mesh revision data so render backends can cache visibility without owning World internals.
 		ChunkRenderItemList items;
 		const ChunkViewRange range = BuildChunkViewRange(request.camera_position, _worldSize, request.render_distance_chunks);
 		if (!HasChunks(range))
@@ -38,7 +37,7 @@ namespace ve::world
 					const Chunk* chunk = FindChunk(chunkX, chunkZ);
 					if (chunk != nullptr)
 					{
-						items.push_back(ChunkRenderItem{ &chunk->RenderMesh(), chunkX, chunkZ });
+						items.push_back(ChunkRenderItem{ &chunk->RenderMesh(), ChunkRenderId{ chunkX, chunkZ }, chunk->MeshRevision() });
 					}
 				}
 			}

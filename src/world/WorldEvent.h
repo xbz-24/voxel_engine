@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+#include <variant>
+
 namespace ve::world
 {
 	/**
@@ -35,14 +37,39 @@ namespace ve::world
 		int chunkCoordinateZ;
 	};
 
+	using WorldEventPayload = std::variant<BlockChangedEvent, ChunkGeneratedEvent>;
+
 	/**
 	 * Single event record emitted by world APIs.
 	 */
 	struct WorldEvent
 	{
-		// TODO: Replace parallel payload fields with std::variant once event volume and type count grow.
-		WorldEventType eventType;
-		BlockChangedEvent blockChanged;
-		ChunkGeneratedEvent chunkGenerated;
+		explicit WorldEvent(BlockChangedEvent block_changed_event) noexcept
+			: payload(block_changed_event)
+		{
+		}
+
+		explicit WorldEvent(ChunkGeneratedEvent chunk_generated_event) noexcept
+			: payload(chunk_generated_event)
+		{
+		}
+
+		[[nodiscard]] WorldEventType Type() const noexcept
+		{
+			if (std::holds_alternative<BlockChangedEvent>(payload)) return WorldEventType::BlockChanged;
+			return WorldEventType::ChunkGenerated;
+		}
+
+		[[nodiscard]] const BlockChangedEvent* AsBlockChanged() const noexcept
+		{
+			return std::get_if<BlockChangedEvent>(&payload);
+		}
+
+		[[nodiscard]] const ChunkGeneratedEvent* AsChunkGenerated() const noexcept
+		{
+			return std::get_if<ChunkGeneratedEvent>(&payload);
+		}
+
+		WorldEventPayload payload;
 	};
 }

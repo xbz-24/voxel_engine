@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/mat4x4.hpp>
+#include <cstdint>
 #include <vector>
 
 namespace ve::rendering
@@ -41,12 +42,20 @@ namespace ve::world
 		int render_distance_chunks;
 	};
 
+	struct ChunkRenderId
+	{
+		int chunk_x = 0;
+		int chunk_z = 0;
+
+		[[nodiscard]] friend bool operator==(const ChunkRenderId&, const ChunkRenderId&) noexcept = default;
+	};
+
 	/** Backend-neutral visible chunk render payload. */
 	struct ChunkRenderItem
 	{
 		const ve::rendering::ChunkGpuMesh* mesh = nullptr;
-		int chunk_x = 0;
-		int chunk_z = 0;
+		ChunkRenderId chunk_id;
+		std::uint64_t mesh_revision = 0;
 	};
 
 	using ChunkRenderItemList = std::vector<ChunkRenderItem>;

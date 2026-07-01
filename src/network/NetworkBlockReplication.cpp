@@ -70,9 +70,9 @@ namespace ve::network
 		networkMessages.reserve(worldEvents.size());
 		for (const ve::world::WorldEvent& worldEvent : worldEvents)
 		{
-			if (worldEvent.eventType == ve::world::WorldEventType::BlockChanged)
+			if (const ve::world::BlockChangedEvent* blockChangedEvent = worldEvent.AsBlockChanged())
 			{
-				networkMessages.push_back(BuildBlockMutationMessage(worldEvent.blockChanged));
+				networkMessages.push_back(BuildBlockMutationMessage(*blockChangedEvent));
 			}
 		}
 		return networkMessages;

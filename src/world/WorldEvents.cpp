@@ -19,20 +19,12 @@ namespace ve::world
 	/// Records a generated chunk event.
 	void World::RecordChunkGenerated(int chunkX, int chunkZ)
 	{
-		_pendingEvents.push_back(WorldEvent{
-			WorldEventType::ChunkGenerated,
-			BlockChangedEvent{},
-			ChunkGeneratedEvent{ chunkX, chunkZ }
-		});
+		_pendingEvents.push_back(WorldEvent{ ChunkGeneratedEvent{ chunkX, chunkZ } });
 	}
 
 	/// Records a block changed event.
 	void World::RecordBlockChanged(const glm::ivec3& position, ve::blocks::BlockId previousBlockId, ve::blocks::BlockId newBlockId)
 	{
-		_pendingEvents.push_back(WorldEvent{
-			WorldEventType::BlockChanged,
-			BlockChangedEvent{ position, previousBlockId, newBlockId },
-			ChunkGeneratedEvent{}
-		});
+		_pendingEvents.push_back(WorldEvent{ BlockChangedEvent{ position, previousBlockId, newBlockId } });
 	}
 }
