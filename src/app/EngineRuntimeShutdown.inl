@@ -11,7 +11,7 @@
 	{
 		while (true)
 		{
-			if (window_.ShouldClose()) break;
+			if (window_.ShouldClose() || engine_.IsStopRequested()) break;
 			RunFrame();
 		}
 	}

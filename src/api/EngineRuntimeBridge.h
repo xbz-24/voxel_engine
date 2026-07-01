@@ -32,6 +32,7 @@ namespace voxel::detail
 		virtual ~IEngineRuntime() = default;
 
 		[[nodiscard]] virtual int Run() = 0;
+		virtual void RequestStop() noexcept = 0;
 	};
 
 	class IEngineRuntimeFactory

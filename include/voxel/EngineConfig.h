@@ -22,6 +22,7 @@ namespace voxel
 		MaterialLibrary materials{};
 		SceneGraph scene_graph{};
 		CameraConfig camera{};
+		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
 		DemoScene demo_scene = DemoScene::HyperrealDesert;
 		int render_distance_chunks = 8;
@@ -54,6 +55,11 @@ namespace voxel
 		EngineConfig& WithSceneGraph(SceneGraph value) noexcept;
 		EngineConfig& WithCamera(CameraConfig value) noexcept;
 		EngineConfig& WithCamera(Vec3 position, Vec3 look_at) noexcept;
+		EngineConfig& WithLogging(LogSettings value) noexcept;
+		EngineConfig& WithLogLevel(LogLevel value) noexcept;
+		EngineConfig& LogToFile(std::string path);
+		EngineConfig& DisableFileLogging() noexcept;
+		EngineConfig& EnableConsoleLogging(bool enabled = true) noexcept;
 		EngineConfig& UseGraphicsApi(GraphicsApi value) noexcept;
 		EngineConfig& UseVulkan() noexcept;
 		EngineConfig& UseOpenGLCompatibility() noexcept;

@@ -34,6 +34,14 @@
 			return runtime_ ? runtime_->Run() : -1;
 		}
 
+		void RequestStop() noexcept
+		{
+			if (runtime_ != nullptr)
+			{
+				runtime_->RequestStop();
+			}
+		}
+
 	private:
 		std::vector<std::string> validation_issues_;
 		LogCallback on_log_;
@@ -54,4 +62,9 @@
 	int Engine::Run()
 	{
 		return impl_->Run();
+	}
+
+	void Engine::RequestStop() noexcept
+	{
+		impl_->RequestStop();
 	}

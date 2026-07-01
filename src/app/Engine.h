@@ -17,6 +17,7 @@
 #include "Window.h"
 #include "World.h"
 
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -38,6 +39,12 @@ public:
 
 	/** Starts the runtime loop and returns a process-style status code. */
 	int Run();
+
+	/** Requests the active runtime loop to stop at the next frame boundary. */
+	void RequestStop() noexcept;
+
+	/** @return True when a stop was requested through the public engine handle. */
+	[[nodiscard]] bool IsStopRequested() const noexcept;
 
 private:
 	friend class ve::engine::EngineRuntime;
@@ -110,4 +117,5 @@ private:
 	EngineWindowState _window_state;
 	ve::gameplay::RuntimeSettings _runtimeSettings;
 	ve::engine::EngineCreateInfo create_info_;
+	std::atomic_bool stop_requested_{ false };
 };

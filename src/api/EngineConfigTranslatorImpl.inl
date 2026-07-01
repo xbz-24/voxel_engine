@@ -14,6 +14,7 @@
 				result.window.high_dpi_framebuffer = config.window.high_dpi_framebuffer;
 				result.window.capture_cursor_on_start = config.window.capture_cursor_on_start;
 				result.render_backend.preferred_api = ToInternalApi(config.graphics_api);
+				result.logging = ToInternalLogging(config.logging);
 				result.vulkan_demo_preset = ToInternalDemoPreset(config.demo_scene);
 				result.camera_position = ToInternalVec3(config.camera.position);
 				result.camera_look_at = ToInternalVec3(config.camera.look_at);

@@ -103,3 +103,36 @@
 				return ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
 			}
 		}
+
+		[[nodiscard]] ve::log::Level ToInternalLogLevel(LogLevel level) noexcept
+		{
+			switch (level)
+			{
+			case LogLevel::Trace:
+				return ve::log::Level::Trace;
+			case LogLevel::Debug:
+				return ve::log::Level::Debug;
+			case LogLevel::Warning:
+				return ve::log::Level::Warning;
+			case LogLevel::Error:
+				return ve::log::Level::Error;
+			case LogLevel::Fatal:
+				return ve::log::Level::Fatal;
+			case LogLevel::Info:
+			default:
+				return ve::log::Level::Info;
+			}
+		}
+
+		[[nodiscard]] ve::engine::RuntimeLogSettings ToInternalLogging(LogSettings logging)
+		{
+			ve::engine::RuntimeLogSettings result{};
+			if (logging.minimum_level != LogLevel::Default)
+			{
+				result.minimum_level = ToInternalLogLevel(logging.minimum_level);
+			}
+			result.console_enabled = logging.console_enabled;
+			result.file_output_enabled = logging.file_output_enabled;
+			result.file_output_path = std::move(logging.file_output_path);
+			return result;
+		}

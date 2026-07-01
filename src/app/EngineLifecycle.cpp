@@ -4,6 +4,8 @@
 #include "RenderBackendSelector.h"
 
 #include <algorithm>
+#include <filesystem>
+#include <optional>
 
 /// Initializes the native window and applies runtime window options.
 bool EngineApplication::InitializeWindow(ve::engine::Window& window)
@@ -23,17 +25,17 @@ bool EngineApplication::InitializeWindow(ve::engine::Window& window)
 /// Initializes logger outputs that need the resolved project root.
 void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
-	// TODO: Let public EngineConfig override log sinks before the runtime decides the default file path.
-	constexpr ve::log::Level minimum_level =
-#if defined(NDEBUG)
-		ve::log::Level::Info;
-#else
-		ve::log::Level::Debug;
-#endif
+	std::optional<std::filesystem::path> file_output_path;
+	if (create_info_.logging.file_output_enabled)
+	{
+		file_output_path = create_info_.logging.file_output_path.empty()
+			? assetPaths.rootDirectory / "logs/engine.log"
+			: create_info_.logging.file_output_path;
+	}
 	ve::log::ApplyConfiguration(ve::log::LoggerConfiguration{
-		minimum_level,
-		true,
-		assetPaths.rootDirectory / "logs/engine.log"
+		create_info_.logging.minimum_level,
+		create_info_.logging.console_enabled,
+		file_output_path
 	});
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");
 }

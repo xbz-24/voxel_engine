@@ -22,6 +22,11 @@ namespace voxel::detail
 				return engine_.Run();
 			}
 
+			void RequestStop() noexcept override
+			{
+				engine_.RequestStop();
+			}
+
 		private:
 			::EngineApplication engine_;
 		};

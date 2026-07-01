@@ -35,7 +35,10 @@ namespace ve::rendering
 		~VulkanFrameRenderer();
 
 		/** @param backend Initialized Vulkan backend. @return True when frame resources are ready. */
-		[[nodiscard]] bool Initialize(VulkanBackend& backend, ve::engine::Window& window, const std::filesystem::path& block_texture_directory);
+		[[nodiscard]] bool Initialize(VulkanBackend& backend,
+			ve::engine::Window& window,
+			const std::filesystem::path& block_texture_directory,
+			bool enable_imgui_overlay = true);
 
 		/** @return True when the voxel world was copied to the swapchain and presented. */
 		[[nodiscard]] bool DrawFrame(const ve::world::World& world,
@@ -96,7 +99,6 @@ namespace ve::rendering
 		float timestamp_period_ns_ = 0.0f;
 		std::array<FrameResources, kFramesInFlight> frames_{};
 		VulkanGpuChunkRenderer gpu_chunk_renderer_;
-		// TODO: Decouple ImGui overlay from the chunk renderer so headless/runtime smoke tests can disable it cleanly.
 		VulkanImGuiOverlay imgui_overlay_;
 		VulkanSoftwareVoxelRasterizer rasterizer_;
 		VulkanFrameTiming previous_frame_timing_{};

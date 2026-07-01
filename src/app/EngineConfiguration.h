@@ -4,6 +4,7 @@
 #include "RenderDistanceSettings.h"
 #include "Window.h"
 #include "Block.h"
+#include "LogRecord.h"
 #include "VulkanMinecraftDemoSettings.h"
 #include "WorldBlockEdit.h"
 #include "WorldConfiguration.h"
@@ -54,11 +55,25 @@ namespace ve::engine
 		int pending_world_generation_tasks = 0;
 	};
 
+	struct RuntimeLogSettings
+	{
+		ve::log::Level minimum_level =
+#if defined(NDEBUG)
+			ve::log::Level::Info;
+#else
+			ve::log::Level::Debug;
+#endif
+		bool console_enabled = true;
+		bool file_output_enabled = true;
+		std::filesystem::path file_output_path;
+	};
+
 	struct EngineCreateInfo
 	{
 		// TODO: Add a validated builder layer so unchecked public config does not cross into runtime initialization.
 		WindowCreateInfo window{};
 		ve::rendering::RenderBackendConfiguration render_backend{};
+		RuntimeLogSettings logging{};
 		glm::vec3 camera_position{ 80.0f, 50.0f, 80.0f };
 		glm::vec3 camera_look_at{ 80.0f, 50.0f, 79.0f };
 		bool vsync = false;

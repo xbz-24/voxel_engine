@@ -32,6 +32,7 @@ namespace voxel
 		Engine& operator=(Engine&&) noexcept;
 
 		[[nodiscard]] int Run();
+		void RequestStop() noexcept;
 
 	private:
 		class Impl;
