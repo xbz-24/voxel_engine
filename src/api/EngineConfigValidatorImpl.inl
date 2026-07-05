@@ -40,6 +40,8 @@ namespace voxel
 				issues.insert(issues.end(), asset_issues.begin(), asset_issues.end());
 				std::vector<std::string> material_issues = config.materials.Validate();
 				issues.insert(issues.end(), material_issues.begin(), material_issues.end());
+				std::vector<std::string> scene_graph_issues = config.scene_graph.Validate();
+				issues.insert(issues.end(), scene_graph_issues.begin(), scene_graph_issues.end());
 				if (!config.assets.textures.empty() || !config.assets.models.empty() || !config.assets.sounds.empty())
 				{
 					issues.push_back("AssetCatalog runtime loading is not implemented");

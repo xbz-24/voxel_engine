@@ -3,12 +3,26 @@
 #include "voxel/Camera.h"
 #include "voxel/Materials.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 namespace voxel
 {
-	// TODO: Add parent/child hierarchy and stable entity ids before SceneGraph can support complex tools.
+	struct EntityId
+	{
+		std::uint32_t value = 0;
+
+		[[nodiscard]] constexpr bool IsValid() const noexcept
+		{
+			return value != 0;
+		}
+
+		[[nodiscard]] friend constexpr bool operator==(const EntityId&, const EntityId&) noexcept = default;
+	};
+
+	inline constexpr EntityId InvalidEntityId{};
+
 	struct Transform
 	{
 		Vec3 position{};
@@ -20,6 +34,8 @@ namespace voxel
 
 	struct Entity
 	{
+		EntityId id = InvalidEntityId;
+		EntityId parent = InvalidEntityId;
 		std::string name;
 		Transform transform{};
 		std::string model;
@@ -34,6 +50,9 @@ namespace voxel
 		Entity& Model(std::string asset_name);
 		Entity& Material(std::string material_name);
 		Entity& Visible(bool enabled = true) noexcept;
+		Entity& WithId(EntityId entity_id) noexcept;
+		Entity& ChildOf(EntityId parent_id) noexcept;
+		Entity& AsRoot() noexcept;
 	};
 
 	struct SceneGraph
@@ -44,7 +63,12 @@ namespace voxel
 		Environment environment{};
 
 		SceneGraph& Add(Entity entity);
+		[[nodiscard]] EntityId AddEntity(Entity entity);
+		[[nodiscard]] EntityId AddChild(EntityId parent_id, Entity entity);
+		[[nodiscard]] Entity* FindEntity(EntityId entity_id) noexcept;
+		[[nodiscard]] const Entity* FindEntity(EntityId entity_id) const noexcept;
 		SceneGraph& Add(Light light);
 		SceneGraph& EnvironmentSettings(Environment value) noexcept;
+		[[nodiscard]] std::vector<std::string> Validate() const;
 	};
 }

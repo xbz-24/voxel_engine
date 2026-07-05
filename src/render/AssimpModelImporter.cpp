@@ -27,6 +27,36 @@ namespace
 		}
 		return false;
 	}
+
+	/// Reads an Assimp matrix into GLM column-major storage.
+	glm::mat4 ReadNodeTransform(const aiMatrix4x4& value)
+	{
+		return {
+			value.a1, value.b1, value.c1, value.d1,
+			value.a2, value.b2, value.c2, value.d2,
+			value.a3, value.b3, value.c3, value.d3,
+			value.a4, value.b4, value.c4, value.d4
+		};
+	}
+
+	/// Copies source node hierarchy for tools that need authored transforms.
+	ve::assets::ImportedNode ReadSceneNode(const aiNode& source_node)
+	{
+		ve::assets::ImportedNode imported_node{};
+		imported_node.name = source_node.mName.C_Str();
+		imported_node.transform = ReadNodeTransform(source_node.mTransformation);
+		imported_node.mesh_indices.reserve(source_node.mNumMeshes);
+		for (unsigned int mesh_index = 0; mesh_index < source_node.mNumMeshes; ++mesh_index)
+		{
+			imported_node.mesh_indices.push_back(source_node.mMeshes[mesh_index]);
+		}
+		imported_node.children.reserve(source_node.mNumChildren);
+		for (unsigned int child_index = 0; child_index < source_node.mNumChildren; ++child_index)
+		{
+			imported_node.children.push_back(ReadSceneNode(*source_node.mChildren[child_index]));
+		}
+		return imported_node;
+	}
 }
 
 namespace ve::assets
@@ -58,6 +88,13 @@ namespace ve::assets
 		const aiScene* scene = importer.ReadFile(model_path.string(), BuildPostProcessFlags(options));
 		if (!scene || !scene->HasMeshes()) return std::nullopt;
 		ImportedModel model{ model_path };
+		if (scene->mRootNode != nullptr)
+		{
+			model.has_root_node = true;
+			model.root_node = ReadSceneNode(*scene->mRootNode);
+		}
+		model.source_camera_count = scene->mNumCameras;
+		model.source_light_count = scene->mNumLights;
 		model.source_animation_count = scene->mNumAnimations;
 		if (model.source_animation_count > 0)
 		{
@@ -73,16 +110,25 @@ namespace ve::assets
 				"Applied unit scale to imported vertex positions."
 			});
 		}
-		for (unsigned int index = 0; index < scene->mNumMaterials; index++)
-		{
-			ImportedMaterial material = ReadMaterial(*scene->mMaterials[index], model_path.parent_path());
-			if (!material.albedo_texture.empty() && !std::filesystem::exists(material.albedo_texture))
+		const auto report_missing_material_texture = [&model](const std::filesystem::path& texture_path) {
+			if (!texture_path.empty() && !std::filesystem::exists(texture_path))
 			{
 				model.diagnostics.push_back(ModelImportDiagnostic{
 					ModelImportDiagnosticSeverity::Warning,
-					"Referenced material texture is missing: " + material.albedo_texture.string()
+					"Referenced material texture is missing: " + texture_path.string()
 				});
 			}
+		};
+		for (unsigned int index = 0; index < scene->mNumMaterials; index++)
+		{
+			ImportedMaterial material = ReadMaterial(*scene->mMaterials[index], model_path.parent_path());
+			report_missing_material_texture(material.albedo_texture);
+			report_missing_material_texture(material.normal_texture);
+			report_missing_material_texture(material.metallic_roughness_texture);
+			report_missing_material_texture(material.metallic_texture);
+			report_missing_material_texture(material.roughness_texture);
+			report_missing_material_texture(material.occlusion_texture);
+			report_missing_material_texture(material.emissive_texture);
 			model.materials.push_back(std::move(material));
 		}
 		for (unsigned int index = 0; index < scene->mNumMeshes; index++)

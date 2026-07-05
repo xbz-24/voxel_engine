@@ -27,11 +27,15 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 		.Transparent());
 
 	voxel::SceneGraph graph{};
-	graph.Add(voxel::Entity::Named("crate")
-			.At({ 1.0f, 2.0f, 3.0f })
-			.Model("crate")
-			.Material("glowing"))
-		.Add(voxel::Light::Sun({ -1.0f, -2.0f, -1.0f }, 3.0f)
+	const voxel::EntityId crate_id = graph.AddEntity(voxel::Entity::Named("crate")
+		.At({ 1.0f, 2.0f, 3.0f })
+		.Model("crate")
+		.Material("glowing"));
+	const voxel::EntityId glow_id = graph.AddChild(crate_id, voxel::Entity::Named("crate glow")
+		.At({ 1.0f, 3.0f, 3.0f })
+		.Model("crate")
+		.Material("glowing"));
+	graph.Add(voxel::Light::Sun({ -1.0f, -2.0f, -1.0f }, 3.0f)
 			.CastShadows()
 			.UseIntensityUnit(voxel::LightIntensityUnit::Lux))
 		.Add(voxel::Light::Spot({ 2.0f, 4.0f, 2.0f },
@@ -84,8 +88,15 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	CHECK(config.materials.materials[0].emission == doctest::Approx(0.0f));
 	CHECK(config.materials.materials[0].normal_texture == "normal");
 	CHECK(config.materials.Validate().empty());
-	REQUIRE(config.scene_graph.entities.size() == 1);
+	REQUIRE(config.scene_graph.entities.size() == 2);
+	CHECK(crate_id.IsValid());
+	CHECK(glow_id.IsValid());
+	CHECK(config.scene_graph.entities[0].id == crate_id);
 	CHECK(config.scene_graph.entities[0].transform.position.z == doctest::Approx(3.0f));
+	CHECK(config.scene_graph.entities[1].parent == crate_id);
+	REQUIRE(config.scene_graph.FindEntity(glow_id) != nullptr);
+	CHECK(config.scene_graph.FindEntity(glow_id)->name == "crate glow");
+	CHECK(config.scene_graph.Validate().empty());
 	REQUIRE(config.scene_graph.lights.size() == 2);
 	CHECK(config.scene_graph.lights[0].shadows.enabled);
 	CHECK(config.scene_graph.lights[0].intensity_unit == voxel::LightIntensityUnit::Lux);

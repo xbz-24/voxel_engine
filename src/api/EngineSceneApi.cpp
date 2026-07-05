@@ -1,6 +1,8 @@
 #include "voxel/Engine.h"
 
 #include <algorithm>
+#include <cstdint>
+#include <set>
 #include <string>
 #include <utility>
 

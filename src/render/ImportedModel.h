@@ -24,20 +24,41 @@ namespace ve::assets
 
 	struct ImportedVertex
 	{
-		// TODO: Add tangent, bitangent, color, joint weights, and custom vertex streams for modern asset pipelines.
 		glm::vec3 position{ 0.0f };
 		glm::vec3 normal{ 0.0f, 1.0f, 0.0f };
+		glm::vec3 tangent{ 1.0f, 0.0f, 0.0f };
+		glm::vec3 bitangent{ 0.0f, 1.0f, 0.0f };
 		glm::vec2 texture_coordinates{ 0.0f };
+		glm::vec4 color{ 1.0f };
+		glm::uvec4 joint_indices{ 0U };
+		glm::vec4 joint_weights{ 0.0f };
 	};
 
 	struct ImportedMaterial
 	{
-		// TODO: Preserve source material texture slots instead of collapsing everything to albedo/PBR scalars.
 		std::string name;
 		glm::vec4 base_color{ 1.0f };
 		float metallic = 0.0f;
 		float roughness = 0.8f;
 		std::filesystem::path albedo_texture;
+		std::filesystem::path normal_texture;
+		std::filesystem::path metallic_roughness_texture;
+		std::filesystem::path metallic_texture;
+		std::filesystem::path roughness_texture;
+		std::filesystem::path occlusion_texture;
+		std::filesystem::path emissive_texture;
+	};
+
+	struct ImportedJoint
+	{
+		std::string name;
+		glm::mat4 inverse_bind_transform{ 1.0f };
+	};
+
+	struct ImportedCustomVertexStream
+	{
+		std::string semantic;
+		ve::core::DynamicArray<glm::vec4> values;
 	};
 
 	struct ImportedMesh
@@ -45,16 +66,29 @@ namespace ve::assets
 		std::string name;
 		ve::core::DynamicArray<ImportedVertex> vertices;
 		ve::core::DynamicArray<std::uint32_t> indices;
+		ve::core::DynamicArray<ImportedJoint> joints;
+		ve::core::DynamicArray<ImportedCustomVertexStream> custom_vertex_streams;
 		ve::core::Index material_index = 0;
+	};
+
+	struct ImportedNode
+	{
+		std::string name;
+		glm::mat4 transform{ 1.0f };
+		ve::core::DynamicArray<ve::core::Index> mesh_indices;
+		ve::core::DynamicArray<ImportedNode> children;
 	};
 
 	struct ImportedModel
 	{
-		// TODO: Store node hierarchy, transforms, cameras, lights, and animations instead of only flattened meshes.
 		std::filesystem::path source_path;
+		bool has_root_node = false;
+		ImportedNode root_node{};
 		ve::core::DynamicArray<ImportedMaterial> materials;
 		ve::core::DynamicArray<ImportedMesh> meshes;
 		ve::core::DynamicArray<ModelImportDiagnostic> diagnostics;
+		std::uint32_t source_camera_count = 0;
+		std::uint32_t source_light_count = 0;
 		std::uint32_t source_animation_count = 0;
 	};
 
