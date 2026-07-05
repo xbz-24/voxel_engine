@@ -54,7 +54,7 @@ namespace ve::engine
 
 		EngineApplication& engine_;
 		Window window_;
-		EngineApplication::CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
+		EngineApplication::CallbackContext callback_context_{};
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;

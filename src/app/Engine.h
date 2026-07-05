@@ -11,6 +11,7 @@
 #include "EngineState.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
+#include "MouseLookInput.h"
 #include "Plane.h"
 #include "RuntimeSettings.h"
 #include "SkyBox.h"
@@ -52,18 +53,12 @@ public:
 private:
 	friend class ve::engine::EngineRuntime;
 
-	struct MouseState
-	{
-		double previousX;
-		double previousY;
-		bool isFirstInputEvent;
-	};
-
 	struct CallbackContext
 	{
-		Camera* camera;
-		const bool* isSettingsMenuOpen;
-		MouseState mouse;
+		Camera* camera = nullptr;
+		const bool* isSettingsMenuOpen = nullptr;
+		const ve::gameplay::MouseLookSettings* mouse_look_settings = nullptr;
+		ve::engine::MouseLookState mouse_look;
 	};
 
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos) noexcept;
