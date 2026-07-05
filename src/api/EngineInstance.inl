@@ -13,7 +13,19 @@
 		{
 			if (validation_issues_.empty())
 			{
-				runtime_ = services.runtime_factory.Create(services.translator.Translate(config));
+				std::vector<std::string> runtime_create_info_issues;
+				std::optional<ve::engine::ValidatedEngineCreateInfo> runtime_create_info =
+					ve::engine::MakeValidatedEngineCreateInfo(
+						services.translator.Translate(config),
+						&runtime_create_info_issues);
+				validation_issues_.insert(
+					validation_issues_.end(),
+					runtime_create_info_issues.begin(),
+					runtime_create_info_issues.end());
+				if (runtime_create_info.has_value())
+				{
+					runtime_ = services.runtime_factory.Create(std::move(*runtime_create_info));
+				}
 			}
 		}
 

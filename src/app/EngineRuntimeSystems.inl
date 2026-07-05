@@ -1,6 +1,7 @@
 	/** Creates model, callbacks, editor UI, and view resources. */
 	EngineStartupResult EngineRuntime::CreateRuntimeSystems()
 	{
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
 		const EngineStartupResult backend_result = CreateRenderBackend();
 		if (!backend_result) return backend_result;
 		ve::rendering::VulkanBackend* vulkan_backend = nullptr;
@@ -16,7 +17,7 @@
 				EngineStartupFailure::RenderViewCreationFailed,
 				"Render view creation failed");
 		}
-		const int world_size_chunks = engine_.create_info_.world_size_chunks;
+		const int world_size_chunks = create_info.world_size_chunks;
 		const auto texture_loading = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan
 			? ve::blocks::BlockRegistry::TextureLoading::MetadataOnly
 			: ve::blocks::BlockRegistry::TextureLoading::LoadTextures;
@@ -24,16 +25,16 @@
 			world_size_chunks,
 			&asset_paths_,
 			texture_loading,
-			engine_.create_info_.terrain_generation,
+			create_info.terrain_generation,
 			backend_.get());
-		vulkan_demo_settings_.scene.preset = engine_.create_info_.vulkan_demo_preset;
+		vulkan_demo_settings_.scene.preset = create_info.vulkan_demo_preset;
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		callback_context_.camera = &model_->MutableCamera();
 		engine_.ConfigureCallbacks(window_, callback_context_);
-		if (engine_.create_info_.has_custom_camera)
+		if (create_info.has_custom_camera)
 		{
-			model_->MutableCamera().MoveTo(engine_.create_info_.camera_position);
-			model_->MutableCamera().TurnTo(engine_.create_info_.camera_look_at);
+			model_->MutableCamera().MoveTo(create_info.camera_position);
+			model_->MutableCamera().TurnTo(create_info.camera_look_at);
 		}
 		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
 		{
@@ -51,6 +52,7 @@
 	/** Creates and initializes the selected backend before constructing its view. */
 	EngineStartupResult EngineRuntime::CreateRenderBackend()
 	{
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
 		backend_ = ve::rendering::RenderBackendFactory::Create(window_.GraphicsApi());
 		if (backend_ == nullptr)
 		{
@@ -89,7 +91,7 @@
 		if (!vulkan_frame_renderer_.Initialize(vulkan_backend,
 			window_,
 			asset_paths_.blockTexturesDirectory,
-			engine_.create_info_.show_debug_overlay))
+			create_info.show_debug_overlay))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
 			return EngineStartupResult::Failure(

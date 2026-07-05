@@ -13,6 +13,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -120,7 +121,6 @@ namespace ve::engine
 
 	struct EngineCreateInfo
 	{
-		// TODO: Add a validated builder layer so unchecked public config does not cross into runtime initialization.
 		WindowCreateInfo window{};
 		ve::rendering::RenderBackendConfiguration render_backend{};
 		RuntimeLogSettings logging{};
@@ -139,4 +139,24 @@ namespace ve::engine
 		std::function<void(const RuntimeDiagnostics&)> on_diagnostics;
 		std::function<void(const std::string&)> on_log;
 	};
+
+	class ValidatedEngineCreateInfo
+	{
+	public:
+		[[nodiscard]] const EngineCreateInfo& Value() const noexcept;
+
+	private:
+		friend std::optional<ValidatedEngineCreateInfo> MakeValidatedEngineCreateInfo(
+			EngineCreateInfo create_info,
+			std::vector<std::string>* issues);
+
+		explicit ValidatedEngineCreateInfo(EngineCreateInfo create_info);
+
+		EngineCreateInfo create_info_;
+	};
+
+	[[nodiscard]] std::vector<std::string> ValidateEngineCreateInfo(const EngineCreateInfo& create_info);
+	[[nodiscard]] std::optional<ValidatedEngineCreateInfo> MakeValidatedEngineCreateInfo(
+		EngineCreateInfo create_info,
+		std::vector<std::string>* issues = nullptr);
 }

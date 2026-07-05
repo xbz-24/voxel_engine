@@ -1,14 +1,15 @@
 	void EngineRuntime::ApplyConfiguredWorldEditsOnce()
 	{
 		if (configured_world_edits_applied_ || model_ == nullptr) return;
-		if (engine_.create_info_.world_edits.empty())
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
+		if (create_info.world_edits.empty())
 		{
 			configured_world_edits_applied_ = true;
 			return;
 		}
 		if (model_->PendingWorldGenerationCount() != 0) return;
 
-		ApplyWorldEdits(engine_.create_info_.world_edits);
+		ApplyWorldEdits(create_info.world_edits);
 		configured_world_edits_applied_ = true;
 		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Applied configured public API world edits");
 	}

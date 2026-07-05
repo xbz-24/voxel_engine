@@ -40,7 +40,8 @@ namespace voxel::detail
 	public:
 		virtual ~IEngineRuntimeFactory() = default;
 
-		[[nodiscard]] virtual std::unique_ptr<IEngineRuntime> Create(ve::engine::EngineCreateInfo create_info) const = 0;
+		[[nodiscard]] virtual std::unique_ptr<IEngineRuntime> Create(
+			ve::engine::ValidatedEngineCreateInfo create_info) const = 0;
 	};
 
 	struct EngineServices

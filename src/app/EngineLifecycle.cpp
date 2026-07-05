@@ -27,16 +27,17 @@ ve::engine::EngineStartupResult EngineApplication::InitializeWindow(ve::engine::
 /// Initializes logger outputs that need the resolved project root.
 void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
+	const ve::engine::EngineCreateInfo& create_info = CreateInfo();
 	std::optional<std::filesystem::path> file_output_path;
-	if (create_info_.logging.file_output_enabled)
+	if (create_info.logging.file_output_enabled)
 	{
-		file_output_path = create_info_.logging.file_output_path.empty()
+		file_output_path = create_info.logging.file_output_path.empty()
 			? assetPaths.rootDirectory / "logs/engine.log"
-			: create_info_.logging.file_output_path;
+			: create_info.logging.file_output_path;
 	}
 	ve::log::ApplyConfiguration(ve::log::LoggerConfiguration{
-		create_info_.logging.minimum_level,
-		create_info_.logging.console_enabled,
+		create_info.logging.minimum_level,
+		create_info.logging.console_enabled,
 		file_output_path
 	});
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");

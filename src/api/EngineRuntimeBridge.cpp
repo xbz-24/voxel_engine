@@ -12,7 +12,7 @@ namespace voxel::detail
 		class ApplicationEngineRuntime final : public IEngineRuntime
 		{
 		public:
-			explicit ApplicationEngineRuntime(ve::engine::EngineCreateInfo create_info)
+			explicit ApplicationEngineRuntime(ve::engine::ValidatedEngineCreateInfo create_info)
 				: engine_(std::move(create_info))
 			{
 			}
@@ -34,7 +34,8 @@ namespace voxel::detail
 		class ApplicationEngineRuntimeFactory final : public IEngineRuntimeFactory
 		{
 		public:
-			[[nodiscard]] std::unique_ptr<IEngineRuntime> Create(ve::engine::EngineCreateInfo create_info) const override
+			[[nodiscard]] std::unique_ptr<IEngineRuntime> Create(
+				ve::engine::ValidatedEngineCreateInfo create_info) const override
 			{
 				return std::make_unique<ApplicationEngineRuntime>(std::move(create_info));
 			}

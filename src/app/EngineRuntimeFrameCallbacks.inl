@@ -22,12 +22,13 @@
 
 	void EngineRuntime::InvokePublicApiFrameCallbacks()
 	{
-		if (!engine_.create_info_.on_update && !engine_.create_info_.on_diagnostics) return;
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
+		if (!create_info.on_update && !create_info.on_diagnostics) return;
 
 		GLFWwindow* native_window = window_.GetNativeWindow();
 		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(native_window);
 
-		if (engine_.create_info_.on_update)
+		if (create_info.on_update)
 		{
 			RuntimeFrameContext runtime_frame_context{};
 			runtime_frame_context.delta_seconds = static_cast<float>(frame_timer_.DeltaSeconds());
@@ -50,16 +51,16 @@
 					runtime_frame_context.hit_result.target_block_id = model_->GetWorld().GetBlock(selection.target_block);
 				}
 			}
-			engine_.create_info_.on_update(runtime_frame_context);
+			create_info.on_update(runtime_frame_context);
 			ApplyWorldEdits(runtime_frame_context.world_edits);
 			if (runtime_frame_context.request_close) window_.Close();
 		}
 
-		if (engine_.create_info_.on_diagnostics)
+		if (create_info.on_diagnostics)
 		{
 			const ve::world::WorldMetrics world_metrics =
 				model_ != nullptr ? model_->GetWorldMetrics() : ve::world::WorldMetrics{};
-			engine_.create_info_.on_diagnostics(RuntimeDiagnostics{
+			create_info.on_diagnostics(RuntimeDiagnostics{
 				static_cast<double>(frame_timer_.DisplayedFps()),
 				ToDiagnosticCounter(world_metrics.pendingWorldEventCount),
 				engine_._runtimeSettings.renderDistanceChunks,

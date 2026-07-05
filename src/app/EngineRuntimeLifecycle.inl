@@ -3,7 +3,7 @@ namespace ve::engine
 	/** Stores the engine facade used by runtime systems. */
 	EngineRuntime::EngineRuntime(EngineApplication& engine) noexcept
 		: engine_(engine),
-		  window_(engine.create_info_.window)
+		  window_(engine.CreateInfo().window)
 	{
 	}
 
@@ -37,9 +37,10 @@ namespace ve::engine
 	void EngineRuntime::PrepareAssetsAndLogging()
 	{
 		ve::assets::AssetPathResolveOptions asset_path_options;
-		asset_path_options.search_roots = engine_.create_info_.asset_search_roots;
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
+		asset_path_options.search_roots = create_info.asset_search_roots;
 		asset_paths_ = ve::assets::Resolve(asset_path_options);
-		ve::log::SetCallback(engine_.create_info_.on_log);
+		ve::log::SetCallback(create_info.on_log);
 		engine_.ConfigureRuntimeLogging(asset_paths_);
 	}
 
