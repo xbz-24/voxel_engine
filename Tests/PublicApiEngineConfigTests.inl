@@ -111,5 +111,12 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(version.major == 0);
 	CHECK(features.vulkan_by_default);
 	CHECK(features.world_config_serialization);
-	CHECK(!features.scene_graph_authoring);
+	CHECK(features.asset_search_roots);
+	CHECK(!features.asset_catalog_runtime_loading);
+	CHECK(!features.material_library_runtime_binding);
+	CHECK(features.runtime_update_callback);
+	CHECK(features.scene_graph_authoring);
+	CHECK(!features.scene_graph_runtime_rendering);
+	CHECK(!features.embeddable_frame_loop);
+	CHECK(!features.directx12_runtime_backend);
 }

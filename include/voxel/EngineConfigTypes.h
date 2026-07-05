@@ -15,8 +15,14 @@ namespace voxel
 	{
 		bool vulkan_by_default = true;
 		bool world_config_serialization = true;
+		bool asset_search_roots = true;
+		bool asset_catalog_runtime_loading = false;
+		bool material_library_runtime_binding = false;
 		bool runtime_update_callback = true;
-		bool scene_graph_authoring = false;
+		bool scene_graph_authoring = true;
+		bool scene_graph_runtime_rendering = false;
+		bool embeddable_frame_loop = false;
+		bool directx12_runtime_backend = false;
 	};
 
 	[[nodiscard]] constexpr SdkVersion Version() noexcept

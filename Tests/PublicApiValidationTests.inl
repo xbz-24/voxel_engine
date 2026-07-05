@@ -60,6 +60,14 @@ TEST_CASE("public asset catalog validation rejects invalid search roots")
 		"asset search root must not be empty") != issues.end());
 }
 
+TEST_CASE("public engine config accepts runtime-bound asset search roots")
+{
+	const voxel::EngineConfig config = voxel::EngineConfig::Default()
+		.WithAssets(voxel::AssetCatalog{}.SearchRoot("assets"));
+
+	CHECK(config.IsValid());
+}
+
 TEST_CASE("public asset catalog validates source policies")
 {
 	voxel::AssetCatalog assets{};

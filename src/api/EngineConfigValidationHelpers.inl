@@ -2,13 +2,20 @@ namespace voxel
 {
 	namespace
 	{
-		[[nodiscard]] std::string AssetLocation(const AssetSource& source, const std::string& legacy_path)
+		template <typename AssetT>
+		concept PublicAssetRecord = requires(const AssetT& asset) {
+			{ asset.name } -> std::convertible_to<std::string_view>;
+			{ asset.path } -> std::convertible_to<std::string_view>;
+			{ asset.source } -> std::same_as<const AssetSource&>;
+		};
+
+		[[nodiscard]] std::string AssetLocation(const AssetSource& source, std::string_view legacy_path)
 		{
-			return source.location.empty() ? legacy_path : source.location;
+			return source.location.empty() ? std::string{ legacy_path } : source.location;
 		}
 
 		void ValidateAssetSource(const AssetSource& source,
-			const std::string& legacy_path,
+			std::string_view legacy_path,
 			std::string_view kind,
 			bool require_existing_files,
 			std::vector<std::string>& issues)
@@ -51,14 +58,15 @@ namespace voxel
 			}
 		}
 
-		template <typename AssetT>
-		void ValidateAssets(const std::vector<AssetT>& assets,
+		template <std::ranges::input_range AssetRange>
+			requires PublicAssetRecord<std::remove_cvref_t<std::ranges::range_reference_t<AssetRange>>>
+		void ValidateAssets(const AssetRange& assets,
 			std::string_view kind,
 			bool require_existing_files,
 			std::vector<std::string>& issues)
 		{
 			std::set<std::string> names;
-			for (const AssetT& asset : assets)
+			for (const auto& asset : assets)
 			{
 				if (asset.name.empty())
 				{
@@ -72,7 +80,7 @@ namespace voxel
 			}
 		}
 
-		void ValidateSearchRoots(const std::vector<std::string>& search_roots,
+		void ValidateSearchRoots(std::span<const std::string> search_roots,
 			bool require_existing_directories,
 			std::vector<std::string>& issues)
 		{
