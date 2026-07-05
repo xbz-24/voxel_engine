@@ -52,6 +52,13 @@
 						public_frame.input.primary_action = frame.input.primary_action;
 						public_frame.input.mouse_x = frame.input.mouse_x;
 						public_frame.input.mouse_y = frame.input.mouse_y;
+						public_frame.camera.position = ToPublicVec3(frame.camera.position);
+						public_frame.camera.forward = ToPublicVec3(frame.camera.forward);
+						public_frame.selected_block = ToPublicBlock(frame.selected_block);
+						public_frame.hit_result.has_hit = frame.hit_result.has_hit;
+						public_frame.hit_result.target_block = ToPublicBlockPosition(frame.hit_result.target_block);
+						public_frame.hit_result.placement_block = ToPublicBlockPosition(frame.hit_result.placement_block);
+						public_frame.hit_result.target_block_type = ToPublicBlock(frame.hit_result.target_block_id);
 						callback(public_frame);
 						frame.world_edits.reserve(public_frame.commands.world_edits.size());
 						for (const WorldEdit& edit : public_frame.commands.world_edits)

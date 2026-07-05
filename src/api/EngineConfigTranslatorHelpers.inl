@@ -76,6 +76,16 @@
 			return { value.x, value.y, value.z };
 		}
 
+		[[nodiscard]] Vec3 ToPublicVec3(glm::vec3 value) noexcept
+		{
+			return { value.x, value.y, value.z };
+		}
+
+		[[nodiscard]] BlockPosition ToPublicBlockPosition(glm::ivec3 position) noexcept
+		{
+			return { position.x, position.y, position.z };
+		}
+
 		[[nodiscard]] ve::rendering::GraphicsApi ToInternalApi(GraphicsApi api) noexcept
 		{
 			switch (api)
@@ -118,6 +128,7 @@
 				return ve::log::Level::Error;
 			case LogLevel::Fatal:
 				return ve::log::Level::Fatal;
+			case LogLevel::Default:
 			case LogLevel::Info:
 			default:
 				return ve::log::Level::Info;

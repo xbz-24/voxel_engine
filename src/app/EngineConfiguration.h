@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ve::engine
@@ -35,12 +36,29 @@ namespace ve::engine
 		double mouse_y = 0.0;
 	};
 
+	struct RuntimeCameraState
+	{
+		glm::vec3 position{ 0.0f };
+		glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
+	};
+
+	struct RuntimeBlockHitResult
+	{
+		bool has_hit = false;
+		glm::ivec3 target_block{ 0 };
+		glm::ivec3 placement_block{ 0 };
+		ve::blocks::BlockId target_block_id = ve::blocks::BlockId::Air;
+	};
+
 	struct RuntimeFrameContext
 	{
 		float delta_seconds = 0.0f;
 		float elapsed_seconds = 0.0f;
 		double fps = 0.0;
 		RuntimeInputSnapshot input{};
+		RuntimeCameraState camera{};
+		ve::blocks::BlockId selected_block = ve::blocks::BlockId::Air;
+		RuntimeBlockHitResult hit_result{};
 		std::vector<WorldBlockEdit> world_edits;
 		bool request_close = false;
 	};
@@ -66,6 +84,38 @@ namespace ve::engine
 		bool console_enabled = true;
 		bool file_output_enabled = true;
 		std::filesystem::path file_output_path;
+	};
+
+	enum class EngineStartupFailure
+	{
+		None,
+		WindowInitializationFailed,
+		RenderBackendUnavailable,
+		UnsupportedRenderBackend,
+		RenderBackendInitializationFailed,
+		RenderFrameRendererInitializationFailed,
+		RenderViewCreationFailed
+	};
+
+	struct EngineStartupResult
+	{
+		EngineStartupFailure failure = EngineStartupFailure::None;
+		std::string message;
+
+		[[nodiscard]] static EngineStartupResult Success()
+		{
+			return {};
+		}
+
+		[[nodiscard]] static EngineStartupResult Failure(EngineStartupFailure failure, std::string message)
+		{
+			return EngineStartupResult{ failure, std::move(message) };
+		}
+
+		[[nodiscard]] explicit operator bool() const noexcept
+		{
+			return failure == EngineStartupFailure::None;
+		}
 	};
 
 	struct EngineCreateInfo

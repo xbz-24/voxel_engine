@@ -8,9 +8,9 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 
 	voxel::AssetCatalog assets{};
 	assets.SearchRoot("assets")
-		.Texture("grass", "assets/grass.png")
-		.Model("crate", "assets/crate.obj")
-		.Sound("click", "assets/click.wav");
+		.Texture("grass", voxel::AssetSource::File("assets/grass.png").EnableHotReload())
+		.Model("crate", voxel::AssetSource::Archive("assets/models.pack", "crate.obj"))
+		.Sound("click", voxel::AssetSource::Embedded({ 1U, 2U, 3U }));
 
 	voxel::MaterialLibrary materials{};
 	materials.Add(voxel::Material::Named("glowing")
@@ -72,6 +72,9 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	CHECK(config.assets.search_roots[0] == "assets");
 	CHECK(config.assets.models.size() == 1);
 	CHECK(config.assets.sounds.size() == 1);
+	CHECK(config.assets.textures[0].source.hot_reload);
+	CHECK(config.assets.models[0].source.storage == voxel::AssetStorage::PackagedArchive);
+	CHECK(config.assets.sounds[0].source.storage == voxel::AssetStorage::EmbeddedData);
 	REQUIRE(config.materials.materials.size() == 1);
 	CHECK(config.materials.materials[0].transparent);
 	CHECK(config.materials.materials[0].base_color.r == doctest::Approx(0.0f));
@@ -95,11 +98,26 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	voxel::FrameContext frame{};
 	frame.input.f1 = true;
 	frame.input.primary_action = true;
+	frame.camera.position = { 1.0f, 2.0f, 3.0f };
+	frame.camera.forward = { 0.0f, 0.0f, -1.0f };
+	frame.selected_block = voxel::Cobblestone;
+	frame.hit_result = voxel::BlockHitResult{
+		true,
+		voxel::At(1, 64, 1),
+		voxel::At(1, 65, 1),
+		voxel::Stone
+	};
 	config.on_update(frame);
 	CHECK(update_called);
 	CHECK(frame.input.IsDown(voxel::Key::F1));
 	CHECK(frame.input.IsActive(voxel::InputAction::ToggleDebugOverlay));
 	CHECK(frame.input.IsActive(voxel::InputAction::PrimaryAction));
+	CHECK(frame.camera.position.y == doctest::Approx(2.0f));
+	CHECK(frame.camera.forward.z == doctest::Approx(-1.0f));
+	CHECK(frame.selected_block == voxel::Cobblestone);
+	CHECK(frame.hit_result.has_hit);
+	CHECK(frame.hit_result.target_block.y == 64);
+	CHECK(frame.hit_result.target_block_type == voxel::Stone);
 	CHECK(frame.commands.world_edits.size() == 2);
 	CHECK(frame.commands.request_close);
 

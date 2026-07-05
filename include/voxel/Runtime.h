@@ -1,5 +1,6 @@
 #pragma once
 
+#include "voxel/Camera.h"
 #include "voxel/World.h"
 
 #include <functional>
@@ -52,6 +53,20 @@ namespace voxel
 		[[nodiscard]] bool IsActive(InputAction action) const noexcept;
 	};
 
+	struct RuntimeCameraState
+	{
+		Vec3 position{};
+		Vec3 forward{};
+	};
+
+	struct BlockHitResult
+	{
+		bool has_hit = false;
+		BlockPosition target_block{};
+		BlockPosition placement_block{};
+		Block target_block_type = Air;
+	};
+
 	struct RuntimeCommands
 	{
 		std::vector<WorldEdit> world_edits;
@@ -82,11 +97,14 @@ namespace voxel
 
 	struct FrameContext
 	{
-		// TODO: Add accessors for camera, selected block, hit result, and entity ids once runtime systems are public.
 		float delta_seconds = 0.0f;
 		float elapsed_seconds = 0.0f;
 		double fps = 0.0;
 		InputSnapshot input{};
+		RuntimeCameraState camera{};
+		Block selected_block = Air;
+		BlockHitResult hit_result{};
+		// TODO: Add stable entity ids once runtime entity systems are public.
 		RuntimeCommands commands{};
 	};
 

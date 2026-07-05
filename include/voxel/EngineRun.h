@@ -22,7 +22,7 @@ namespace voxel
 	class Engine
 	{
 	public:
-		// TODO: Expose Pause/Step/Stop hooks so embedding apps can drive the engine without surrendering the main loop.
+		// TODO: Expose Pause/Step hooks so embedding apps can drive the engine without surrendering the main loop.
 		explicit Engine(EngineConfig config = {});
 		~Engine();
 

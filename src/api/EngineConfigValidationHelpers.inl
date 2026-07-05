@@ -2,6 +2,55 @@ namespace voxel
 {
 	namespace
 	{
+		[[nodiscard]] std::string AssetLocation(const AssetSource& source, const std::string& legacy_path)
+		{
+			return source.location.empty() ? legacy_path : source.location;
+		}
+
+		void ValidateAssetSource(const AssetSource& source,
+			const std::string& legacy_path,
+			std::string_view kind,
+			bool require_existing_files,
+			std::vector<std::string>& issues)
+		{
+			const std::string location = AssetLocation(source, legacy_path);
+			if (source.hot_reload && source.storage != AssetStorage::FilePath)
+			{
+				issues.push_back(std::string{ kind } + " asset hot reload requires a filesystem path");
+			}
+
+			switch (source.storage)
+			{
+			case AssetStorage::EmbeddedData:
+				if (source.embedded_data.empty())
+				{
+					issues.push_back(std::string{ kind } + " embedded asset data must not be empty");
+				}
+				return;
+			case AssetStorage::PackagedArchive:
+				if (source.archive_path.empty())
+				{
+					issues.push_back(std::string{ kind } + " archive path must not be empty");
+				}
+				if (location.empty())
+				{
+					issues.push_back(std::string{ kind } + " archive entry path must not be empty");
+				}
+				return;
+			case AssetStorage::FilePath:
+			default:
+				if (location.empty())
+				{
+					issues.push_back(std::string{ kind } + " asset path must not be empty");
+				}
+				else if (require_existing_files && !std::filesystem::exists(location))
+				{
+					issues.push_back(std::string{ kind } + " asset path does not exist: " + location);
+				}
+				return;
+			}
+		}
+
 		template <typename AssetT>
 		void ValidateAssets(const std::vector<AssetT>& assets,
 			std::string_view kind,
@@ -19,14 +68,7 @@ namespace voxel
 				{
 					issues.push_back(std::string{ kind } + " asset name is duplicated: " + asset.name);
 				}
-				if (asset.path.empty())
-				{
-					issues.push_back(std::string{ kind } + " asset path must not be empty");
-				}
-				else if (require_existing_files && !std::filesystem::exists(asset.path))
-				{
-					issues.push_back(std::string{ kind } + " asset path does not exist: " + asset.path);
-				}
+				ValidateAssetSource(asset.source, asset.path, kind, require_existing_files, issues);
 			}
 		}
 

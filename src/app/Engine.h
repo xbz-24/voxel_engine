@@ -72,7 +72,7 @@ private:
 	void ConfigureOpenGLState();
 
 	/** Initializes the window for the selected graphics backend. */
-	bool InitializeWindow(ve::engine::Window& window);
+	[[nodiscard]] ve::engine::EngineStartupResult InitializeWindow(ve::engine::Window& window);
 
 	/** Configures console and file logging after asset paths are resolved. */
 	void ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths);

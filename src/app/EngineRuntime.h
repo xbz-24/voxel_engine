@@ -29,10 +29,10 @@ namespace ve::engine
 		[[nodiscard]] int Execute();
 
 	private:
-		[[nodiscard]] bool Initialize();
+		[[nodiscard]] EngineStartupResult Initialize();
 		void PrepareAssetsAndLogging();
-		[[nodiscard]] bool CreateRuntimeSystems();
-		[[nodiscard]] bool CreateRenderBackend();
+		[[nodiscard]] EngineStartupResult CreateRuntimeSystems();
+		[[nodiscard]] EngineStartupResult CreateRenderBackend();
 
 		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 

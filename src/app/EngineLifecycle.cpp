@@ -6,20 +6,22 @@
 #include <algorithm>
 #include <filesystem>
 #include <optional>
+#include <string>
 
 /// Initializes the native window and applies runtime window options.
-bool EngineApplication::InitializeWindow(ve::engine::Window& window)
+ve::engine::EngineStartupResult EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
-	// TODO: Return structured startup errors instead of a bool so the public API can report missing drivers/backends clearly.
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
 		_runtimeSettings.renderBackendConfiguration);
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, ve::rendering::RenderBackendSelector::Name(graphics_api));
 	if (!window.Initialize(graphics_api))
 	{
-		return false;
+		return ve::engine::EngineStartupResult::Failure(
+			ve::engine::EngineStartupFailure::WindowInitializationFailed,
+			"Window initialization failed for " + std::string{ ve::rendering::RenderBackendSelector::Name(graphics_api) });
 	}
 	window.SetVSync(_runtimeSettings.isVSyncEnabled);
-	return true;
+	return ve::engine::EngineStartupResult::Success();
 }
 
 /// Initializes logger outputs that need the resolved project root.

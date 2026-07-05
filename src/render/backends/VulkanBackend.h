@@ -9,20 +9,61 @@
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
 
+#include <string>
+#include <utility>
+
 namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
+	enum class VulkanBackendInitializationFailure
+	{
+		None,
+		ContextCreationFailed,
+		SurfaceCreationFailed,
+		PhysicalDeviceSelectionFailed,
+		LogicalDeviceCreationFailed,
+		AllocatorCreationFailed,
+		SwapchainCreationFailed
+	};
+
+	struct VulkanBackendInitializationResult
+	{
+		VulkanBackendInitializationFailure failure = VulkanBackendInitializationFailure::None;
+		std::string message;
+
+		[[nodiscard]] static VulkanBackendInitializationResult Success()
+		{
+			return {};
+		}
+
+		[[nodiscard]] static VulkanBackendInitializationResult Failure(
+			VulkanBackendInitializationFailure failure,
+			std::string message)
+		{
+			return VulkanBackendInitializationResult{ failure, std::move(message) };
+		}
+
+		[[nodiscard]] explicit operator bool() const noexcept
+		{
+			return failure == VulkanBackendInitializationFailure::None;
+		}
+	};
+
 	/** High-level object that owns Vulkan startup state for the renderer. */
 	class VulkanBackend final : public RenderBackend
 	{
 	public:
-		// TODO: Move backend initialization reporting to structured errors so API users can show actionable failure messages.
 		/** Initializes with default Vulkan backend settings. */
 		[[nodiscard]] bool Initialize(ve::engine::Window& window);
 
 		/** @param settings Vulkan backend settings. @param window Presentation window. @return True when full backend startup succeeds. */
 		[[nodiscard]] bool Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window);
+
+		/** @param settings Vulkan backend settings. @param window Presentation window. @return Startup stage and message. */
+		[[nodiscard]] VulkanBackendInitializationResult InitializeDetailed(
+			const VulkanBackendSettings& settings,
+			ve::engine::Window& window);
 
 		/** Releases all Vulkan backend state. */
 		void Release();

@@ -5,6 +5,7 @@
 /** Starts the engine runtime and returns a process-style status code. */
 int EngineApplication::Run()
 {
+	// TODO: Support an externally driven Tick/Present mode once EngineRuntime owns a nonblocking lifecycle.
 	stop_requested_.store(false, std::memory_order_relaxed);
 	ve::engine::EngineRuntime runtime{ *this };
 	return runtime.Execute();

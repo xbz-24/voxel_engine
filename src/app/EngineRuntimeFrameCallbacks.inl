@@ -34,6 +34,22 @@
 			runtime_frame_context.elapsed_seconds = static_cast<float>(elapsed_seconds_);
 			runtime_frame_context.fps = frame_timer_.DisplayedFps();
 			runtime_frame_context.input = runtime_input_snapshot;
+			if (model_ != nullptr)
+			{
+				const Camera& camera = model_->GetCamera();
+				runtime_frame_context.camera.position = camera.GetPosition();
+				runtime_frame_context.camera.forward = camera.GetForward();
+				runtime_frame_context.selected_block = controller_.SelectedPlacementBlock();
+
+				const ve::gameplay::BlockSelection& selection = model_->GetSelection();
+				runtime_frame_context.hit_result.has_hit = selection.has_target;
+				runtime_frame_context.hit_result.target_block = selection.target_block;
+				runtime_frame_context.hit_result.placement_block = selection.placement_block;
+				if (selection.has_target)
+				{
+					runtime_frame_context.hit_result.target_block_id = model_->GetWorld().GetBlock(selection.target_block);
+				}
+			}
 			engine_.create_info_.on_update(runtime_frame_context);
 			ApplyWorldEdits(runtime_frame_context.world_edits);
 			if (runtime_frame_context.request_close) window_.Close();

@@ -1,7 +1,8 @@
 	/** Creates model, callbacks, editor UI, and view resources. */
-	bool EngineRuntime::CreateRuntimeSystems()
+	EngineStartupResult EngineRuntime::CreateRuntimeSystems()
 	{
-		if (!CreateRenderBackend()) return false;
+		const EngineStartupResult backend_result = CreateRenderBackend();
+		if (!backend_result) return backend_result;
 		ve::rendering::VulkanBackend* vulkan_backend = nullptr;
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
 		{
@@ -11,7 +12,9 @@
 		if (view_ == nullptr)
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Render view creation failed");
-			return false;
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderViewCreationFailed,
+				"Render view creation failed");
 		}
 		const int world_size_chunks = engine_.create_info_.world_size_chunks;
 		const auto texture_loading = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan
@@ -42,19 +45,26 @@
 		{
 			editor_controller_.Initialize(window_, engine_._runtimeSettings);
 		}
-		return true;
+		return EngineStartupResult::Success();
 	}
 
 	/** Creates and initializes the selected backend before constructing its view. */
-	bool EngineRuntime::CreateRenderBackend()
+	EngineStartupResult EngineRuntime::CreateRenderBackend()
 	{
 		backend_ = ve::rendering::RenderBackendFactory::Create(window_.GraphicsApi());
-		if (backend_ == nullptr) return false;
-		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) return true;
+		if (backend_ == nullptr)
+		{
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderBackendUnavailable,
+				"Render backend factory returned no backend");
+		}
+		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) return EngineStartupResult::Success();
 		if (window_.GraphicsApi() != ve::rendering::GraphicsApi::Vulkan)
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Selected render backend is not implemented");
-			return false;
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::UnsupportedRenderBackend,
+				"Selected render backend is not implemented");
 		}
 
 		auto& vulkan_backend = static_cast<ve::rendering::VulkanBackend&>(*backend_);
@@ -66,10 +76,15 @@
 			settings.context.enable_debug_utils = true;
 		}
 #endif
-		if (!vulkan_backend.Initialize(settings, window_))
+		const ve::rendering::VulkanBackendInitializationResult vulkan_backend_result =
+			vulkan_backend.InitializeDetailed(settings, window_);
+		if (!vulkan_backend_result)
 		{
-			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan backend initialization failed");
-			return false;
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine,
+				"Vulkan backend initialization failed: " + vulkan_backend_result.message);
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderBackendInitializationFailed,
+				"Vulkan backend initialization failed: " + vulkan_backend_result.message);
 		}
 		if (!vulkan_frame_renderer_.Initialize(vulkan_backend,
 			window_,
@@ -77,7 +92,9 @@
 			engine_.create_info_.show_debug_overlay))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
-			return false;
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderFrameRendererInitializationFailed,
+				"Vulkan frame renderer initialization failed");
 		}
-		return true;
+		return EngineStartupResult::Success();
 	}

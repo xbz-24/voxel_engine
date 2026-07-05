@@ -8,20 +8,32 @@ namespace ve::rendering
 	bool VulkanBackend::Initialize(ve::engine::Window& window)
 	{
 		VulkanBackendSettings settings{};
-		return Initialize(settings, window);
+		return static_cast<bool>(InitializeDetailed(settings, window));
 	}
 
 	bool VulkanBackend::Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window)
 	{
+		return static_cast<bool>(InitializeDetailed(settings, window));
+	}
+
+	VulkanBackendInitializationResult VulkanBackend::InitializeDetailed(
+		const VulkanBackendSettings& settings,
+		ve::engine::Window& window)
+	{
 		const VulkanBackendWindowSettings window_settings = CaptureVulkanWindowSettings(window);
 		const VulkanContextSettings context_settings = BuildVulkanContextSettings(settings, window_settings);
+		VulkanBackendInitializationResult result = VulkanBackendInitializationResult::Success();
 
-		auto initialize_step = [&](const char* info_message, const char* error_message, auto&& action) -> bool
+		auto initialize_step = [&](const char* info_message,
+			VulkanBackendInitializationFailure failure,
+			const char* error_message,
+			auto&& action) -> bool
 		{
 			VE_LOG_CATEGORY_INFO(ve::log::category::Render, info_message);
 			if (!action())
 			{
 				VE_LOG_CATEGORY_ERROR(ve::log::category::Render, error_message);
+				result = VulkanBackendInitializationResult::Failure(failure, error_message);
 				return false;
 			}
 			return true;
@@ -29,21 +41,39 @@ namespace ve::rendering
 
 		const VulkanSwapchainSettings swapchain_settings = BuildVulkanSwapchainSettings(settings, window_settings);
 		const bool is_initialized =
-			initialize_step("Initializing Vulkan context", "Context creation failed", [&] { return context_.Initialize(context_settings); }) &&
-			initialize_step("Creating Vulkan window surface", "Surface creation failed", [&] { return surface_.Create(context_.Instance(), window); }) &&
-			initialize_step("Selecting Vulkan physical device", "No suitable physical device", [&] { return physical_device_.Select(context_.Instance(), BuildVulkanPhysicalDeviceCriteria(settings, surface_.Handle())); }) &&
-			initialize_step("Creating Vulkan logical device", "Logical device creation failed", [&] { return device_.Create(physical_device_.Handle(), physical_device_.QueueFamilies(), settings.device); }) &&
-			initialize_step("Creating Vulkan memory allocator", "Allocator creation failed", [&] { return allocator_.Initialize(context_.Instance(), physical_device_.Handle(), device_.Handle()); }) &&
-			initialize_step("Creating Vulkan swapchain", "Swapchain creation failed", [&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), swapchain_settings); });
+			initialize_step("Initializing Vulkan context",
+				VulkanBackendInitializationFailure::ContextCreationFailed,
+				"Context creation failed",
+				[&] { return context_.Initialize(context_settings); }) &&
+			initialize_step("Creating Vulkan window surface",
+				VulkanBackendInitializationFailure::SurfaceCreationFailed,
+				"Surface creation failed",
+				[&] { return surface_.Create(context_.Instance(), window); }) &&
+			initialize_step("Selecting Vulkan physical device",
+				VulkanBackendInitializationFailure::PhysicalDeviceSelectionFailed,
+				"No suitable physical device",
+				[&] { return physical_device_.Select(context_.Instance(), BuildVulkanPhysicalDeviceCriteria(settings, surface_.Handle())); }) &&
+			initialize_step("Creating Vulkan logical device",
+				VulkanBackendInitializationFailure::LogicalDeviceCreationFailed,
+				"Logical device creation failed",
+				[&] { return device_.Create(physical_device_.Handle(), physical_device_.QueueFamilies(), settings.device); }) &&
+			initialize_step("Creating Vulkan memory allocator",
+				VulkanBackendInitializationFailure::AllocatorCreationFailed,
+				"Allocator creation failed",
+				[&] { return allocator_.Initialize(context_.Instance(), physical_device_.Handle(), device_.Handle()); }) &&
+			initialize_step("Creating Vulkan swapchain",
+				VulkanBackendInitializationFailure::SwapchainCreationFailed,
+				"Swapchain creation failed",
+				[&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), swapchain_settings); });
 
 		if (!is_initialized)
 		{
 			Release();
-			return false;
+			return result;
 		}
 
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan backend initialized successfully");
-		return true;
+		return VulkanBackendInitializationResult::Success();
 	}
 
 	/** Releases Vulkan startup state. */

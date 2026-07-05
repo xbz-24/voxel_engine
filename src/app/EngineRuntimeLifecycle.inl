@@ -10,8 +10,10 @@ namespace ve::engine
 	/** Initializes, runs, and shuts down the runtime. */
 	int EngineRuntime::Execute()
 	{
-		if (!Initialize())
+		const EngineStartupResult startup_result = Initialize();
+		if (!startup_result)
 		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, startup_result.message);
 			Shutdown();
 			return -1;
 		}
@@ -21,11 +23,12 @@ namespace ve::engine
 	}
 
 	/** Creates the window and every runtime system needed by the frame loop. */
-	bool EngineRuntime::Initialize()
+	EngineStartupResult EngineRuntime::Initialize()
 	{
 		callback_context_.isSettingsMenuOpen = &engine_._runtimeSettings.isSettingsMenuOpen;
 		PrepareAssetsAndLogging();
-		if (!engine_.InitializeWindow(window_)) return false;
+		const EngineStartupResult window_result = engine_.InitializeWindow(window_);
+		if (!window_result) return window_result;
 		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) engine_.ConfigureOpenGLState();
 		return CreateRuntimeSystems();
 	}
