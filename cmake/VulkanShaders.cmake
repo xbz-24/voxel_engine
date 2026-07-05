@@ -1,7 +1,7 @@
-set(VE_VULKAN_SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/shaders/vulkan")
+set(VE_VULKAN_SHADER_OUTPUT_DIR "${PROJECT_BINARY_DIR}/generated/shaders/vulkan")
 set(VE_VULKAN_SHADER_SOURCES
-    "${CMAKE_SOURCE_DIR}/shaders/vulkan/voxel_chunk.vert"
-    "${CMAKE_SOURCE_DIR}/shaders/vulkan/voxel_chunk.frag"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_chunk.vert"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_chunk.frag"
 )
 set(VE_VULKAN_SHADER_OUTPUTS)
 foreach(shader_source IN LISTS VE_VULKAN_SHADER_SOURCES)

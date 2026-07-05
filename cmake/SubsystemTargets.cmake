@@ -1,5 +1,5 @@
-set(VE_SOURCE_ROOT "${CMAKE_SOURCE_DIR}/src")
-set(VE_PUBLIC_INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include")
+set(VE_SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
+set(VE_PUBLIC_INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include")
 
 function(ve_collect_subsystem directory prefix)
     file(GLOB subsystem_sources CONFIGURE_DEPENDS "${directory}/*.cpp")

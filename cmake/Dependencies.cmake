@@ -21,7 +21,7 @@ if (NOT VE_GLSLC_EXECUTABLE)
 endif()
 find_package(Stb QUIET)
 if (NOT Stb_FOUND)
-    find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${CMAKE_SOURCE_DIR} REQUIRED)
+    find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${PROJECT_SOURCE_DIR} REQUIRED)
 endif()
 
 # Third-party usage requirements live in one place so subsystem targets stay small.
@@ -29,5 +29,5 @@ add_library(ve_dependencies INTERFACE)
 target_compile_definitions(ve_dependencies INTERFACE
     _WIN32_WINNT=0x0A00
     NOMINMAX
-    ROOT_DIR="${CMAKE_SOURCE_DIR}"
+    ROOT_DIR="${PROJECT_SOURCE_DIR}"
 )

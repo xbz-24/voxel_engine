@@ -14,5 +14,5 @@ add_library(ve_project_options INTERFACE)
 target_compile_features(ve_project_options INTERFACE cxx_std_23)
 # TODO: Add compiler matrix CI presets for MSVC, ClangCL, and one non-Windows toolchain before treating the SDK as portable.
 
-include("${CMAKE_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
-include("${CMAKE_SOURCE_DIR}/cmake/Sanitizers.cmake")
+include("${PROJECT_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
+include("${PROJECT_SOURCE_DIR}/cmake/Sanitizers.cmake")
