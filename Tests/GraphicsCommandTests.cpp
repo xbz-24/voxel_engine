@@ -116,7 +116,7 @@ TEST_CASE("render command list reuses frame arena for text commands")
 	REQUIRE(commands.Count() == 1U);
 	const auto* text_command = std::get_if<ve::rendering::DrawText2DCommand>(&commands.Commands()[0].payload);
 	REQUIRE(text_command != nullptr);
-	CHECK(text_command->text == "HUD");
+	CHECK(text_command->text.compare("HUD") == 0);
 }
 
 TEST_CASE("graphics facade records and submits common primitives")
