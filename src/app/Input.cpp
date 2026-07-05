@@ -1,6 +1,7 @@
 #include "Input.h"
 
 #include "InputMappings.h"
+#include "Window.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -14,30 +15,42 @@ namespace
 		wasPressed = isPressed;
 		return wasJustPressed;
 	}
+
+	bool IsKeyPressed(GLFWwindow* window, ve::input::Key key) noexcept
+	{
+		return window && glfwGetKey(window, ve::input::detail::ToGlfwKey(key)) == GLFW_PRESS;
+	}
+
+	bool IsMouseButtonPressed(GLFWwindow* window, ve::input::MouseButton button) noexcept
+	{
+		return window &&
+			glfwGetMouseButton(window, ve::input::detail::ToGlfwMouseButton(button)) == GLFW_PRESS;
+	}
 }
 
 namespace ve::input
 {
-	InputSnapshot CaptureInputSnapshot(GLFWwindow* window) noexcept
+	InputSnapshot CaptureInputSnapshot(const ve::engine::Window& window) noexcept
 	{
+		GLFWwindow* native_window = window.GetNativeWindow();
 		InputSnapshot snapshot;
 		for (std::size_t index = 0; index < snapshot.keys.size(); ++index)
 		{
 			const Key key = static_cast<Key>(index);
-			snapshot.keys[index] = window && glfwGetKey(window, detail::ToGlfwKey(key)) == GLFW_PRESS;
+			snapshot.keys[index] = IsKeyPressed(native_window, key);
 		}
 		for (std::size_t index = 0; index < snapshot.mouse_buttons.size(); ++index)
 		{
 			const MouseButton button = static_cast<MouseButton>(index);
-			snapshot.mouse_buttons[index] = window && glfwGetMouseButton(window, detail::ToGlfwMouseButton(button)) == GLFW_PRESS;
+			snapshot.mouse_buttons[index] = IsMouseButtonPressed(native_window, button);
 		}
 		return snapshot;
 	}
 
 	/// Reads whether a key is held down this frame.
-	bool IsPressed(GLFWwindow* window, Key key) noexcept
+	bool IsPressed(const ve::engine::Window& window, Key key) noexcept
 	{
-		return window && glfwGetKey(window, detail::ToGlfwKey(key)) == GLFW_PRESS;
+		return IsKeyPressed(window.GetNativeWindow(), key);
 	}
 
 	bool IsPressed(const InputSnapshot& snapshot, Key key) noexcept
@@ -47,9 +60,9 @@ namespace ve::input
 	}
 
 	/// Reads whether a mouse button is held down this frame.
-	bool IsPressed(GLFWwindow* window, MouseButton button) noexcept
+	bool IsPressed(const ve::engine::Window& window, MouseButton button) noexcept
 	{
-		return window && glfwGetMouseButton(window, detail::ToGlfwMouseButton(button)) == GLFW_PRESS;
+		return IsMouseButtonPressed(window.GetNativeWindow(), button);
 	}
 
 	bool IsPressed(const InputSnapshot& snapshot, MouseButton button) noexcept
@@ -59,7 +72,7 @@ namespace ve::input
 	}
 
 	/// Converts a held key into a one-shot press event.
-	bool WasPressed(GLFWwindow* window, Key key, bool& wasPressed) noexcept
+	bool WasPressed(const ve::engine::Window& window, Key key, bool& wasPressed) noexcept
 	{
 		return ConsumeRisingEdge(IsPressed(window, key), wasPressed);
 	}
@@ -70,7 +83,7 @@ namespace ve::input
 	}
 
 	/// Converts a held mouse button into a one-shot press event.
-	bool WasPressed(GLFWwindow* window, MouseButton button, bool& wasPressed) noexcept
+	bool WasPressed(const ve::engine::Window& window, MouseButton button, bool& wasPressed) noexcept
 	{
 		return ConsumeRisingEdge(IsPressed(window, button), wasPressed);
 	}

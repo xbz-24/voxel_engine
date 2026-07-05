@@ -7,7 +7,7 @@
 		double delta_seconds,
 		bool ui_captures_input)
 	{
-		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window.GetNativeWindow());
+		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window);
 		if (ve::input::IsPressed(input, ve::input::Key::Escape)) window.Close();
 		static bool was_f3_down = false;
 		const bool f3_down = ve::input::IsPressed(input, ve::input::Key::F3);

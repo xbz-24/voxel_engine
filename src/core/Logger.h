@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -22,6 +23,8 @@ namespace ve::log
 
 	void Write(Level level, std::string_view message, SourceLocation source = {});
 	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source = {});
+	void Write(Level level, std::string_view message, std::span<const Field> fields, SourceLocation source = {});
+	void Write(Level level, std::string_view category, std::string_view message, std::span<const Field> fields, SourceLocation source = {});
 
 	void Trace(std::string_view message, SourceLocation source = {});
 	void Debug(std::string_view message, SourceLocation source = {});

@@ -5,18 +5,12 @@
 #include "BlockTextureCache.h"
 #include "CoreTypes.h"
 
+#include <utility>
+
 namespace ve::blocks
 {
 	namespace
 	{
-		/**
-		 * Converts a block id into an array index.
-		 */
-		constexpr std::size_t IndexOf(BlockId id)
-		{
-			return ve::core::ToIndex(id);
-		}
-
 		/**
 		 * Converts a face id into an array index.
 		 */
@@ -46,6 +40,11 @@ namespace ve::blocks
 			faces.fill(ve::rendering::kInvalidTextureHandle);
 			return faces;
 		}
+
+		bool IsUsableBlockId(BlockId id) noexcept
+		{
+			return id != BlockId::Count;
+		}
 	}
 
 	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading)
@@ -53,19 +52,40 @@ namespace ve::blocks
 		BlockTextureCache cache(paths.blockTexturesDirectory);
 		for (const BlockDefinition& definition : BuiltInBlockDefinitions)
 		{
-			_blocks[IndexOf(definition.id)] = BlockType{
+			(void)Register(BlockType{
 				definition.id,
-				definition.name,
+				std::string{ definition.name },
 				definition.isSolid,
 				texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition.textures) : EmptyFaces(),
 				DefaultPbrMaterialForBlock(definition.id)
-			};
+			});
 		}
+	}
+
+	bool BlockRegistry::Register(BlockType block_type)
+	{
+		if (!IsUsableBlockId(block_type.id))
+		{
+			return false;
+		}
+		_blocks.insert_or_assign(block_type.id, std::move(block_type));
+		return true;
+	}
+
+	bool BlockRegistry::Contains(BlockId id) const
+	{
+		return _blocks.find(id) != _blocks.end();
+	}
+
+	std::size_t BlockRegistry::RegisteredBlockCount() const noexcept
+	{
+		return _blocks.size();
 	}
 
 	const BlockType& BlockRegistry::Get(BlockId id) const
 	{
-		return _blocks[IndexOf(id)];
+		const auto block_iterator = _blocks.find(id);
+		return block_iterator != _blocks.end() ? block_iterator->second : FallbackBlock();
 	}
 
 	bool BlockRegistry::IsAir(BlockId id) const
@@ -86,5 +106,23 @@ namespace ve::blocks
 	const ve::rendering::PbrMaterial& BlockRegistry::MaterialFor(BlockId id) const
 	{
 		return Get(id).material;
+	}
+
+	const BlockType& BlockRegistry::FallbackBlock() const noexcept
+	{
+		const auto air_iterator = _blocks.find(BlockId::Air);
+		if (air_iterator != _blocks.end())
+		{
+			return air_iterator->second;
+		}
+
+		static const BlockType fallback_air_block{
+			BlockId::Air,
+			"Air",
+			false,
+			EmptyFaces(),
+			ve::rendering::PbrMaterial{}
+		};
+		return fallback_air_block;
 	}
 }

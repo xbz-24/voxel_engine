@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include "BlockRegistry.h"
 #include "BlockSelection.h"
 #include "BlockSelectionCube.h"
@@ -11,9 +8,9 @@
 #include "EngineState.h"
 #include "FrameTimer.h"
 #include "HudRenderer.h"
-#include "MouseLookInput.h"
 #include "Plane.h"
 #include "RuntimeSettings.h"
+#include "RuntimeInputRouter.h"
 #include "SkyBox.h"
 #include "Window.h"
 #include "World.h"
@@ -53,18 +50,8 @@ public:
 private:
 	friend class ve::engine::EngineRuntime;
 
-	struct CallbackContext
-	{
-		Camera* camera = nullptr;
-		const bool* isSettingsMenuOpen = nullptr;
-		const ve::gameplay::MouseLookSettings* mouse_look_settings = nullptr;
-		ve::engine::MouseLookState mouse_look;
-	};
-
-	static void mouse_callback(GLFWwindow* window, double xpos, double ypos) noexcept;
-
 	/** Connects GLFW callbacks to engine-owned input state. */
-	void ConfigureCallbacks(ve::engine::Window& window, CallbackContext& context);
+	void ConfigureCallbacks(ve::engine::Window& window, ve::engine::RuntimeInputRouter& input_router);
 
 	/** Configures global state used only by the OpenGL compatibility renderer. */
 	void ConfigureOpenGLState();

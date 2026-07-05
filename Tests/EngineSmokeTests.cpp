@@ -2,9 +2,11 @@
 #include <doctest/doctest.h>
 
 #include "BackgroundTaskQueue.h"
+#include "BlockRegistry.h"
 #include "CommandLineLauncher.h"
 #include "EcsWorld.h"
 #include "FabrikInverseKinematicsSolver.h"
+#include "Logger.h"
 #include "MonteCarloPathTracer.h"
 #include "NavierStokesFluidSimulation.h"
 #include "PhysicsBounds.h"
@@ -14,6 +16,7 @@
 #include "ModelAssetLibrary.h"
 #include "MouseLookInput.h"
 #include "PhysicsBvh.h"
+#include "RuntimeInputRouter.h"
 
 #include <glm/geometric.hpp>
 
@@ -36,6 +39,9 @@
 #include "BackgroundTaskQueueSchedulingTests.inl"
 #include "EngineCreateInfoValidationTests.inl"
 #include "MouseLookInputTests.inl"
+#include "RuntimeInputRouterTests.inl"
+#include "LoggerTests.inl"
+#include "BlockRegistryTests.inl"
 #include "EngineSmokeCoreTests.inl"
 #include "EngineSmokeLauncherTests.inl"
 #include "EngineSmokeAssetTests.inl"

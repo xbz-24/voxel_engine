@@ -1,9 +1,7 @@
 #include "RuntimeInput.h"
 
 #include "Input.h"
-
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "Window.h"
 
 #include <array>
 #include <optional>
@@ -35,10 +33,10 @@ namespace ve::engine
 		}
 	}
 
-	RuntimeInputSnapshot CaptureRuntimeInputSnapshot(GLFWwindow* native_window) noexcept
+	RuntimeInputSnapshot CaptureRuntimeInputSnapshot(const Window& window) noexcept
 	{
 		const ve::input::InputSnapshot central_input_snapshot =
-			ve::input::CaptureInputSnapshot(native_window);
+			ve::input::CaptureInputSnapshot(window);
 		RuntimeInputSnapshot runtime_input_snapshot{};
 		runtime_input_snapshot.move_forward =
 			ve::input::IsPressed(central_input_snapshot, ve::input::Key::W);
@@ -59,13 +57,9 @@ namespace ve::engine
 		runtime_input_snapshot.primary_action =
 			ve::input::IsPressed(central_input_snapshot, ve::input::MouseButton::Left);
 
-		if (native_window != nullptr)
-		{
-			glfwGetCursorPos(
-				native_window,
-				&runtime_input_snapshot.mouse_x,
-				&runtime_input_snapshot.mouse_y);
-		}
+		const Window::CursorPosition cursor_position = window.CurrentCursorPosition();
+		runtime_input_snapshot.mouse_x = cursor_position.x;
+		runtime_input_snapshot.mouse_y = cursor_position.y;
 
 		return runtime_input_snapshot;
 	}

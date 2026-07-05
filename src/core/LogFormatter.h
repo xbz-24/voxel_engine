@@ -11,4 +11,7 @@ namespace ve::log
 
 	/// Formats a record into a single human-readable log line.
 	std::string FormatRecord(const Record& record);
+
+	/// Formats the message plus structured fields for backend sinks.
+	std::string FormatMessageWithFields(const Record& record);
 }

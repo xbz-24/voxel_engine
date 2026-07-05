@@ -3,7 +3,10 @@
 #include <array>
 #include <cstddef>
 
-struct GLFWwindow;
+namespace ve::engine
+{
+	class Window;
+}
 
 namespace ve::input
 {
@@ -52,13 +55,13 @@ namespace ve::input
 		std::array<bool, static_cast<std::size_t>(MouseButton::Count)> mouse_buttons{};
 	};
 
-	InputSnapshot CaptureInputSnapshot(GLFWwindow* window) noexcept;
-	bool IsPressed(GLFWwindow* window, Key key) noexcept;
+	InputSnapshot CaptureInputSnapshot(const ve::engine::Window& window) noexcept;
+	bool IsPressed(const ve::engine::Window& window, Key key) noexcept;
 	bool IsPressed(const InputSnapshot& snapshot, Key key) noexcept;
-	bool IsPressed(GLFWwindow* window, MouseButton button) noexcept;
+	bool IsPressed(const ve::engine::Window& window, MouseButton button) noexcept;
 	bool IsPressed(const InputSnapshot& snapshot, MouseButton button) noexcept;
-	bool WasPressed(GLFWwindow* window, Key key, bool& wasPressed) noexcept;
+	bool WasPressed(const ve::engine::Window& window, Key key, bool& wasPressed) noexcept;
 	bool WasPressed(const InputSnapshot& snapshot, Key key, bool& wasPressed) noexcept;
-	bool WasPressed(GLFWwindow* window, MouseButton button, bool& wasPressed) noexcept;
+	bool WasPressed(const ve::engine::Window& window, MouseButton button, bool& wasPressed) noexcept;
 	bool WasPressed(const InputSnapshot& snapshot, MouseButton button, bool& wasPressed) noexcept;
 }

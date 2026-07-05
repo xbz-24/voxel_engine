@@ -22,7 +22,7 @@ void EngineApplication::Render3DWorld(const ve::engine::Window&, Camera& camera,
 {
 	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 	ve::rendering::ApplyProjection(_render_cache_state.projection_3d);
-	const glm::mat4 view = camera.GetViewMatrix();
+	const glm::mat4 view = camera.GetWorldToViewMatrix();
 	ve::rendering::ApplyView(view);
 	ve::rendering::UseSolidFillMode();
 	ve::rendering::UseBackFaceCulling();

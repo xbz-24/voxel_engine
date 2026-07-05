@@ -44,10 +44,17 @@ namespace ve::log
 		/** @param level Severity. @param category Subsystem. @param message Body. @param source Call site. */
 		void Write(Level level, std::string_view category, std::string_view message, SourceLocation source);
 
+		/** @param fields Structured key-value fields attached to the record. */
+		void Write(
+			Level level,
+			std::string_view category,
+			std::string_view message,
+			std::span<const Field> fields,
+			SourceLocation source);
+
 	private:
 		LoggerService() = default;
 
-		// TODO: Add structured fields and per-sink formatting once diagnostics need machine-readable logs.
 		std::mutex mutex_;
 		SpdlogLoggerBackend backend_;
 		std::function<void(std::string)> callback_;

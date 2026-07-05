@@ -30,6 +30,21 @@ namespace ve::log
 		LoggerService::Instance().Write(level, category, message, source);
 	}
 
+	void Write(Level level, std::string_view message, std::span<const Field> fields, SourceLocation source)
+	{
+		LoggerService::Instance().Write(level, category::General, message, fields, source);
+	}
+
+	void Write(
+		Level level,
+		std::string_view category,
+		std::string_view message,
+		std::span<const Field> fields,
+		SourceLocation source)
+	{
+		LoggerService::Instance().Write(level, category, message, fields, source);
+	}
+
 	void Trace(std::string_view message, SourceLocation source) { Write(Level::Trace, message, source); }
 	void Debug(std::string_view message, SourceLocation source) { Write(Level::Debug, message, source); }
 	void Info(std::string_view message, SourceLocation source) { Write(Level::Info, message, source); }

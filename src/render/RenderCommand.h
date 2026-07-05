@@ -3,7 +3,7 @@
 #include "GraphicsTypes.h"
 
 #include <cstdint>
-#include <string>
+#include <memory_resource>
 #include <variant>
 
 namespace ve::rendering
@@ -38,7 +38,7 @@ namespace ve::rendering
 
 	struct DrawText2DCommand
 	{
-		std::string text;
+		std::pmr::string text;
 		glm::vec2 origin{ 0.0f };
 		float scale = 1.0f;
 		ColorRgba color;

@@ -25,7 +25,6 @@ namespace ve::engine
 	/** Creates the window and every runtime system needed by the frame loop. */
 	EngineStartupResult EngineRuntime::Initialize()
 	{
-		callback_context_.isSettingsMenuOpen = &engine_._runtimeSettings.isSettingsMenuOpen;
 		PrepareAssetsAndLogging();
 		const EngineStartupResult window_result = engine_.InitializeWindow(window_);
 		if (!window_result) return window_result;

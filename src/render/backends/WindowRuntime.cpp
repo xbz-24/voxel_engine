@@ -51,6 +51,26 @@ float ve::engine::Window::GetAspectRatio() const
 	return static_cast<float>(_width) / static_cast<float>(GetHeight());
 }
 
+ve::engine::Window::WindowSize ve::engine::Window::ClientWindowSize() const noexcept
+{
+	WindowSize size{};
+	if (_window != nullptr)
+	{
+		glfwGetWindowSize(_window, &size.width, &size.height);
+	}
+	return size;
+}
+
+ve::engine::Window::CursorPosition ve::engine::Window::CurrentCursorPosition() const noexcept
+{
+	CursorPosition position{};
+	if (_window != nullptr)
+	{
+		glfwGetCursorPos(_window, &position.x, &position.y);
+	}
+	return position;
+}
+
 ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept
 {
 	return NativeWindowHandle{ _window };

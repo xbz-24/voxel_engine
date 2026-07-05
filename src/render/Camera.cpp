@@ -27,7 +27,7 @@ glm::vec3 Camera::GetUp() const
 	return glm::vec3(glm::inverse(GetRotationMatrix()) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 }
 
-glm::mat4 Camera::GetViewMatrix() const
+glm::mat4 Camera::GetWorldToViewMatrix() const
 {
 	return GetRotationMatrix() * glm::translate(glm::mat4(1.0f), -_position);
 }

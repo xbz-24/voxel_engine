@@ -25,8 +25,7 @@
 		const EngineCreateInfo& create_info = engine_.CreateInfo();
 		if (!create_info.on_update && !create_info.on_diagnostics) return;
 
-		GLFWwindow* native_window = window_.GetNativeWindow();
-		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(native_window);
+		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(window_);
 
 		if (create_info.on_update)
 		{

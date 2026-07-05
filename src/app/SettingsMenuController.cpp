@@ -17,7 +17,7 @@ namespace ve::gameplay
 	/// Opens or closes the menu when the toggle key is pressed.
 	void SettingsMenuController::ToggleMenuFromInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
-		if (ve::input::WasPressed(window.GetNativeWindow(), ve::input::Key::Escape, was_toggle_pressed_))
+		if (ve::input::WasPressed(window, ve::input::Key::Escape, was_toggle_pressed_))
 		{
 			SetOpen(window, settings, !settings.isSettingsMenuOpen);
 		}
@@ -26,12 +26,11 @@ namespace ve::gameplay
 	/// Processes navigation and activation while the menu is open.
 	void SettingsMenuController::ProcessOpenMenuInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
-		GLFWwindow* nativeWindow = window.GetNativeWindow();
-		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Up, was_up_pressed_)) MoveSelection(settings, -1);
-		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Down, was_down_pressed_)) MoveSelection(settings, 1);
-		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Left, was_left_pressed_)) ApplyAdjustment(window, settings, -1);
-		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Right, was_right_pressed_)) ApplyAdjustment(window, settings, 1);
-		if (ve::input::WasPressed(nativeWindow, ve::input::Key::Enter, was_confirm_pressed_)) Activate(window, settings);
+		if (ve::input::WasPressed(window, ve::input::Key::Up, was_up_pressed_)) MoveSelection(settings, -1);
+		if (ve::input::WasPressed(window, ve::input::Key::Down, was_down_pressed_)) MoveSelection(settings, 1);
+		if (ve::input::WasPressed(window, ve::input::Key::Left, was_left_pressed_)) ApplyAdjustment(window, settings, -1);
+		if (ve::input::WasPressed(window, ve::input::Key::Right, was_right_pressed_)) ApplyAdjustment(window, settings, 1);
+		if (ve::input::WasPressed(window, ve::input::Key::Enter, was_confirm_pressed_)) Activate(window, settings);
 	}
 
 	/// Opens or closes the settings menu and updates cursor mode.

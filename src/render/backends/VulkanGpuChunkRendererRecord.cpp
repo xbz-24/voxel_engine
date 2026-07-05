@@ -49,7 +49,7 @@ namespace ve::rendering
 		const float aspect = static_cast<float>(extent_.width) / static_cast<float>(std::max(extent_.height, 1u));
 		glm::mat4 projection = glm::perspective(glm::radians(72.0f), aspect, 0.05f, FarWorldClipDistance);
 		projection[1][1] *= -1.0f;
-		const glm::mat4 mvp = projection * camera.GetViewMatrix();
+		const glm::mat4 mvp = projection * camera.GetWorldToViewMatrix();
 		vkCmdPushConstants(command_buffer, pipeline_layout_, VK_SHADER_STAGE_VERTEX_BIT, 0u, sizeof(glm::mat4), &mvp);
 
 		if (index_count_ > 0u)

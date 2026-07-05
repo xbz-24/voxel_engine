@@ -7,7 +7,7 @@
 	{
 		(void)model.PumpAsyncWorldGeneration();
 		model.PumpAsyncChunkMeshing(block_registry, settings.renderDistanceChunks);
-		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window.GetNativeWindow());
+		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window);
 		GameplayFrameContext frame(
 			window,
 			input,

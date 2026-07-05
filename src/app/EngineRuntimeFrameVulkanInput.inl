@@ -2,10 +2,11 @@
 	{
 		int window_width = 1;
 		int window_height = 1;
-		GLFWwindow* native_window = window_.GetNativeWindow();
-		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(native_window);
+		const RuntimeInputSnapshot runtime_input_snapshot = CaptureRuntimeInputSnapshot(window_);
 
-		glfwGetWindowSize(native_window, &window_width, &window_height);
+		const Window::WindowSize client_window_size = window_.ClientWindowSize();
+		window_width = client_window_size.width;
+		window_height = client_window_size.height;
 
 		const double scale_x = static_cast<double>(window_.GetWidth()) / static_cast<double>(std::max(window_width, 1));
 		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));

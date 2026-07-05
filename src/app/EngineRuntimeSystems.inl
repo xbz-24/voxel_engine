@@ -29,8 +29,11 @@
 			backend_.get());
 		vulkan_demo_settings_.scene.preset = create_info.vulkan_demo_preset;
 		vulkan_demo_settings_.request_scene_rebuild = true;
-		callback_context_.camera = &model_->MutableCamera();
-		engine_.ConfigureCallbacks(window_, callback_context_);
+		input_router_.BindMouseLook(
+			model_->MutableCamera(),
+			engine_._runtimeSettings.isSettingsMenuOpen,
+			engine_._runtimeSettings.mouse_look);
+		engine_.ConfigureCallbacks(window_, input_router_);
 		if (create_info.has_custom_camera)
 		{
 			model_->MutableCamera().MoveTo(create_info.camera_position);

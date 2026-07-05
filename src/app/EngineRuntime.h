@@ -9,6 +9,7 @@
 #include "RenderBackend.h"
 #include "RenderView.h"
 #include "RuntimeInput.h"
+#include "RuntimeInputRouter.h"
 #include "VulkanFrameRenderer.h"
 
 #include <memory>
@@ -54,7 +55,7 @@ namespace ve::engine
 
 		EngineApplication& engine_;
 		Window window_;
-		EngineApplication::CallbackContext callback_context_{};
+		RuntimeInputRouter input_router_;
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;

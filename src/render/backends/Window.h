@@ -19,6 +19,18 @@ namespace ve::engine
 		// TODO: Abstract GLFW behind an input/window backend before exposing native handles in the public SDK.
 		enum class CursorMode { Normal, Captured };
 
+		struct WindowSize
+		{
+			int width = 1;
+			int height = 1;
+		};
+
+		struct CursorPosition
+		{
+			double x = 0.0;
+			double y = 0.0;
+		};
+
 		struct NativeWindowHandle
 		{
 			void* glfwWindow = nullptr;
@@ -55,6 +67,8 @@ namespace ve::engine
 		[[nodiscard]] int GetWidth() const;
 		[[nodiscard]] int GetHeight() const;
 		[[nodiscard]] float GetAspectRatio() const;
+		[[nodiscard]] WindowSize ClientWindowSize() const noexcept;
+		[[nodiscard]] CursorPosition CurrentCursorPosition() const noexcept;
 		[[nodiscard]] NativeWindowHandle NativeHandle() const noexcept;
 		[[nodiscard]] GLFWwindow* GetNativeWindow() const;
 

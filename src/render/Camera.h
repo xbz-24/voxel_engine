@@ -43,12 +43,11 @@ public:
 	glm::vec3 GetUp() const;
 
 	/**
-	 * Builds the view matrix used by OpenGL.
+	 * Builds the world-to-view transform used by render backends.
 	 *
-	 * @return Camera view matrix.
+	 * @return Matrix that transforms world coordinates into camera view space.
 	 */
-	// TODO: Rename this to backend-neutral view matrix terminology; Vulkan code should not inherit OpenGL assumptions.
-	glm::mat4 GetViewMatrix() const;
+	glm::mat4 GetWorldToViewMatrix() const;
 
 	/**
 	 * Builds the camera rotation matrix.

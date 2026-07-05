@@ -56,7 +56,17 @@ namespace ve::log
 
 	void LoggerService::Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
 	{
-		const Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id() };
+		Write(level, category, message, std::span<const Field>{}, source);
+	}
+
+	void LoggerService::Write(
+		Level level,
+		std::string_view category,
+		std::string_view message,
+		std::span<const Field> fields,
+		SourceLocation source)
+	{
+		const Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id(), fields };
 		std::function<void(std::string)> callback;
 		std::string formatted_record;
 		{

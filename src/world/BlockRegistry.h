@@ -6,7 +6,9 @@
 #include "PbrMaterial.h"
 
 #include <array>
-#include <string_view>
+#include <cstddef>
+#include <string>
+#include <unordered_map>
 
 namespace ve::blocks
 {
@@ -17,7 +19,7 @@ namespace ve::blocks
 	{
 		// TODO: Load block definitions from data so API users can register custom blocks without recompiling.
 		BlockId id;
-		std::string_view name;
+		std::string name;
 		bool isSolid;
 		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
 		ve::rendering::PbrMaterial material;
@@ -43,6 +45,29 @@ namespace ve::blocks
 		 * @param texture_loading Whether legacy face textures should be uploaded.
 		 */
 		explicit BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading = TextureLoading::LoadTextures);
+
+		/**
+		 * Registers or replaces metadata for a stable block id.
+		 *
+		 * @param block_type Metadata to store.
+		 * @return True when the block id is usable by world storage.
+		 */
+		bool Register(BlockType block_type);
+
+		/**
+		 * Returns whether metadata exists for a block id.
+		 *
+		 * @param id Block id to look up.
+		 * @return True when the registry has metadata for the id.
+		 */
+		bool Contains(BlockId id) const;
+
+		/**
+		 * Returns how many block definitions are registered.
+		 *
+		 * @return Registered block definition count.
+		 */
+		std::size_t RegisteredBlockCount() const noexcept;
 
 		/**
 		 * Returns metadata for a block id.
@@ -86,7 +111,8 @@ namespace ve::blocks
 		const ve::rendering::PbrMaterial& MaterialFor(BlockId id) const;
 
 	private:
-		// TODO: Replace fixed enum-indexed storage with a stable registry that can handle user-defined block packs.
-		std::array<BlockType, static_cast<std::size_t>(BlockId::Count)> _blocks;
+		const BlockType& FallbackBlock() const noexcept;
+
+		std::unordered_map<BlockId, BlockType> _blocks;
 	};
 }

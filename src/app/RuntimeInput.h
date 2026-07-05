@@ -5,7 +5,10 @@
 #include <bitset>
 #include <cstddef>
 
-struct GLFWwindow;
+namespace ve::engine
+{
+	class Window;
+}
 
 namespace ve::engine
 {
@@ -22,7 +25,7 @@ namespace ve::engine
 		PrimaryAction
 	};
 
-	[[nodiscard]] RuntimeInputSnapshot CaptureRuntimeInputSnapshot(GLFWwindow* native_window) noexcept;
+	[[nodiscard]] RuntimeInputSnapshot CaptureRuntimeInputSnapshot(const Window& window) noexcept;
 	[[nodiscard]] bool IsRuntimeInputActionActive(
 		const RuntimeInputSnapshot& runtime_input_snapshot,
 		RuntimeInputAction runtime_input_action) noexcept;

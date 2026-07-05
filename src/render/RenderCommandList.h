@@ -2,6 +2,9 @@
 
 #include "RenderCommand.h"
 
+#include <array>
+#include <cstddef>
+#include <memory_resource>
 #include <span>
 #include <string>
 #include <vector>
@@ -12,11 +15,19 @@ namespace ve::rendering
 	class RenderCommandList
 	{
 	public:
+		RenderCommandList();
+		~RenderCommandList();
+
+		RenderCommandList(const RenderCommandList&) = delete;
+		RenderCommandList& operator=(const RenderCommandList&) = delete;
+		RenderCommandList(RenderCommandList&&) = delete;
+		RenderCommandList& operator=(RenderCommandList&&) = delete;
+
 		/** @param expected_command_count Command capacity to reserve. */
 		void Reserve(std::size_t expected_command_count);
 
 		/** Removes every queued draw command. */
-		void Clear() noexcept;
+		void Clear();
 
 		/** @param triangle Triangle coordinates. @param color Fill color. @param sort_key Submission order key. */
 		void DrawTriangle(ScreenTriangle triangle, ColorRgba color, RenderSortKey sort_key = {});
@@ -58,7 +69,13 @@ namespace ve::rendering
 		[[nodiscard]] std::size_t Count() const noexcept;
 
 	private:
-		// TODO: Store commands in frame arena memory to avoid per-frame heap churn in HUD-heavy scenes.
-		std::vector<RenderCommand> commands_;
+		static constexpr std::size_t InlineCommandArenaBytes = 64U * 1024U;
+
+		void ResetFrameArena();
+
+		std::array<std::byte, InlineCommandArenaBytes> inline_command_arena_{};
+		std::pmr::monotonic_buffer_resource command_memory_resource_;
+		std::pmr::vector<RenderCommand> commands_;
+		std::size_t reserved_command_count_ = 0;
 	};
 }

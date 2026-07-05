@@ -4,7 +4,6 @@
 
 namespace ve::input::detail
 {
-	// TODO: Move GLFW mappings behind the Window/input backend so public input stays platform-neutral.
 	/**
 	 * Converts an engine key to the backend key code.
 	 *

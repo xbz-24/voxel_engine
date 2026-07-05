@@ -6,6 +6,7 @@
 #include "RenderCommandSorter.h"
 
 #include <cstddef>
+#include <string>
 #include <type_traits>
 #include <variant>
 
@@ -101,6 +102,21 @@ TEST_CASE("render command list sorts by submission key")
 	CHECK(commands.Commands()[0].sort_key.layer == 1);
 	CHECK(commands.Commands()[1].sort_key.material == 1U);
 	CHECK(commands.Commands()[2].sort_key.material == 2U);
+}
+
+TEST_CASE("render command list reuses frame arena for text commands")
+{
+	ve::rendering::RenderCommandList commands;
+	commands.Reserve(2U);
+	commands.DrawText(std::string(2048U, 'x'), { 0.0f, 0.0f }, 1.0f, {});
+	commands.Clear();
+
+	commands.DrawText("HUD", { 8.0f, 12.0f }, 1.0f, {});
+
+	REQUIRE(commands.Count() == 1U);
+	const auto* text_command = std::get_if<ve::rendering::DrawText2DCommand>(&commands.Commands()[0].payload);
+	REQUIRE(text_command != nullptr);
+	CHECK(text_command->text == "HUD");
 }
 
 TEST_CASE("graphics facade records and submits common primitives")
