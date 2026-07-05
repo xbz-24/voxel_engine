@@ -1,16 +1,24 @@
-	void GameController::ProcessInput(GameplayFrameContext& frame)
+	void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& movement_frame)
 	{
-		const bool was_menu_open = frame.settings.isSettingsMenuOpen;
-		settings_menu_controller_.ProcessInput(frame.window, frame.settings);
-		if (was_menu_open || frame.settings.isSettingsMenuOpen) return;
-		UpdatePlayerMovement(frame);
+		const bool was_menu_open = movement_frame.settings.isSettingsMenuOpen;
+		settings_menu_controller_.ProcessInput(window, movement_frame.settings);
+		if (was_menu_open || movement_frame.settings.isSettingsMenuOpen) return;
+		UpdatePlayerMovement(movement_frame);
 	}
 
-	void GameController::UpdatePlayerMovement(GameplayFrameContext& frame)
+	void GameController::UpdatePlayerMovement(PlayerMovementFrameContext& frame)
 	{
 		ConsumeFlyToggle(frame.input, frame.settings, input_state_.was_fly_toggle_pressed);
-		ConsumeRenderDistanceAdjustment(frame.input, frame.settings, ve::input::Key::LeftBracket, -1, input_state_.was_render_distance_decrease_pressed);
-		ConsumeRenderDistanceAdjustment(frame.input, frame.settings, ve::input::Key::RightBracket, 1, input_state_.was_render_distance_increase_pressed);
+		ConsumeRenderDistanceAdjustment(frame.input,
+			frame.settings,
+			ve::gameplay::GameplayAction::RenderDistanceDecrease,
+			-1,
+			input_state_.was_render_distance_decrease_pressed);
+		ConsumeRenderDistanceAdjustment(frame.input,
+			frame.settings,
+			ve::gameplay::GameplayAction::RenderDistanceIncrease,
+			1,
+			input_state_.was_render_distance_increase_pressed);
 
 		const float movement_distance_this_frame = 5.0f * static_cast<float>(frame.delta_seconds);
 		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(frame.input);
@@ -26,7 +34,7 @@
 		ApplyPlayerPhysics(frame);
 	}
 
-	void GameController::ApplyPlayerPhysics(GameplayFrameContext& frame)
+	void GameController::ApplyPlayerPhysics(PlayerMovementFrameContext& frame)
 	{
 		if (frame.settings.isFlying)
 		{

@@ -1,6 +1,7 @@
 #include "PlayerMovementInput.h"
 
 #include "Camera.h"
+#include "GameplayInput.h"
 #include "Input.h"
 
 #include <glm/glm.hpp>
@@ -30,12 +31,12 @@ namespace ve::gameplay
 	PlayerMoveIntent ReadPlayerMoveIntent(const ve::input::InputSnapshot& input) noexcept
 	{
 		return {
-			ve::input::IsPressed(input, ve::input::Key::W),
-			ve::input::IsPressed(input, ve::input::Key::S),
-			ve::input::IsPressed(input, ve::input::Key::A),
-			ve::input::IsPressed(input, ve::input::Key::D),
-			ve::input::IsPressed(input, ve::input::Key::Space),
-			ve::input::IsPressed(input, ve::input::Key::LeftShift)
+			IsGameplayActionPressed(input, GameplayAction::MoveForward),
+			IsGameplayActionPressed(input, GameplayAction::MoveBackward),
+			IsGameplayActionPressed(input, GameplayAction::StrafeLeft),
+			IsGameplayActionPressed(input, GameplayAction::StrafeRight),
+			IsGameplayActionPressed(input, GameplayAction::Jump),
+			IsGameplayActionPressed(input, GameplayAction::Descend)
 		};
 	}
 

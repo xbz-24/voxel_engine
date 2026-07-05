@@ -29,16 +29,16 @@ namespace ve::engine
 		[[nodiscard]] const ve::rendering::GraphicsFacade* Graphics() const noexcept override;
 
 		/** @return Skybox render service. */
-		[[nodiscard]] SkyBox* Skybox() noexcept;
+		[[nodiscard]] SkyBox* Skybox() noexcept override;
 
 		/** @return Ground/debug plane render service. */
-		[[nodiscard]] Plane* GroundPlane() noexcept;
+		[[nodiscard]] Plane* GroundPlane() noexcept override;
 
 		/** @return Selected-block render service. */
-		[[nodiscard]] BlockSelectionCube* SelectionCube() noexcept;
+		[[nodiscard]] BlockSelectionCube* SelectionCube() noexcept override;
 
 		/** @return HUD render service. */
-		[[nodiscard]] ve::ui::HudRenderer* Hud() noexcept;
+		[[nodiscard]] ve::ui::HudRenderer* Hud() noexcept override;
 
 		/** @return This object as the OpenGL compatibility adapter. */
 		[[nodiscard]] OpenGLRenderView* AsOpenGLRenderView() noexcept override;

@@ -16,8 +16,6 @@
 
 namespace ve::engine
 {
-	class OpenGLRenderView;
-
 	/** Owns the active runtime systems created by EngineApplication::Run. */
 	class EngineRuntime
 	{
@@ -34,8 +32,6 @@ namespace ve::engine
 		void PrepareAssetsAndLogging();
 		[[nodiscard]] EngineStartupResult CreateRuntimeSystems();
 		[[nodiscard]] EngineStartupResult CreateRenderBackend();
-
-		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
 
 		void RunMainLoop();
 		void RunFrame();

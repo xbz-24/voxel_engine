@@ -1,11 +1,3 @@
-	/** Returns the OpenGL compatibility view after startup validation. */
-	OpenGLRenderView& EngineRuntime::LegacyOpenGLView() noexcept
-	{
-		OpenGLRenderView* legacy_view = view_ ? TryRenderViewCast<OpenGLRenderView>(*view_) : nullptr;
-		assert(legacy_view != nullptr);
-		return *legacy_view;
-	}
-
 	/** Runs frames until the window asks to close. */
 	void EngineRuntime::RunMainLoop()
 	{

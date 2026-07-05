@@ -1,4 +1,4 @@
-	void GameController::UpdateSelection(GameplayFrameContext& frame)
+	void GameController::UpdateSelection(BlockSelectionFrameContext& frame)
 	{
 		constexpr float maximum_block_reach = 8.0f;
 		const std::optional<ve::gameplay::BlockRaycastHit> raycast_hit =
@@ -16,7 +16,7 @@
 		}
 	}
 
-	void GameController::ProcessGameplayInput(GameplayFrameContext& frame)
+	void GameController::ProcessGameplayInput(GameplayCommandFrameContext& frame)
 	{
 		if (frame.settings.isSettingsMenuOpen) return;
 

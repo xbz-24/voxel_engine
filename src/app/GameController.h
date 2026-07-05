@@ -25,7 +25,6 @@ namespace ve::engine
 	class GameController
 	{
 	public:
-		// TODO: Move input bindings into data-driven action maps shared by public API callbacks and in-game controls.
 		/**
 		 * Updates player input, targeting, physics, and block edits.
 		 *
@@ -60,44 +59,83 @@ namespace ve::engine
 			bool ui_captures_input);
 
 	private:
-		struct GameplayFrameContext
+		struct PlayerMovementFrameContext
 		{
-			// TODO: Replace this transient bag with small subsystem-specific update contexts.
-			GameplayFrameContext(Window& window,
-				const ve::input::InputSnapshot& input,
+			PlayerMovementFrameContext(const ve::input::InputSnapshot& input,
 				ve::world::World& world,
 				const ve::blocks::BlockRegistry& block_registry,
 				Camera& camera,
-				ve::gameplay::BlockSelection& selection,
 				ve::gameplay::RuntimeSettings& settings,
 				double delta_seconds) noexcept
-				: window(window),
-				  input(input),
+				: input(input),
 				  world(world),
 				  block_registry(block_registry),
 				  camera(camera),
-				  selection(selection),
 				  settings(settings),
 				  delta_seconds(delta_seconds)
 			{
 			}
 
-			Window& window;
 			const ve::input::InputSnapshot& input;
 			ve::world::World& world;
 			const ve::blocks::BlockRegistry& block_registry;
 			Camera& camera;
-			ve::gameplay::BlockSelection& selection;
 			ve::gameplay::RuntimeSettings& settings;
 			double delta_seconds;
 		};
 
-		void UpdateFrameGameplay(GameplayFrameContext& frame);
-		void ProcessInput(GameplayFrameContext& frame);
-		void UpdatePlayerMovement(GameplayFrameContext& frame);
-		void ApplyPlayerPhysics(GameplayFrameContext& frame);
-		void UpdateSelection(GameplayFrameContext& frame);
-		void ProcessGameplayInput(GameplayFrameContext& frame);
+		struct BlockSelectionFrameContext
+		{
+			BlockSelectionFrameContext(ve::world::World& world,
+				const ve::blocks::BlockRegistry& block_registry,
+				Camera& camera,
+				ve::gameplay::BlockSelection& selection) noexcept
+				: world(world),
+				  block_registry(block_registry),
+				  camera(camera),
+				  selection(selection)
+			{
+			}
+
+			ve::world::World& world;
+			const ve::blocks::BlockRegistry& block_registry;
+			Camera& camera;
+			ve::gameplay::BlockSelection& selection;
+		};
+
+		struct GameplayCommandFrameContext
+		{
+			GameplayCommandFrameContext(const ve::input::InputSnapshot& input,
+				ve::world::World& world,
+				ve::gameplay::BlockSelection& selection,
+				ve::gameplay::RuntimeSettings& settings) noexcept
+				: input(input),
+				  world(world),
+				  selection(selection),
+				  settings(settings)
+			{
+			}
+
+			const ve::input::InputSnapshot& input;
+			ve::world::World& world;
+			ve::gameplay::BlockSelection& selection;
+			ve::gameplay::RuntimeSettings& settings;
+		};
+
+		void UpdateFrameGameplay(
+			Window& window,
+			const ve::input::InputSnapshot& input,
+			ve::world::World& world,
+			const ve::blocks::BlockRegistry& block_registry,
+			Camera& camera,
+			ve::gameplay::BlockSelection& selection,
+			ve::gameplay::RuntimeSettings& settings,
+			double delta_seconds);
+		void ProcessInput(Window& window, PlayerMovementFrameContext& movement_frame);
+		void UpdatePlayerMovement(PlayerMovementFrameContext& frame);
+		void ApplyPlayerPhysics(PlayerMovementFrameContext& frame);
+		void UpdateSelection(BlockSelectionFrameContext& frame);
+		void ProcessGameplayInput(GameplayCommandFrameContext& frame);
 
 		EngineInputState input_state_;
 		// TODO: Split editor/menu navigation from survival gameplay so non-demo apps can opt out cleanly.

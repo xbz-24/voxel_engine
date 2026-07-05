@@ -68,18 +68,21 @@ namespace ve::engine
 
 		void ConsumeFlyToggle(const ve::input::InputSnapshot& input, ve::gameplay::RuntimeSettings& settings, bool& was_pressed)
 		{
-			if (!ve::input::WasPressed(input, ve::input::Key::F, was_pressed)) return;
+			if (!ve::gameplay::ConsumeGameplayAction(
+				input,
+				ve::gameplay::GameplayAction::ToggleFly,
+				was_pressed)) return;
 			settings.isFlying = !settings.isFlying;
 			settings.verticalVelocity = 0.0f;
 		}
 
 		void ConsumeRenderDistanceAdjustment(const ve::input::InputSnapshot& input,
 			ve::gameplay::RuntimeSettings& settings,
-			ve::input::Key key,
+			ve::gameplay::GameplayAction action,
 			int amount,
 			bool& was_pressed)
 		{
-			if (ve::input::WasPressed(input, key, was_pressed))
+			if (ve::gameplay::ConsumeGameplayAction(input, action, was_pressed))
 			{
 				settings.renderDistanceChunks = ve::gameplay::ClampRenderDistanceChunks(settings.renderDistanceChunks + amount);
 			}

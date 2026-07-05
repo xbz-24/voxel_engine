@@ -4,6 +4,10 @@
 
 #include <concepts>
 
+class BlockSelectionCube;
+class Plane;
+class SkyBox;
+
 namespace ve::engine
 {
 	class OpenGLRenderView;
@@ -13,6 +17,11 @@ namespace ve::engine
 namespace ve::rendering
 {
 	class GraphicsFacade;
+}
+
+namespace ve::ui
+{
+	class HudRenderer;
 }
 
 namespace ve::engine
@@ -34,6 +43,18 @@ namespace ve::engine
 
 		/** @return Read-only primitive drawing API, or null when unavailable. */
 		[[nodiscard]] virtual const ve::rendering::GraphicsFacade* Graphics() const noexcept;
+
+		/** @return Skybox renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual SkyBox* Skybox() noexcept;
+
+		/** @return Ground/debug plane renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual Plane* GroundPlane() noexcept;
+
+		/** @return Selected-block renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual BlockSelectionCube* SelectionCube() noexcept;
+
+		/** @return HUD renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual ve::ui::HudRenderer* Hud() noexcept;
 
 		/** @return OpenGL compatibility adapter, or null when the view is not OpenGL. */
 		[[nodiscard]] virtual OpenGLRenderView* AsOpenGLRenderView() noexcept;

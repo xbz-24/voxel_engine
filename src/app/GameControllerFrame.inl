@@ -8,7 +8,7 @@
 		(void)model.PumpAsyncWorldGeneration();
 		model.PumpAsyncChunkMeshing(block_registry, settings.renderDistanceChunks);
 		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window);
-		GameplayFrameContext frame(
+		UpdateFrameGameplay(
 			window,
 			input,
 			model.MutableWorld(),
@@ -18,7 +18,6 @@
 			settings,
 			delta_seconds
 		);
-		UpdateFrameGameplay(frame);
 	}
 
 	ve::blocks::BlockId GameController::SelectedPlacementBlock() const noexcept
@@ -26,15 +25,27 @@
 		return selected_placement_block_;
 	}
 
-	void GameController::UpdateFrameGameplay(GameplayFrameContext& frame)
+	void GameController::UpdateFrameGameplay(
+		Window& window,
+		const ve::input::InputSnapshot& input,
+		ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
+		Camera& camera,
+		ve::gameplay::BlockSelection& selection,
+		ve::gameplay::RuntimeSettings& settings,
+		double delta_seconds)
 	{
-		ProcessInput(frame);
-		if (frame.settings.isSettingsMenuOpen)
+		PlayerMovementFrameContext movement_frame(input, world, block_registry, camera, settings, delta_seconds);
+		ProcessInput(window, movement_frame);
+		if (settings.isSettingsMenuOpen)
 		{
-			frame.selection.has_target = false;
+			selection.has_target = false;
 			return;
 		}
-		UpdateSelection(frame);
-		ProcessGameplayInput(frame);
-		UpdateSelection(frame);
+
+		BlockSelectionFrameContext selection_frame(world, block_registry, camera, selection);
+		GameplayCommandFrameContext command_frame(input, world, selection, settings);
+		UpdateSelection(selection_frame);
+		ProcessGameplayInput(command_frame);
+		UpdateSelection(selection_frame);
 	}
