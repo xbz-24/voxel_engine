@@ -20,6 +20,9 @@ namespace ve::rendering
 		mesh_stats_ = VulkanGpuChunkMeshStats{};
 		mesh_valid_ = false;
 		mesh_revision_ = 0u;
+		cached_chunk_storage_revision_ = 0u;
+		last_rebuilt_chunk_count_ = 0u;
+		cached_chunk_meshes_.clear();
 	}
 	void VulkanGpuChunkRenderer::ReleaseSwapchainResources()
 	{

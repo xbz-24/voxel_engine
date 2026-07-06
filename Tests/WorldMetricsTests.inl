@@ -23,10 +23,18 @@ TEST_CASE("world respawn clears stale pending events")
 {
 	ve::world::World world(ve::world::CreateInfoForSquareWorld(2));
 
+	const std::uint64_t initial_storage_revision = world.ChunkStorageRevision();
 	world.SpawnFlatGrid(ve::world::FlatWorldSpawnSettings{ 2 });
+	const std::uint64_t first_spawn_storage_revision = world.ChunkStorageRevision();
 	world.SpawnFlatGrid(ve::world::FlatWorldSpawnSettings{ 1 });
+	const std::uint64_t second_spawn_storage_revision = world.ChunkStorageRevision();
 	std::vector<ve::world::WorldEvent> generated_events_after_respawn = world.DrainEvents();
 
+	CHECK(first_spawn_storage_revision > initial_storage_revision);
+	CHECK(second_spawn_storage_revision > first_spawn_storage_revision);
+	REQUIRE(world.Chunks().size() == 1U);
+	CHECK(world.Chunks().front().GetChunkX() == 0);
+	CHECK(world.Chunks().front().GetChunkZ() == 0);
 	CHECK(generated_events_after_respawn.size() == 1U);
 	REQUIRE(!generated_events_after_respawn.empty());
 	CHECK(generated_events_after_respawn.front().Type() == ve::world::WorldEventType::ChunkGenerated);
@@ -37,6 +45,7 @@ TEST_CASE("world respawn clears stale pending events")
 
 	world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ 1 });
 	CHECK(world.PendingEventCount() == 0U);
+	CHECK(world.ChunkStorageRevision() > second_spawn_storage_revision);
 }
 
 TEST_CASE("world event drain can filter event types")

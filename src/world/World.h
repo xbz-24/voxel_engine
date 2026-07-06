@@ -15,6 +15,7 @@
 #include <memory>
 #include <memory_resource>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace ve::rendering
@@ -83,6 +84,12 @@ namespace ve::world
 		/** @return Monotonic counter bumped whenever block storage changes. */
 		[[nodiscard]] std::uint64_t Revision() const noexcept;
 
+		/** @return Monotonic counter bumped whenever chunk storage is replaced. */
+		[[nodiscard]] std::uint64_t ChunkStorageRevision() const noexcept;
+
+		/** @return Loaded chunks in storage order. */
+		[[nodiscard]] std::span<const Chunk> Chunks() const noexcept;
+
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
 
@@ -139,5 +146,6 @@ namespace ve::world
 		const ve::rendering::RenderBackend* active_render_backend_;
 		int _worldSize;
 		std::uint64_t _revision;
+		std::uint64_t _chunkStorageRevision;
 	};
 }

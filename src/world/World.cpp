@@ -41,7 +41,8 @@ namespace ve::world
 		  _chunks(ChunkAllocator(&_levelSpawn.MemoryResource())),
 		  active_render_backend_(nullptr),
 		  _worldSize(0),
-		  _revision(0)
+		  _revision(0),
+		  _chunkStorageRevision(0)
 	{
 		_chunks.reserve(chunkCount);
 	}
@@ -89,5 +90,15 @@ namespace ve::world
 	std::uint64_t World::Revision() const noexcept
 	{
 		return _revision;
+	}
+
+	std::uint64_t World::ChunkStorageRevision() const noexcept
+	{
+		return _chunkStorageRevision;
+	}
+
+	std::span<const Chunk> World::Chunks() const noexcept
+	{
+		return _chunks;
 	}
 }

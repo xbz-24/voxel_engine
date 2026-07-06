@@ -48,5 +48,6 @@ namespace ve::world
 		_chunks.clear();
 		_pendingEvents.clear();
 		_worldSize = worldSizeChunks;
+		++_chunkStorageRevision;
 	}
 }

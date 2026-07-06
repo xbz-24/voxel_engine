@@ -9,6 +9,11 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	voxel::AssetCatalog assets{};
 	assets.SearchRoot("assets")
 		.Texture("grass", voxel::AssetSource::File("assets/grass.png").EnableHotReload())
+		.Texture("normal", "assets/normal.png")
+		.Texture("roughness", "assets/roughness.png")
+		.Texture("metallic", "assets/metallic.png")
+		.Texture("occlusion", "assets/occlusion.png")
+		.Texture("emissive", "assets/emissive.png")
 		.Model("crate", voxel::AssetSource::Archive("assets/models.pack", "crate.obj"))
 		.Sound("click", voxel::AssetSource::Embedded({ 1U, 2U, 3U }));
 
@@ -71,7 +76,7 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 			CHECK(!line.empty());
 		});
 
-	CHECK(config.assets.textures.size() == 1);
+	CHECK(config.assets.textures.size() == 6);
 	REQUIRE(config.assets.search_roots.size() == 1);
 	CHECK(config.assets.search_roots[0] == "assets");
 	CHECK(config.assets.models.size() == 1);

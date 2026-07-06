@@ -102,6 +102,11 @@ namespace voxel
 			return material.name.empty() ? "material" : "material '" + material.name + "'";
 		}
 
+		[[nodiscard]] std::string EntityLabel(const Entity& entity)
+		{
+			return entity.name.empty() ? "scene entity" : "scene entity '" + entity.name + "'";
+		}
+
 		void ValidateFiniteRange(float value,
 			std::string label,
 			FloatRange range,
@@ -156,6 +161,68 @@ namespace voxel
 				ValidateFiniteRange(material.metallic, material_label + ".metallic", NormalizedFloatRange, issues);
 				ValidateFiniteRange(material.roughness, material_label + ".roughness", NormalizedFloatRange, issues);
 				ValidateNonNegative(material.emission, material_label + ".emission", issues);
+			}
+		}
+
+		template <std::ranges::input_range NamedRange>
+		[[nodiscard]] std::set<std::string, std::less<>> NamesFrom(const NamedRange& named_values)
+		{
+			std::set<std::string, std::less<>> names;
+			for (const auto& named_value : named_values)
+			{
+				if (!named_value.name.empty())
+				{
+					names.insert(named_value.name);
+				}
+			}
+			return names;
+		}
+
+		void ValidateOptionalReference(std::string_view reference,
+			const std::set<std::string, std::less<>>& known_names,
+			const std::string& owner_label,
+			std::string_view reference_kind,
+			std::vector<std::string>& issues)
+		{
+			if (reference.empty() || known_names.contains(reference))
+			{
+				return;
+			}
+			issues.push_back(owner_label + " references missing " + std::string{ reference_kind } + ": " +
+				std::string{ reference });
+		}
+
+		void ValidateMaterialTextureReferences(
+			const MaterialLibrary& materials,
+			const AssetCatalog& assets,
+			std::vector<std::string>& issues)
+		{
+			const std::set<std::string, std::less<>> texture_names = NamesFrom(assets.textures);
+			for (const Material& material : materials.materials)
+			{
+				const std::string material_label = MaterialLabel(material);
+				ValidateOptionalReference(material.texture, texture_names, material_label, "texture asset", issues);
+				ValidateOptionalReference(material.normal_texture, texture_names, material_label, "texture asset", issues);
+				ValidateOptionalReference(material.roughness_texture, texture_names, material_label, "texture asset", issues);
+				ValidateOptionalReference(material.metallic_texture, texture_names, material_label, "texture asset", issues);
+				ValidateOptionalReference(material.occlusion_texture, texture_names, material_label, "texture asset", issues);
+				ValidateOptionalReference(material.emissive_texture, texture_names, material_label, "texture asset", issues);
+			}
+		}
+
+		void ValidateSceneGraphAssetReferences(
+			const SceneGraph& scene_graph,
+			const AssetCatalog& assets,
+			const MaterialLibrary& materials,
+			std::vector<std::string>& issues)
+		{
+			const std::set<std::string, std::less<>> model_names = NamesFrom(assets.models);
+			const std::set<std::string, std::less<>> material_names = NamesFrom(materials.materials);
+			for (const Entity& entity : scene_graph.entities)
+			{
+				const std::string entity_label = EntityLabel(entity);
+				ValidateOptionalReference(entity.model, model_names, entity_label, "model asset", issues);
+				ValidateOptionalReference(entity.material, material_names, entity_label, "material", issues);
 			}
 		}
 	}

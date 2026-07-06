@@ -51,11 +51,15 @@ namespace ve::rendering
 			upload_ms,
 			static_cast<std::uint32_t>(vertices.size()),
 			index_count_,
+			last_rebuilt_chunk_count_,
+			static_cast<std::uint32_t>(cached_chunk_meshes_.size()),
 			vertex_buffer_capacity_bytes_,
 			index_buffer_capacity_bytes_
 		};
 		VE_LOG_CATEGORY_DEBUG(ve::log::category::Render, "Rebuilt Vulkan world mesh: " + std::to_string(index_count_) +
-			" indices in " + std::to_string(rebuild_ms + upload_ms) + " ms");
+			" indices, " + std::to_string(last_rebuilt_chunk_count_) + "/" +
+			std::to_string(cached_chunk_meshes_.size()) + " chunks rebuilt in " +
+			std::to_string(rebuild_ms + upload_ms) + " ms");
 		return true;
 	}
 	bool VulkanGpuChunkRenderer::NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept

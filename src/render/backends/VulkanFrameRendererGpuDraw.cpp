@@ -45,6 +45,8 @@ namespace ve::rendering
 				mesh_stats.last_rebuild_cpu_ms,
 				mesh_stats.last_upload_cpu_ms,
 				gpu_chunk_renderer_.IndexCount(),
+				mesh_stats.last_rebuilt_chunk_count,
+				mesh_stats.cached_chunk_count,
 				world.Revision(),
 				completed_frame_timing.has_gpu_copy_timing,
 				true

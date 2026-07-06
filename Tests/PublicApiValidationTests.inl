@@ -143,6 +143,36 @@ TEST_CASE("public scene graph validation reports invalid hierarchy")
 		"scene entity 'missing parent' references a missing parent id") != issues.end());
 }
 
+TEST_CASE("public engine config validation reports missing asset and material references")
+{
+	voxel::AssetCatalog assets{};
+	assets.Texture("albedo", "albedo.png");
+
+	voxel::MaterialLibrary materials{};
+	materials.Add(voxel::Material::Named("painted")
+		.Texture("albedo")
+		.NormalTexture("missing-normal"));
+
+	voxel::SceneGraph scene_graph{};
+	(void)scene_graph.AddEntity(voxel::Entity::Named("crate")
+		.Model("missing-crate")
+		.Material("missing-material"));
+
+	const voxel::EngineConfig config = voxel::EngineConfig::Default()
+		.WithAssets(assets)
+		.WithMaterials(materials)
+		.WithSceneGraph(scene_graph);
+
+	const std::vector<std::string> issues = config.Validate();
+
+	CHECK(std::find(issues.begin(), issues.end(),
+		"material 'painted' references missing texture asset: missing-normal") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"scene entity 'crate' references missing model asset: missing-crate") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"scene entity 'crate' references missing material: missing-material") != issues.end());
+}
+
 TEST_CASE("public world serialization roundtrips config edits")
 {
 	const auto uniquePathSuffix = std::chrono::steady_clock::now().time_since_epoch().count();

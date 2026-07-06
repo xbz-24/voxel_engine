@@ -10,10 +10,12 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <span>
 #include <vector>
 
 class Camera;
+class Chunk;
 
 namespace ve::world
 {
@@ -31,11 +33,12 @@ namespace ve::rendering
 		double last_upload_cpu_ms = 0.0;
 		std::uint32_t last_vertex_count = 0;
 		std::uint32_t last_index_count = 0;
+		std::uint32_t last_rebuilt_chunk_count = 0;
+		std::uint32_t cached_chunk_count = 0;
 		VkDeviceSize vertex_buffer_capacity_bytes = 0;
 		VkDeviceSize index_buffer_capacity_bytes = 0;
 	};
 
-	// TODO: Turn this into a chunk-cache renderer fed by ChunkMeshPipeline instead of rebuilding from World directly.
 	class VulkanGpuChunkRenderer
 	{
 	public:
@@ -51,6 +54,15 @@ namespace ve::rendering
 		[[nodiscard]] VkRenderPass RenderPass() const noexcept;
 
 	private:
+		struct CachedChunkMesh
+		{
+			int chunk_x = 0;
+			int chunk_z = 0;
+			std::uint64_t mesh_revision = std::numeric_limits<std::uint64_t>::max();
+			std::vector<VoxelVertex> vertices;
+			std::vector<std::uint32_t> indices;
+		};
+
 		[[nodiscard]] bool CreateRenderPass();
 		[[nodiscard]] bool CreatePipeline(const std::filesystem::path& shader_directory);
 		[[nodiscard]] bool CreatePipelineLayout();
@@ -76,7 +88,11 @@ namespace ve::rendering
 		void ReleaseMeshBuffers();
 		void ReleaseTextureResources();
 		void ReleasePipelineResources();
-		void RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices);
+		void ResetChunkMeshCacheForWorldStorage(const ve::world::World& world);
+		[[nodiscard]] CachedChunkMesh& CachedMeshFor(const Chunk& chunk);
+		void RebuildChunkMesh(const ve::world::World& world, const Chunk& chunk, CachedChunkMesh& cached_mesh) const;
+		void AppendCachedChunkMesh(const CachedChunkMesh& cached_mesh, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
 		void AppendVisibleBlockFaces(const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
 		void AppendFaceMesh(const BlockFaceGeometry& face, const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
@@ -103,8 +119,11 @@ namespace ve::rendering
 		VkFormat color_format_ = VK_FORMAT_UNDEFINED;
 		VkFormat depth_format_ = VK_FORMAT_D32_SFLOAT;
 		std::uint64_t mesh_revision_ = 0;
+		std::uint64_t cached_chunk_storage_revision_ = 0;
 		std::uint32_t index_count_ = 0;
+		std::uint32_t last_rebuilt_chunk_count_ = 0;
 		VulkanGpuChunkMeshStats mesh_stats_;
+		std::vector<CachedChunkMesh> cached_chunk_meshes_;
 		bool mesh_valid_ = false;
 		bool initialized_ = false;
 	};
