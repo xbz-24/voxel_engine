@@ -14,10 +14,10 @@ namespace ve::ui
 		{
 			switch (option)
 			{
-			case SettingsMenuOption::RenderDistance: return "< " + std::to_string(state.renderDistanceChunks) + " chunks >";
-			case SettingsMenuOption::VSync: return state.isVSyncEnabled ? "ON" : "OFF";
-			case SettingsMenuOption::DebugOverlay: return state.showDebugOverlay ? "ON" : "OFF";
-			case SettingsMenuOption::FlyMode: return state.isFlying ? "ON" : "OFF";
+			case SettingsMenuOption::RenderDistance: return "< " + std::to_string(state.render_distance_chunks) + " chunks >";
+			case SettingsMenuOption::VSync: return state.is_vsync_enabled ? "ON" : "OFF";
+			case SettingsMenuOption::DebugOverlay: return state.show_debug_overlay ? "ON" : "OFF";
+			case SettingsMenuOption::FlyMode: return state.is_flying ? "ON" : "OFF";
 			case SettingsMenuOption::Resume: return "Enter";
 			case SettingsMenuOption::Quit: return "Enter";
 			case SettingsMenuOption::Count: return "";
@@ -45,7 +45,7 @@ namespace ve::ui
 		constexpr float kPanelWidth = 520.0f;
 		constexpr float kButtonWidth = 430.0f;
 		constexpr float kButtonHeight = 42.0f;
-		const bool is_selected = option == frame.settings_menu.selectedOption;
+		const bool is_selected = option == frame.settings_menu.selected_option;
 		const float row_x = panel_x + ((kPanelWidth - kButtonWidth) * 0.5f);
 		const float row_y = first_row_y + (static_cast<float>(row_index) * 48.0f);
 		const GLuint button_texture =
@@ -62,7 +62,7 @@ namespace ve::ui
 		const float slider_y = first_row_y + 10.0f;
 		const float slider_width = 150.0f;
 		const float handle_ratio =
-			ve::gameplay::RenderDistanceSliderRatio(frame.settings_menu.renderDistanceChunks);
+			ve::gameplay::RenderDistanceSliderRatio(frame.settings_menu.render_distance_chunks);
 		const float handle_x = slider_x + (handle_ratio * (slider_width - 16.0f));
 		ve::rendering::DrawTexturedQuad(textures_.menu_slider, slider_x, slider_y + 18.0f, slider_width, 12.0f);
 		ve::rendering::DrawTexturedQuad(textures_.menu_slider_handle, handle_x, slider_y + 10.0f, 18.0f, 28.0f);

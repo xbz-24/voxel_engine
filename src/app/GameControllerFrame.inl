@@ -6,7 +6,7 @@
 		double delta_seconds)
 	{
 		(void)model.PumpAsyncWorldGeneration();
-		model.PumpAsyncChunkMeshing(block_registry, settings.renderDistanceChunks);
+		model.PumpAsyncChunkMeshing(block_registry, settings.renderer.render_distance_chunks);
 		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window);
 		UpdateFrameGameplay(
 			window,
@@ -37,7 +37,7 @@
 	{
 		PlayerMovementFrameContext movement_frame(input, world, block_registry, camera, settings, delta_seconds);
 		ProcessInput(window, movement_frame);
-		if (settings.isSettingsMenuOpen)
+		if (settings.editor.is_settings_menu_open)
 		{
 			selection.has_target = false;
 			return;

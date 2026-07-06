@@ -41,9 +41,9 @@ namespace ve::world
 	}
 
 	/// Queues visible generated chunks that need fresh CPU mesh data.
-	void World::ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks)
+	void World::ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int render_distance_chunks)
 	{
-		const ChunkViewRange range = BuildChunkViewRange(cameraPosition, _worldSize, renderDistanceChunks);
+		const ChunkViewRange range = BuildChunkViewRange(cameraPosition, _worldSize, render_distance_chunks);
 		if (!HasChunks(range)) return;
 		const int cameraChunkCoordinateX = CameraChunkCoordinate(cameraPosition.x);
 		const int cameraChunkCoordinateZ = CameraChunkCoordinate(cameraPosition.z);

@@ -31,7 +31,7 @@ namespace ve::engine
 	{
 		const bool ui_captures_mouse = vulkan_frame_renderer_.WantsMouseInput();
 		const bool ui_captures_keyboard = vulkan_frame_renderer_.WantsKeyboardInput();
-		engine_._runtimeSettings.isSettingsMenuOpen = ui_captures_mouse;
+		engine_._runtimeSettings.editor.is_settings_menu_open = ui_captures_mouse;
 
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);

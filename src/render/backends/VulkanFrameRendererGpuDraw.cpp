@@ -12,6 +12,7 @@
 namespace ve::rendering
 {
 	bool VulkanFrameRenderer::DrawGpuFrame(const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
@@ -33,7 +34,7 @@ namespace ve::rendering
 		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
 		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
 		if (gpu_chunk_renderer_.NeedsWorldMeshUpdate(world) && !WaitForAllInFlightFrames()) return false;
-		if (!gpu_chunk_renderer_.EnsureWorldMesh(world)) return false;
+		if (!gpu_chunk_renderer_.EnsureWorldMesh(world, block_registry)) return false;
 		const VulkanGpuChunkMeshStats& mesh_stats = gpu_chunk_renderer_.MeshStats();
 		if (controls.overlay_enabled)
 		{

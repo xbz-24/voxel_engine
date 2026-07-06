@@ -119,10 +119,13 @@ namespace ve::world
 		/** @param meshPipeline Async mesh pipeline receiving visible chunk work. */
 		void UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline);
 
-		/** @param blockRegistry Block metadata. @param meshPipeline Async mesh pipeline. @param cameraPosition Camera world position. @param renderDistanceChunks Chunk radius. */
-		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks);
+		/** @param blockRegistry Block metadata. @param meshPipeline Async mesh pipeline. @param cameraPosition Camera world position. @param render_distance_chunks Chunk radius. */
+		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int render_distance_chunks);
 
 	private:
+		/** @param createInfo World creation policy. @return Arena size to reserve for level lifetime storage. */
+		static std::size_t EstimateLevelArenaBytes(const WorldCreateInfo& createInfo);
+
 		/// Clears chunk storage and stale events before spawning a replacement world.
 		void ResetChunkStorageForRespawn(int worldSizeChunks);
 
@@ -164,5 +167,6 @@ namespace ve::world
 		int _worldSize;
 		std::uint64_t _revision;
 		std::uint64_t _chunkStorageRevision;
+		ChunkStoragePolicy chunk_storage_policy_;
 	};
 }

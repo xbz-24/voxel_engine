@@ -10,10 +10,16 @@ namespace ve::world
 	/**
 	 * Creation-time memory settings for a world instance.
 	 */
+	enum class ChunkStoragePolicy
+	{
+		FixedReserve,
+		GrowOnDemand
+	};
+
 	struct WorldCreateInfo
 	{
-		// TODO: Add allocator/streaming policy so large worlds do not require reserving every chunk up front.
-		std::size_t chunkCapacity;
+		std::size_t chunkCapacity = 0;
+		ChunkStoragePolicy chunkStoragePolicy = ChunkStoragePolicy::FixedReserve;
 	};
 
 	enum class TerrainSpawnBiome
@@ -76,6 +82,7 @@ namespace ve::world
 		std::size_t levelArenaCapacityBytes;
 		std::size_t levelArenaUsedBytes;
 		std::size_t pendingWorldEventCount;
+		ChunkStoragePolicy chunkStoragePolicy;
 	};
 
 	/**
@@ -93,4 +100,11 @@ namespace ve::world
 	 * @return Creation info with enough chunk capacity for that world.
 	 */
 	WorldCreateInfo CreateInfoForSquareWorld(int worldSizeChunks) noexcept;
+
+	/**
+	 * Builds creation settings for chunk storage that grows as chunks stream in.
+	 *
+	 * @return Creation info that avoids reserving an entire world grid up front.
+	 */
+	WorldCreateInfo CreateInfoForStreamingWorld() noexcept;
 }

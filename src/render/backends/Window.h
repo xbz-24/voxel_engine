@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include "RenderApi.h"
 #include "WindowCreateInfo.h"
 #include "WindowEvents.h"
@@ -11,12 +8,15 @@
 #include <string_view>
 #include <vector>
 
+struct GLFWmonitor;
+struct GLFWvidmode;
+struct GLFWwindow;
+
 namespace ve::engine
 {
 	class Window
 	{
 	public:
-		// TODO: Abstract GLFW behind an input/window backend before exposing native handles in the public SDK.
 		enum class CursorMode { Normal, Captured };
 
 		struct WindowSize
@@ -33,7 +33,7 @@ namespace ve::engine
 
 		struct NativeWindowHandle
 		{
-			void* glfwWindow = nullptr;
+			void* opaque_handle = nullptr;
 		};
 
 		struct CallbackContext

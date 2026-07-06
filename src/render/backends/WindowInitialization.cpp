@@ -1,6 +1,9 @@
 #include "Logger.h"
 #include "Window.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 /// Starts GLFW and reports whether initialization succeeded.
 bool ve::engine::Window::InitializeGlfw()
 {

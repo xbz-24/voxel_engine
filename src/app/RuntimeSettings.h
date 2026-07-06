@@ -16,21 +16,35 @@ namespace ve::gameplay
 		bool invert_y_axis = false;
 	};
 
+	struct RuntimePlayerState
+	{
+		bool is_flying = false;
+		float vertical_velocity = 0.0f;
+		MouseLookSettings mouse_look{};
+	};
+
+	struct RuntimeRendererSettings
+	{
+		bool is_vsync_enabled = false;
+		bool show_debug_overlay = true;
+		int render_distance_chunks = DefaultRenderDistanceChunks;
+		ve::rendering::RenderBackendConfiguration backend_configuration{};
+	};
+
+	struct RuntimeEditorSettings
+	{
+		bool is_settings_menu_open = false;
+		ve::ui::SettingsMenuOption selected_settings_menu_option = ve::ui::SettingsMenuOption::RenderDistance;
+	};
+
 	/**
 	 * Mutable runtime options shared by input, render, HUD, and gameplay systems.
 	 */
 	struct RuntimeSettings
 	{
-		// TODO: Separate player/gameplay state from renderer/editor settings so public runtime config can be saved cleanly.
-		bool isSettingsMenuOpen = false;
-		bool isVSyncEnabled = false;
-		bool showDebugOverlay = true;
-		bool isFlying = false;
-		float verticalVelocity = 0.0f;
-		MouseLookSettings mouse_look{};
-		int renderDistanceChunks = DefaultRenderDistanceChunks;
-		ve::rendering::RenderBackendConfiguration renderBackendConfiguration{};
-		ve::ui::SettingsMenuOption selectedSettingsMenuOption = ve::ui::SettingsMenuOption::RenderDistance;
+		RuntimePlayerState player{};
+		RuntimeRendererSettings renderer{};
+		RuntimeEditorSettings editor{};
 	};
 
 	/**

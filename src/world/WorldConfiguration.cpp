@@ -15,6 +15,12 @@ namespace ve::world
 	/// Builds creation settings sized for a square world.
 	WorldCreateInfo CreateInfoForSquareWorld(int worldSizeChunks) noexcept
 	{
-		return WorldCreateInfo{ ChunkCapacityForSquareWorld(worldSizeChunks) };
+		return WorldCreateInfo{ ChunkCapacityForSquareWorld(worldSizeChunks), ChunkStoragePolicy::FixedReserve };
+	}
+
+	/// Builds creation settings for chunk storage that grows as chunks stream in.
+	WorldCreateInfo CreateInfoForStreamingWorld() noexcept
+	{
+		return WorldCreateInfo{ 0U, ChunkStoragePolicy::GrowOnDemand };
 	}
 }

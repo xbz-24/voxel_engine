@@ -23,6 +23,11 @@ namespace ve::world
 	class World;
 }
 
+namespace ve::blocks
+{
+	class BlockRegistry;
+}
+
 namespace ve::rendering
 {
 	class VulkanBackend;
@@ -42,6 +47,7 @@ namespace ve::rendering
 
 		/** @return True when the voxel world was copied to the swapchain and presented. */
 		[[nodiscard]] bool DrawFrame(const ve::world::World& world,
+			const ve::blocks::BlockRegistry& block_registry,
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
@@ -66,6 +72,7 @@ namespace ve::rendering
 		[[nodiscard]] bool RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index);
 		[[nodiscard]] bool RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera);
 		[[nodiscard]] bool DrawGpuFrame(const ve::world::World& world,
+			const ve::blocks::BlockRegistry& block_registry,
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,

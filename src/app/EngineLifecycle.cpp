@@ -12,7 +12,7 @@
 ve::engine::EngineStartupResult EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
-		_runtimeSettings.renderBackendConfiguration);
+		_runtimeSettings.renderer.backend_configuration);
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, ve::rendering::RenderBackendSelector::Name(graphics_api));
 	if (!window.Initialize(graphics_api))
 	{
@@ -20,7 +20,7 @@ ve::engine::EngineStartupResult EngineApplication::InitializeWindow(ve::engine::
 			ve::engine::EngineStartupFailure::WindowInitializationFailed,
 			"Window initialization failed for " + std::string{ ve::rendering::RenderBackendSelector::Name(graphics_api) });
 	}
-	window.SetVSync(_runtimeSettings.isVSyncEnabled);
+	window.SetVSync(_runtimeSettings.renderer.is_vsync_enabled);
 	return ve::engine::EngineStartupResult::Success();
 }
 

@@ -11,9 +11,13 @@ namespace ve::rendering
 {
 	namespace
 	{
-		[[nodiscard]] bool OccludesLight(const ve::world::World& world, const glm::ivec3& coordinate) noexcept
+		[[nodiscard]] bool OccludesLight(
+			const ve::world::World& world,
+			const ve::blocks::BlockRegistry& block_registry,
+			const glm::ivec3& coordinate) noexcept
 		{
-			return OccludesNeighborFaces(world.GetBlock(coordinate.x, coordinate.y, coordinate.z));
+			const ve::blocks::BlockId block = world.GetBlock(coordinate.x, coordinate.y, coordinate.z);
+			return OccludesNeighborFaces(block_registry, block);
 		}
 
 		[[nodiscard]] float BlockLightBoost(ve::blocks::BlockId block) noexcept
@@ -29,12 +33,13 @@ namespace ve::rendering
 		[[nodiscard]] glm::ivec3 CornerSideOffset(const BlockFaceGeometry& face, std::size_t corner, int axis) noexcept
 		{
 			glm::ivec3 offset{ 0 };
-			const float value = face.corners[corner][static_cast<glm::length_t>(axis)];
+			const float value = ChunkFaceCorner(face, corner)[static_cast<glm::length_t>(axis)];
 			offset[static_cast<glm::length_t>(axis)] = value < 0.5f ? -1 : 1;
 			return offset;
 		}
 
 		[[nodiscard]] float CornerOcclusion(const ve::world::World& world,
+			const ve::blocks::BlockRegistry& block_registry,
 			const BlockFaceGeometry& face,
 			const glm::ivec3& block_coordinate,
 			std::size_t corner) noexcept
@@ -50,9 +55,9 @@ namespace ve::rendering
 			}
 			if (side_count < sides.size()) return 1.0f;
 			const glm::ivec3 outside = block_coordinate + face.neighbor_offset;
-			const bool side_a = OccludesLight(world, outside + sides[0]);
-			const bool side_b = OccludesLight(world, outside + sides[1]);
-			const bool diagonal = OccludesLight(world, outside + sides[0] + sides[1]);
+			const bool side_a = OccludesLight(world, block_registry, outside + sides[0]);
+			const bool side_b = OccludesLight(world, block_registry, outside + sides[1]);
+			const bool diagonal = OccludesLight(world, block_registry, outside + sides[0] + sides[1]);
 			float shade = 1.0f;
 			if (side_a) shade -= 0.14f;
 			if (side_b) shade -= 0.14f;
@@ -62,6 +67,7 @@ namespace ve::rendering
 	}
 	void VulkanGpuChunkRenderer::AppendFaceMesh(const BlockFaceGeometry& face,
 		const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
 		int block_x,
 		int block_y,
 		int block_z,
@@ -77,11 +83,11 @@ namespace ve::rendering
 			static_cast<float>(block_y),
 			static_cast<float>(block_z)
 		};
-		for (std::size_t corner = 0; corner < face.corners.size(); ++corner)
+		for (std::size_t corner = 0; corner < face.offsets.size(); ++corner)
 		{
-			const glm::vec3 vertex_position = block_origin + face.corners[corner];
+			const glm::vec3 vertex_position = block_origin + ChunkFaceCorner(face, corner);
 			const float vertex_light = std::clamp(
-				face.light * BlockLightBoost(block) * CornerOcclusion(world, face, block_coordinate, corner),
+				face.light * BlockLightBoost(block) * CornerOcclusion(world, block_registry, face, block_coordinate, corner),
 				0.20f,
 				1.70f);
 			vertices.push_back(VoxelVertex{

@@ -50,8 +50,8 @@ namespace ve::engine
 		[[nodiscard]] ve::world::WorldMetrics GetWorldMetrics() const;
 		/** @return Number of terrain tasks waiting to start. */
 		[[nodiscard]] ve::core::Index PendingWorldGenerationCount() const;
-		/** @param blockRegistry Block metadata. @param renderDistanceChunks Chunk radius around the camera. */
-		void PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int renderDistanceChunks);
+		/** @param blockRegistry Block metadata. @param render_distance_chunks Chunk radius around the camera. */
+		void PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int render_distance_chunks);
 
 	private:
 		Camera camera_;

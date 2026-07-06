@@ -62,7 +62,7 @@
 			create_info.on_diagnostics(RuntimeDiagnostics{
 				static_cast<double>(frame_timer_.DisplayedFps()),
 				ToDiagnosticCounter(world_metrics.pendingWorldEventCount),
-				engine_._runtimeSettings.renderDistanceChunks,
+				engine_._runtimeSettings.renderer.render_distance_chunks,
 				ToDiagnosticCounter(world_metrics.pendingChunkMeshTaskCount),
 				ToDiagnosticCounter(world_metrics.pendingChunkMeshUploadCount),
 				ToDiagnosticCounter(world_metrics.pendingWorldGenerationTaskCount)

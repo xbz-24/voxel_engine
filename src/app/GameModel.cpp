@@ -74,9 +74,9 @@ namespace ve::engine
 		return world_generator_.PendingTaskCount();
 	}
 
-	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int renderDistanceChunks)
+	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int render_distance_chunks)
 	{
 		world_.UploadReadyChunkMeshes(mesh_pipeline_);
-		world_.ScheduleVisibleChunkMeshes(blockRegistry, mesh_pipeline_, camera_.GetPosition(), renderDistanceChunks);
+		world_.ScheduleVisibleChunkMeshes(blockRegistry, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
 	}
 }

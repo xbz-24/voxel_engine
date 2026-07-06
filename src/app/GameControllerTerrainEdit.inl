@@ -72,8 +72,8 @@ namespace ve::engine
 				input,
 				ve::gameplay::GameplayAction::ToggleFly,
 				was_pressed)) return;
-			settings.isFlying = !settings.isFlying;
-			settings.verticalVelocity = 0.0f;
+			settings.player.is_flying = !settings.player.is_flying;
+			settings.player.vertical_velocity = 0.0f;
 		}
 
 		void ConsumeRenderDistanceAdjustment(const ve::input::InputSnapshot& input,
@@ -84,7 +84,7 @@ namespace ve::engine
 		{
 			if (ve::gameplay::ConsumeGameplayAction(input, action, was_pressed))
 			{
-				settings.renderDistanceChunks = ve::gameplay::ClampRenderDistanceChunks(settings.renderDistanceChunks + amount);
+				settings.renderer.render_distance_chunks = ve::gameplay::ClampRenderDistanceChunks(settings.renderer.render_distance_chunks + amount);
 			}
 		}
 	}

@@ -31,13 +31,13 @@ namespace ve::rendering
 		if (!uploaded) ReleaseMeshBuffers();
 		return uploaded;
 	}
-	bool VulkanGpuChunkRenderer::EnsureWorldMesh(const ve::world::World& world)
+	bool VulkanGpuChunkRenderer::EnsureWorldMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry)
 	{
 		if (!NeedsWorldMeshUpdate(world)) return true;
 		const auto rebuild_start = std::chrono::steady_clock::now();
 		std::vector<VoxelVertex> vertices;
 		std::vector<std::uint32_t> indices;
-		RebuildMesh(world, vertices, indices);
+		RebuildMesh(world, block_registry, vertices, indices);
 		const auto rebuild_end = std::chrono::steady_clock::now();
 		const auto upload_start = std::chrono::steady_clock::now();
 		if (!UploadMeshBuffers(vertices, indices)) return false;

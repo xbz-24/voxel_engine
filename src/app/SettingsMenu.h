@@ -23,11 +23,11 @@ namespace ve::ui
 	 */
 	struct SettingsMenuState
 	{
-		bool isOpen;
-		SettingsMenuOption selectedOption;
-		int renderDistanceChunks;
-		bool isVSyncEnabled;
-		bool showDebugOverlay;
-		bool isFlying;
+		bool is_open;
+		SettingsMenuOption selected_option;
+		int render_distance_chunks;
+		bool is_vsync_enabled;
+		bool show_debug_overlay;
+		bool is_flying;
 	};
 }

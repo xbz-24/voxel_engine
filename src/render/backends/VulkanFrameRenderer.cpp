@@ -45,6 +45,7 @@ namespace ve::rendering
 		return true;
 	}
 	bool VulkanFrameRenderer::DrawFrame(const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
@@ -55,7 +56,7 @@ namespace ve::rendering
 			imgui_overlay_enabled_ && imgui_overlay_.IsInitialized(),
 			input.toggle_tuning_panel
 		};
-		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, camera, displayed_fps, delta_seconds, minecraft_demo_settings, gpu_controls);
+		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, block_registry, camera, displayed_fps, delta_seconds, minecraft_demo_settings, gpu_controls);
 		return DrawSoftwareFrame(world, camera, displayed_fps, delta_seconds, input);
 	}
 	bool VulkanFrameRenderer::WantsMouseInput() const noexcept

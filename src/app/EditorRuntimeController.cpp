@@ -8,8 +8,8 @@ namespace ve::editor
 	/// Initializes the editor UI from current runtime settings.
 	bool EditorRuntimeController::Initialize(ve::engine::Window& window, const ve::gameplay::RuntimeSettings& settings)
 	{
-		state_.render_distance_chunks = settings.renderDistanceChunks;
-		state_.is_vsync_enabled = settings.isVSyncEnabled;
+		state_.render_distance_chunks = settings.renderer.render_distance_chunks;
+		state_.is_vsync_enabled = settings.renderer.is_vsync_enabled;
 		return gui_.Initialize(window);
 	}
 
@@ -23,8 +23,8 @@ namespace ve::editor
 	void EditorRuntimeController::DrawAndApply(ve::engine::Window& window, ve::gameplay::RuntimeSettings& settings)
 	{
 		gui_.DrawDemoPanel(state_);
-		settings.renderDistanceChunks = state_.render_distance_chunks;
-		settings.isVSyncEnabled = state_.is_vsync_enabled;
+		settings.renderer.render_distance_chunks = state_.render_distance_chunks;
+		settings.renderer.is_vsync_enabled = state_.is_vsync_enabled;
 		if (window.IsVSyncEnabled() != state_.is_vsync_enabled) window.SetVSync(state_.is_vsync_enabled);
 		state_.request_demo_rebuild = false;
 	}

@@ -51,7 +51,7 @@ namespace ve::ui
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 
-		if (frame.settings_menu.isOpen)
+		if (frame.settings_menu.is_open)
 		{
 			DrawSettingsMenu(frame);
 		}

@@ -8,6 +8,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -36,12 +37,21 @@ namespace ve::blocks
 		std::vector<BlockDrop> drops;
 	};
 
+	struct DataBlockDefinition
+	{
+		BlockId id = BlockId::Air;
+		std::string name;
+		bool is_solid = false;
+		std::array<std::string, static_cast<std::size_t>(BlockFace::Count)> face_texture_files{};
+		ve::rendering::PbrMaterial material;
+		BlockGameplayProperties gameplay{};
+	};
+
 	/**
 	 * Rendering/gameplay metadata for one block type.
 	 */
 	struct BlockType
 	{
-		// TODO: Load block definitions from data so API users can register custom blocks without recompiling.
 		BlockId id;
 		std::string name;
 		bool isSolid;
@@ -77,6 +87,32 @@ namespace ve::blocks
 		 * @return True when the block id is usable by world storage.
 		 */
 		bool Register(BlockType block_type);
+
+		/**
+		 * Registers or replaces metadata described by data files or editor tools.
+		 *
+		 * @param definition Data-authored block definition.
+		 * @param paths Resolved engine asset paths used to load face textures.
+		 * @param texture_loading Whether face textures should be uploaded.
+		 * @return True when the definition is usable by world storage.
+		 */
+		bool RegisterDataDefinition(
+			const DataBlockDefinition& definition,
+			const ve::assets::AssetPaths& paths,
+			TextureLoading texture_loading = TextureLoading::LoadTextures);
+
+		/**
+		 * Registers a batch of data-authored block definitions.
+		 *
+		 * @param definitions Definitions to register.
+		 * @param paths Resolved engine asset paths used to load face textures.
+		 * @param texture_loading Whether face textures should be uploaded.
+		 * @return Count of definitions accepted by the registry.
+		 */
+		std::size_t RegisterDataDefinitions(
+			std::span<const DataBlockDefinition> definitions,
+			const ve::assets::AssetPaths& paths,
+			TextureLoading texture_loading = TextureLoading::LoadTextures);
 
 		/**
 		 * Returns whether metadata exists for a block id.
@@ -143,9 +179,18 @@ namespace ve::blocks
 		/** @param id Block id to inspect. @return True when the block should not fully occlude rendering/light. */
 		bool IsTransparent(BlockId id) const;
 
+		/** @param id Block id to inspect. @return True when the block should emit visible geometry. */
+		bool IsRenderable(BlockId id) const;
+
+		/** @param id Block id to inspect. @return True when the block hides a neighboring face. */
+		bool OccludesNeighborFaces(BlockId id) const;
+
 	private:
 		const BlockType& FallbackBlock() const noexcept;
 
 		std::unordered_map<BlockId, BlockType> _blocks;
 	};
+
+	/** @param id Block id to inspect. @return True when the built-in id can be stored in chunks. */
+	[[nodiscard]] bool IsUsableBlockId(BlockId id) noexcept;
 }

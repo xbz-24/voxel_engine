@@ -51,6 +51,6 @@ namespace ve::ui
 		}
 
 		DrawSettingsSlider(frame, panel_x, first_row_y);
-		DrawText("Selected: " + std::to_string(RowIndex(frame.settings_menu.selectedOption) + 1), panel_x + 198.0f, first_row_y + 304.0f, 1.1f);
+		DrawText("Selected: " + std::to_string(RowIndex(frame.settings_menu.selected_option) + 1), panel_x + 198.0f, first_row_y + 304.0f, 1.1f);
 	}
 }

@@ -44,7 +44,7 @@ namespace ve::rendering
 	public:
 		[[nodiscard]] bool Initialize(VulkanBackend& backend, VkCommandPool command_pool, const std::filesystem::path& block_texture_directory, const std::filesystem::path& shader_directory);
 		[[nodiscard]] bool NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept;
-		[[nodiscard]] bool EnsureWorldMesh(const ve::world::World& world);
+		[[nodiscard]] bool EnsureWorldMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry);
 		[[nodiscard]] bool Record(VkCommandBuffer command_buffer, std::uint32_t image_index, const Camera& camera, VulkanOverlayRecordCallback overlay_callback = nullptr, void* overlay_user_data = nullptr);
 		void Release();
 
@@ -88,13 +88,13 @@ namespace ve::rendering
 		void ReleaseMeshBuffers();
 		void ReleaseTextureResources();
 		void ReleasePipelineResources();
-		void RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices);
+		void RebuildMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices);
 		void ResetChunkMeshCacheForWorldStorage(const ve::world::World& world);
 		[[nodiscard]] CachedChunkMesh& CachedMeshFor(const Chunk& chunk);
-		void RebuildChunkMesh(const ve::world::World& world, const Chunk& chunk, CachedChunkMesh& cached_mesh) const;
+		void RebuildChunkMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry, const Chunk& chunk, CachedChunkMesh& cached_mesh) const;
 		void AppendCachedChunkMesh(const CachedChunkMesh& cached_mesh, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
-		void AppendVisibleBlockFaces(const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
-		void AppendFaceMesh(const BlockFaceGeometry& face, const ve::world::World& world, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void AppendVisibleBlockFaces(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
+		void AppendFaceMesh(const BlockFaceGeometry& face, const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry, int block_x, int block_y, int block_z, ve::blocks::BlockId block, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices) const;
 		[[nodiscard]] static std::uint32_t FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties);
 
 		VulkanBackend* backend_ = nullptr;

@@ -9,11 +9,11 @@ namespace
 		ve::gameplay::RuntimeSettings& runtime_settings,
 		const ve::engine::EngineCreateInfo& create_info) noexcept
 	{
-		runtime_settings.isVSyncEnabled = create_info.vsync;
-		runtime_settings.showDebugOverlay = create_info.show_debug_overlay;
-		runtime_settings.renderDistanceChunks =
+		runtime_settings.renderer.is_vsync_enabled = create_info.vsync;
+		runtime_settings.renderer.show_debug_overlay = create_info.show_debug_overlay;
+		runtime_settings.renderer.render_distance_chunks =
 			ve::gameplay::ClampRenderDistanceChunks(create_info.render_distance_chunks);
-		runtime_settings.renderBackendConfiguration = create_info.render_backend;
+		runtime_settings.renderer.backend_configuration = create_info.render_backend;
 	}
 }
 

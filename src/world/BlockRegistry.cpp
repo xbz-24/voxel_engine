@@ -41,11 +41,6 @@ namespace ve::blocks
 			return faces;
 		}
 
-		bool IsUsableBlockId(BlockId id) noexcept
-		{
-			return id != BlockId::Count;
-		}
-
 		BlockGameplayProperties DefaultGameplayFor(const BlockDefinition& definition)
 		{
 			BlockGameplayProperties properties{};
@@ -62,6 +57,43 @@ namespace ve::blocks
 			}
 			return properties;
 		}
+
+		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> LoadFaces(
+			BlockTextureCache& cache,
+			const DataBlockDefinition& definition)
+		{
+			std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faces{};
+			for (std::size_t face_index = 0; face_index < faces.size(); ++face_index)
+			{
+				const std::string& texture_file = definition.face_texture_files[face_index];
+				faces[face_index] = cache.Load(texture_file.empty() ? nullptr : texture_file.c_str());
+			}
+			return faces;
+		}
+
+		BlockGameplayProperties NormalizeDataGameplay(const DataBlockDefinition& definition)
+		{
+			BlockGameplayProperties gameplay = definition.gameplay;
+			if (definition.is_solid && gameplay.collision == BlockCollisionMode::None)
+			{
+				gameplay.collision = BlockCollisionMode::Solid;
+			}
+			if (definition.is_solid && gameplay.transparent && gameplay.drops.empty() &&
+				gameplay.footstep_sound.empty() && gameplay.break_sound.empty())
+			{
+				gameplay.transparent = false;
+			}
+			if (definition.id != BlockId::Air && gameplay.drops.empty())
+			{
+				gameplay.drops.push_back(BlockDrop{ definition.id, 1, 1 });
+			}
+			return gameplay;
+		}
+	}
+
+	bool IsUsableBlockId(BlockId id) noexcept
+	{
+		return id != BlockId::Count;
 	}
 
 	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading)
@@ -88,6 +120,55 @@ namespace ve::blocks
 		}
 		_blocks.insert_or_assign(block_type.id, std::move(block_type));
 		return true;
+	}
+
+	bool BlockRegistry::RegisterDataDefinition(
+		const DataBlockDefinition& definition,
+		const ve::assets::AssetPaths& paths,
+		TextureLoading texture_loading)
+	{
+		if (!IsUsableBlockId(definition.id) || definition.name.empty())
+		{
+			return false;
+		}
+
+		BlockTextureCache cache(paths.blockTexturesDirectory);
+		return Register(BlockType{
+			definition.id,
+			definition.name,
+			definition.is_solid,
+			texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition) : EmptyFaces(),
+			definition.material,
+			NormalizeDataGameplay(definition)
+		});
+	}
+
+	std::size_t BlockRegistry::RegisterDataDefinitions(
+		std::span<const DataBlockDefinition> definitions,
+		const ve::assets::AssetPaths& paths,
+		TextureLoading texture_loading)
+	{
+		std::size_t accepted_definition_count = 0;
+		BlockTextureCache cache(paths.blockTexturesDirectory);
+		for (const DataBlockDefinition& definition : definitions)
+		{
+			if (!IsUsableBlockId(definition.id) || definition.name.empty())
+			{
+				continue;
+			}
+			if (Register(BlockType{
+				definition.id,
+				definition.name,
+				definition.is_solid,
+				texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition) : EmptyFaces(),
+				definition.material,
+				NormalizeDataGameplay(definition)
+			}))
+			{
+				++accepted_definition_count;
+			}
+		}
+		return accepted_definition_count;
 	}
 
 	bool BlockRegistry::Contains(BlockId id) const
@@ -139,6 +220,16 @@ namespace ve::blocks
 	bool BlockRegistry::IsTransparent(BlockId id) const
 	{
 		return GameplayFor(id).transparent;
+	}
+
+	bool BlockRegistry::IsRenderable(BlockId id) const
+	{
+		return id != BlockId::Air && Contains(id);
+	}
+
+	bool BlockRegistry::OccludesNeighborFaces(BlockId id) const
+	{
+		return IsRenderable(id) && !IsTransparent(id);
 	}
 
 	const BlockType& BlockRegistry::FallbackBlock() const noexcept

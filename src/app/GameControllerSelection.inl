@@ -18,7 +18,7 @@
 
 	void GameController::ProcessGameplayInput(GameplayCommandFrameContext& frame)
 	{
-		if (frame.settings.isSettingsMenuOpen) return;
+		if (frame.settings.editor.is_settings_menu_open) return;
 
 		const auto& hotbar_blocks = ve::gameplay::DefaultHotbarBlocks();
 		if (const std::optional<std::size_t> selected_hotbar_slot = ve::gameplay::ReadSelectedHotbarSlot(frame.input))
@@ -28,7 +28,7 @@
 
 		if (ve::gameplay::ConsumeDebugToggle(frame.input, input_state_.was_debug_toggle_pressed))
 		{
-			frame.settings.showDebugOverlay = !frame.settings.showDebugOverlay;
+			frame.settings.renderer.show_debug_overlay = !frame.settings.renderer.show_debug_overlay;
 		}
 
 		if (frame.selection.has_target && ve::gameplay::ConsumeBlockBreak(frame.input, input_state_.was_left_mouse_button_pressed))

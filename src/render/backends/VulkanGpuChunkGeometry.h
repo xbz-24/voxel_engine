@@ -1,44 +1,31 @@
 #pragma once
 
-#include "BlockDefinitions.h"
+#include "BlockRegistry.h"
+#include "ChunkFaceGeometry.h"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <span>
 #include <vector>
 
 namespace ve::rendering
 {
-	// TODO: Share face geometry, UV winding, and transparency rules with the chunk meshing pipeline instead of duplicating them for Vulkan.
-	struct BlockFaceGeometry
-	{
-		ve::blocks::BlockFace face;
-		glm::ivec3 neighbor_offset;
-		std::array<glm::vec3, 4> corners;
-		float light;
-	};
+	using BlockFaceGeometry = ve::world::mesh::ChunkFaceGeometry;
 
-	[[nodiscard]] inline constexpr std::array<BlockFaceGeometry, 6> ChunkFaces() noexcept
+	[[nodiscard]] inline std::span<const BlockFaceGeometry> ChunkFaces() noexcept
 	{
-		return { {
-			BlockFaceGeometry{ ve::blocks::BlockFace::Top, { 0, 1, 0 }, { glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 1.22f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Bottom, { 0, -1, 0 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f } }, 0.24f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Front, { 0, 0, 1 }, { glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f } }, 0.90f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Back, { 0, 0, -1 }, { glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f } }, 0.44f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Left, { -1, 0, 0 }, { glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 1.0f }, glm::vec3{ 0.0f, 1.0f, 0.0f } }, 0.58f },
-			BlockFaceGeometry{ ve::blocks::BlockFace::Right, { 1, 0, 0 }, { glm::vec3{ 1.0f, 0.0f, 1.0f }, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } }, 1.02f }
-		} };
+		return ve::world::mesh::ChunkFaceGeometries();
 	}
 
-	[[nodiscard]] inline constexpr std::array<glm::vec2, 4> ChunkFaceUvs() noexcept
+	[[nodiscard]] inline glm::vec3 ChunkFaceCorner(const BlockFaceGeometry& face, std::size_t corner) noexcept
 	{
-		return { {
-			glm::vec2{ 0.0f, 1.0f },
-			glm::vec2{ 1.0f, 1.0f },
-			glm::vec2{ 1.0f, 0.0f },
-			glm::vec2{ 0.0f, 0.0f }
-		} };
+		const ve::world::mesh::FaceVertexOffset& offset = face.offsets[corner];
+		return glm::vec3{
+			offset.local_position_x + 0.5f,
+			offset.local_position_y + 0.5f,
+			offset.local_position_z + 0.5f
+		};
 	}
 
 	[[nodiscard]] inline std::size_t FaceIndex(ve::blocks::BlockId block, ve::blocks::BlockFace face) noexcept
@@ -47,25 +34,14 @@ namespace ve::rendering
 			static_cast<std::size_t>(face);
 	}
 
-	[[nodiscard]] inline bool IsRenderableBlock(ve::blocks::BlockId block) noexcept
+	[[nodiscard]] inline bool IsRenderableBlock(const ve::blocks::BlockRegistry& block_registry, ve::blocks::BlockId block) noexcept
 	{
-		return block != ve::blocks::BlockId::Air &&
-			static_cast<std::size_t>(block) < static_cast<std::size_t>(ve::blocks::BlockId::Count);
+		return block_registry.IsRenderable(block);
 	}
 
-	[[nodiscard]] inline bool OccludesNeighborFaces(ve::blocks::BlockId block) noexcept
+	[[nodiscard]] inline bool OccludesNeighborFaces(const ve::blocks::BlockRegistry& block_registry, ve::blocks::BlockId block) noexcept
 	{
-		if (block == ve::blocks::BlockId::Glass ||
-			block == ve::blocks::BlockId::Water ||
-			block == ve::blocks::BlockId::OakLeaves ||
-			block == ve::blocks::BlockId::BirchLeaves ||
-			block == ve::blocks::BlockId::CherryLeaves)
-		{
-			return false;
-		}
-		const std::size_t index = static_cast<std::size_t>(block);
-		return index < static_cast<std::size_t>(ve::blocks::BlockId::Count) &&
-			ve::blocks::BuiltInBlockDefinitions[index].isSolid;
+		return block_registry.OccludesNeighborFaces(block);
 	}
 
 	inline void AppendQuadIndices(std::vector<std::uint32_t>& indices, std::uint32_t base)

@@ -24,7 +24,10 @@
 
 	bool EngineRuntime::DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input)
 	{
+		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
+		assert(block_registry != nullptr);
 		return vulkan_frame_renderer_.DrawFrame(model_->GetWorld(),
+			*block_registry,
 			model_->GetCamera(),
 			frame_timer_.DisplayedFps(),
 			frame_timer_.DeltaSeconds(),

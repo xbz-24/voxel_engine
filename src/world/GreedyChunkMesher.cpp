@@ -50,7 +50,7 @@ namespace ve::world::mesh
 		mask_cell.has_source_block_face = true;
 		mask_cell.block_id = block_id;
 		block_coordinate[static_cast<std::size_t>(axis_plan.normal_axis)] += axis_plan.normal_sign;
-		if (block_registry_.IsSolid(ReadBlock(block_coordinate[0], block_coordinate[1], block_coordinate[2]))) return mask_cell;
+		if (block_registry_.OccludesNeighborFaces(ReadBlock(block_coordinate[0], block_coordinate[1], block_coordinate[2]))) return mask_cell;
 		const bool is_grass_top = block_id == ve::blocks::BlockId::Grass && axis_plan.block_face == ve::blocks::BlockFace::Top;
 		mask_cell.visible = true;
 		mask_cell.material.texture = block_registry_.TextureFor(block_id, axis_plan.block_face);

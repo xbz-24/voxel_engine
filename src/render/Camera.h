@@ -1,17 +1,24 @@
 #pragma once
 
+#include "CameraPose.h"
+
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 class Camera
 {
 public:
-	// TODO: Split camera math from player camera behavior so public apps can plug FPS, orbit, cinematic, or fixed cameras.
 	/**
 	 * Creates a camera at the default player spawn position.
 	 */
 	Camera();
+
+	/**
+	 * Creates a camera from an explicit math-only pose.
+	 *
+	 * @param pose Camera position and yaw/pitch orientation.
+	 */
+	explicit Camera(ve::rendering::CameraPose pose) noexcept;
 
 	~Camera();
 
@@ -104,10 +111,5 @@ public:
 	void NormalizePitch();
 
 private:
-	void RebuildOrientationFromYawPitch();
-
-	glm::vec3 _position;
-	glm::quat _orientation;
-	float _yaw;
-	float _pitch;
+	ve::rendering::CameraPose pose_;
 };

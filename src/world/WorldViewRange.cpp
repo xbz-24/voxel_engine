@@ -13,10 +13,10 @@ namespace ve::world
 	 *
 	 * @param cameraPosition Camera world position.
 	 * @param worldSize Number of chunks along one world side.
-	 * @param renderDistanceChunks Radius around the camera chunk.
+	 * @param render_distance_chunks Radius around the camera chunk.
 	 * @return Inclusive chunk range clamped to the world bounds.
 	 */
-	ChunkViewRange BuildChunkViewRange(const glm::vec3& cameraPosition, int worldSize, int renderDistanceChunks)
+	ChunkViewRange BuildChunkViewRange(const glm::vec3& cameraPosition, int worldSize, int render_distance_chunks)
 	{
 		if (worldSize <= 0)
 		{
@@ -27,10 +27,10 @@ namespace ve::world
 		const int cameraChunkZ = coordinates::FloorDiv(static_cast<int>(std::floor(cameraPosition.z)), Chunk::CHUNK_DEPTH);
 		const int lastChunk = worldSize - 1;
 		return {
-			std::max(0, cameraChunkX - renderDistanceChunks),
-			std::min(lastChunk, cameraChunkX + renderDistanceChunks),
-			std::max(0, cameraChunkZ - renderDistanceChunks),
-			std::min(lastChunk, cameraChunkZ + renderDistanceChunks)
+			std::max(0, cameraChunkX - render_distance_chunks),
+			std::min(lastChunk, cameraChunkX + render_distance_chunks),
+			std::max(0, cameraChunkZ - render_distance_chunks),
+			std::min(lastChunk, cameraChunkZ + render_distance_chunks)
 		};
 	}
 

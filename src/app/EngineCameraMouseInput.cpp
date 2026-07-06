@@ -3,6 +3,9 @@
 #include "RuntimeInputRouter.h"
 #include "Window.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 void EngineApplication::ConfigureCallbacks(ve::engine::Window& window, ve::engine::RuntimeInputRouter& input_router)
 {
 	window.SetCallbackUserData(&input_router);

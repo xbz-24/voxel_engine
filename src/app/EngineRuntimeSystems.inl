@@ -31,8 +31,8 @@
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		input_router_.BindMouseLook(
 			model_->MutableCamera(),
-			engine_._runtimeSettings.isSettingsMenuOpen,
-			engine_._runtimeSettings.mouse_look);
+			engine_._runtimeSettings.editor.is_settings_menu_open,
+			engine_._runtimeSettings.player.mouse_look);
 		engine_.ConfigureCallbacks(window_, input_router_);
 		if (create_info.has_custom_camera)
 		{

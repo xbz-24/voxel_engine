@@ -17,6 +17,25 @@ TEST_CASE("world metrics include dirty chunks and reserved chunk bytes")
 	CHECK(metrics.levelArenaCapacityBytes >= metrics.levelArenaUsedBytes);
 	CHECK(metrics.levelArenaUsedBytes >= metrics.reservedChunkStorageBytes);
 	CHECK(metrics.pendingWorldEventCount == 4U);
+	CHECK(metrics.chunkStoragePolicy == ve::world::ChunkStoragePolicy::FixedReserve);
+}
+
+TEST_CASE("world can grow chunk storage without reserving a whole grid")
+{
+	ve::world::WorldCreateInfo create_info = ve::world::CreateInfoForStreamingWorld();
+	create_info.chunkCapacity = 64U;
+	ve::world::World world(create_info);
+
+	CHECK(world.Metrics().reservedChunkCapacity == 0U);
+	CHECK(world.Metrics().levelArenaCapacityBytes == 0U);
+
+	world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ 2 });
+	const ve::world::WorldMetrics metrics = world.Metrics();
+
+	CHECK(metrics.loadedChunkCount == 4U);
+	CHECK(metrics.reservedChunkCapacity < create_info.chunkCapacity);
+	CHECK(metrics.levelArenaUsedBytes == 0U);
+	CHECK(metrics.chunkStoragePolicy == ve::world::ChunkStoragePolicy::GrowOnDemand);
 }
 
 TEST_CASE("world respawn clears stale pending events")

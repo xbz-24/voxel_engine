@@ -1,5 +1,7 @@
 #include <doctest/doctest.h>
 
+#include "CameraPose.h"
+#include "ChunkFaceGeometry.h"
 #include "GeometryFactory.h"
 #include "MeshAlgorithms.h"
 #include "MeshBuilder.h"
@@ -51,4 +53,30 @@ TEST_CASE("mesh algorithms remove degenerate geometry and rebuild normals")
 	CHECK(removed_count == 1U);
 	CHECK(mesh.TriangleCount() == 1U);
 	CHECK(mesh.vertices[0].normal.z == doctest::Approx(1.0f));
+}
+
+TEST_CASE("chunk face offsets come from shared face geometry descriptors")
+{
+	const std::span<const ve::world::mesh::ChunkFaceGeometry> faces = ve::world::mesh::ChunkFaceGeometries();
+	const ve::world::mesh::ChunkFaceGeometry& top = ve::world::mesh::GeometryForDirection(
+		ve::world::mesh::MeshFaceDirection::Top);
+
+	REQUIRE(faces.size() == 6U);
+	CHECK(faces.front().block_face == ve::blocks::BlockFace::Top);
+	CHECK(top.neighbor_offset.y == 1);
+	CHECK(&ve::world::mesh::OffsetsForDirection(ve::world::mesh::MeshFaceDirection::Top) == &top.offsets);
+	CHECK(top.offsets[0].texture_u == doctest::Approx(0.0f));
+	CHECK(top.offsets[2].texture_v == doctest::Approx(1.0f));
+}
+
+TEST_CASE("camera pose math exposes orientation independent from gameplay camera")
+{
+	ve::rendering::CameraPose pose = ve::rendering::CameraPoseLookingAt(
+		glm::vec3{ 0.0f, 0.0f, 0.0f },
+		glm::vec3{ 0.0f, 0.0f, -1.0f });
+
+	CHECK(ve::rendering::CameraForward(pose).z == doctest::Approx(-1.0f));
+	pose.pitch_degrees = 120.0f;
+	ve::rendering::NormalizeCameraPitch(pose);
+	CHECK(pose.pitch_degrees == doctest::Approx(85.0f));
 }

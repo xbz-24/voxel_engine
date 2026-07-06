@@ -1,5 +1,8 @@
 #include "Window.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 namespace
 {
 	/// Converts an engine cursor mode to the GLFW cursor mode.

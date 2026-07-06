@@ -37,6 +37,7 @@ namespace ve::rendering
 
 	void VulkanGpuChunkRenderer::RebuildChunkMesh(
 		const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
 		const Chunk& chunk,
 		CachedChunkMesh& cached_mesh) const
 	{
@@ -57,9 +58,9 @@ namespace ve::rendering
 				for (int local_block_z = 0; local_block_z < Chunk::CHUNK_DEPTH; ++local_block_z)
 				{
 					const ve::blocks::BlockId block = chunk.GetBlock(local_block_x, block_y, local_block_z);
-					if (!IsRenderableBlock(block)) continue;
+					if (!IsRenderableBlock(block_registry, block)) continue;
 					const int block_z = chunk_origin_z + local_block_z;
-					AppendVisibleBlockFaces(world, block_x, block_y, block_z, block, cached_mesh.vertices, cached_mesh.indices);
+					AppendVisibleBlockFaces(world, block_registry, block_x, block_y, block_z, block, cached_mesh.vertices, cached_mesh.indices);
 				}
 			}
 		}
@@ -80,7 +81,11 @@ namespace ve::rendering
 		}
 	}
 
-	void VulkanGpuChunkRenderer::RebuildMesh(const ve::world::World& world, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices)
+	void VulkanGpuChunkRenderer::RebuildMesh(
+		const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
+		std::vector<VoxelVertex>& vertices,
+		std::vector<std::uint32_t>& indices)
 	{
 		ResetChunkMeshCacheForWorldStorage(world);
 		const ve::world::WorldMetrics metrics = world.Metrics();
@@ -99,7 +104,7 @@ namespace ve::rendering
 			CachedChunkMesh& cached_mesh = CachedMeshFor(chunk);
 			if (cached_mesh.mesh_revision != chunk.MeshRevision())
 			{
-				RebuildChunkMesh(world, chunk, cached_mesh);
+				RebuildChunkMesh(world, block_registry, chunk, cached_mesh);
 				++last_rebuilt_chunk_count_;
 			}
 			AppendCachedChunkMesh(cached_mesh, vertices, indices);
@@ -107,6 +112,7 @@ namespace ve::rendering
 	}
 
 	void VulkanGpuChunkRenderer::AppendVisibleBlockFaces(const ve::world::World& world,
+		const ve::blocks::BlockRegistry& block_registry,
 		int block_x,
 		int block_y,
 		int block_z,
@@ -120,9 +126,9 @@ namespace ve::rendering
 				block_x + face.neighbor_offset.x,
 				block_y + face.neighbor_offset.y,
 				block_z + face.neighbor_offset.z);
-			if (!OccludesNeighborFaces(neighbor_block))
+			if (!OccludesNeighborFaces(block_registry, neighbor_block))
 			{
-				AppendFaceMesh(face, world, block_x, block_y, block_z, block, vertices, indices);
+				AppendFaceMesh(face, world, block_registry, block_x, block_y, block_z, block, vertices, indices);
 			}
 		}
 	}
