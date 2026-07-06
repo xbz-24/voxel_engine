@@ -24,6 +24,7 @@
 namespace ve::engine
 {
 	class EngineRuntime;
+	class RenderView;
 }
 
 /** Coordinates engine settings, callbacks, and the runtime entry point. */
@@ -74,9 +75,6 @@ private:
 		const ve::world::World& world,
 		ve::blocks::BlockId selected_placement_block) const;
 
-	/** Releases OpenGL objects still owned directly by Engine. */
-	void ReleaseRenderCaches();
-
 	/** Draws debug X/Y/Z axes in world space. */
 	void renderDebugCoordinateSystemAxes();
 
@@ -84,7 +82,7 @@ private:
 	void drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube);
 
 	/** Renders the legacy OpenGL 3D scene. */
-	void Render3DWorld(const ve::engine::Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
+	void Render3DWorld(ve::engine::RenderView& renderView, const ve::engine::Window& window, Camera& camera, SkyBox& skyBox, Plane& plane, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection);
 
 	/** Rebuilds 3D and 2D projection matrices after window size changes. */
 	void UpdateProjections(int width, int height);
@@ -97,12 +95,6 @@ private:
 
 	/** @return True when raw create info validation succeeded. */
 	[[nodiscard]] bool HasValidCreateInfo() const noexcept;
-
-	/** Draws the cached OpenGL cloud layer. */
-	void RenderClouds();
-
-	/** Builds the OpenGL display list used by the cloud layer. */
-	void BuildCloudDisplayList();
 
 	EngineRenderCacheState _render_cache_state;
 	EngineWindowState _window_state;

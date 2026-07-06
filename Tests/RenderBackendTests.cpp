@@ -44,6 +44,10 @@ TEST_CASE("decoded image validates rgba8 metadata and payload size")
 	CHECK(image.mip_level_count == 1);
 	CHECK(image.IsValid());
 
+	ve::rendering::DirectX12Backend backend;
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
+
 	image.rgba.pop_back();
 	CHECK(!image.IsValid());
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
 }

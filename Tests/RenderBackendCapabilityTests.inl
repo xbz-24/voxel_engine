@@ -13,6 +13,27 @@ TEST_CASE("opengl compatibility backend exposes conservative capabilities")
 	CHECK(capabilities.is_available);
 }
 
+TEST_CASE("render backend resource factories default to unsupported")
+{
+	ve::rendering::DirectX12Backend backend;
+	const ve::rendering::RenderTextureDescriptor texture_descriptor{};
+	const ve::rendering::RenderTextureUpload texture_upload{ texture_descriptor, {} };
+	const ve::rendering::RenderMaterialDescriptor material_descriptor{};
+	const ve::rendering::RenderTargetDescriptor render_target_descriptor{};
+	const ve::rendering::RenderSceneInstanceDescriptor scene_instance_descriptor{};
+
+	CHECK(ve::rendering::HasUsage(
+		ve::rendering::RenderTextureUsage::Sampled | ve::rendering::RenderTextureUsage::TransferDestination,
+		ve::rendering::RenderTextureUsage::TransferDestination));
+	CHECK(backend.CreateTextureResource(texture_descriptor) == nullptr);
+	CHECK(backend.CreateTextureResource(texture_upload) == nullptr);
+	CHECK(backend.CreateMaterialResource(material_descriptor) == nullptr);
+	CHECK(backend.CreateRenderTarget(render_target_descriptor) == nullptr);
+	CHECK(backend.CreateSceneInstance(scene_instance_descriptor) == nullptr);
+	backend.BeginFrame();
+	backend.EndFrame();
+}
+
 TEST_CASE("directx backend is declared but unavailable until implemented")
 {
 	const ve::rendering::DirectX12Backend backend;

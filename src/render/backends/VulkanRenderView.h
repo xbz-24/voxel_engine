@@ -24,12 +24,6 @@ namespace ve::engine
 		/** @return API represented by this Vulkan view. */
 		[[nodiscard]] ve::rendering::GraphicsApi Api() const noexcept override;
 
-		/** @return This object as the Vulkan adapter. */
-		[[nodiscard]] VulkanRenderView* AsVulkanRenderView() noexcept override;
-
-		/** @return This object as the read-only Vulkan adapter. */
-		[[nodiscard]] const VulkanRenderView* AsVulkanRenderView() const noexcept override;
-
 		/** @return Vulkan-Hpp logical device handle used by view-level render passes. */
 		[[nodiscard]] vk::Device Device() const noexcept;
 

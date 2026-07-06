@@ -73,15 +73,3 @@ void EngineApplication::ApplyFramebufferSize(int width, int height)
 	_window_state.current_height = clamped_height;
 	UpdateProjections(_window_state.current_width, _window_state.current_height);
 }
-
-/// Releases cached OpenGL resources owned directly by the engine.
-void EngineApplication::ReleaseRenderCaches()
-{
-	// TODO: Move remaining direct OpenGL cache ownership into OpenGLRenderView.
-	if (_render_cache_state.cloud_display_list_id == 0)
-	{
-		return;
-	}
-	glDeleteLists(_render_cache_state.cloud_display_list_id, 1);
-	_render_cache_state.cloud_display_list_id = 0;
-}

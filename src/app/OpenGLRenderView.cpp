@@ -29,12 +29,6 @@ namespace ve::engine
 
 	ve::ui::HudRenderer* OpenGLRenderView::Hud() noexcept { return &hud_renderer_; }
 
-	/** Returns this object for explicit legacy renderer access. */
-	OpenGLRenderView* OpenGLRenderView::AsOpenGLRenderView() noexcept { return this; }
-
-	/** Returns this object for explicit legacy renderer access. */
-	const OpenGLRenderView* OpenGLRenderView::AsOpenGLRenderView() const noexcept { return this; }
-
 	/** Returns the mutable skybox renderer. */
 	SkyBox& OpenGLRenderView::MutableSkyBox() noexcept { return sky_box_; }
 

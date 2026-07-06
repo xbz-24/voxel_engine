@@ -8,9 +8,8 @@ TEST_CASE("vulkan render view exposes vulkan hpp handles")
 	CHECK(view.Swapchain() == vk::SwapchainKHR{});
 	CHECK(view.SwapchainExtent().width == 1280U);
 	CHECK(view.SwapchainExtent().height == 720U);
-	CHECK(view.AsVulkanRenderView() == &view);
-	CHECK(ve::engine::TryRenderViewCast<ve::engine::VulkanRenderView>(view) == &view);
-	CHECK(view.AsOpenGLRenderView() == nullptr);
+	CHECK(view.Graphics() == nullptr);
+	CHECK(view.Hud() == nullptr);
 }
 
 TEST_CASE("vulkan backend settings expose startup requirements")

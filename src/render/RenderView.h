@@ -2,17 +2,9 @@
 
 #include "RenderApi.h"
 
-#include <concepts>
-
 class BlockSelectionCube;
 class Plane;
 class SkyBox;
-
-namespace ve::engine
-{
-	class OpenGLRenderView;
-	class VulkanRenderView;
-}
 
 namespace ve::rendering
 {
@@ -26,12 +18,10 @@ namespace ve::ui
 
 namespace ve::engine
 {
-
 	/** Backend-neutral view contract consumed by the engine runtime. */
 	class RenderView
 	{
 	public:
-		// TODO: Remove AsOpenGL/AsVulkan downcasts after world, HUD, and editor rendering use backend-neutral contracts.
 		/** Releases resources through the concrete render-view implementation. */
 		virtual ~RenderView() = default;
 
@@ -56,61 +46,10 @@ namespace ve::engine
 		/** @return HUD renderer capability, or null when unavailable. */
 		[[nodiscard]] virtual ve::ui::HudRenderer* Hud() noexcept;
 
-		/** @return OpenGL compatibility adapter, or null when the view is not OpenGL. */
-		[[nodiscard]] virtual OpenGLRenderView* AsOpenGLRenderView() noexcept;
+		/** Renders an optional backend-owned sky/cloud layer before world geometry. */
+		virtual void RenderCloudLayer();
 
-		/** @return Read-only OpenGL compatibility adapter, or null when unavailable. */
-		[[nodiscard]] virtual const OpenGLRenderView* AsOpenGLRenderView() const noexcept;
-
-		/** @return Vulkan adapter, or null when the view is not Vulkan. */
-		[[nodiscard]] virtual VulkanRenderView* AsVulkanRenderView() noexcept;
-
-		/** @return Read-only Vulkan adapter, or null when unavailable. */
-		[[nodiscard]] virtual const VulkanRenderView* AsVulkanRenderView() const noexcept;
+		/** Releases optional cached native resources owned by the view. */
+		virtual void ReleaseCachedResources();
 	};
-
-	template <typename ViewT>
-	concept RenderViewAdapter =
-		// TODO: Avoid updating this concept for every backend by replacing adapter casts with capability interfaces.
-		std::same_as<ViewT, OpenGLRenderView> || std::same_as<ViewT, VulkanRenderView>;
-
-	/**
-	 * Converts a backend-neutral render view into a specific adapter type.
-	 *
-	 * @tparam ViewT Concrete adapter type requested by the caller.
-	 * @param view Backend-neutral render view to inspect.
-	 * @return Adapter pointer when the view matches ViewT; otherwise null.
-	 */
-	template <RenderViewAdapter ViewT>
-	[[nodiscard]] ViewT* TryRenderViewCast(RenderView& view) noexcept
-	{
-		if constexpr (std::same_as<ViewT, OpenGLRenderView>)
-		{
-			return view.AsOpenGLRenderView();
-		}
-		else
-		{
-			return view.AsVulkanRenderView();
-		}
-	}
-
-	/**
-	 * Converts a read-only backend-neutral render view into a specific adapter type.
-	 *
-	 * @tparam ViewT Concrete adapter type requested by the caller.
-	 * @param view Backend-neutral render view to inspect.
-	 * @return Const adapter pointer when the view matches ViewT; otherwise null.
-	 */
-	template <RenderViewAdapter ViewT>
-	[[nodiscard]] const ViewT* TryRenderViewCast(const RenderView& view) noexcept
-	{
-		if constexpr (std::same_as<ViewT, OpenGLRenderView>)
-		{
-			return view.AsOpenGLRenderView();
-		}
-		else
-		{
-			return view.AsVulkanRenderView();
-		}
-	}
 }

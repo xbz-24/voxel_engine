@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include "Plane.h"
+#include "RenderView.h"
 #include "RenderState.h"
 #include "SkyBox.h"
 #include "Window.h"
@@ -18,7 +19,7 @@ void EngineApplication::ConfigureOpenGLState()
 }
 
 /// Renders the visible 3D world and selection highlight.
-void EngineApplication::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
+void EngineApplication::Render3DWorld(ve::engine::RenderView& renderView, const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
 	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 	ve::rendering::ApplyProjection(_render_cache_state.projection_3d);
@@ -26,7 +27,7 @@ void EngineApplication::Render3DWorld(const ve::engine::Window&, Camera& camera,
 	ve::rendering::ApplyView(view);
 	ve::rendering::UseSolidFillMode();
 	ve::rendering::UseBackFaceCulling();
-	RenderClouds();
+	renderView.RenderCloudLayer();
 	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, _runtimeSettings.renderDistanceChunks });
 	renderDebugCoordinateSystemAxes();
 	if (selection.has_target)

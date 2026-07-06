@@ -12,7 +12,7 @@
 	void EngineRuntime::Shutdown()
 	{
 		editor_controller_.Shutdown();
-		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) engine_.ReleaseRenderCaches();
+		if (view_ != nullptr) view_->ReleaseCachedResources();
 		view_.reset();
 		vulkan_frame_renderer_.Release();
 		if (backend_ == nullptr)

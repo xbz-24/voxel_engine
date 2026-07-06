@@ -17,7 +17,7 @@
 		assert(skybox != nullptr);
 		assert(ground_plane != nullptr);
 		assert(selection_cube != nullptr);
-		engine_.Render3DWorld(window_, model_->MutableCamera(), *skybox, *ground_plane,
+		engine_.Render3DWorld(render_view, window_, model_->MutableCamera(), *skybox, *ground_plane,
 			*selection_cube, *block_registry, model_->MutableWorld(), model_->GetSelection());
 	}
 

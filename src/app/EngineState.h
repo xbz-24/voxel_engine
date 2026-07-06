@@ -1,6 +1,5 @@
 #pragma once
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 struct EngineInputState
@@ -17,7 +16,6 @@ struct EngineInputState
 struct EngineRenderCacheState
 {
 	glm::mat4 projection_3d{ 1.0f };
-	GLuint cloud_display_list_id = 0;
 };
 
 struct EngineWindowState

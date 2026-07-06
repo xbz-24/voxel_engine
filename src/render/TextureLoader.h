@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 
 #include "GraphicsTypes.h"
+#include "RenderResources.h"
 
 #include <cstdint>
 #include <string>
@@ -10,7 +11,8 @@
 
 namespace ve::rendering
 {
-	// TODO: Introduce TextureResource/TextureUploader interfaces so decoded pixels are shared and upload remains backend-specific.
+	class RenderBackend;
+
 	enum class ImagePixelFormat
 	{
 		Unknown,
@@ -52,7 +54,15 @@ namespace ve::rendering
 	 * @return Backend-neutral texture handle wrapping the OpenGL texture registry id.
 	 */
 	[[nodiscard]] TextureHandle UploadOpenGLTexture(const DecodedImage& image);
-	// TODO: Add UploadVulkanTexture through a backend texture interface instead of exposing backend-specific helpers here.
+
+	/**
+	 * Uploads decoded pixels through a backend-owned texture resource factory.
+	 *
+	 * @param backend Backend that owns the created texture resource.
+	 * @param image CPU-side decoded image.
+	 * @return Backend-owned texture resource, or null when unsupported/invalid.
+	 */
+	[[nodiscard]] RenderTexturePtr UploadTexture(RenderBackend& backend, const DecodedImage& image);
 
 	/** @param handle Backend-neutral handle. @return Native OpenGL texture id for compatibility renderer binding. */
 	[[nodiscard]] GLuint NativeOpenGLTexture(TextureHandle handle) noexcept;

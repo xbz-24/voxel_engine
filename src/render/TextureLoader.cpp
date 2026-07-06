@@ -1,6 +1,7 @@
 #include "TextureLoader.h"
 
 #include "Logger.h"
+#include "RenderBackend.h"
 
 #include <stb_image.h>
 #include <cstring>
@@ -55,6 +56,23 @@ namespace ve::rendering
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.rgba.data());
 		return TextureHandle{ texture };
+	}
+
+	RenderTexturePtr UploadTexture(RenderBackend& backend, const DecodedImage& image)
+	{
+		if (!image.IsValid())
+		{
+			return nullptr;
+		}
+
+		const RenderTextureDescriptor descriptor{
+			static_cast<std::uint32_t>(image.width),
+			static_cast<std::uint32_t>(image.height),
+			static_cast<std::uint32_t>(image.mip_level_count),
+			RenderTextureFormat::Rgba8,
+			RenderTextureUsage::Sampled | RenderTextureUsage::TransferDestination
+		};
+		return backend.CreateTextureResource(RenderTextureUpload{ descriptor, image.rgba });
 	}
 
 	GLuint NativeOpenGLTexture(TextureHandle handle) noexcept
