@@ -46,6 +46,7 @@ namespace ve::world
 	void World::ResetChunkStorageForRespawn(int worldSizeChunks)
 	{
 		_chunks.clear();
+		dirty_chunks_.clear();
 		_pendingEvents.clear();
 		_worldSize = worldSizeChunks;
 		++_chunkStorageRevision;

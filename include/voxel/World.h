@@ -8,7 +8,31 @@
 
 namespace voxel
 {
-	// TODO: Introduce typed units for block, chunk, and world coordinates so int-heavy overloads cannot be mixed accidentally.
+	struct BlockCoordinate
+	{
+		int value = 0;
+
+		[[nodiscard]] explicit constexpr operator int() const noexcept { return value; }
+	};
+
+	struct ChunkCoordinate
+	{
+		int value = 0;
+
+		[[nodiscard]] explicit constexpr operator int() const noexcept { return value; }
+	};
+
+	struct ChunkCount
+	{
+		int value = 0;
+
+		[[nodiscard]] explicit constexpr operator int() const noexcept { return value; }
+	};
+
+	[[nodiscard]] constexpr BlockCoordinate BlockCoord(int value) noexcept { return BlockCoordinate{ value }; }
+	[[nodiscard]] constexpr ChunkCoordinate ChunkCoord(int value) noexcept { return ChunkCoordinate{ value }; }
+	[[nodiscard]] constexpr ChunkCount Chunks(int value) noexcept { return ChunkCount{ value }; }
+
 	struct BlockPosition
 	{
 		int x = 0;
@@ -19,6 +43,11 @@ namespace voxel
 	[[nodiscard]] constexpr BlockPosition At(int block_x, int block_y, int block_z) noexcept
 	{
 		return { block_x, block_y, block_z };
+	}
+
+	[[nodiscard]] constexpr BlockPosition At(BlockCoordinate block_x, BlockCoordinate block_y, BlockCoordinate block_z) noexcept
+	{
+		return { block_x.value, block_y.value, block_z.value };
 	}
 
 	struct BlockBox
@@ -83,8 +112,10 @@ namespace voxel
 		std::vector<WorldEdit> edits;
 
 		[[nodiscard]] static WorldConfig SizeChunks(int value);
+		[[nodiscard]] static WorldConfig SizeChunks(ChunkCount value);
 
 		WorldConfig& WithSizeChunks(int value) noexcept;
+		WorldConfig& WithSizeChunks(ChunkCount value) noexcept;
 		WorldConfig& WithTerrainSeed(std::uint32_t value) noexcept;
 		WorldConfig& WithBaseSurfaceHeight(int value) noexcept;
 		WorldConfig& WithTerrainGenerator(TerrainGenerator value) noexcept;
@@ -114,8 +145,10 @@ namespace voxel
 	};
 
 	[[nodiscard]] WorldConfig World(int size_chunks);
+	[[nodiscard]] WorldConfig World(ChunkCount size_chunks);
 	[[nodiscard]] WorldConfig World();
 	[[nodiscard]] WorldConfig Scene(int size_chunks);
+	[[nodiscard]] WorldConfig Scene(ChunkCount size_chunks);
 	[[nodiscard]] WorldConfig Scene();
 
 	[[nodiscard]] bool SaveWorldConfig(const WorldConfig& world, const std::string& path);

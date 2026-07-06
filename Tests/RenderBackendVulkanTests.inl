@@ -1,7 +1,7 @@
 TEST_CASE("vulkan render view exposes vulkan hpp handles")
 {
 	const vk::Extent2D extent{ 1280U, 720U };
-	const ve::engine::VulkanRenderView view({ vk::Device{}, vk::SwapchainKHR{}, extent });
+	ve::engine::VulkanRenderView view({ vk::Device{}, vk::SwapchainKHR{}, extent });
 
 	CHECK(view.Api() == ve::rendering::GraphicsApi::Vulkan);
 	CHECK(view.Device() == vk::Device{});
@@ -49,6 +49,16 @@ TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
 	CHECK(payload.batches.front().index_count == 6u);
 	CHECK(payload.draw.index_count == 6u);
 	CHECK(payload.draw.instance_count == 1u);
+}
+
+TEST_CASE("vulkan voxel vertex packs color and normal attributes")
+{
+	const std::uint32_t white = ve::rendering::PackVoxelColor(1.0f, 1.0f, 1.0f, 1.0f);
+	const std::uint32_t up = ve::rendering::PackVoxelNormal({ 0, 1, 0 });
+
+	CHECK(sizeof(ve::rendering::VoxelVertex) == 24U);
+	CHECK(white == 0xffffffffU);
+	CHECK((up & 0x0000ff00U) == 0x00007f00U);
 }
 
 TEST_CASE("vulkan software rasterizer data rejects malformed samples")

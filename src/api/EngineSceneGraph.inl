@@ -100,6 +100,12 @@
 		return *this;
 	}
 
+	SceneGraph& SceneGraph::ComposeAs(SceneGraphCompositionMode mode) noexcept
+	{
+		composition_mode = mode;
+		return *this;
+	}
+
 	SceneGraph& SceneGraph::Add(Entity entity)
 	{
 		(void)AddEntity(std::move(entity));

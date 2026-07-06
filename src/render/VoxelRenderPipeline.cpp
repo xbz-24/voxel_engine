@@ -1,5 +1,8 @@
 #include "VoxelRenderPipeline.h"
 
+#include <algorithm>
+#include <cstdint>
+
 namespace ve::rendering
 {
 	/// Releases all render pass resources.
@@ -12,7 +15,11 @@ namespace ve::rendering
 	bool VoxelRenderPipeline::Initialize(const VoxelRenderPipelineSettings& settings)
 	{
 		Release();
-		const bool deferred_ok = deferred_.Initialize({ settings.width, settings.height });
+		const RenderTargetDescriptor deferred_target{
+			static_cast<std::uint32_t>(std::max(1, settings.width)),
+			static_cast<std::uint32_t>(std::max(1, settings.height))
+		};
+		const bool deferred_ok = deferred_.Initialize(deferred_target);
 		const bool ao_ok = ambient_occlusion_.Initialize({ settings.width, settings.height });
 		const bool taa_ok = temporal_anti_aliasing_.Initialize({ settings.width, settings.height });
 		const bool shadows_ok = shadows_.Initialize(settings.shadow_cascade_count, settings.shadow_resolution);

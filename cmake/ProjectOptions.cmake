@@ -12,7 +12,7 @@ set(VE_RUNTIME_SMOKE_FRAMES "3" CACHE STRING "Frame count used by optional runti
 
 add_library(ve_project_options INTERFACE)
 target_compile_features(ve_project_options INTERFACE cxx_std_23)
-# TODO: Add compiler matrix CI presets for MSVC, ClangCL, and one non-Windows toolchain before treating the SDK as portable.
+# Compiler matrix presets for MSVC, ClangCL, and Linux GCC are defined in CMakePresets.json.
 
 include("${PROJECT_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/Sanitizers.cmake")

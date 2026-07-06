@@ -6,6 +6,7 @@
 #include "ChunkMeshBuilder.h"
 #include "ChunkMeshInput.h"
 #include "ComputeTerrainGenerator.h"
+#include "GreedyChunkMesher.h"
 #include "RenderBackend.h"
 #include "World.h"
 #include "WorldBlockEdit.h"
@@ -13,6 +14,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <utility>
 #include <vector>
 

@@ -2,6 +2,7 @@
 
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 class Camera
 {
@@ -103,8 +104,10 @@ public:
 	void NormalizePitch();
 
 private:
-	// TODO: Store camera orientation as a quaternion once roll and authored camera paths are supported.
+	void RebuildOrientationFromYawPitch();
+
 	glm::vec3 _position;
+	glm::quat _orientation;
 	float _yaw;
 	float _pitch;
 };

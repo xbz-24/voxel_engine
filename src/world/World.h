@@ -29,6 +29,14 @@ namespace ve::world
 	using ChunkAllocator = std::pmr::polymorphic_allocator<Chunk>;
 	using ChunkList = std::vector<Chunk, ChunkAllocator>;
 
+	struct DirtyChunkMetadata
+	{
+		int chunk_x = 0;
+		int chunk_z = 0;
+		std::uint64_t mesh_revision = 0;
+		bool has_authored_edits = false;
+	};
+
 	// TODO: Split storage, generation, meshing, and event publication so World can be used headlessly by tools/tests.
 	class World
 	{
@@ -90,6 +98,9 @@ namespace ve::world
 		/** @return Loaded chunks in storage order. */
 		[[nodiscard]] std::span<const Chunk> Chunks() const noexcept;
 
+		/** @return Changed chunk metadata tracked separately from chunk storage for persistence/streaming. */
+		[[nodiscard]] std::span<const DirtyChunkMetadata> DirtyChunks() const noexcept;
+
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
 
@@ -124,6 +135,12 @@ namespace ve::world
 		/// Marks neighbor chunks dirty when a changed local block touches a border.
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
 
+		/// Marks a chunk dirty and mirrors its metadata into the world-owned dirty list.
+		void MarkChunkDirty(Chunk& chunk);
+
+		/// Mirrors dirty metadata for a chunk that has already been marked dirty.
+		void RecordDirtyChunk(const Chunk& chunk);
+
 		/// Collects neighboring chunks used to hide shared border faces.
 		ve::world::mesh::NeighborChunks FindNeighborChunks(int chunkX, int chunkZ) const;
 
@@ -140,8 +157,8 @@ namespace ve::world
 		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
 		LevelSpawn _levelSpawn;
-		// TODO: Persist dirty chunk metadata separately from Chunk so serialization can stream only changed regions.
 		ChunkList _chunks;
+		std::vector<DirtyChunkMetadata> dirty_chunks_;
 		std::vector<WorldEvent> _pendingEvents;
 		const ve::rendering::RenderBackend* active_render_backend_;
 		int _worldSize;

@@ -18,13 +18,20 @@ namespace ve::rendering
 
 	inline constexpr std::size_t kGraphicsCommandLayerCount = static_cast<std::size_t>(GraphicsCommandLayer::Count);
 
+	enum class GraphicsFacadeRole
+	{
+		ImmediateCommandDrawing
+	};
+
 	/** High-level facade for recording and submitting common graphics operations. */
 	class GraphicsFacade
 	{
 	public:
-		// TODO: Decide whether this remains an immediate debug facade or becomes the public 2D/3D drawing API.
 		/** @param executor Backend strategy that consumes recorded commands. */
 		explicit GraphicsFacade(RenderCommandExecutor& executor) noexcept;
+
+		/** @return Role intentionally served by this facade. */
+		[[nodiscard]] static constexpr GraphicsFacadeRole Role() noexcept { return GraphicsFacadeRole::ImmediateCommandDrawing; }
 
 		/** Clears commands from the previous frame while preserving allocated memory. */
 		void BeginFrame() noexcept;

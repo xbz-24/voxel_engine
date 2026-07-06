@@ -1,16 +1,36 @@
 #pragma once
 
+#include "FrameGraphResource.h"
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+#include <array>
+
 namespace ve::rendering
 {
+	struct TemporalHistoryResources
+	{
+		FrameGraphResourceDescriptor previous_history{};
+		FrameGraphResourceDescriptor current_history{};
+	};
+
+	struct TemporalHistoryResourceCache
+	{
+		TemporalHistoryResources resources{};
+		GLuint framebuffer = 0;
+		std::array<GLuint, 2> textures{{ 0, 0 }};
+
+		[[nodiscard]] GLuint PreviousTexture(int frame_index) const noexcept;
+		[[nodiscard]] GLuint CurrentTexture(int frame_index) const noexcept;
+	};
+
 	struct TemporalAntiAliasingSettings
 	{
-		// TODO: Move history textures behind a backend-neutral temporal resource cache for Vulkan reuse.
 		int width = 1;
 		int height = 1;
 		float history_blend = 0.92f;
+		TemporalHistoryResources history_resources{};
 	};
 
 	class TemporalAntiAliasingPass
@@ -20,6 +40,12 @@ namespace ve::rendering
 
 		/** @param settings History target size and blend factor. @return True when complete. */
 		[[nodiscard]] bool Initialize(const TemporalAntiAliasingSettings& settings);
+
+		/** @param width Target width in pixels. @param height Target height in pixels. @return History resources for FrameGraph. */
+		[[nodiscard]] static TemporalHistoryResources DescribeHistoryResources(int width, int height);
+
+		/** @return Backend-neutral history resource metadata. */
+		[[nodiscard]] const TemporalHistoryResources& HistoryResources() const noexcept;
 
 		/** Advances the history buffer and jitter sequence by one frame. */
 		void AdvanceFrame() noexcept;
@@ -40,8 +66,7 @@ namespace ve::rendering
 		[[nodiscard]] float HistoryBlend() const noexcept;
 
 	private:
-		GLuint framebuffer_ = 0;
-		GLuint history_textures_[2]{ 0, 0 };
+		TemporalHistoryResourceCache history_cache_{};
 		int width_ = 1;
 		int height_ = 1;
 		int frame_index_ = 0;

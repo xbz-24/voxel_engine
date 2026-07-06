@@ -3,6 +3,29 @@
 		return {};
 	}
 
+	EngineStartupConfig EngineConfig::StartupConfig() const
+	{
+		return EngineStartupConfig{
+			window,
+			world,
+			assets,
+			materials,
+			scene_graph,
+			camera,
+			logging,
+			graphics_api,
+			demo_scene
+		};
+	}
+
+	EngineRuntimeTuning EngineConfig::RuntimeTuning() const noexcept
+	{
+		return EngineRuntimeTuning{
+			render_distance_chunks,
+			show_debug_overlay
+		};
+	}
+
 	EngineConfig& EngineConfig::WithWindow(WindowConfig value) noexcept
 	{
 		window = std::move(value);

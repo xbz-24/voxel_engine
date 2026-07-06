@@ -32,6 +32,7 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 		.Transparent());
 
 	voxel::SceneGraph graph{};
+	graph.ComposeAs(voxel::SceneGraphCompositionMode::VoxelWorldAnchored);
 	const voxel::EntityId crate_id = graph.AddEntity(voxel::Entity::Named("crate")
 		.At({ 1.0f, 2.0f, 3.0f })
 		.Model("crate")
@@ -99,6 +100,7 @@ TEST_CASE("public advanced api configures assets materials entities callbacks")
 	CHECK(config.scene_graph.entities[0].id == crate_id);
 	CHECK(config.scene_graph.entities[0].transform.position.z == doctest::Approx(3.0f));
 	CHECK(config.scene_graph.entities[1].parent == crate_id);
+	CHECK(config.scene_graph.composition_mode == voxel::SceneGraphCompositionMode::VoxelWorldAnchored);
 	REQUIRE(config.scene_graph.FindEntity(glow_id) != nullptr);
 	CHECK(config.scene_graph.FindEntity(glow_id)->name == "crate glow");
 	CHECK(config.scene_graph.Validate().empty());

@@ -19,7 +19,7 @@ namespace ve::world::mesh
 		{
 			std::sort(faces.begin(), faces.end(), [](const MeshFace& left, const MeshFace& right)
 			{
-				return left.texture < right.texture;
+				return left.material.texture < right.material.texture;
 			});
 		}
 
@@ -54,14 +54,14 @@ namespace ve::world::mesh
 					return result;
 				}
 
-				ve::rendering::TextureHandle current_texture = faces_.front().texture;
+				ve::rendering::TextureHandle current_texture = faces_.front().material.texture;
 				std::uint32_t batch_start = 0;
 				for (const MeshFace& face : faces_)
 				{
-					if (face.texture != current_texture)
+					if (face.material.texture != current_texture)
 					{
 						AppendBatch(result, current_texture, batch_start);
-						current_texture = face.texture;
+						current_texture = face.material.texture;
 						batch_start = static_cast<std::uint32_t>(result.vertices.size());
 					}
 					AppendFaceVertices(face, result.vertices);

@@ -20,6 +20,19 @@ TEST_CASE("runtime input router applies mouse look deltas to a bound camera")
 	CHECK(glm::length(camera.GetForward() - forward_before_delta) > 0.001f);
 }
 
+TEST_CASE("camera quaternion orientation preserves turn-to direction")
+{
+	Camera camera{};
+	camera.MoveTo({ 0.0f, 0.0f, 0.0f });
+	camera.TurnTo({ 10.0f, 0.0f, 0.0f });
+
+	CHECK(camera.GetForward().x == doctest::Approx(1.0f));
+	CHECK(camera.GetForward().y == doctest::Approx(0.0f));
+	CHECK(camera.GetForward().z == doctest::Approx(0.0f).epsilon(0.001));
+	CHECK(glm::length(camera.GetRight()) == doctest::Approx(1.0f));
+	CHECK(glm::length(camera.GetUp()) == doctest::Approx(1.0f));
+}
+
 TEST_CASE("runtime input router resets mouse look while ui captures mouse")
 {
 	Camera camera{};

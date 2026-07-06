@@ -24,19 +24,19 @@ namespace ve::world
 	{
 		if (localX == 0)
 		{
-			if (Chunk* neighbor = FindChunk(chunkX - 1, chunkZ)) neighbor->MarkDirty();
+			if (Chunk* neighbor = FindChunk(chunkX - 1, chunkZ)) MarkChunkDirty(*neighbor);
 		}
 		if (localX == Chunk::CHUNK_WIDTH - 1)
 		{
-			if (Chunk* neighbor = FindChunk(chunkX + 1, chunkZ)) neighbor->MarkDirty();
+			if (Chunk* neighbor = FindChunk(chunkX + 1, chunkZ)) MarkChunkDirty(*neighbor);
 		}
 		if (localZ == 0)
 		{
-			if (Chunk* neighbor = FindChunk(chunkX, chunkZ - 1)) neighbor->MarkDirty();
+			if (Chunk* neighbor = FindChunk(chunkX, chunkZ - 1)) MarkChunkDirty(*neighbor);
 		}
 		if (localZ == Chunk::CHUNK_DEPTH - 1)
 		{
-			if (Chunk* neighbor = FindChunk(chunkX, chunkZ + 1)) neighbor->MarkDirty();
+			if (Chunk* neighbor = FindChunk(chunkX, chunkZ + 1)) MarkChunkDirty(*neighbor);
 		}
 	}
 }

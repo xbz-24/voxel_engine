@@ -85,14 +85,10 @@ namespace ve::rendering
 				0.20f,
 				1.70f);
 			vertices.push_back(VoxelVertex{
-				vertex_position.x,
-				vertex_position.y,
-				vertex_position.z,
-				color.r,
-				color.g,
-				color.b,
-				color.a,
-				vertex_light
+				vertex_position,
+				PackVoxelColor(color.r, color.g, color.b, color.a),
+				vertex_light,
+				PackVoxelNormal(face.neighbor_offset)
 			});
 		}
 		AppendQuadIndices(indices, first_face_vertex_index);

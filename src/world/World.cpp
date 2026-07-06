@@ -2,6 +2,8 @@
 
 #include "RenderBackend.h"
 
+#include <algorithm>
+
 namespace ve::world
 {
 	namespace
@@ -100,5 +102,36 @@ namespace ve::world
 	std::span<const Chunk> World::Chunks() const noexcept
 	{
 		return _chunks;
+	}
+
+	std::span<const DirtyChunkMetadata> World::DirtyChunks() const noexcept
+	{
+		return dirty_chunks_;
+	}
+
+	void World::RecordDirtyChunk(const Chunk& chunk)
+	{
+		const auto existing_metadata = std::ranges::find_if(dirty_chunks_,
+			[&chunk](const DirtyChunkMetadata& metadata) noexcept {
+				return metadata.chunk_x == chunk.GetChunkX() && metadata.chunk_z == chunk.GetChunkZ();
+			});
+		const DirtyChunkMetadata metadata{
+			chunk.GetChunkX(),
+			chunk.GetChunkZ(),
+			chunk.MeshRevision(),
+			chunk.HasAuthoredEdits()
+		};
+		if (existing_metadata != dirty_chunks_.end())
+		{
+			*existing_metadata = metadata;
+			return;
+		}
+		dirty_chunks_.push_back(metadata);
+	}
+
+	void World::MarkChunkDirty(Chunk& chunk)
+	{
+		chunk.MarkDirty();
+		RecordDirtyChunk(chunk);
 	}
 }

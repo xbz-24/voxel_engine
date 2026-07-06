@@ -124,6 +124,7 @@ TEST_CASE("graphics facade records and submits common primitives")
 	RecordingRenderCommandExecutor executor;
 	ve::rendering::GraphicsFacade graphics{ executor };
 
+	CHECK(ve::rendering::GraphicsFacade::Role() == ve::rendering::GraphicsFacadeRole::ImmediateCommandDrawing);
 	graphics.BeginFrame();
 	graphics.DrawTriangle({ { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 1.0f } }, {});
 	graphics.DrawRectangle({ 0.0f, 0.0f, 10.0f, 10.0f }, {});

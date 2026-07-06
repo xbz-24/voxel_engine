@@ -55,13 +55,20 @@ namespace voxel
 		Entity& AsRoot() noexcept;
 	};
 
+	enum class SceneGraphCompositionMode
+	{
+		IndependentOverlay,
+		VoxelWorldAnchored
+	};
+
 	struct SceneGraph
 	{
-		// TODO: Define how SceneGraph entities coexist with voxel world edits and renderer-owned chunk meshes.
+		SceneGraphCompositionMode composition_mode = SceneGraphCompositionMode::IndependentOverlay;
 		std::vector<Entity> entities;
 		std::vector<Light> lights;
 		Environment environment{};
 
+		SceneGraph& ComposeAs(SceneGraphCompositionMode mode) noexcept;
 		SceneGraph& Add(Entity entity);
 		[[nodiscard]] EntityId AddEntity(Entity entity);
 		[[nodiscard]] EntityId AddChild(EntityId parent_id, Entity entity);

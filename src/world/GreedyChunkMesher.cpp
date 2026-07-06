@@ -29,19 +29,12 @@ namespace ve::world::mesh
 
 	void GreedyChunkMesher::CollectFaces(std::vector<MeshFace>& faces, ChunkMeshBuildDiagnostics* diagnostics) const
 	{
-		static constexpr std::array<AxisPlan, 6> axis_plans{{
-			{ ve::blocks::BlockFace::Top, MeshFaceDirection::Top, 1, 1, 0, 2 },
-			{ ve::blocks::BlockFace::Bottom, MeshFaceDirection::Bottom, 1, -1, 0, 2 },
-			{ ve::blocks::BlockFace::Front, MeshFaceDirection::Front, 2, 1, 0, 1 },
-			{ ve::blocks::BlockFace::Back, MeshFaceDirection::Back, 2, -1, 0, 1 },
-			{ ve::blocks::BlockFace::Right, MeshFaceDirection::Right, 0, 1, 2, 1 },
-			{ ve::blocks::BlockFace::Left, MeshFaceDirection::Left, 0, -1, 2, 1 }
-		}};
-		for (const AxisPlan& axis_plan : axis_plans) CollectAxis(axis_plan, faces, diagnostics);
+		static constexpr std::array<GreedyMeshAxisPlan, 6> axis_plans = GreedyMeshingRules::AxisPlans();
+		for (const GreedyMeshAxisPlan& axis_plan : axis_plans) CollectAxis(axis_plan, faces, diagnostics);
 	}
 
 	GreedyChunkMesher::MaskCell GreedyChunkMesher::BuildMaskCell(
-		const AxisPlan& axis_plan,
+		const GreedyMeshAxisPlan& axis_plan,
 		int normal_coordinate,
 		int u_coordinate,
 		int v_coordinate) const
@@ -60,15 +53,15 @@ namespace ve::world::mesh
 		if (block_registry_.IsSolid(ReadBlock(block_coordinate[0], block_coordinate[1], block_coordinate[2]))) return mask_cell;
 		const bool is_grass_top = block_id == ve::blocks::BlockId::Grass && axis_plan.block_face == ve::blocks::BlockFace::Top;
 		mask_cell.visible = true;
-		mask_cell.texture = block_registry_.TextureFor(block_id, axis_plan.block_face);
-		mask_cell.red = is_grass_top ? 0.404f : 1.0f;
-		mask_cell.green = is_grass_top ? 0.655f : 1.0f;
-		mask_cell.blue = is_grass_top ? 0.239f : 1.0f;
+		mask_cell.material.texture = block_registry_.TextureFor(block_id, axis_plan.block_face);
+		mask_cell.material.red = is_grass_top ? 0.404f : 1.0f;
+		mask_cell.material.green = is_grass_top ? 0.655f : 1.0f;
+		mask_cell.material.blue = is_grass_top ? 0.239f : 1.0f;
 		return mask_cell;
 	}
 
 	MeshFace GreedyChunkMesher::BuildFace(
-		const AxisPlan& axis_plan,
+		const GreedyMeshAxisPlan& axis_plan,
 		const MaskCell& cell,
 		int normal_coordinate,
 		int u_coordinate,
@@ -85,14 +78,11 @@ namespace ve::world::mesh
 		face_center[0] += static_cast<float>(mesh_input_.chunkX * terrain::ChunkWidth);
 		face_center[2] += static_cast<float>(mesh_input_.chunkZ * terrain::ChunkDepth);
 		return MeshFace{
-			cell.texture,
+			cell.material,
 			axis_plan.direction,
 			face_center[0],
 			face_center[1],
 			face_center[2],
-			cell.red,
-			cell.green,
-			cell.blue,
 			width,
 			height
 		};

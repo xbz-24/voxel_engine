@@ -13,9 +13,27 @@
 
 namespace voxel
 {
+	struct EngineStartupConfig
+	{
+		WindowConfig window{};
+		WorldConfig world{};
+		AssetCatalog assets{};
+		MaterialLibrary materials{};
+		SceneGraph scene_graph{};
+		CameraConfig camera{};
+		LogSettings logging{};
+		GraphicsApi graphics_api = GraphicsApi::Vulkan;
+		DemoScene demo_scene = DemoScene::HyperrealDesert;
+	};
+
+	struct EngineRuntimeTuning
+	{
+		int render_distance_chunks = 8;
+		bool show_debug_overlay = true;
+	};
+
 	struct EngineConfig
 	{
-		// TODO: Split this into lightweight startup config and runtime-editable settings once hot reload is supported.
 		WindowConfig window{};
 		WorldConfig world{};
 		AssetCatalog assets{};
@@ -45,6 +63,8 @@ namespace voxel
 		[[nodiscard]] static EngineConfig ArcadeMazeDemo();
 		[[nodiscard]] std::vector<std::string> Validate() const;
 		[[nodiscard]] bool IsValid() const;
+		[[nodiscard]] EngineStartupConfig StartupConfig() const;
+		[[nodiscard]] EngineRuntimeTuning RuntimeTuning() const noexcept;
 
 		EngineConfig& WithWindow(WindowConfig value) noexcept;
 		EngineConfig& WithWindow(std::string title, int width = 1280, int height = 720);
@@ -67,6 +87,7 @@ namespace voxel
 		EngineConfig& WithDemoScene(DemoScene value) noexcept;
 		EngineConfig& WithWorldSizeChunks(int value) noexcept;
 		EngineConfig& WithRenderDistanceChunks(int value) noexcept;
+		EngineConfig& WithRuntimeTuning(EngineRuntimeTuning value) noexcept;
 		EngineConfig& ShowDebugOverlay(bool enabled = true) noexcept;
 		EngineConfig& HideDebugOverlay() noexcept;
 		EngineConfig& OnUpdate(UpdateCallback callback) noexcept;

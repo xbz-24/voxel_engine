@@ -41,3 +41,14 @@ TEST_CASE("chunk mesh diagnostics count visible and culled block faces")
 	CHECK(mesh.diagnostics.batch_count == mesh.batches.size());
 	CHECK(mesh.diagnostics.MergeRatio() == doctest::Approx(10.0f / 6.0f));
 }
+
+TEST_CASE("greedy meshing rules expose six shared axis plans")
+{
+	constexpr std::array axis_plans = ve::world::mesh::GreedyMeshingRules::AxisPlans();
+
+	CHECK(axis_plans.size() == 6U);
+	CHECK(axis_plans.front().direction == ve::world::mesh::MeshFaceDirection::Top);
+	CHECK(axis_plans.front().block_face == ve::blocks::BlockFace::Top);
+	CHECK(axis_plans.back().direction == ve::world::mesh::MeshFaceDirection::Left);
+	CHECK(axis_plans.back().normal_axis == 0);
+}

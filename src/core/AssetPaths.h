@@ -10,7 +10,6 @@ namespace ve::assets
 	 */
 	struct AssetPaths
 	{
-		// TODO: Merge this with public AssetCatalog so built-in and user-provided assets resolve through one pipeline.
 		std::filesystem::path rootDirectory;
 		std::filesystem::path blockTexturesDirectory;
 		std::filesystem::path environmentTexturesDirectory;
@@ -31,6 +30,17 @@ namespace ve::assets
 	struct AssetPathResolveOptions
 	{
 		std::vector<std::filesystem::path> search_roots;
+
+		/** Adds user/catalog search roots to the runtime asset resolver. */
+		template <typename SearchRootRange>
+		AssetPathResolveOptions& AddSearchRoots(const SearchRootRange& roots)
+		{
+			for (const auto& root : roots)
+			{
+				search_roots.emplace_back(root);
+			}
+			return *this;
+		}
 	};
 
 	/**

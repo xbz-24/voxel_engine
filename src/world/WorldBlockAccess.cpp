@@ -49,6 +49,7 @@ namespace ve::world
 			return false;
 		}
 
+		RecordDirtyChunk(*chunk);
 		++_revision;
 		MarkBorderNeighborsDirty(chunkCoordinateX, chunkCoordinateZ, localBlockX, localBlockZ);
 		RecordBlockChanged(glm::ivec3(globalBlockX, globalBlockY, globalBlockZ), previousBlockId, blockId);

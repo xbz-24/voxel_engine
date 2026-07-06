@@ -45,6 +45,23 @@ namespace ve::blocks
 		{
 			return id != BlockId::Count;
 		}
+
+		BlockGameplayProperties DefaultGameplayFor(const BlockDefinition& definition)
+		{
+			BlockGameplayProperties properties{};
+			properties.collision = definition.isSolid ? BlockCollisionMode::Solid : BlockCollisionMode::None;
+			properties.transparent = !definition.isSolid ||
+				definition.id == BlockId::Glass ||
+				definition.id == BlockId::Water ||
+				definition.id == BlockId::OakLeaves ||
+				definition.id == BlockId::BirchLeaves ||
+				definition.id == BlockId::CherryLeaves;
+			if (definition.id != BlockId::Air)
+			{
+				properties.drops.push_back(BlockDrop{ definition.id, 1, 1 });
+			}
+			return properties;
+		}
 	}
 
 	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading)
@@ -57,7 +74,8 @@ namespace ve::blocks
 				std::string{ definition.name },
 				definition.isSolid,
 				texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition.textures) : EmptyFaces(),
-				DefaultPbrMaterialForBlock(definition.id)
+				DefaultPbrMaterialForBlock(definition.id),
+				DefaultGameplayFor(definition)
 			});
 		}
 	}
@@ -108,6 +126,21 @@ namespace ve::blocks
 		return Get(id).material;
 	}
 
+	const BlockGameplayProperties& BlockRegistry::GameplayFor(BlockId id) const
+	{
+		return Get(id).gameplay;
+	}
+
+	bool BlockRegistry::BlocksMovement(BlockId id) const
+	{
+		return GameplayFor(id).collision == BlockCollisionMode::Solid;
+	}
+
+	bool BlockRegistry::IsTransparent(BlockId id) const
+	{
+		return GameplayFor(id).transparent;
+	}
+
 	const BlockType& BlockRegistry::FallbackBlock() const noexcept
 	{
 		const auto air_iterator = _blocks.find(BlockId::Air);
@@ -121,7 +154,8 @@ namespace ve::blocks
 			"Air",
 			false,
 			EmptyFaces(),
-			ve::rendering::PbrMaterial{}
+			ve::rendering::PbrMaterial{},
+			BlockGameplayProperties{}
 		};
 		return fallback_air_block;
 	}

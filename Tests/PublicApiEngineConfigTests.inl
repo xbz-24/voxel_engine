@@ -48,6 +48,26 @@ TEST_CASE("public run helper is available without exposing internals")
 	CHECK(!config.show_debug_overlay);
 }
 
+TEST_CASE("public engine config separates startup and runtime tuning views")
+{
+	const voxel::EngineRuntimeTuning tuning{
+		4,
+		false
+	};
+	const voxel::EngineConfig config = voxel::EngineConfig::Default()
+		.WithWindow("Split Config", 960, 540)
+		.WithRuntimeTuning(tuning);
+
+	const voxel::EngineStartupConfig startup = config.StartupConfig();
+	const voxel::EngineRuntimeTuning runtime = config.RuntimeTuning();
+
+	CHECK(startup.window.title == "Split Config");
+	CHECK(startup.window.width == 960);
+	CHECK(startup.graphics_api == voxel::GraphicsApi::Vulkan);
+	CHECK(runtime.render_distance_chunks == 4);
+	CHECK(!runtime.show_debug_overlay);
+}
+
 TEST_CASE("public config exposes logging sinks and stop requests")
 {
 	const voxel::LogSettings logging = voxel::LogSettings{}

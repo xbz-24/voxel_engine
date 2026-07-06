@@ -3,6 +3,7 @@
 #include "RenderBackend.h"
 #include "VulkanBackendSettings.h"
 #include "VulkanContext.h"
+#include "VulkanDebugLabels.h"
 #include "VulkanDevice.h"
 #include "VulkanMemoryAllocator.h"
 #include "VulkanPhysicalDevice.h"
@@ -92,16 +93,19 @@ namespace ve::rendering
 		/** @return Vulkan swapchain used for presentation. */
 		[[nodiscard]] VulkanSwapchain& Swapchain() noexcept;
 
+		/** @return Optional Vulkan object-label helper. */
+		[[nodiscard]] VulkanDebugLabels& DebugLabels() noexcept;
+
 		/** @return True when the backend owns a Vulkan instance. */
 		[[nodiscard]] bool IsInitialized() const noexcept;
 
 	private:
-		// TODO: Centralize Vulkan object naming/debug labels for RenderDoc and validation-layer diagnostics.
 		VulkanContext context_;
 		VulkanSurface surface_;
 		VulkanPhysicalDevice physical_device_;
 		VulkanDevice device_;
 		VulkanMemoryAllocator allocator_;
 		VulkanSwapchain swapchain_;
+		VulkanDebugLabels debug_labels_;
 	};
 }

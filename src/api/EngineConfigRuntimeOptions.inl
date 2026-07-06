@@ -37,6 +37,13 @@
 		return *this;
 	}
 
+	EngineConfig& EngineConfig::WithRuntimeTuning(EngineRuntimeTuning value) noexcept
+	{
+		render_distance_chunks = value.render_distance_chunks;
+		show_debug_overlay = value.show_debug_overlay;
+		return *this;
+	}
+
 	EngineConfig& EngineConfig::ShowDebugOverlay(bool enabled) noexcept
 	{
 		show_debug_overlay = enabled;

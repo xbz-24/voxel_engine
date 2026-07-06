@@ -18,8 +18,7 @@ namespace ve::world::mesh
 {
 	bool GreedyChunkMesher::CanMerge(const MaskCell& left, const MaskCell& right)
 	{
-		return left.visible && right.visible && left.texture == right.texture &&
-			left.red == right.red && left.green == right.green && left.blue == right.blue;
+		return left.visible && right.visible && left.material == right.material;
 	}
 
 	void GreedyChunkMesher::ClearMergedCells(
@@ -42,7 +41,7 @@ namespace ve::world::mesh
 	}
 
 	void GreedyChunkMesher::CollectAxis(
-		const AxisPlan& axis_plan,
+		const GreedyMeshAxisPlan& axis_plan,
 		std::vector<MeshFace>& faces,
 		ChunkMeshBuildDiagnostics* diagnostics) const
 	{

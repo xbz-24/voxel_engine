@@ -55,9 +55,9 @@ namespace ve::world::mesh
 					face.world_center_z + scaledOffset.local_position_z,
 					scaledOffset.texture_u,
 					scaledOffset.texture_v,
-					face.red,
-					face.green,
-					face.blue
+					face.material.red,
+					face.material.green,
+					face.material.blue
 				});
 			}
 		}

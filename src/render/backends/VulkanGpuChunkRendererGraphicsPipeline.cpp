@@ -24,9 +24,10 @@ namespace ve::rendering
 		binding.stride = sizeof(VoxelVertex);
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		std::array attributes{
-			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, x)) },
-			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R32G32B32A32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, r)) },
-			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, light)) }
+			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, position)) },
+			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R8G8B8A8_UNORM, static_cast<std::uint32_t>(offsetof(VoxelVertex, color_rgba8)) },
+			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, light)) },
+			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R8G8B8A8_SNORM, static_cast<std::uint32_t>(offsetof(VoxelVertex, normal_snorm8)) }
 		};
 		VkPipelineVertexInputStateCreateInfo vertex_input{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		vertex_input.vertexBindingDescriptionCount = 1u;

@@ -33,19 +33,27 @@ namespace ve::world::mesh
 		Left
 	};
 
+	struct MeshFaceMaterialPayload
+	{
+		ve::rendering::TextureHandle texture = ve::rendering::kInvalidTextureHandle;
+		float red = 1.0f;
+		float green = 1.0f;
+		float blue = 1.0f;
+		float light = 1.0f;
+
+		[[nodiscard]] friend bool operator==(const MeshFaceMaterialPayload&, const MeshFaceMaterialPayload&) noexcept = default;
+	};
+
 	/**
 	 * CPU-side face data before it is expanded into render vertices.
 	 */
 	struct MeshFace
 	{
-		ve::rendering::TextureHandle texture = ve::rendering::kInvalidTextureHandle;
+		MeshFaceMaterialPayload material{};
 		MeshFaceDirection direction;
 		float world_center_x;
 		float world_center_y;
 		float world_center_z;
-		float red;
-		float green;
-		float blue;
 		int width = 1;
 		int height = 1;
 	};

@@ -32,7 +32,7 @@ namespace ve::world
 	{
 		for (const auto [offsetX, offsetZ] : kGeneratedChunkMeshDependencyOffsets)
 		{
-			if (Chunk* chunk = FindChunk(chunkX + offsetX, chunkZ + offsetZ)) chunk->MarkDirty();
+			if (Chunk* chunk = FindChunk(chunkX + offsetX, chunkZ + offsetZ)) MarkChunkDirty(*chunk);
 		}
 	}
 }

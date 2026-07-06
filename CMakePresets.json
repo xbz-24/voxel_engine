@@ -37,6 +37,38 @@
         "VE_ENABLE_ASAN": true,
         "VE_BUILD_TESTS": true
       }
+    },
+    {
+      "name": "windows-clangcl",
+      "displayName": "Windows ClangCL Debug",
+      "inherits": "windows-visual-studio",
+      "toolset": "ClangCL",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "VE_BUILD_TESTS": true,
+        "VE_BUILD_RUNTIME_SMOKE_TESTS": true
+      }
+    },
+    {
+      "name": "linux-gcc",
+      "displayName": "Linux GCC Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "VE_BUILD_API_DOCS": false,
+        "VE_BUILD_TESTS": true,
+        "VE_ENABLE_STRICT_WARNINGS": true,
+        "VE_WARNINGS_AS_ERRORS": true,
+        "VE_USE_LATEST_CXX": true
+      }
     }
   ],
   "buildPresets": [
@@ -74,6 +106,19 @@
       "configurePreset": "windows-visual-studio-asan",
       "configuration": "Debug",
       "targets": ["voxel_engine", "engine_tests"]
+    },
+    {
+      "name": "windows-clangcl-strict",
+      "displayName": "Build with ClangCL",
+      "configurePreset": "windows-clangcl",
+      "configuration": "Debug",
+      "targets": ["voxel_engine", "engine_tests", "public_api_header_smoke"]
+    },
+    {
+      "name": "linux-gcc-strict",
+      "displayName": "Build with Linux GCC",
+      "configurePreset": "linux-gcc",
+      "targets": ["voxel_engine", "engine_tests", "public_api_header_smoke"]
     }
   ],
   "testPresets": [
@@ -91,6 +136,23 @@
       "displayName": "Run voxel engine tests with AddressSanitizer",
       "configurePreset": "windows-visual-studio-asan",
       "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-clangcl-tests",
+      "displayName": "Run voxel engine tests with ClangCL",
+      "configurePreset": "windows-clangcl",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-tests",
+      "displayName": "Run voxel engine tests with Linux GCC",
+      "configurePreset": "linux-gcc",
       "output": {
         "outputOnFailure": true
       }

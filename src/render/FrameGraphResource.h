@@ -9,6 +9,7 @@ namespace ve::rendering
 	enum class FrameGraphResourceFormat
 	{
 		Unknown,
+		R8,
 		Rgba8,
 		Rgba16Float,
 		Depth24Stencil8

@@ -72,6 +72,11 @@ namespace ve::rendering
 			return result;
 		}
 
+		debug_labels_.Initialize(device_.Handle(), settings.context.enable_debug_utils);
+		(void)debug_labels_.NameObject(
+			VK_OBJECT_TYPE_DEVICE,
+			VulkanDispatchableObjectHandle(device_.Handle()),
+			"voxel_engine.logical_device");
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan backend initialized successfully");
 		return VulkanBackendInitializationResult::Success();
 	}
@@ -79,6 +84,7 @@ namespace ve::rendering
 	/** Releases Vulkan startup state. */
 	void VulkanBackend::Release()
 	{
+		debug_labels_.Release();
 		swapchain_.Release();
 		allocator_.Release();
 		device_.Release();
@@ -126,6 +132,9 @@ namespace ve::rendering
 
 	/** Returns the Vulkan swapchain wrapper. */
 	VulkanSwapchain& VulkanBackend::Swapchain() noexcept { return swapchain_; }
+
+	/** Returns the optional Vulkan debug label helper. */
+	VulkanDebugLabels& VulkanBackend::DebugLabels() noexcept { return debug_labels_; }
 
 	/** Reports whether the Vulkan context is initialized. */
 	bool VulkanBackend::IsInitialized() const noexcept { return context_.IsInitialized(); }

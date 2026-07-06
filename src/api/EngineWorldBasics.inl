@@ -46,13 +46,28 @@ namespace voxel
 		return config;
 	}
 
+	WorldConfig WorldConfig::SizeChunks(ChunkCount value)
+	{
+		return SizeChunks(value.value);
+	}
+
 	WorldConfig& WorldConfig::WithSizeChunks(int value) noexcept
 	{
 		size_chunks = value;
 		return *this;
 	}
 
+	WorldConfig& WorldConfig::WithSizeChunks(ChunkCount value) noexcept
+	{
+		return WithSizeChunks(value.value);
+	}
+
 	WorldConfig World(int size_chunks)
+	{
+		return WorldConfig::SizeChunks(size_chunks);
+	}
+
+	WorldConfig World(ChunkCount size_chunks)
 	{
 		return WorldConfig::SizeChunks(size_chunks);
 	}
@@ -63,6 +78,11 @@ namespace voxel
 	}
 
 	WorldConfig Scene(int size_chunks)
+	{
+		return World(size_chunks);
+	}
+
+	WorldConfig Scene(ChunkCount size_chunks)
 	{
 		return World(size_chunks);
 	}

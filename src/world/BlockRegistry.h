@@ -7,11 +7,35 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace ve::blocks
 {
+	enum class BlockCollisionMode
+	{
+		None,
+		Solid
+	};
+
+	struct BlockDrop
+	{
+		BlockId id = BlockId::Air;
+		std::uint8_t minimum_count = 1;
+		std::uint8_t maximum_count = 1;
+	};
+
+	struct BlockGameplayProperties
+	{
+		BlockCollisionMode collision = BlockCollisionMode::None;
+		bool transparent = true;
+		std::string footstep_sound;
+		std::string break_sound;
+		std::vector<BlockDrop> drops;
+	};
+
 	/**
 	 * Rendering/gameplay metadata for one block type.
 	 */
@@ -23,6 +47,7 @@ namespace ve::blocks
 		bool isSolid;
 		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
 		ve::rendering::PbrMaterial material;
+		BlockGameplayProperties gameplay{};
 	};
 
 	/**
@@ -37,7 +62,6 @@ namespace ve::blocks
 			MetadataOnly
 		};
 
-		// TODO: Add public extension points for custom block ids, collision flags, transparency, sounds, and drops.
 		/**
 		 * Loads built-in block definitions from the asset tree.
 		 *
@@ -109,6 +133,15 @@ namespace ve::blocks
 		 * @return PBR material values for future shader-based rendering.
 		 */
 		const ve::rendering::PbrMaterial& MaterialFor(BlockId id) const;
+
+		/** @param id Block id to inspect. @return Gameplay/collision metadata for the block. */
+		const BlockGameplayProperties& GameplayFor(BlockId id) const;
+
+		/** @param id Block id to inspect. @return True when the block stops player/world movement. */
+		bool BlocksMovement(BlockId id) const;
+
+		/** @param id Block id to inspect. @return True when the block should not fully occlude rendering/light. */
+		bool IsTransparent(BlockId id) const;
 
 	private:
 		const BlockType& FallbackBlock() const noexcept;
