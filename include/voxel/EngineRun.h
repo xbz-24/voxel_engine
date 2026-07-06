@@ -22,7 +22,6 @@ namespace voxel
 	class Engine
 	{
 	public:
-		// TODO: Expose Pause/Step hooks so embedding apps can drive the engine without surrendering the main loop.
 		explicit Engine(EngineConfig config = {});
 		~Engine();
 
@@ -31,8 +30,23 @@ namespace voxel
 		Engine(Engine&&) noexcept;
 		Engine& operator=(Engine&&) noexcept;
 
+		/** @return Process-style status after running the engine-owned main loop. */
 		[[nodiscard]] int Run();
+
+		/** @return True when runtime systems were initialized for an externally driven frame loop. */
+		[[nodiscard]] bool Start();
+
+		/** @return True when one frame ran and another frame should be requested by the host. */
+		[[nodiscard]] bool Step();
+
+		/** Releases runtime systems created by Start(). */
+		void Shutdown() noexcept;
+
+		/** Requests the running loop to stop at the next frame boundary. */
 		void RequestStop() noexcept;
+
+		/** @return True when Start() succeeded and Shutdown() has not been called yet. */
+		[[nodiscard]] bool IsRunning() const noexcept;
 
 	private:
 		class Impl;

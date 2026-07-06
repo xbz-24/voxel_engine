@@ -90,6 +90,20 @@ TEST_CASE("public config exposes logging sinks and stop requests")
 	CHECK(config.logging.file_output_path.empty());
 }
 
+TEST_CASE("public engine exposes nonblocking frame lifecycle")
+{
+	const voxel::EngineConfig invalid_config = voxel::EngineConfig::Default()
+		.WithWindow(voxel::Window("Invalid", 0, 600));
+
+	voxel::Engine engine{ invalid_config };
+
+	CHECK(!engine.IsRunning());
+	CHECK(!engine.Start());
+	CHECK(!engine.Step());
+	engine.Shutdown();
+	CHECK(!engine.IsRunning());
+}
+
 TEST_CASE("public window config exposes display and startup options")
 {
 	const voxel::WindowConfig config = voxel::Fullscreen("Display API")
@@ -137,6 +151,6 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(features.runtime_update_callback);
 	CHECK(features.scene_graph_authoring);
 	CHECK(!features.scene_graph_runtime_rendering);
-	CHECK(!features.embeddable_frame_loop);
+	CHECK(features.embeddable_frame_loop);
 	CHECK(!features.directx12_runtime_backend);
 }

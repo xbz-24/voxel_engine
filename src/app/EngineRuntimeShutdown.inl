@@ -1,11 +1,12 @@
 	/** Runs frames until the window asks to close. */
 	void EngineRuntime::RunMainLoop()
 	{
-		while (true)
-		{
-			if (window_.ShouldClose() || engine_.IsStopRequested()) break;
-			RunFrame();
-		}
+		while (Step()) {}
+	}
+
+	bool EngineRuntime::ShouldContinue() const noexcept
+	{
+		return !window_.ShouldClose() && !engine_.IsStopRequested();
 	}
 
 	/** Releases runtime resources and reports shutdown. */

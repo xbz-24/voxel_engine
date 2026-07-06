@@ -22,9 +22,29 @@ namespace voxel::detail
 				return engine_.Run();
 			}
 
+			[[nodiscard]] bool Start() override
+			{
+				return engine_.Start();
+			}
+
+			[[nodiscard]] bool Step() override
+			{
+				return engine_.Step();
+			}
+
+			void Shutdown() noexcept override
+			{
+				engine_.Shutdown();
+			}
+
 			void RequestStop() noexcept override
 			{
 				engine_.RequestStop();
+			}
+
+			[[nodiscard]] bool IsRunning() const noexcept override
+			{
+				return engine_.IsRunning();
 			}
 
 		private:

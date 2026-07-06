@@ -20,12 +20,20 @@ namespace ve::engine
 	class EngineRuntime
 	{
 	public:
-		// TODO: Add a non-owning embedding mode where a host app calls Tick() and Present() itself.
 		/** Keeps a reference to the engine facade that owns shared settings and callbacks. */
 		explicit EngineRuntime(EngineApplication& engine) noexcept;
 
 		/** Initializes systems, runs the frame loop, shuts down, and returns a process status. */
 		[[nodiscard]] int Execute();
+
+		/** Initializes all runtime systems without entering the main loop. */
+		[[nodiscard]] EngineStartupResult Start();
+
+		/** Runs exactly one frame and reports whether another frame should be requested. */
+		[[nodiscard]] bool Step();
+
+		/** Releases runtime systems and returns the object to an unstarted state. */
+		void Shutdown();
 
 	private:
 		[[nodiscard]] EngineStartupResult Initialize();
@@ -39,6 +47,7 @@ namespace ve::engine
 		void RunVulkanFrame();
 		[[nodiscard]] ve::rendering::VulkanDemoInput CaptureVulkanDemoInput();
 		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input);
+		[[nodiscard]] bool ShouldContinue() const noexcept;
 		void BeginRuntimeFrame();
 		void UpdateGameplay();
 		void RenderWorld(RenderView& renderView);
@@ -47,8 +56,6 @@ namespace ve::engine
 		void ApplyConfiguredWorldEditsOnce();
 		void ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits);
 		void InvokePublicApiFrameCallbacks();
-		void Shutdown();
-
 		EngineApplication& engine_;
 		Window window_;
 		RuntimeInputRouter input_router_;

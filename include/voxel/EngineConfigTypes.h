@@ -21,7 +21,7 @@ namespace voxel
 		bool runtime_update_callback = true;
 		bool scene_graph_authoring = true;
 		bool scene_graph_runtime_rendering = false;
-		bool embeddable_frame_loop = false;
+		bool embeddable_frame_loop = true;
 		bool directx12_runtime_backend = false;
 	};
 

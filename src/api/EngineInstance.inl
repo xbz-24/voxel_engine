@@ -34,16 +34,37 @@
 		{
 			if (!validation_issues_.empty())
 			{
-				if (on_log_)
-				{
-					for (const std::string& issue : validation_issues_)
-					{
-						on_log_("Invalid EngineConfig: " + issue);
-					}
-				}
+				LogValidationIssues();
 				return -1;
 			}
 			return runtime_ ? runtime_->Run() : -1;
+		}
+
+		[[nodiscard]] bool Start()
+		{
+			if (!validation_issues_.empty())
+			{
+				LogValidationIssues();
+				return false;
+			}
+			return runtime_ != nullptr && runtime_->Start();
+		}
+
+		[[nodiscard]] bool Step()
+		{
+			if (!validation_issues_.empty() || runtime_ == nullptr)
+			{
+				return false;
+			}
+			return runtime_->Step();
+		}
+
+		void Shutdown() noexcept
+		{
+			if (runtime_ != nullptr)
+			{
+				runtime_->Shutdown();
+			}
 		}
 
 		void RequestStop() noexcept
@@ -54,7 +75,21 @@
 			}
 		}
 
+		[[nodiscard]] bool IsRunning() const noexcept
+		{
+			return runtime_ != nullptr && runtime_->IsRunning();
+		}
+
 	private:
+		void LogValidationIssues() const
+		{
+			if (!on_log_) return;
+			for (const std::string& issue : validation_issues_)
+			{
+				on_log_("Invalid EngineConfig: " + issue);
+			}
+		}
+
 		std::vector<std::string> validation_issues_;
 		LogCallback on_log_;
 		std::unique_ptr<detail::IEngineRuntime> runtime_;
@@ -76,7 +111,27 @@
 		return impl_->Run();
 	}
 
+	bool Engine::Start()
+	{
+		return impl_->Start();
+	}
+
+	bool Engine::Step()
+	{
+		return impl_->Step();
+	}
+
+	void Engine::Shutdown() noexcept
+	{
+		impl_->Shutdown();
+	}
+
 	void Engine::RequestStop() noexcept
 	{
 		impl_->RequestStop();
+	}
+
+	bool Engine::IsRunning() const noexcept
+	{
+		return impl_->IsRunning();
 	}

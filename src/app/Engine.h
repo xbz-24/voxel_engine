@@ -42,11 +42,23 @@ public:
 	/** Starts the runtime loop and returns a process-style status code. */
 	int Run();
 
+	/** Initializes runtime systems without entering the blocking loop. */
+	[[nodiscard]] bool Start();
+
+	/** Advances one externally driven frame. */
+	[[nodiscard]] bool Step();
+
+	/** Releases an externally driven runtime, if one is active. */
+	void Shutdown() noexcept;
+
 	/** Requests the active runtime loop to stop at the next frame boundary. */
 	void RequestStop() noexcept;
 
 	/** @return True when a stop was requested through the public engine handle. */
 	[[nodiscard]] bool IsStopRequested() const noexcept;
+
+	/** @return True when runtime systems are initialized and ready to step. */
+	[[nodiscard]] bool IsRunning() const noexcept;
 
 private:
 	friend class ve::engine::EngineRuntime;
@@ -102,4 +114,5 @@ private:
 	std::optional<ve::engine::ValidatedEngineCreateInfo> create_info_;
 	std::vector<std::string> create_info_validation_issues_;
 	std::atomic_bool stop_requested_{ false };
+	std::unique_ptr<ve::engine::EngineRuntime> runtime_;
 };

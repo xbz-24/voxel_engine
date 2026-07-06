@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include "EngineRuntime.h"
+
 #include <cassert>
 #include <utility>
 
@@ -39,7 +41,10 @@ EngineApplication::EngineApplication(ve::engine::ValidatedEngineCreateInfo creat
 	ApplyRuntimeSettings(_runtimeSettings, create_info_->Value());
 }
 
-EngineApplication::~EngineApplication() = default;
+EngineApplication::~EngineApplication()
+{
+	Shutdown();
+}
 
 const ve::engine::EngineCreateInfo& EngineApplication::CreateInfo() const noexcept
 {

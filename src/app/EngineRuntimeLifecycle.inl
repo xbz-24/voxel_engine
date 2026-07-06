@@ -7,16 +7,28 @@ namespace ve::engine
 	{
 	}
 
-	/** Initializes, runs, and shuts down the runtime. */
-	int EngineRuntime::Execute()
+	EngineStartupResult EngineRuntime::Start()
 	{
 		const EngineStartupResult startup_result = Initialize();
 		if (!startup_result)
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, startup_result.message);
 			Shutdown();
-			return -1;
 		}
+		return startup_result;
+	}
+
+	bool EngineRuntime::Step()
+	{
+		if (!ShouldContinue()) return false;
+		RunFrame();
+		return ShouldContinue();
+	}
+
+	/** Initializes, runs, and shuts down the runtime. */
+	int EngineRuntime::Execute()
+	{
+		if (!Start()) return -1;
 		RunMainLoop();
 		Shutdown();
 		return 0;
