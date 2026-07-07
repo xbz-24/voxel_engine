@@ -38,13 +38,14 @@ if (CMAKE_TOOLCHAIN_FILE AND NOT ve_imgui_vulkan_backend_source)
         file(GLOB ve_imgui_root_backend_dirs "${ve_vcpkg_root}/buildtrees/imgui/src/*/backends")
         list(APPEND ve_imgui_backend_dirs ${ve_imgui_root_backend_dirs})
     endforeach()
-    find_file(ve_imgui_vulkan_backend_source
+    find_file(ve_found_imgui_vulkan_backend_source
         NAMES imgui_impl_vulkan.cpp
         PATHS ${ve_imgui_backend_dirs}
         NO_DEFAULT_PATH
         NO_CACHE
     )
-    if (ve_imgui_vulkan_backend_source)
+    if (ve_found_imgui_vulkan_backend_source)
+        set(ve_imgui_vulkan_backend_source "${ve_found_imgui_vulkan_backend_source}")
         set(VE_IMGUI_VULKAN_BACKEND_SOURCE "${ve_imgui_vulkan_backend_source}" CACHE FILEPATH "Path to imgui_impl_vulkan.cpp" FORCE)
     endif()
 endif()
