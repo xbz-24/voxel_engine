@@ -5,6 +5,7 @@ if (VE_BUILD_EXAMPLES)
             ve_project_options
             voxel_engine_sdk
         )
+        ve_enable_common_pch(${target})
         set_target_properties(${target} PROPERTIES FOLDER "Examples")
         ve_copy_msvc_asan_runtime(${target})
     endfunction()
