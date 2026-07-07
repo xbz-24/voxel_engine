@@ -90,6 +90,7 @@ namespace ve::engine
 	enum class EngineStartupFailure
 	{
 		None,
+		InvalidCreateInfo,
 		WindowInitializationFailed,
 		RenderBackendUnavailable,
 		UnsupportedRenderBackend,

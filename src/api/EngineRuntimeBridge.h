@@ -32,7 +32,7 @@ namespace voxel::detail
 		virtual ~IEngineRuntime() = default;
 
 		[[nodiscard]] virtual int Run() = 0;
-		[[nodiscard]] virtual bool Start() = 0;
+		[[nodiscard]] virtual ve::engine::EngineStartupResult Start() = 0;
 		[[nodiscard]] virtual bool Step() = 0;
 		virtual void Shutdown() noexcept = 0;
 		virtual void RequestStop() noexcept = 0;

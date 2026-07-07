@@ -1,7 +1,46 @@
 #include "voxel/Engine.h"
 
+#include <utility>
+
 namespace voxel
 {
+	EngineStartResult EngineStartResult::Success()
+	{
+		return {};
+	}
+
+	EngineStartResult EngineStartResult::InvalidConfiguration(std::vector<std::string> issues)
+	{
+		return EngineStartResult{
+			EngineStartFailure::InvalidConfiguration,
+			std::move(issues),
+			"EngineConfig is invalid"
+		};
+	}
+
+	EngineStartResult EngineStartResult::RuntimeUnavailable(std::string message)
+	{
+		return EngineStartResult{
+			EngineStartFailure::RuntimeUnavailable,
+			{},
+			std::move(message)
+		};
+	}
+
+	EngineStartResult EngineStartResult::RuntimeStartupFailed(std::string message)
+	{
+		return EngineStartResult{
+			EngineStartFailure::RuntimeStartupFailed,
+			{},
+			std::move(message)
+		};
+	}
+
+	EngineStartResult::operator bool() const noexcept
+	{
+		return failure == EngineStartFailure::None;
+	}
+
 	bool InputSnapshot::IsDown(Key key) const noexcept
 	{
 		switch (key)

@@ -45,6 +45,9 @@ public:
 	/** Initializes runtime systems without entering the blocking loop. */
 	[[nodiscard]] bool Start();
 
+	/** Initializes runtime systems and keeps the startup failure details. */
+	[[nodiscard]] ve::engine::EngineStartupResult StartDetailed();
+
 	/** Advances one externally driven frame. */
 	[[nodiscard]] bool Step();
 

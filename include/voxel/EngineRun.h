@@ -3,6 +3,8 @@
 #include "voxel/EngineConfig.h"
 
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace voxel
 {
@@ -18,6 +20,27 @@ namespace voxel
 	[[nodiscard]] EngineConfig ArcadeInvadersDemo();
 	[[nodiscard]] EngineConfig ArcadeMazeDemo();
 	[[nodiscard]] EngineConfig DefaultConfig();
+
+	enum class EngineStartFailure
+	{
+		None,
+		InvalidConfiguration,
+		RuntimeUnavailable,
+		RuntimeStartupFailed
+	};
+
+	struct EngineStartResult
+	{
+		EngineStartFailure failure = EngineStartFailure::None;
+		std::vector<std::string> issues;
+		std::string message;
+
+		[[nodiscard]] static EngineStartResult Success();
+		[[nodiscard]] static EngineStartResult InvalidConfiguration(std::vector<std::string> issues);
+		[[nodiscard]] static EngineStartResult RuntimeUnavailable(std::string message);
+		[[nodiscard]] static EngineStartResult RuntimeStartupFailed(std::string message);
+		[[nodiscard]] explicit operator bool() const noexcept;
+	};
 
 	class Engine
 	{
@@ -35,6 +58,9 @@ namespace voxel
 
 		/** @return True when runtime systems were initialized for an externally driven frame loop. */
 		[[nodiscard]] bool Start();
+
+		/** @return Structured startup status for hosts that need actionable failure details. */
+		[[nodiscard]] EngineStartResult StartDetailed();
 
 		/** @return True when one frame ran and another frame should be requested by the host. */
 		[[nodiscard]] bool Step();

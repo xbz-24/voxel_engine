@@ -42,12 +42,26 @@
 
 		[[nodiscard]] bool Start()
 		{
+			return static_cast<bool>(StartDetailed());
+		}
+
+		[[nodiscard]] EngineStartResult StartDetailed()
+		{
 			if (!validation_issues_.empty())
 			{
 				LogValidationIssues();
-				return false;
+				return EngineStartResult::InvalidConfiguration(validation_issues_);
 			}
-			return runtime_ != nullptr && runtime_->Start();
+			if (runtime_ == nullptr)
+			{
+				return EngineStartResult::RuntimeUnavailable("Engine runtime was not created");
+			}
+			const ve::engine::EngineStartupResult startup_result = runtime_->Start();
+			if (startup_result)
+			{
+				return EngineStartResult::Success();
+			}
+			return EngineStartResult::RuntimeStartupFailed(startup_result.message);
 		}
 
 		[[nodiscard]] bool Step()
@@ -114,6 +128,11 @@
 	bool Engine::Start()
 	{
 		return impl_->Start();
+	}
+
+	EngineStartResult Engine::StartDetailed()
+	{
+		return impl_->StartDetailed();
 	}
 
 	bool Engine::Step()

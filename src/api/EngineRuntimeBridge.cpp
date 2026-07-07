@@ -22,9 +22,9 @@ namespace voxel::detail
 				return engine_.Run();
 			}
 
-			[[nodiscard]] bool Start() override
+			[[nodiscard]] ve::engine::EngineStartupResult Start() override
 			{
-				return engine_.Start();
+				return engine_.StartDetailed();
 			}
 
 			[[nodiscard]] bool Step() override
