@@ -25,5 +25,6 @@ add_library(voxel_engine_sdk STATIC
 )
 target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
 target_link_libraries(voxel_engine_sdk PRIVATE ve_project_options ve_app)
+ve_enable_common_pch(voxel_engine_sdk)
 set_target_properties(voxel_engine_sdk PROPERTIES FOLDER "Engine/API")
 add_library(VoxelEngine::SDK ALIAS voxel_engine_sdk)

@@ -13,6 +13,7 @@ target_link_libraries(voxel_engine PRIVATE
     ve_project_options
     voxel_engine_sdk
 )
+ve_enable_common_pch(voxel_engine)
 set_target_properties(voxel_engine PROPERTIES FOLDER "Applications")
 ve_copy_msvc_asan_runtime(voxel_engine)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_engine)
