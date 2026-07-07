@@ -29,8 +29,8 @@ namespace ve::engine
 	/** Presents the Vulkan migration frame. */
 	void EngineRuntime::RunVulkanFrame()
 	{
-		const bool ui_captures_mouse = vulkan_frame_renderer_.WantsMouseInput();
-		const bool ui_captures_keyboard = vulkan_frame_renderer_.WantsKeyboardInput();
+		const bool ui_captures_mouse = vulkan_frame_orchestrator_.WantsMouseInput();
+		const bool ui_captures_keyboard = vulkan_frame_orchestrator_.WantsKeyboardInput();
 		engine_._runtimeSettings.editor.is_settings_menu_open = ui_captures_mouse;
 
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();

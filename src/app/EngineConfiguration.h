@@ -128,6 +128,7 @@ namespace ve::engine
 		glm::vec3 camera_look_at{ 80.0f, 50.0f, 79.0f };
 		bool vsync = false;
 		bool show_debug_overlay = true;
+		bool settings_menu_enabled = true;
 		bool has_custom_camera = false;
 		ve::rendering::VulkanMinecraftDemoPreset vulkan_demo_preset = ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
 		int world_size_chunks = 8;

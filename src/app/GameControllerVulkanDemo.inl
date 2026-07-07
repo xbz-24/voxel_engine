@@ -16,7 +16,7 @@
 
 		if (model.PumpAsyncWorldGeneration() > 0) vulkan_demo_world_controller_.Invalidate();
 		vulkan_demo_world_controller_.Update(model, demo_settings.scene, demo_settings.request_scene_rebuild);
-		// VulkanFrameRenderer builds its own world mesh; the legacy chunk mesh pipeline uploads OpenGL buffers.
+		// VulkanFrameOrchestrator builds its own world mesh; the legacy chunk mesh pipeline uploads OpenGL buffers.
 		demo_settings.request_scene_rebuild = false;
 
 		window.SetCursorMode(demo_settings.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);

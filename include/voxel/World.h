@@ -62,7 +62,7 @@ namespace voxel
 
 	struct WorldEdit
 	{
-		// TODO: Hide this behind an opaque scene command list before the public API freezes.
+		// Public command payload kept structured until opaque scene commands replace direct edit storage.
 		enum class Kind
 		{
 			SetBlock,
@@ -102,7 +102,7 @@ namespace voxel
 
 	struct WorldConfig
 	{
-		// TODO: Add vertical world bounds once runtime chunks are no longer fixed to ChunkHeight.
+		// Height currently follows the fixed runtime chunk height; vertical bounds are tracked in the architecture roadmap.
 		int size_chunks = 8;
 		std::uint32_t terrain_seed = 0;
 		int base_surface_height = 40;

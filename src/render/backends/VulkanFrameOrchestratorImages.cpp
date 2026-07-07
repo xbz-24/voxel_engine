@@ -1,4 +1,4 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Logger.h"
 #include "VulkanBackend.h"
@@ -7,7 +7,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::EnsureIntermediateImages(VkExtent2D extent, VkFormat format)
+	bool VulkanFrameOrchestrator::EnsureIntermediateImages(VkExtent2D extent, VkFormat format)
 	{
 		if (extent.width == 0u || extent.height == 0u || format == VK_FORMAT_UNDEFINED) return false;
 		if (frames_.front().intermediate_image != VK_NULL_HANDLE &&
@@ -71,7 +71,7 @@ namespace ve::rendering
 			std::to_string(extent.width) + "x" + std::to_string(extent.height));
 		return true;
 	}
-	void VulkanFrameRenderer::ReleaseIntermediateImages()
+	void VulkanFrameOrchestrator::ReleaseIntermediateImages()
 	{
 		for (std::size_t index = 0; index < kFramesInFlight; ++index)
 		{

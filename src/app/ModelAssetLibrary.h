@@ -28,7 +28,7 @@ namespace ve::assets
 	private:
 		[[nodiscard]] static std::string CacheKey(const std::filesystem::path& model_path, const ModelImportOptions& options);
 
-		// TODO: Expose importer registry through public AssetCatalog once custom formats are supported by the SDK.
+		// Private importer registry until public AssetCatalog runtime loading supports custom formats.
 		ModelImporterRegistry importers_;
 		mutable std::unordered_map<std::string, ImportedModel> cache_;
 	};

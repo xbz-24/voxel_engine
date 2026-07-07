@@ -33,6 +33,7 @@ namespace ve::gameplay
 
 	struct RuntimeEditorSettings
 	{
+		bool settings_menu_enabled = true;
 		bool is_settings_menu_open = false;
 		ve::ui::SettingsMenuOption selected_settings_menu_option = ve::ui::SettingsMenuOption::RenderDistance;
 	};

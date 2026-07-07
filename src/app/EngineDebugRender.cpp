@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include <GL/glew.h>
+
 void EngineApplication::renderDebugCoordinateSystemAxes()
 {
 	glBegin(GL_LINES);

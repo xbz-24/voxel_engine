@@ -21,6 +21,7 @@
 				result.has_custom_camera = config.camera.has_custom_view;
 				result.vsync = config.window.vsync;
 				result.show_debug_overlay = config.show_debug_overlay;
+				result.settings_menu_enabled = config.enable_settings_menu;
 				result.world_size_chunks = std::max(1, config.world.size_chunks);
 				result.terrain_generation = ToInternalTerrainGeneration(config.world);
 				result.render_distance_chunks = std::max(0, config.render_distance_chunks);

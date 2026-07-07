@@ -1,4 +1,4 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Logger.h"
 #include "VulkanBackend.h"
@@ -8,8 +8,8 @@
 
 namespace ve::rendering
 {
-	VulkanFrameRenderer::~VulkanFrameRenderer() { Release(); }
-	bool VulkanFrameRenderer::Initialize(VulkanBackend& backend,
+	VulkanFrameOrchestrator::~VulkanFrameOrchestrator() { Release(); }
+	bool VulkanFrameOrchestrator::Initialize(VulkanBackend& backend,
 		ve::engine::Window& window,
 		const std::filesystem::path& block_texture_directory,
 		bool enable_imgui_overlay)
@@ -41,10 +41,10 @@ namespace ve::rendering
 			imgui_overlay_enabled_ = false;
 		}
 		image_layouts_.assign(backend.Swapchain().Images().size(), VK_IMAGE_LAYOUT_UNDEFINED);
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan voxel frame renderer initialized");
+		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan voxel frame orchestrator initialized");
 		return true;
 	}
-	bool VulkanFrameRenderer::DrawFrame(const ve::world::World& world,
+	bool VulkanFrameOrchestrator::DrawFrame(const ve::world::World& world,
 		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,
@@ -59,11 +59,11 @@ namespace ve::rendering
 		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, block_registry, camera, displayed_fps, delta_seconds, minecraft_demo_settings, gpu_controls);
 		return DrawSoftwareFrame(world, camera, displayed_fps, delta_seconds, input);
 	}
-	bool VulkanFrameRenderer::WantsMouseInput() const noexcept
+	bool VulkanFrameOrchestrator::WantsMouseInput() const noexcept
 	{
 		return imgui_overlay_.WantsMouseInput();
 	}
-	bool VulkanFrameRenderer::WantsKeyboardInput() const noexcept
+	bool VulkanFrameOrchestrator::WantsKeyboardInput() const noexcept
 	{
 		return imgui_overlay_.WantsKeyboardInput();
 	}

@@ -24,7 +24,7 @@
 	/** Renders the HUD through the OpenGL compatibility path. */
 	void EngineRuntime::RenderHud(RenderView& render_view)
 	{
-		// TODO: Introduce a backend-neutral HUD renderer so Vulkan and OpenGL share the same HudFrameInfo pipeline.
+		// OpenGL HUD path; Vulkan uses its overlay while backend-neutral HUD rendering stays on the roadmap.
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
 		ve::ui::HudRenderer* hud = render_view.Hud();

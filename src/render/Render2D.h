@@ -2,13 +2,11 @@
 
 #include "GraphicsTypes.h"
 
-#include <GL/glew.h>
-
 namespace ve::rendering
 {
 	struct TexturedQuadRequest
 	{
-		GLuint texture = 0;
+		TextureHandle texture = kInvalidTextureHandle;
 		ScreenRect rect;
 		ColorRgba tint;
 	};
@@ -52,13 +50,13 @@ namespace ve::rendering
 	/**
 	 * Draws a screen-space textured quad using the active projection/modelview.
 	 *
-	 * @param texture OpenGL texture id.
+	 * @param texture Backend-neutral texture handle.
 	 * @param x Left screen coordinate.
 	 * @param y Top screen coordinate.
 	 * @param width Quad width in pixels.
 	 * @param height Quad height in pixels.
 	 */
-	void DrawTexturedQuad(GLuint texture, float x, float y, float width, float height);
+	void DrawTexturedQuad(TextureHandle texture, float x, float y, float width, float height);
 
 	/**
 	 * Draws a screen-space textured quad from a request object.

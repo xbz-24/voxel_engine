@@ -1,5 +1,7 @@
 #include "Render2D.h"
 
+#include "TextureLoader.h"
+
 namespace ve::rendering
 {
 	namespace
@@ -30,7 +32,7 @@ namespace ve::rendering
 
 	void Canvas2D::DrawTexturedQuad(const TexturedQuadRequest& request) const
 	{
-		glBindTexture(GL_TEXTURE_2D, request.texture);
+		glBindTexture(GL_TEXTURE_2D, NativeOpenGLTexture(request.texture));
 		ApplyColor(request.tint);
 		glBegin(GL_QUADS);
 		glTexCoord2f(0.0f, 1.0f); glVertex2f(request.rect.x, request.rect.y);
@@ -73,7 +75,7 @@ namespace ve::rendering
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	void DrawTexturedQuad(GLuint texture, float x, float y, float width, float height)
+	void DrawTexturedQuad(TextureHandle texture, float x, float y, float width, float height)
 	{
 		Canvas2D{}.DrawTexturedQuad(TexturedQuadRequest{ texture, ScreenRect{ x, y, width, height }, ColorRgba{} });
 	}

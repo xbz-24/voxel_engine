@@ -1,12 +1,12 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Logger.h"
 #include "VulkanBackend.h"
-#include "VulkanFrameRendererCommands.h"
+#include "VulkanFrameOrchestratorCommands.h"
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index)
+	bool VulkanFrameOrchestrator::RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index)
 	{
 		if (frame_index >= frames_.size() || frames_[frame_index].intermediate_image == VK_NULL_HANDLE) return false;
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };

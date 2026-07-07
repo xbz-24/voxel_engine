@@ -11,10 +11,9 @@ namespace ve::ui
 {
 	namespace
 	{
-		GLuint LoadHudTexture(const std::filesystem::path& path)
+		ve::rendering::TextureHandle LoadHudTexture(const std::filesystem::path& path)
 		{
-			// TODO: Load HUD textures through backend-owned texture resources instead of forcing OpenGL ids at construction.
-			return ve::rendering::NativeOpenGLTexture(ve::rendering::LoadTexture(path.string().c_str()));
+			return ve::rendering::LoadTexture(path.string().c_str());
 		}
 	}
 

@@ -52,6 +52,7 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 {
 	const voxel::EngineRuntimeTuning tuning{
 		4,
+		false,
 		false
 	};
 	const voxel::EngineConfig config = voxel::EngineConfig::Default()
@@ -66,6 +67,16 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 	CHECK(startup.graphics_api == voxel::GraphicsApi::Vulkan);
 	CHECK(runtime.render_distance_chunks == 4);
 	CHECK(!runtime.show_debug_overlay);
+	CHECK(!runtime.enable_settings_menu);
+}
+
+TEST_CASE("public config can disable demo settings menu controls")
+{
+	const voxel::EngineConfig config = voxel::EngineConfig::Default()
+		.DisableSettingsMenu();
+
+	CHECK(!config.enable_settings_menu);
+	CHECK(!config.RuntimeTuning().enable_settings_menu);
 }
 
 TEST_CASE("public config exposes logging sinks and stop requests")

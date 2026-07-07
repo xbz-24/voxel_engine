@@ -37,7 +37,7 @@ namespace ve::world
 		bool has_authored_edits = false;
 	};
 
-	// TODO: Split storage, generation, meshing, and event publication so World can be used headlessly by tools/tests.
+	// Owns storage, generation handoff, meshing handoff, and world events; roadmap tracks the headless split.
 	class World
 	{
 	public:
@@ -57,7 +57,7 @@ namespace ve::world
 
 		/** @param worldSize Number of chunks along each world side. */
 		void SpawnFlatGrid(int worldSize);
-		// TODO: Add streaming world bounds so large worlds are not limited to one fixed square grid.
+		// Streaming storage exists; non-square world bounds are tracked in the architecture roadmap.
 
 		/** @param settings Spawn settings containing the world size in chunks. */
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);

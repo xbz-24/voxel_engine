@@ -22,7 +22,8 @@
 	{
 		return EngineRuntimeTuning{
 			render_distance_chunks,
-			show_debug_overlay
+			show_debug_overlay,
+			enable_settings_menu
 		};
 	}
 

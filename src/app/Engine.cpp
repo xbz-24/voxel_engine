@@ -16,6 +16,7 @@ namespace
 		runtime_settings.renderer.render_distance_chunks =
 			ve::gameplay::ClampRenderDistanceChunks(create_info.render_distance_chunks);
 		runtime_settings.renderer.backend_configuration = create_info.render_backend;
+		runtime_settings.editor.settings_menu_enabled = create_info.settings_menu_enabled;
 	}
 }
 

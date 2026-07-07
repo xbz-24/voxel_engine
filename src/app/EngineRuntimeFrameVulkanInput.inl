@@ -26,7 +26,7 @@
 	{
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
-		return vulkan_frame_renderer_.DrawFrame(model_->GetWorld(),
+		return vulkan_frame_orchestrator_.DrawFrame(model_->GetWorld(),
 			*block_registry,
 			model_->GetCamera(),
 			frame_timer_.DisplayedFps(),

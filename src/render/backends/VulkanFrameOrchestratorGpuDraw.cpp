@@ -1,9 +1,9 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Camera.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
-#include "VulkanFrameRendererPresentation.h"
+#include "VulkanFrameOrchestratorPresentation.h"
 #include "World.h"
 
 #include <chrono>
@@ -11,7 +11,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::DrawGpuFrame(const ve::world::World& world,
+	bool VulkanFrameOrchestrator::DrawGpuFrame(const ve::world::World& world,
 		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,

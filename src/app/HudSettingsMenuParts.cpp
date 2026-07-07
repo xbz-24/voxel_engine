@@ -48,7 +48,7 @@ namespace ve::ui
 		const bool is_selected = option == frame.settings_menu.selected_option;
 		const float row_x = panel_x + ((kPanelWidth - kButtonWidth) * 0.5f);
 		const float row_y = first_row_y + (static_cast<float>(row_index) * 48.0f);
-		const GLuint button_texture =
+		const ve::rendering::TextureHandle button_texture =
 			is_selected ? textures_.menu_button_highlighted : textures_.menu_button;
 		ve::rendering::DrawTexturedQuad(button_texture, row_x, row_y, kButtonWidth, kButtonHeight);
 		DrawText(label, row_x + 22.0f, row_y + 13.0f, 1.3f);

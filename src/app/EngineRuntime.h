@@ -10,7 +10,7 @@
 #include "RenderView.h"
 #include "RuntimeInput.h"
 #include "RuntimeInputRouter.h"
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include <memory>
 
@@ -63,8 +63,8 @@ namespace ve::engine
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;
 		std::unique_ptr<RenderView> view_;
-		ve::rendering::VulkanFrameRenderer vulkan_frame_renderer_;
-		// TODO: Move demo settings out of core runtime once public scenes drive Vulkan rendering.
+		ve::rendering::VulkanFrameOrchestrator vulkan_frame_orchestrator_;
+		// Temporary demo settings owned by runtime until public scenes drive Vulkan rendering.
 		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
 		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;

@@ -30,6 +30,7 @@ namespace voxel
 	{
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
+		bool enable_settings_menu = true;
 	};
 
 	struct EngineConfig
@@ -45,6 +46,7 @@ namespace voxel
 		DemoScene demo_scene = DemoScene::HyperrealDesert;
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
+		bool enable_settings_menu = true;
 		UpdateCallback on_update{};
 		DiagnosticsCallback on_diagnostics{};
 		LogCallback on_log{};
@@ -90,6 +92,8 @@ namespace voxel
 		EngineConfig& WithRuntimeTuning(EngineRuntimeTuning value) noexcept;
 		EngineConfig& ShowDebugOverlay(bool enabled = true) noexcept;
 		EngineConfig& HideDebugOverlay() noexcept;
+		EngineConfig& EnableSettingsMenu(bool enabled = true) noexcept;
+		EngineConfig& DisableSettingsMenu() noexcept;
 		EngineConfig& OnUpdate(UpdateCallback callback) noexcept;
 		EngineConfig& OnDiagnostics(DiagnosticsCallback callback) noexcept;
 		EngineConfig& OnLog(LogCallback callback) noexcept;

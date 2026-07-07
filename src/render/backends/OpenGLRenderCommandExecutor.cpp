@@ -2,7 +2,8 @@
 
 #include "Render2D.h"
 #include "RenderPrimitives3D.h"
-#include "TextureLoader.h"
+
+#include <GL/glew.h>
 
 #include <variant>
 
@@ -26,11 +27,7 @@ namespace ve::rendering
 		/** @param command Textured quad command to execute. */
 		void ExecuteCommand(const DrawTexturedQuad2DCommand& command)
 		{
-			Canvas2D{}.DrawTexturedQuad(TexturedQuadRequest{
-				NativeOpenGLTexture(command.texture),
-				command.rect,
-				command.tint
-			});
+			Canvas2D{}.DrawTexturedQuad(TexturedQuadRequest{ command.texture, command.rect, command.tint });
 		}
 
 		/** @param command Text command reserved for text-capable executors. */

@@ -15,7 +15,7 @@
 		editor_controller_.Shutdown();
 		if (view_ != nullptr) view_->ReleaseCachedResources();
 		view_.reset();
-		vulkan_frame_renderer_.Release();
+		vulkan_frame_orchestrator_.Release();
 		if (backend_ == nullptr)
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Engine, "No render backend to release");

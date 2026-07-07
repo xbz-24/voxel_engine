@@ -1,5 +1,5 @@
-#include "VulkanFrameRenderer.h"
-#include "VulkanFrameRendererPresentation.h"
+#include "VulkanFrameOrchestrator.h"
+#include "VulkanFrameOrchestratorPresentation.h"
 
 #include "VulkanBackend.h"
 
@@ -58,7 +58,7 @@ namespace ve::rendering
 		return vkQueuePresentKHR(backend.Device().PresentQueue(), &present_info);
 	}
 
-	bool VulkanFrameRenderer::WaitForAllInFlightFrames() const
+	bool VulkanFrameOrchestrator::WaitForAllInFlightFrames() const
 	{
 		if (device_ == VK_NULL_HANDLE) return false;
 		std::array<VkFence, kFramesInFlight> fences{};

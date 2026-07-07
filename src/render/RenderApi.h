@@ -42,7 +42,7 @@ namespace ve::rendering
 	/** Tracks how far a backend has moved onto backend-neutral engine contracts. */
 	struct RenderBackendMigrationStatus
 	{
-		// TODO: Remove this once migration is complete and enforce backend-neutral behavior through tests instead.
+		// Temporary migration metadata until backend-neutral behavior has complete test coverage.
 		bool has_backend_neutral_meshes = false;
 		bool has_backend_neutral_textures = false;
 		bool has_backend_neutral_hud = false;

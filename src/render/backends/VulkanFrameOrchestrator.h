@@ -33,11 +33,10 @@ namespace ve::rendering
 	class VulkanBackend;
 
 	/** Presents Vulkan frames by copying a rasterized frame image into the swapchain. */
-	class VulkanFrameRenderer
+	class VulkanFrameOrchestrator
 	{
 	public:
-		// TODO: Rename this from demo renderer to frame orchestrator once software and GPU paths become pluggable passes.
-		~VulkanFrameRenderer();
+		~VulkanFrameOrchestrator();
 
 		/** @param backend Initialized Vulkan backend. @return True when frame resources are ready. */
 		[[nodiscard]] bool Initialize(VulkanBackend& backend,

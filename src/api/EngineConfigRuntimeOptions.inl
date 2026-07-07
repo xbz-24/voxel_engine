@@ -41,6 +41,7 @@
 	{
 		render_distance_chunks = value.render_distance_chunks;
 		show_debug_overlay = value.show_debug_overlay;
+		enable_settings_menu = value.enable_settings_menu;
 		return *this;
 	}
 
@@ -53,6 +54,17 @@
 	EngineConfig& EngineConfig::HideDebugOverlay() noexcept
 	{
 		return ShowDebugOverlay(false);
+	}
+
+	EngineConfig& EngineConfig::EnableSettingsMenu(bool enabled) noexcept
+	{
+		enable_settings_menu = enabled;
+		return *this;
+	}
+
+	EngineConfig& EngineConfig::DisableSettingsMenu() noexcept
+	{
+		return EnableSettingsMenu(false);
 	}
 
 	EngineConfig& EngineConfig::OnUpdate(UpdateCallback callback) noexcept

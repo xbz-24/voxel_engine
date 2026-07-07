@@ -6,7 +6,7 @@
 
 namespace ve::ui
 {
-	void HudRenderer::DrawIconRow(GLuint texture, float row_start_x, float icon_y, float icon_size, float icon_spacing, int icon_count, float direction)
+	void HudRenderer::DrawIconRow(ve::rendering::TextureHandle texture, float row_start_x, float icon_y, float icon_size, float icon_spacing, int icon_count, float direction)
 	{
 		for (int icon_index = 0; icon_index < icon_count; icon_index++)
 		{
@@ -50,8 +50,8 @@ namespace ve::ui
 		for (int slot = 0; slot < ve::gameplay::HotbarSlotCount; slot++)
 		{
 			const ve::blocks::BlockId block = hotbar_blocks[static_cast<std::size_t>(slot)];
-			const GLuint block_texture = ve::rendering::NativeOpenGLTexture(
-				block_registry.TextureFor(block, ve::blocks::BlockFace::Top));
+			const ve::rendering::TextureHandle block_texture =
+				block_registry.TextureFor(block, ve::blocks::BlockFace::Top);
 			ve::rendering::DrawTexturedQuad(block_texture,
 				hotbar_x + (static_cast<float>(slot) * slot_size) + block_icon_inset,
 				hotbar_y + block_icon_inset,

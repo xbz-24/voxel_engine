@@ -1,4 +1,4 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Camera.h"
 #include "Logger.h"
@@ -9,7 +9,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::DrawSoftwareFrame(const ve::world::World& world,
+	bool VulkanFrameOrchestrator::DrawSoftwareFrame(const ve::world::World& world,
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,

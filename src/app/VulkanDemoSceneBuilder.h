@@ -12,7 +12,7 @@ namespace ve::engine
 	class VulkanDemoSceneBuilder
 	{
 	public:
-		// TODO: Move authored desert scene layers into data files consumed by the public SceneGraph/AssetCatalog APIs.
+		// Procedural demo builder; data-driven public SceneGraph loading is tracked in the architecture roadmap.
 		static void Build(ve::world::World& world, ve::rendering::VulkanMinecraftDemoSceneConfig config);
 	};
 }

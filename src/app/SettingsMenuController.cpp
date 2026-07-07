@@ -7,6 +7,14 @@ namespace ve::gameplay
 	/// Processes one frame of settings menu input.
 	void SettingsMenuController::ProcessInput(ve::engine::Window& window, RuntimeSettings& settings)
 	{
+		if (!settings.editor.settings_menu_enabled)
+		{
+			if (settings.editor.is_settings_menu_open)
+			{
+				SetOpen(window, settings, false);
+			}
+			return;
+		}
 		ToggleMenuFromInput(window, settings);
 		if (settings.editor.is_settings_menu_open)
 		{

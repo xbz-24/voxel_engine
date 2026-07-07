@@ -138,7 +138,6 @@ namespace ve::engine
 		void ProcessGameplayInput(GameplayCommandFrameContext& frame);
 
 		EngineInputState input_state_;
-		// TODO: Split editor/menu navigation from survival gameplay so non-demo apps can opt out cleanly.
 		ve::gameplay::SettingsMenuController settings_menu_controller_;
 		VulkanDemoWorldController vulkan_demo_world_controller_;
 		ve::blocks::BlockId selected_placement_block_ = ve::blocks::BlockId::Cobblestone;

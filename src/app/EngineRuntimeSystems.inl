@@ -91,15 +91,15 @@
 				EngineStartupFailure::RenderBackendInitializationFailed,
 				"Vulkan backend initialization failed: " + vulkan_backend_result.message);
 		}
-		if (!vulkan_frame_renderer_.Initialize(vulkan_backend,
+		if (!vulkan_frame_orchestrator_.Initialize(vulkan_backend,
 			window_,
 			asset_paths_.blockTexturesDirectory,
-			create_info.show_debug_overlay))
+			create_info.show_debug_overlay && create_info.settings_menu_enabled))
 		{
-			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame renderer initialization failed");
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame orchestrator initialization failed");
 			return EngineStartupResult::Failure(
 				EngineStartupFailure::RenderFrameRendererInitializationFailed,
-				"Vulkan frame renderer initialization failed");
+				"Vulkan frame orchestrator initialization failed");
 		}
 		return EngineStartupResult::Success();
 	}

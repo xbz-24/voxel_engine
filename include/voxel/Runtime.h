@@ -104,7 +104,7 @@ namespace voxel
 		RuntimeCameraState camera{};
 		Block selected_block = Air;
 		BlockHitResult hit_result{};
-		// TODO: Add stable entity ids once runtime entity systems are public.
+		// Entity ids stay out of frame callbacks until runtime entity systems are public.
 		RuntimeCommands commands{};
 	};
 

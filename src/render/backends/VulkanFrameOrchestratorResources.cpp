@@ -1,4 +1,4 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "VulkanBackend.h"
 
@@ -8,7 +8,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::CreateTimestampQueries()
+	bool VulkanFrameOrchestrator::CreateTimestampQueries()
 	{
 		const vk::PhysicalDevice physical_device = backend_->PhysicalDevice().CppHandle();
 		const vk::PhysicalDeviceProperties properties = physical_device.getProperties();
@@ -35,7 +35,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	bool VulkanFrameRenderer::CreateCommandResources()
+	bool VulkanFrameOrchestrator::CreateCommandResources()
 	{
 		const vk::CommandPoolCreateInfo pool_info{
 			vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -56,7 +56,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	bool VulkanFrameRenderer::CreateSynchronization()
+	bool VulkanFrameOrchestrator::CreateSynchronization()
 	{
 		const vk::Device device = backend_->Device().CppHandle();
 		const vk::SemaphoreCreateInfo semaphore_info{};
@@ -80,7 +80,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	std::uint32_t VulkanFrameRenderer::FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
+	std::uint32_t VulkanFrameOrchestrator::FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memory_properties{};
 		vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);

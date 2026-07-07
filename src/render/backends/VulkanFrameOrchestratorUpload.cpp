@@ -1,4 +1,4 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Logger.h"
 #include "VulkanBackend.h"
@@ -9,7 +9,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::EnsureFrameBuffer(VkExtent2D extent)
+	bool VulkanFrameOrchestrator::EnsureFrameBuffer(VkExtent2D extent)
 	{
 		if (!rasterizer_.Resize(extent, demo_settings_)) return false;
 		const VkExtent2D render_extent = rasterizer_.RenderExtent();
@@ -27,7 +27,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	bool VulkanFrameRenderer::UploadFramePixels(VulkanFrameTiming& timing, std::size_t frame_index)
+	bool VulkanFrameOrchestrator::UploadFramePixels(VulkanFrameTiming& timing, std::size_t frame_index)
 	{
 		if (frame_index >= frames_.size()) return false;
 		const std::span<const std::uint32_t> pixels = rasterizer_.RenderPixels();

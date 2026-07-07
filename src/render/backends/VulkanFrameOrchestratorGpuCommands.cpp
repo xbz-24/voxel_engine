@@ -1,12 +1,12 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "Camera.h"
 #include "Logger.h"
-#include "VulkanFrameRendererCommands.h"
+#include "VulkanFrameOrchestratorCommands.h"
 
 namespace ve::rendering
 {
-	bool VulkanFrameRenderer::RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera)
+	bool VulkanFrameOrchestrator::RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera)
 	{
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -36,7 +36,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	void VulkanFrameRenderer::CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const
+	void VulkanFrameOrchestrator::CaptureCompletedGpuTiming(std::size_t frame_index, VulkanFrameTiming& timing) const
 	{
 		if (timestamp_query_pool_ == VK_NULL_HANDLE || timestamp_period_ns_ <= 0.0f) return;
 		if (!frames_[frame_index].timestamp_query_valid) return;

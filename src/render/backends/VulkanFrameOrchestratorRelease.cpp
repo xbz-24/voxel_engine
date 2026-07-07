@@ -1,10 +1,10 @@
-#include "VulkanFrameRenderer.h"
+#include "VulkanFrameOrchestrator.h"
 
 #include "VulkanBackend.h"
 
 namespace ve::rendering
 {
-	void VulkanFrameRenderer::Release()
+	void VulkanFrameOrchestrator::Release()
 	{
 		if (device_ != VK_NULL_HANDLE) vkDeviceWaitIdle(device_);
 		ReleaseIntermediateImages();

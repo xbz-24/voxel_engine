@@ -3,8 +3,8 @@
 #include "AssetPaths.h"
 #include "BlockRegistry.h"
 #include "HudFrameInfo.h"
+#include "GraphicsTypes.h"
 
-#include <GL/glew.h>
 #include <cstddef>
 #include <string>
 
@@ -22,22 +22,22 @@ namespace ve::ui
 	private:
 		struct Textures
 		{
-			GLuint crosshair;
-			GLuint hotbar;
-			GLuint hotbar_selection;
-			GLuint experience_bar;
-			GLuint heart;
-			GLuint hunger;
-			GLuint font;
-			GLuint menu_background;
-			GLuint menu_button;
-			GLuint menu_button_highlighted;
-			GLuint menu_slider;
-			GLuint menu_slider_handle;
+			ve::rendering::TextureHandle crosshair;
+			ve::rendering::TextureHandle hotbar;
+			ve::rendering::TextureHandle hotbar_selection;
+			ve::rendering::TextureHandle experience_bar;
+			ve::rendering::TextureHandle heart;
+			ve::rendering::TextureHandle hunger;
+			ve::rendering::TextureHandle font;
+			ve::rendering::TextureHandle menu_background;
+			ve::rendering::TextureHandle menu_button;
+			ve::rendering::TextureHandle menu_button_highlighted;
+			ve::rendering::TextureHandle menu_slider;
+			ve::rendering::TextureHandle menu_slider_handle;
 		};
 
 		/// Draws a screen-space row of icons.
-		void DrawIconRow(GLuint texture, float row_start_x, float icon_y, float icon_size, float icon_spacing, int icon_count, float direction);
+		void DrawIconRow(ve::rendering::TextureHandle texture, float row_start_x, float icon_y, float icon_size, float icon_spacing, int icon_count, float direction);
 
 		/// Draws the fixed voxel HUD widgets.
 		void DrawSurvivalHud(const ve::engine::Window& window, const ve::blocks::BlockRegistry& block_registry, ve::blocks::BlockId selected_placement_block);
