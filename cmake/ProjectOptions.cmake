@@ -35,7 +35,6 @@ function(ve_enable_common_pch target)
         <unordered_map>
         <utility>
         <vector>
-        <glm/glm.hpp>
     )
 endfunction()
 

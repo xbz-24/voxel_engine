@@ -44,9 +44,12 @@ if (CMAKE_TOOLCHAIN_FILE)
         target_sources(ve_render_backends PRIVATE "${VE_IMGUI_VULKAN_BACKEND_SOURCE}")
         target_include_directories(ve_render_backends SYSTEM PRIVATE "${VE_IMGUI_VULKAN_BACKEND_DIR}")
         target_compile_definitions(ve_render_backends PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
-        set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+        set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES
+            SKIP_UNITY_BUILD_INCLUSION ON
+            DISABLE_PRECOMPILE_HEADERS ON
+        )
         if (MSVC)
-            set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES COMPILE_OPTIONS "/W0")
+            set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES COMPILE_OPTIONS "/W0;/WX-")
         endif()
     else()
         message(FATAL_ERROR "imgui_impl_vulkan.cpp was not found in vcpkg buildtrees; run CMake after vcpkg restores imgui.")
