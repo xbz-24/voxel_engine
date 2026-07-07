@@ -12,28 +12,7 @@ namespace ve::rendering
 
 		void ApplyPresetDefaults(VulkanMinecraftDemoSettings& settings, VulkanMinecraftDemoPreset preset)
 		{
-			settings.scene = VulkanMinecraftDemoSceneConfig{};
-			settings.scene.preset = preset;
-			switch (preset)
-			{
-			case VulkanMinecraftDemoPreset::AquaModel:
-				settings.scene.terrain_radius = 58;
-				settings.scene.hill_height = 8;
-				settings.scene.tree_count = 0;
-				settings.scene.market_stall_count = 0;
-				settings.scene.cave = false;
-				break;
-			case VulkanMinecraftDemoPreset::SponzaAtrium:
-				settings.scene.terrain_radius = 72;
-				settings.scene.hill_height = 10;
-				settings.scene.tree_count = 0;
-				settings.scene.market_stall_count = 0;
-				settings.scene.cave = false;
-				break;
-			case VulkanMinecraftDemoPreset::HyperrealDesert:
-			default:
-				break;
-			}
+			settings.scene = VulkanMinecraftDemoDefaultSceneConfig(preset);
 			settings.request_scene_rebuild = true;
 		}
 

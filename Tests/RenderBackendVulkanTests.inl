@@ -61,6 +61,29 @@ TEST_CASE("vulkan voxel vertex packs color and normal attributes")
 	CHECK((up & 0x0000ff00U) == 0x00007f00U);
 }
 
+TEST_CASE("vulkan demo profiles centralize startup and scene defaults")
+{
+	const ve::rendering::VulkanMinecraftDemoProfile crystal =
+		ve::rendering::VulkanMinecraftDemoProfileFor(ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert);
+	const ve::rendering::VulkanMinecraftDemoProfile aqua =
+		ve::rendering::VulkanMinecraftDemoProfileFor(ve::rendering::VulkanMinecraftDemoPreset::AquaModel);
+	const ve::rendering::VulkanMinecraftDemoProfile sponza =
+		ve::rendering::VulkanMinecraftDemoProfileFor(ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium);
+
+	CHECK(std::string{ crystal.window_title } == "Voxel Engine - Crystal Jungle");
+	CHECK(crystal.scene.preset == ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert);
+	CHECK(crystal.model_asset_keyword.empty());
+	CHECK(aqua.world_size_chunks == 16);
+	CHECK(aqua.render_distance_chunks == 12);
+	CHECK(aqua.scene.preset == ve::rendering::VulkanMinecraftDemoPreset::AquaModel);
+	CHECK(std::string{ aqua.model_asset_keyword } == "aqua");
+	CHECK(aqua.model_voxel_budget > 0u);
+	CHECK(sponza.world_size_chunks == 20);
+	CHECK(sponza.scene.preset == ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium);
+	CHECK(std::string{ sponza.model_asset_keyword } == "sponza");
+	CHECK(sponza.model_target_extent > aqua.model_target_extent);
+}
+
 TEST_CASE("vulkan software rasterizer data rejects malformed samples")
 {
 	ve::rendering::VulkanRasterFrameWorldSnapshot snapshot;

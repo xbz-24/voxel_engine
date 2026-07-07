@@ -1,5 +1,7 @@
 #include "voxel/Engine.h"
 
+#include "VulkanMinecraftDemoSettings.h"
+
 #include <cstddef>
 #include <initializer_list>
 #include <string>

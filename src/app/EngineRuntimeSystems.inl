@@ -27,7 +27,7 @@
 			texture_loading,
 			create_info.terrain_generation,
 			backend_.get());
-		vulkan_demo_settings_.scene.preset = create_info.vulkan_demo_preset;
+		vulkan_demo_settings_.scene = ve::rendering::VulkanMinecraftDemoDefaultSceneConfig(create_info.vulkan_demo_preset);
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		input_router_.BindMouseLook(
 			model_->MutableCamera(),

@@ -1,43 +1,59 @@
 		void BuildImportedModelDemo(ve::world::World& world,
 			const DemoBounds& bounds,
-			std::string_view keyword,
+			const ve::rendering::VulkanMinecraftDemoProfile& profile,
 			int base_y,
-			int stage_radius,
-			int target_extent,
-			std::size_t voxel_budget,
 			void (*fallback)(ve::world::World&, const DemoBounds&, int))
 		{
 			(void)bounds;
 			ResetDemoWorld(world);
 			const DemoBounds reset_bounds = BoundsFor(world);
-			BuildModelStage(world, reset_bounds, base_y, stage_radius);
-			const std::optional<std::filesystem::path> model_path = FindModelAsset(keyword);
-			if (!model_path)
+			BuildModelStage(world, reset_bounds, base_y, profile.model_stage_radius);
+			const ModelAssetPreflight asset = PreflightModelAsset(profile);
+			if (!asset)
 			{
-				VE_LOG_CATEGORY_WARNING(ve::log::category::World, "Model demo asset not found under assets/models for keyword: " + std::string{ keyword });
+				VE_LOG_CATEGORY_WARNING(ve::log::category::World,
+					asset.failure_message + "; rendering authored fallback for " + std::string{ profile.display_name });
 				fallback(world, reset_bounds, base_y);
 				return;
 			}
 
 			ve::assets::ModelAssetLibrary library;
-			std::optional<ve::assets::ImportedModel> model = library.ImportModel(*model_path);
-			if (!model || !VoxelizeImportedModel(world, reset_bounds, *model, base_y, target_extent, voxel_budget))
+			std::optional<ve::assets::ImportedModel> model = library.ImportModel(*asset.path);
+			if (!model)
 			{
-				VE_LOG_CATEGORY_WARNING(ve::log::category::World, "Failed to voxelize model demo asset: " + model_path->string());
+				VE_LOG_CATEGORY_WARNING(ve::log::category::World,
+					"Failed to import model demo asset for " + std::string{ profile.display_name } + ": " + asset.path->string());
 				fallback(world, reset_bounds, base_y);
 				return;
 			}
-			VE_LOG_CATEGORY_INFO(ve::log::category::World, "Voxelized model demo asset: " + model_path->string());
+			if (!VoxelizeImportedModel(world,
+				reset_bounds,
+				*model,
+				base_y,
+				profile.model_target_extent,
+				profile.model_voxel_budget))
+			{
+				VE_LOG_CATEGORY_WARNING(ve::log::category::World,
+					"Failed to voxelize model demo asset for " + std::string{ profile.display_name } + ": " + asset.path->string());
+				fallback(world, reset_bounds, base_y);
+				return;
+			}
+			VE_LOG_CATEGORY_INFO(ve::log::category::World,
+				"Voxelized " + std::string{ profile.display_name } + " from " + asset.path->string());
 		}
 
 		void BuildAquaModelDemo(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
+			const ve::rendering::VulkanMinecraftDemoProfile profile =
+				ve::rendering::VulkanMinecraftDemoProfileFor(ve::rendering::VulkanMinecraftDemoPreset::AquaModel);
 			const int base_y = std::max(8, config.ground_y);
-			BuildImportedModelDemo(world, bounds, "aqua", base_y, 62, 128, 700'000u, BuildAquaFallback);
+			BuildImportedModelDemo(world, bounds, profile, base_y, BuildAquaFallback);
 		}
 
 		void BuildSponzaAtriumDemo(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
+			const ve::rendering::VulkanMinecraftDemoProfile profile =
+				ve::rendering::VulkanMinecraftDemoProfileFor(ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium);
 			const int base_y = std::max(8, config.ground_y);
-			BuildImportedModelDemo(world, bounds, "sponza", base_y, 96, 170, 850'000u, BuildSponzaFallback);
+			BuildImportedModelDemo(world, bounds, profile, base_y, BuildSponzaFallback);
 		}

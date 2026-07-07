@@ -10,6 +10,7 @@
 #include "VulkanChunkMeshTranslator.h"
 #include "VulkanDebugLabels.h"
 #include "VulkanGpuChunkRendererTypes.h"
+#include "VulkanMinecraftDemoSettings.h"
 #include "VulkanRenderView.h"
 #include "VulkanSoftwareRasterizerColor.h"
 #include "VulkanSoftwareVoxelRasterizerData.h"

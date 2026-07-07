@@ -72,6 +72,46 @@
 			return std::nullopt;
 		}
 
+		struct ModelAssetPreflight
+		{
+			std::optional<std::filesystem::path> path;
+			std::string failure_message;
+
+			[[nodiscard]] explicit operator bool() const noexcept
+			{
+				return path.has_value();
+			}
+		};
+
+		[[nodiscard]] ModelAssetPreflight PreflightModelAsset(
+			const ve::rendering::VulkanMinecraftDemoProfile& profile)
+		{
+			if (profile.model_asset_keyword.empty())
+			{
+				return ModelAssetPreflight{
+					std::nullopt,
+					"Model demo profile has no asset keyword"
+				};
+			}
+			const std::filesystem::path root = AssetRoot();
+			if (!std::filesystem::exists(root))
+			{
+				return ModelAssetPreflight{
+					std::nullopt,
+					"Model asset root not found: " + root.string()
+				};
+			}
+			std::optional<std::filesystem::path> path = FindModelAsset(profile.model_asset_keyword);
+			if (!path)
+			{
+				return ModelAssetPreflight{
+					std::nullopt,
+					"Model asset '" + std::string{ profile.model_asset_keyword } + "' not found under " + root.string()
+				};
+			}
+			return ModelAssetPreflight{ std::move(path), {} };
+		}
+
 		[[nodiscard]] std::uint64_t VoxelKey(int x, int y, int z) noexcept
 		{
 			return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(x)) << 40u) ^
