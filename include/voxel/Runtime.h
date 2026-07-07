@@ -9,6 +9,7 @@
 
 namespace voxel
 {
+	/** Keyboard keys exposed to public frame callbacks. */
 	enum class Key
 	{
 		Unknown,
@@ -22,6 +23,7 @@ namespace voxel
 		F2
 	};
 
+	/** Semantic input actions mapped from raw runtime input. */
 	enum class InputAction
 	{
 		MoveForward,
@@ -35,6 +37,7 @@ namespace voxel
 		PrimaryAction
 	};
 
+	/** Input state captured for one public update callback frame. */
 	struct InputSnapshot
 	{
 		bool move_forward = false;
@@ -49,16 +52,21 @@ namespace voxel
 		double mouse_x = 0.0;
 		double mouse_y = 0.0;
 
+		/** Returns true when key is down in this frame snapshot. */
 		[[nodiscard]] bool IsDown(Key key) const noexcept;
+
+		/** Returns true when action is active in this frame snapshot. */
 		[[nodiscard]] bool IsActive(InputAction action) const noexcept;
 	};
 
+	/** Camera state exposed to frame callbacks. */
 	struct RuntimeCameraState
 	{
 		Vec3 position{};
 		Vec3 forward{};
 	};
 
+	/** Block raycast result for the currently selected voxel, if any. */
 	struct BlockHitResult
 	{
 		bool has_hit = false;
@@ -67,15 +75,25 @@ namespace voxel
 		Block target_block_type = Air;
 	};
 
+	/** Mutating commands a callback may queue for the runtime to apply after the frame callback returns. */
 	struct RuntimeCommands
 	{
 		std::vector<WorldEdit> world_edits;
 		bool request_close = false;
 
+		/** Queues a single block write. */
 		RuntimeCommands& SetBlock(BlockPosition position, Block block);
+
+		/** Queues a single block write by coordinates. */
 		RuntimeCommands& SetBlock(int block_x, int block_y, int block_z, Block block);
+
+		/** Queues a filled-box write. */
 		RuntimeCommands& FillBox(BlockBox box, Block block);
+
+		/** Queues a filled-box write between two inclusive corners. */
 		RuntimeCommands& FillBox(BlockPosition first, BlockPosition second, Block block);
+
+		/** Queues a filled-box write by inclusive corner coordinates. */
 		RuntimeCommands& FillBox(
 			int first_block_x,
 			int first_block_y,
@@ -84,7 +102,11 @@ namespace voxel
 			int second_block_y,
 			int second_block_z,
 			Block block);
+
+		/** Queues an air fill between two inclusive corners. */
 		RuntimeCommands& ClearBox(BlockPosition first, BlockPosition second);
+
+		/** Queues an air fill by inclusive corner coordinates. */
 		RuntimeCommands& ClearBox(
 			int first_block_x,
 			int first_block_y,
@@ -92,9 +114,12 @@ namespace voxel
 			int second_block_x,
 			int second_block_y,
 			int second_block_z);
+
+		/** Requests the runtime loop to close at the next safe frame boundary. */
 		RuntimeCommands& RequestClose() noexcept;
 	};
 
+	/** Per-frame public callback context. */
 	struct FrameContext
 	{
 		float delta_seconds = 0.0f;
@@ -108,6 +133,7 @@ namespace voxel
 		RuntimeCommands commands{};
 	};
 
+	/** Runtime counters surfaced through the diagnostics callback. */
 	struct Diagnostics
 	{
 		double fps = 0.0;
