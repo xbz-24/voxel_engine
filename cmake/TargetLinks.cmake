@@ -46,7 +46,7 @@ if (CMAKE_TOOLCHAIN_FILE)
         target_compile_definitions(ve_render_backends PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
         set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES
             SKIP_UNITY_BUILD_INCLUSION ON
-            DISABLE_PRECOMPILE_HEADERS ON
+            SKIP_PRECOMPILE_HEADERS ON
         )
         if (MSVC)
             set_source_files_properties("${VE_IMGUI_VULKAN_BACKEND_SOURCE}" PROPERTIES COMPILE_OPTIONS "/W0;/WX-")
