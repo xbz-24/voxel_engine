@@ -17,10 +17,16 @@ namespace ve::simulation
 	}
 
 	/** Adds density to the active field. */
-	void NavierStokesFluidSimulation::AddDensity(int x, int y, float amount) { current_.AddDensity(x, y, amount); }
+	void NavierStokesFluidSimulation::AddDensity(int cell_x, int cell_y, float amount)
+	{
+		current_.AddDensity(cell_x, cell_y, amount);
+	}
 
 	/** Adds velocity to the active field. */
-	void NavierStokesFluidSimulation::AddVelocity(int x, int y, const glm::vec2& velocity) { current_.AddVelocity(x, y, velocity); }
+	void NavierStokesFluidSimulation::AddVelocity(int cell_x, int cell_y, const glm::vec2& velocity)
+	{
+		current_.AddVelocity(cell_x, cell_y, velocity);
+	}
 
 	/** Advances the stable-fluid solver. */
 	void NavierStokesFluidSimulation::Step(float delta_seconds)
@@ -39,13 +45,16 @@ namespace ve::simulation
 	const FluidGrid& NavierStokesFluidSimulation::Grid() const noexcept { return current_; }
 
 	/** Returns a clamped pressure value. */
-	float NavierStokesFluidSimulation::PressureAt(int x, int y) const noexcept { return pressure_[Index(x, y)]; }
+	float NavierStokesFluidSimulation::PressureAt(int cell_x, int cell_y) const noexcept
+	{
+		return pressure_[Index(cell_x, cell_y)];
+	}
 
 	/** Converts cell coordinates to a clamped flat index. */
-	ve::core::Index NavierStokesFluidSimulation::Index(int x, int y) const noexcept
+	ve::core::Index NavierStokesFluidSimulation::Index(int cell_x, int cell_y) const noexcept
 	{
-		const int clamped_x = std::clamp(x, 0, current_.Width() - 1);
-		const int clamped_y = std::clamp(y, 0, current_.Height() - 1);
+		const int clamped_x = std::clamp(cell_x, 0, current_.Width() - 1);
+		const int clamped_y = std::clamp(cell_y, 0, current_.Height() - 1);
 		return static_cast<ve::core::Index>(clamped_y * current_.Width() + clamped_x);
 	}
 }

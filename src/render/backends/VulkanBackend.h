@@ -1,20 +1,54 @@
 #pragma once
 
 #include "RenderBackend.h"
+#include "VulkanBackendSettings.h"
 #include "VulkanContext.h"
+#include "VulkanDebugLabels.h"
 #include "VulkanDevice.h"
 #include "VulkanMemoryAllocator.h"
 #include "VulkanPhysicalDevice.h"
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
 
+#include <string>
+#include <utility>
+
 namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
-	struct VulkanBackendSettings
+	enum class VulkanBackendInitializationFailure
 	{
-		VulkanContextSettings context{};
+		None,
+		ContextCreationFailed,
+		SurfaceCreationFailed,
+		PhysicalDeviceSelectionFailed,
+		LogicalDeviceCreationFailed,
+		AllocatorCreationFailed,
+		SwapchainCreationFailed
+	};
+
+	struct VulkanBackendInitializationResult
+	{
+		VulkanBackendInitializationFailure failure = VulkanBackendInitializationFailure::None;
+		std::string message;
+
+		[[nodiscard]] static VulkanBackendInitializationResult Success()
+		{
+			return {};
+		}
+
+		[[nodiscard]] static VulkanBackendInitializationResult Failure(
+			VulkanBackendInitializationFailure failure,
+			std::string message)
+		{
+			return VulkanBackendInitializationResult{ failure, std::move(message) };
+		}
+
+		[[nodiscard]] explicit operator bool() const noexcept
+		{
+			return failure == VulkanBackendInitializationFailure::None;
+		}
 	};
 
 	/** High-level object that owns Vulkan startup state for the renderer. */
@@ -26,6 +60,11 @@ namespace ve::rendering
 
 		/** @param settings Vulkan backend settings. @param window Presentation window. @return True when full backend startup succeeds. */
 		[[nodiscard]] bool Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window);
+
+		/** @param settings Vulkan backend settings. @param window Presentation window. @return Startup stage and message. */
+		[[nodiscard]] VulkanBackendInitializationResult InitializeDetailed(
+			const VulkanBackendSettings& settings,
+			ve::engine::Window& window);
 
 		/** Releases all Vulkan backend state. */
 		void Release();
@@ -54,6 +93,9 @@ namespace ve::rendering
 		/** @return Vulkan swapchain used for presentation. */
 		[[nodiscard]] VulkanSwapchain& Swapchain() noexcept;
 
+		/** @return Optional Vulkan object-label helper. */
+		[[nodiscard]] VulkanDebugLabels& DebugLabels() noexcept;
+
 		/** @return True when the backend owns a Vulkan instance. */
 		[[nodiscard]] bool IsInitialized() const noexcept;
 
@@ -64,5 +106,6 @@ namespace ve::rendering
 		VulkanDevice device_;
 		VulkanMemoryAllocator allocator_;
 		VulkanSwapchain swapchain_;
+		VulkanDebugLabels debug_labels_;
 	};
 }

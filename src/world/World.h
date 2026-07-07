@@ -12,15 +12,32 @@
 
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <memory>
 #include <memory_resource>
 #include <optional>
+#include <span>
 #include <vector>
+
+namespace ve::rendering
+{
+	class RenderBackend;
+	class RenderMesh;
+}
 
 namespace ve::world
 {
 	using ChunkAllocator = std::pmr::polymorphic_allocator<Chunk>;
 	using ChunkList = std::vector<Chunk, ChunkAllocator>;
 
+	struct DirtyChunkMetadata
+	{
+		int chunk_x = 0;
+		int chunk_z = 0;
+		std::uint64_t mesh_revision = 0;
+		bool has_authored_edits = false;
+	};
+
+	// Owns storage, generation handoff, meshing handoff, and world events; roadmap tracks the headless split.
 	class World
 	{
 	public:
@@ -35,8 +52,12 @@ namespace ve::world
 		World(World&&) = delete;
 		World& operator=(World&&) = delete;
 
+		/** @param renderBackend Backend used to create mesh resources for chunks spawned after this call. */
+		void SetRenderBackend(const ve::rendering::RenderBackend* renderBackend) noexcept;
+
 		/** @param worldSize Number of chunks along each world side. */
 		void SpawnFlatGrid(int worldSize);
+		// Streaming storage exists; non-square world bounds are tracked in the architecture roadmap.
 
 		/** @param settings Spawn settings containing the world size in chunks. */
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
@@ -50,14 +71,17 @@ namespace ve::world
 		/** @param request Camera and render data used to submit visible chunks. */
 		void Draw(const WorldRenderRequest& request);
 
+		/** @param request Camera and render data used to collect visible chunk meshes. @return Visible render items. */
+		ChunkRenderItemList ExtractVisibleChunks(const WorldRenderRequest& request) const;
+
 		/// Reads a block from world coordinates.
-		ve::blocks::BlockId GetBlock(int globalX, int globalY, int globalZ) const;
+		ve::blocks::BlockId GetBlock(int globalBlockX, int globalBlockY, int globalBlockZ) const;
 
 		/// Reads a block from world coordinates.
 		ve::blocks::BlockId GetBlock(const glm::ivec3& position) const;
 
 		/// Writes a block in world coordinates and marks affected chunks dirty.
-		bool SetBlock(int globalX, int globalY, int globalZ, ve::blocks::BlockId blockId);
+		bool SetBlock(int globalBlockX, int globalBlockY, int globalBlockZ, ve::blocks::BlockId blockId);
 
 		/// Writes a block in world coordinates and marks affected chunks dirty.
 		bool SetBlock(const glm::ivec3& position, ve::blocks::BlockId blockId);
@@ -68,8 +92,20 @@ namespace ve::world
 		/** @return Monotonic counter bumped whenever block storage changes. */
 		[[nodiscard]] std::uint64_t Revision() const noexcept;
 
+		/** @return Monotonic counter bumped whenever chunk storage is replaced. */
+		[[nodiscard]] std::uint64_t ChunkStorageRevision() const noexcept;
+
+		/** @return Loaded chunks in storage order. */
+		[[nodiscard]] std::span<const Chunk> Chunks() const noexcept;
+
+		/** @return Changed chunk metadata tracked separately from chunk storage for persistence/streaming. */
+		[[nodiscard]] std::span<const DirtyChunkMetadata> DirtyChunks() const noexcept;
+
 		/** @return Events emitted since the previous drain. */
 		std::vector<WorldEvent> DrainEvents();
+
+		/** @param filter Event type filter. @return Matching events while leaving non-matching events queued. */
+		std::vector<WorldEvent> DrainEvents(const WorldEventFilter& filter);
 
 		/** @return Number of events waiting for consumers. */
 		std::size_t PendingEventCount() const noexcept;
@@ -83,10 +119,16 @@ namespace ve::world
 		/** @param meshPipeline Async mesh pipeline receiving visible chunk work. */
 		void UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline);
 
-		/** @param blockRegistry Block metadata. @param meshPipeline Async mesh pipeline. @param cameraPosition Camera world position. @param renderDistanceChunks Chunk radius. */
-		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int renderDistanceChunks);
+		/** @param blockRegistry Block metadata. @param meshPipeline Async mesh pipeline. @param cameraPosition Camera world position. @param render_distance_chunks Chunk radius. */
+		void ScheduleVisibleChunkMeshes(const ve::blocks::BlockRegistry& blockRegistry, ve::world::mesh::ChunkMeshPipeline& meshPipeline, const glm::vec3& cameraPosition, int render_distance_chunks);
 
 	private:
+		/** @param createInfo World creation policy. @return Arena size to reserve for level lifetime storage. */
+		static std::size_t EstimateLevelArenaBytes(const WorldCreateInfo& createInfo);
+
+		/// Clears chunk storage and stale events before spawning a replacement world.
+		void ResetChunkStorageForRespawn(int worldSizeChunks);
+
 		/// Returns the chunk that contains a chunk-grid coordinate.
 		Chunk* FindChunk(int chunkX, int chunkZ);
 
@@ -96,8 +138,11 @@ namespace ve::world
 		/// Marks neighbor chunks dirty when a changed local block touches a border.
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
 
-		/// Draws one chunk when it passes camera-direction culling.
-		void DrawVisibleChunk(const WorldRenderRequest& request, int chunkX, int chunkZ);
+		/// Marks a chunk dirty and mirrors its metadata into the world-owned dirty list.
+		void MarkChunkDirty(Chunk& chunk);
+
+		/// Mirrors dirty metadata for a chunk that has already been marked dirty.
+		void RecordDirtyChunk(const Chunk& chunk);
 
 		/// Collects neighboring chunks used to hide shared border faces.
 		ve::world::mesh::NeighborChunks FindNeighborChunks(int chunkX, int chunkZ) const;
@@ -108,13 +153,20 @@ namespace ve::world
 		/// Records a block changed event.
 		void RecordBlockChanged(const glm::ivec3& position, ve::blocks::BlockId previousBlockId, ve::blocks::BlockId newBlockId);
 
+		/** @return Backend-owned mesh resource for one chunk, or null when the active backend is headless for chunk meshes. */
+		std::unique_ptr<ve::rendering::RenderMesh> CreateChunkRenderMeshResource() const;
+
 		/// Marks a generated chunk and its direct neighbors dirty.
 		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
 		LevelSpawn _levelSpawn;
 		ChunkList _chunks;
+		std::vector<DirtyChunkMetadata> dirty_chunks_;
 		std::vector<WorldEvent> _pendingEvents;
+		const ve::rendering::RenderBackend* active_render_backend_;
 		int _worldSize;
 		std::uint64_t _revision;
+		std::uint64_t _chunkStorageRevision;
+		ChunkStoragePolicy chunk_storage_policy_;
 	};
 }

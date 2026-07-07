@@ -26,9 +26,9 @@ namespace ve::rendering
 	void ApplyProjection(const glm::mat4& projection);
 
 	/**
-	 * Loads the view matrix used by the 3D scene.
+	 * Loads the world-to-view matrix used by the 3D scene.
 	 *
-	 * @param view Camera view matrix to load into OpenGL.
+	 * @param view Camera world-to-view matrix to load into OpenGL.
 	 */
 	void ApplyView(const glm::mat4& view);
 

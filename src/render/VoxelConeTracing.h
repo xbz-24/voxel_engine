@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct VoxelConeTracingSettings
 	{
+		// Compatibility pass: OpenGL owns the radiance volume until backend lighting resources land.
 		int resolution = 128;
 		float world_extent = 256.0f;
 	};

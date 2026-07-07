@@ -10,19 +10,41 @@ namespace ve::physics
 	class PhysicsBvh
 	{
 	public:
+		struct NodeDebugInfo
+		{
+			Aabb bounds{};
+			int parent = -1;
+			int depth = 0;
+			int left_child = -1;
+			int right_child = -1;
+			unsigned int proxy_id = 0;
+			bool is_leaf = false;
+		};
+
 		/** @param proxies Physics objects copied into the acceleration structure. */
 		void Build(std::span<const PhysicsProxy> proxies);
 
 		/** @param bounds Query box. @param output_ids Receives overlapping proxy ids. */
 		void QueryOverlaps(const Aabb& bounds, ve::core::DynamicArray<unsigned int>& output_ids) const;
 
+		/** @param proxy_id Proxy id to update. @param bounds New bounds. @return True when the proxy existed. */
+		bool UpdateProxyBounds(unsigned int proxy_id, const Aabb& bounds);
+
 		/** @return True when no nodes were built. */
 		[[nodiscard]] bool IsEmpty() const noexcept;
+
+		/** @return Number of nodes built for debug visualization and metrics. */
+		[[nodiscard]] ve::core::Index NodeCount() const noexcept;
+
+		/** @param node_index Node to inspect. @return Read-only debug metadata. */
+		[[nodiscard]] NodeDebugInfo DebugNode(ve::core::Index node_index) const;
 
 	private:
 		struct BvhNode
 		{
 			Aabb bounds{};
+			int parent = -1;
+			int depth = 0;
 			int left_child = -1;
 			int right_child = -1;
 			ve::core::Index proxy_index = 0;
@@ -30,10 +52,16 @@ namespace ve::physics
 		};
 
 		/** @param begin First proxy. @param end One-past-last proxy. @return Node index. */
-		int BuildNode(ve::core::Index begin, ve::core::Index end);
+		int BuildNode(ve::core::Index begin, ve::core::Index end, int parent, int depth);
 
 		/** @param node_index Node to query. @param bounds Query box. @param output_ids Receives ids. */
 		void QueryNode(int node_index, const Aabb& bounds, ve::core::DynamicArray<unsigned int>& output_ids) const;
+
+		/** @param node_index Node whose subtree bounds should be recomputed. */
+		void RefitNodeBounds(int node_index);
+
+		/** @param node_index First ancestor to refit. */
+		void RefitAncestors(int node_index);
 
 		ve::core::DynamicArray<PhysicsProxy> proxies_;
 		ve::core::DynamicArray<BvhNode> nodes_;

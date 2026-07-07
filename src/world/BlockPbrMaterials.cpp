@@ -24,10 +24,14 @@ namespace ve::blocks
 		if (id == AmethystBlock) return ve::rendering::PbrMaterial({ { 0.72f, 0.45f, 1.0f }, 0.0f, 0.18f, 1.0f, 0.08f });
 		if (id == Glass) return BuildMaterial({ 0.85f, 0.95f, 1.0f }, 0.04f);
 		if (id == Snow) return BuildMaterial({ 0.95f, 0.97f, 1.0f }, 0.62f);
-		if (id == OakLeaves || id == BirchLeaves) return BuildMaterial({ 0.32f, 0.58f, 0.22f }, 0.9f);
-		if (id == OakLog || id == BirchLog || id == SpruceLog) return BuildMaterial({ 0.55f, 0.36f, 0.18f }, 0.78f);
+		if (id == OakLeaves || id == BirchLeaves || id == CherryLeaves) return BuildMaterial({ 0.32f, 0.58f, 0.22f }, 0.9f);
+		if (id == OakLog || id == BirchLog || id == SpruceLog || id == CherryLog) return BuildMaterial({ 0.55f, 0.36f, 0.18f }, 0.78f);
 		if (id == Obsidian || id == Blackstone || id == Bedrock) return BuildMaterial({ 0.08f, 0.08f, 0.1f }, 0.48f);
 		if (id == Sand) return BuildMaterial({ 0.86f, 0.78f, 0.48f }, 0.86f);
+		if (id == Sandstone || id == CutSandstone) return BuildMaterial({ 0.78f, 0.66f, 0.42f }, 0.82f);
+		if (id == RedSand || id == RedSandstone || id == Terracotta) return BuildMaterial({ 0.68f, 0.38f, 0.22f }, 0.84f);
+		if (id == Cactus) return BuildMaterial({ 0.24f, 0.46f, 0.18f }, 0.9f);
+		if (id == DeadBush) return BuildMaterial({ 0.45f, 0.29f, 0.12f }, 0.92f);
 		return BuildMaterial({ 0.7f, 0.7f, 0.7f }, 0.82f);
 	}
 }

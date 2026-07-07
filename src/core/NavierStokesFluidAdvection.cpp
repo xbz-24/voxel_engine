@@ -5,14 +5,17 @@ namespace ve::simulation
 	/** Backtraces velocity through the previous velocity field. */
 	void NavierStokesFluidSimulation::AdvectVelocity(float delta_seconds)
 	{
-		for (int y = 0; y < current_.Height(); ++y)
+		for (int cell_y = 0; cell_y < current_.Height(); ++cell_y)
 		{
-			for (int x = 0; x < current_.Width(); ++x)
+			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const glm::vec2 position{ static_cast<float>(x), static_cast<float>(y) };
-				const glm::vec2 velocity = previous_.VelocityAt(x, y);
+				const glm::vec2 position{ static_cast<float>(cell_x), static_cast<float>(cell_y) };
+				const glm::vec2 velocity = previous_.VelocityAt(cell_x, cell_y);
 				const glm::vec2 backtraced_position = position - velocity * delta_seconds;
-				current_.SetVelocity(x, y, previous_.SampleVelocity(backtraced_position) * settings_.velocity_damping);
+				current_.SetVelocity(
+					cell_x,
+					cell_y,
+					previous_.SampleVelocity(backtraced_position) * settings_.velocity_damping);
 			}
 		}
 	}
@@ -20,14 +23,14 @@ namespace ve::simulation
 	/** Backtraces density through the projected velocity field. */
 	void NavierStokesFluidSimulation::AdvectDensity(float delta_seconds)
 	{
-		for (int y = 0; y < current_.Height(); ++y)
+		for (int cell_y = 0; cell_y < current_.Height(); ++cell_y)
 		{
-			for (int x = 0; x < current_.Width(); ++x)
+			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const glm::vec2 position{ static_cast<float>(x), static_cast<float>(y) };
-				const glm::vec2 velocity = current_.VelocityAt(x, y);
+				const glm::vec2 position{ static_cast<float>(cell_x), static_cast<float>(cell_y) };
+				const glm::vec2 velocity = current_.VelocityAt(cell_x, cell_y);
 				const glm::vec2 backtraced_position = position - velocity * delta_seconds;
-				current_.SetDensity(x, y, previous_.SampleDensity(backtraced_position));
+				current_.SetDensity(cell_x, cell_y, previous_.SampleDensity(backtraced_position));
 			}
 		}
 	}

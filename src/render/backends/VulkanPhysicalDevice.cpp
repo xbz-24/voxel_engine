@@ -1,6 +1,8 @@
 #include "VulkanPhysicalDevice.h"
 
 #include "CoreTypes.h"
+#include "VulkanDeviceExtensions.h"
+#include "VulkanSwapchainSupport.h"
 
 namespace ve::rendering
 {
@@ -24,6 +26,19 @@ namespace ve::rendering
 			}
 			return indices;
 		}
+
+		bool DeviceMatchesCriteria(
+			VkPhysicalDevice candidate,
+			const VulkanPhysicalDeviceSelectionCriteria& criteria,
+			VulkanQueueFamilyIndices& queue_families)
+		{
+			if (criteria.surface == VK_NULL_HANDLE) return false;
+			if (!VulkanDeviceSupportsExtensions(candidate, criteria.required_device_extensions)) return false;
+			queue_families = FindQueueFamilies(candidate, criteria.surface);
+			if (!queue_families.IsComplete()) return false;
+			return !criteria.settings.require_swapchain_support ||
+				QuerySwapchainSupport(candidate, criteria.surface).IsComplete();
+		}
 	}
 
 	/** Reports whether all required queue families were found. */
@@ -35,15 +50,24 @@ namespace ve::rendering
 	/** Selects the first GPU that can render and present. */
 	bool VulkanPhysicalDevice::Select(VkInstance instance, VkSurfaceKHR surface)
 	{
+		VulkanPhysicalDeviceSelectionCriteria criteria{};
+		criteria.surface = surface;
+		return Select(instance, criteria);
+	}
+
+	bool VulkanPhysicalDevice::Select(VkInstance instance, const VulkanPhysicalDeviceSelectionCriteria& criteria)
+	{
 		std::uint32_t device_count = 0;
 		vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 		if (device_count == 0) return false;
 		ve::core::DynamicArray<VkPhysicalDevice> devices(device_count);
 		vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
+		device_ = VK_NULL_HANDLE;
+		queue_families_ = {};
 		for (VkPhysicalDevice candidate : devices)
 		{
-			const VulkanQueueFamilyIndices families = FindQueueFamilies(candidate, surface);
-			if (!families.IsComplete()) continue;
+			VulkanQueueFamilyIndices families{};
+			if (!DeviceMatchesCriteria(candidate, criteria, families)) continue;
 			device_ = candidate;
 			queue_families_ = families;
 			return true;

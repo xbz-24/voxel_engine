@@ -1,28 +1,34 @@
 #include "Engine.h"
 
 #include "Plane.h"
+#include "RenderView.h"
 #include "RenderState.h"
 #include "SkyBox.h"
 #include "Window.h"
 #include "World.h"
 
+namespace
+{
+	constexpr float FarWorldClipDistance = 1024.0f;
+}
+
 /// Configures persistent OpenGL state used by the engine renderer.
-void Engine::ConfigureOpenGLState()
+void EngineApplication::ConfigureOpenGLState()
 {
 	ve::rendering::ConfigureWorldDefaults();
 }
 
 /// Renders the visible 3D world and selection highlight.
-void Engine::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
+void EngineApplication::Render3DWorld(ve::engine::RenderView& renderView, const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
 	ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 	ve::rendering::ApplyProjection(_render_cache_state.projection_3d);
-	const glm::mat4 view = camera.GetViewMatrix();
+	const glm::mat4 view = camera.GetWorldToViewMatrix();
 	ve::rendering::ApplyView(view);
 	ve::rendering::UseSolidFillMode();
 	ve::rendering::UseBackFaceCulling();
-	RenderClouds();
-	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, _runtimeSettings.renderDistanceChunks });
+	renderView.RenderCloudLayer();
+	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, _runtimeSettings.renderer.render_distance_chunks });
 	renderDebugCoordinateSystemAxes();
 	if (selection.has_target)
 	{
@@ -31,7 +37,7 @@ void Engine::Render3DWorld(const ve::engine::Window&, Camera& camera, SkyBox&, P
 }
 
 /// Rebuilds 3D and 2D projection matrices after window size changes.
-void Engine::UpdateProjections(int width, int height)
+void EngineApplication::UpdateProjections(int width, int height)
 {
 	if (height == 0)
 	{
@@ -39,6 +45,6 @@ void Engine::UpdateProjections(int width, int height)
 	}
 
 	const float aspect = static_cast<float>(width) / static_cast<float>(height);
-	_render_cache_state.projection_3d = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, 100.0f);
+	_render_cache_state.projection_3d = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, FarWorldClipDistance);
 	ve::rendering::SetViewport(width, height);
 }

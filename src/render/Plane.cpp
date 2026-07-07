@@ -8,7 +8,7 @@ Plane::Plane(const std::string& path)
 
 void Plane::draw() 
 {
-    glBindTexture(GL_TEXTURE_2D, _texture);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_texture));
 
     glBegin(GL_QUADS);
     glColor3f(1.0f, 1.0f, 1.0f);

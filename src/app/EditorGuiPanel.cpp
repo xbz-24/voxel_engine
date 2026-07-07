@@ -1,6 +1,7 @@
 #include "EditorGui.h"
 
 #include "CoreTypes.h"
+#include "RenderDistanceSettings.h"
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -22,10 +23,8 @@ namespace
 	
 	void DrawDemoSelector(ve::editor::EditorDemoState& state)
 	{
-		static constexpr ve::core::StaticArray<ve::editor::DemoGame, 3> demos{ {
-			ve::editor::DemoGame::MinecraftSandbox,
-			ve::editor::DemoGame::VoxelApiShowcase,
-			ve::editor::DemoGame::EmptyPrototype
+		static constexpr ve::core::StaticArray<ve::editor::DemoGame, 1> demos{ {
+			ve::editor::DemoGame::HyperrealDesert
 		} };
 		const char* current_name = ve::editor::DemoGameName(state.selected_demo);
 		if (!ImGui::BeginCombo("Demo", current_name)) return;
@@ -59,7 +58,9 @@ namespace ve::editor
 		ImGui::Begin("Engine API Demo");
 		DrawDemoSelector(state);
 		ImGui::SliderInt("World size", &state.requested_world_size_chunks, 2, 24);
-		ImGui::SliderInt("Render distance", &state.render_distance_chunks, 1, 10);
+		ImGui::SliderInt("Render distance", &state.render_distance_chunks,
+			ve::gameplay::MinimumRenderDistanceChunks,
+			ve::gameplay::MaximumRenderDistanceChunks);
 		ImGui::Checkbox("VSync", &state.is_vsync_enabled);
 		ImGui::Checkbox("ImGui demo", &state.show_imgui_demo_window);
 		if (ImGui::Button("Rebuild demo")) state.request_demo_rebuild = true;

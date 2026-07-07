@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CameraPose.h"
+
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
@@ -10,6 +12,13 @@ public:
 	 * Creates a camera at the default player spawn position.
 	 */
 	Camera();
+
+	/**
+	 * Creates a camera from an explicit math-only pose.
+	 *
+	 * @param pose Camera position and yaw/pitch orientation.
+	 */
+	explicit Camera(ve::rendering::CameraPose pose) noexcept;
 
 	~Camera();
 
@@ -42,11 +51,11 @@ public:
 	glm::vec3 GetUp() const;
 
 	/**
-	 * Builds the view matrix used by OpenGL.
+	 * Builds the world-to-view transform used by render backends.
 	 *
-	 * @return Camera view matrix.
+	 * @return Matrix that transforms world coordinates into camera view space.
 	 */
-	glm::mat4 GetViewMatrix() const;
+	glm::mat4 GetWorldToViewMatrix() const;
 
 	/**
 	 * Builds the camera rotation matrix.
@@ -102,7 +111,5 @@ public:
 	void NormalizePitch();
 
 private:
-	glm::vec3 _position;
-	float _yaw;
-	float _pitch;
+	ve::rendering::CameraPose pose_;
 };

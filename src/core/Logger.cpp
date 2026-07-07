@@ -2,6 +2,8 @@
 
 #include "LoggerService.h"
 
+#include <utility>
+
 namespace ve::log
 {
 	void SetMinimumLevel(Level level) { LoggerService::Instance().SetMinimumLevel(level); }
@@ -14,6 +16,8 @@ namespace ve::log
 
 	bool SetFileOutput(const std::filesystem::path& path) { return LoggerService::Instance().SetFileOutput(path); }
 
+	void SetCallback(std::function<void(std::string)> callback) { LoggerService::Instance().SetCallback(std::move(callback)); }
+
 	void ClearFileOutput() { LoggerService::Instance().ClearFileOutput(); }
 
 	void Write(Level level, std::string_view message, SourceLocation source)
@@ -24,6 +28,21 @@ namespace ve::log
 	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
 	{
 		LoggerService::Instance().Write(level, category, message, source);
+	}
+
+	void Write(Level level, std::string_view message, std::span<const Field> fields, SourceLocation source)
+	{
+		LoggerService::Instance().Write(level, category::General, message, fields, source);
+	}
+
+	void Write(
+		Level level,
+		std::string_view category,
+		std::string_view message,
+		std::span<const Field> fields,
+		SourceLocation source)
+	{
+		LoggerService::Instance().Write(level, category, message, fields, source);
 	}
 
 	void Trace(std::string_view message, SourceLocation source) { Write(Level::Trace, message, source); }

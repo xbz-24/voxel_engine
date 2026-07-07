@@ -46,5 +46,7 @@ namespace ve::network
 		NetworkMessageType messageType;
 		/// Serialized message body bytes.
 		ByteBuffer payloadBytes;
+		/// Sender sequence number from the packet header.
+		std::uint32_t sequenceNumber = 0;
 	};
 }

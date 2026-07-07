@@ -1,25 +1,38 @@
 #include "World.h"
 
+#include <array>
+#include <utility>
+
 namespace ve::world
 {
+	namespace
+	{
+		constexpr std::array kGeneratedChunkMeshDependencyOffsets{
+			std::pair{ 0, 0 },
+			std::pair{ -1, 0 },
+			std::pair{ 1, 0 },
+			std::pair{ 0, -1 },
+			std::pair{ 0, 1 }
+		};
+	}
+
 	/// Applies generated terrain data to a loaded chunk.
 	bool World::ApplyGeneratedChunk(const generation::ChunkGenerationResult& result)
 	{
-		Chunk* chunk = FindChunk(result.chunk_x, result.chunk_z);
+		Chunk* chunk = FindChunk(result.chunkCoordinateX, result.chunkCoordinateZ);
 		if (!chunk || !chunk->ReplaceBlocks(result.blocks)) return false;
 		++_revision;
-		MarkGeneratedChunkNeighborhoodDirty(result.chunk_x, result.chunk_z);
-		RecordChunkGenerated(result.chunk_x, result.chunk_z);
+		MarkGeneratedChunkNeighborhoodDirty(result.chunkCoordinateX, result.chunkCoordinateZ);
+		RecordChunkGenerated(result.chunkCoordinateX, result.chunkCoordinateZ);
 		return true;
 	}
 
 	/// Marks a generated chunk and its direct neighbors dirty.
 	void World::MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ)
 	{
-		if (Chunk* chunk = FindChunk(chunkX, chunkZ)) chunk->MarkDirty();
-		if (Chunk* west = FindChunk(chunkX - 1, chunkZ)) west->MarkDirty();
-		if (Chunk* east = FindChunk(chunkX + 1, chunkZ)) east->MarkDirty();
-		if (Chunk* north = FindChunk(chunkX, chunkZ - 1)) north->MarkDirty();
-		if (Chunk* south = FindChunk(chunkX, chunkZ + 1)) south->MarkDirty();
+		for (const auto [offsetX, offsetZ] : kGeneratedChunkMeshDependencyOffsets)
+		{
+			if (Chunk* chunk = FindChunk(chunkX + offsetX, chunkZ + offsetZ)) MarkChunkDirty(*chunk);
+		}
 	}
 }

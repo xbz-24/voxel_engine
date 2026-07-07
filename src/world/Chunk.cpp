@@ -3,26 +3,43 @@
 #include "ChunkTerrain.h"
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 
 using ve::blocks::BlockId;
-Chunk::Chunk(int chunkX, int chunkZ, ChunkGenerationMode generationMode)
-	: _chunkX(chunkX), _chunkZ(chunkZ), _isMeshBuilt(false), _isGenerated(false), _isMeshBuildQueued(false)
+Chunk::Chunk(
+	int chunk_coordinate_x,
+	int chunk_coordinate_z,
+	ChunkGenerationMode generation_mode,
+	const ve::world::TerrainGenerationSettings& terrain_generation,
+	std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource)
+	: mesh_(std::move(render_mesh_resource)),
+	  chunk_x_(chunk_coordinate_x),
+	  chunk_z_(chunk_coordinate_z),
+	  mesh_revision_(0),
+	  is_mesh_built_(false),
+	  is_generated_(false),
+	  is_mesh_build_queued_(false),
+	  has_procedural_terrain_(false),
+	  has_authored_edits_(false)
 {
-	if (generationMode == ChunkGenerationMode::GenerateNow) Generate();
-	else std::fill(&blocks[0][0][0], &blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
+	if (generation_mode == ChunkGenerationMode::GenerateNow) Generate(terrain_generation);
+	else std::fill(&blocks_[0][0][0], &blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
 }
 Chunk::~Chunk() = default;
 Chunk::Chunk(Chunk&& other) noexcept
-	: _mesh(std::move(other._mesh)),
-	  _chunkX(other._chunkX),
-	  _chunkZ(other._chunkZ),
-	  _isMeshBuilt(other._isMeshBuilt),
-	  _isGenerated(other._isGenerated),
-	  _isMeshBuildQueued(other._isMeshBuildQueued)
+	: mesh_(std::move(other.mesh_)),
+	  chunk_x_(other.chunk_x_),
+	  chunk_z_(other.chunk_z_),
+	  mesh_revision_(other.mesh_revision_),
+	  is_mesh_built_(other.is_mesh_built_),
+	  is_generated_(other.is_generated_),
+	  is_mesh_build_queued_(other.is_mesh_build_queued_),
+	  has_procedural_terrain_(other.has_procedural_terrain_),
+	  has_authored_edits_(other.has_authored_edits_)
 {
-	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
-	other._isMeshBuilt = false;
+	std::copy(&other.blocks_[0][0][0], &other.blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks_[0][0][0]);
+	other.is_mesh_built_ = false;
 }
 Chunk& Chunk::operator=(Chunk&& other) noexcept
 {
@@ -31,49 +48,61 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 		return *this;
 	}
 
-	_mesh = std::move(other._mesh);
-	_chunkX = other._chunkX;
-	_chunkZ = other._chunkZ;
-	_isMeshBuilt = other._isMeshBuilt;
-	_isGenerated = other._isGenerated;
-	_isMeshBuildQueued = other._isMeshBuildQueued;
-	std::copy(&other.blocks[0][0][0], &other.blocks[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks[0][0][0]);
-	other._isMeshBuilt = false;
+	mesh_ = std::move(other.mesh_);
+	chunk_x_ = other.chunk_x_;
+	chunk_z_ = other.chunk_z_;
+	mesh_revision_ = other.mesh_revision_;
+	is_mesh_built_ = other.is_mesh_built_;
+	is_generated_ = other.is_generated_;
+	is_mesh_build_queued_ = other.is_mesh_build_queued_;
+	has_procedural_terrain_ = other.has_procedural_terrain_;
+	has_authored_edits_ = other.has_authored_edits_;
+	std::copy(&other.blocks_[0][0][0], &other.blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), &blocks_[0][0][0]);
+	other.is_mesh_built_ = false;
 	return *this;
 }
 int Chunk::GetChunkX() const noexcept
 {
-	return _chunkX;
+	return chunk_x_;
 }
 int Chunk::GetChunkZ() const noexcept
 {
-	return _chunkZ;
+	return chunk_z_;
 }
-BlockId Chunk::GetBlock(int x, int y, int z) const
+BlockId Chunk::GetBlock(int local_block_x, int local_block_y, int local_block_z) const
 {
-	if (!ContainsLocalBlock(x, y, z))
+	if (!ContainsLocalBlock(local_block_x, local_block_y, local_block_z))
 	{
 		return BlockId::Air;
 	}
-	return blocks[x][y][z];
+	return blocks_[local_block_x][local_block_y][local_block_z];
 }
-bool Chunk::SetBlock(int x, int y, int z, BlockId blockId)
+bool Chunk::SetBlock(int local_block_x, int local_block_y, int local_block_z, BlockId block_id)
 {
-	if (!ContainsLocalBlock(x, y, z) || blocks[x][y][z] == blockId)
+	if (!ContainsLocalBlock(local_block_x, local_block_y, local_block_z) ||
+		blocks_[local_block_x][local_block_y][local_block_z] == block_id)
 	{
 		return false;
 	}
 
-	blocks[x][y][z] = blockId;
+	blocks_[local_block_x][local_block_y][local_block_z] = block_id;
+	has_authored_edits_ = true;
 	MarkDirty();
 	return true;
 }
 void Chunk::MarkDirty()
 {
-	_isMeshBuilt = false;
-	_isMeshBuildQueued = false;
+	++mesh_revision_;
+	is_mesh_built_ = false;
+	is_mesh_build_queued_ = false;
 }
-bool Chunk::ContainsLocalBlock(int x, int y, int z) const
+std::uint64_t Chunk::MeshRevision() const noexcept
 {
-	return x >= 0 && x < CHUNK_WIDTH && y >= 0 && y < CHUNK_HEIGHT && z >= 0 && z < CHUNK_DEPTH;
+	return mesh_revision_;
+}
+bool Chunk::ContainsLocalBlock(int local_block_x, int local_block_y, int local_block_z) const
+{
+	return local_block_x >= 0 && local_block_x < CHUNK_WIDTH &&
+		local_block_y >= 0 && local_block_y < CHUNK_HEIGHT &&
+		local_block_z >= 0 && local_block_z < CHUNK_DEPTH;
 }

@@ -8,11 +8,11 @@ namespace ve::world::mesh
 {
 	struct FaceVertexOffset
 	{
-		float x;
-		float y;
-		float z;
-		float u;
-		float v;
+		float local_position_x;
+		float local_position_y;
+		float local_position_z;
+		float texture_u;
+		float texture_v;
 	};
 
 	using FaceOffsets = std::array<FaceVertexOffset, 4>;

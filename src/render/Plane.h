@@ -1,12 +1,13 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "GraphicsTypes.h"
+
 #include <string>
 
 class Plane
 {
 private: 
-	GLuint _texture;
+	ve::rendering::TextureHandle _texture;
 public:
 	/**
 	 * Loads the texture used by the plane.

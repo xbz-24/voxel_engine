@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Block.h"
+#include "VulkanDemoFrameTypes.h"
+#include "VulkanSoftwareVoxelRasterizerData.h"
 
 #include <volk.h>
 
-#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <cstdint>
@@ -25,91 +25,11 @@ namespace ve::world
 
 namespace ve::rendering
 {
-	struct VulkanFrameTiming
-	{
-		double snapshot_cpu_ms = 0.0;
-		double raster_cpu_ms = 0.0;
-		double upscale_cpu_ms = 0.0;
-		double upload_cpu_ms = 0.0;
-		double present_cpu_ms = 0.0;
-		double gpu_copy_ms = 0.0;
-		bool has_gpu_copy_timing = false;
-		std::uint32_t worker_count = 1;
-		std::uint32_t sample_step = 1;
-		VkExtent2D render_extent{};
-	};
-
-	struct VulkanDemoSettings
-	{
-		std::uint32_t max_internal_width = 1600;
-		std::uint32_t max_internal_height = 900;
-		std::uint32_t pixel_block_size = 1;
-		float max_ray_distance = 96.0f;
-		float fog_strength = 0.38f;
-		float outline_strength = 0.08f;
-		bool adaptive_quality = true;
-		bool show_tuning_panel = false;
-		bool show_debug_overlay = true;
-	};
-
-	struct VulkanDemoInput
-	{
-		double mouse_x = 0.0;
-		double mouse_y = 0.0;
-		bool mouse_left_down = false;
-		bool mouse_left_pressed = false;
-		bool toggle_debug_overlay = false;
-		bool toggle_tuning_panel = false;
-	};
-
-	struct VulkanSoftwareVoxelRasterizerFrame
-	{
-		VulkanSoftwareVoxelRasterizerFrame(const ve::world::World& frameWorld,
-			const Camera& frameCamera,
-			VkExtent2D frameExtent,
-			VkFormat frameFormat,
-			int frameDisplayedFps,
-			double frameDeltaSeconds,
-			VulkanFrameTiming frameTiming,
-			const VulkanDemoInput& frameInput,
-			VulkanDemoSettings& frameSettings) noexcept
-			: world(frameWorld),
-			  camera(frameCamera),
-			  extent(frameExtent),
-			  format(frameFormat),
-			  displayed_fps(frameDisplayedFps),
-			  delta_seconds(frameDeltaSeconds),
-			  previous_timing(frameTiming),
-			  input(frameInput),
-			  settings(frameSettings)
-		{
-		}
-
-		const ve::world::World& world;
-		const Camera& camera;
-		VkExtent2D extent{};
-		VkFormat format = VK_FORMAT_UNDEFINED;
-		int displayed_fps = 0;
-		double delta_seconds = 0.0;
-		VulkanFrameTiming previous_timing{};
-		const VulkanDemoInput& input;
-		VulkanDemoSettings& settings;
-	};
-
 	/** Temporary Vulkan render strategy that rasterizes voxel visibility on the CPU. */
 	class VulkanSoftwareVoxelRasterizer
 	{
 	public:
-		struct FrameWorldSnapshot
-		{
-			std::vector<ve::blocks::BlockId> blocks;
-			int width = 0;
-			int height = 0;
-			int depth = 0;
-			std::uint64_t world_revision = 0;
-
-			[[nodiscard]] ve::blocks::BlockId GetBlock(const glm::ivec3& position) const noexcept;
-		};
+		using FrameWorldSnapshot = VulkanRasterFrameWorldSnapshot;
 
 		~VulkanSoftwareVoxelRasterizer();
 
@@ -125,45 +45,11 @@ namespace ve::rendering
 		[[nodiscard]] const VulkanFrameTiming& LastTiming() const noexcept;
 
 	private:
-		struct CachedSampleRay
-		{
-			std::uint32_t x = 0;
-			std::uint32_t y = 0;
-			std::uint32_t x_end = 0;
-			std::uint32_t y_end = 0;
-			glm::vec3 direction{ 0.0f, 0.0f, -1.0f };
-		};
-
-		struct CpuTexture
-		{
-			std::vector<std::uint32_t> pixels;
-			std::uint32_t width = 1;
-			std::uint32_t height = 1;
-
-			[[nodiscard]] std::uint32_t Sample(float u, float v) const noexcept;
-		};
-
-		struct TextureLibrary
-		{
-			std::vector<CpuTexture> textures;
-			std::array<std::uint16_t, static_cast<std::size_t>(ve::blocks::BlockId::Count) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)> face_texture_indices{};
-			bool loaded = false;
-		};
-
-		struct RasterWork
-		{
-			const FrameWorldSnapshot* world = nullptr;
-			glm::vec3 origin{ 0.0f };
-			VkFormat format = VK_FORMAT_UNDEFINED;
-			float max_ray_distance = 128.0f;
-			float fog_strength = 0.45f;
-		};
-
-		struct UpscaleRange
-		{
-			std::uint32_t begin = 0;
-			std::uint32_t end = 0;
-		};
+		using CachedSampleRay = VulkanRasterCachedSampleRay;
+		using CpuTexture = VulkanRasterCpuTexture;
+		using TextureLibrary = VulkanRasterTextureLibrary;
+		using RasterWork = VulkanRasterWork;
+		using UpscaleRange = VulkanRasterUpscaleRange;
 
 		void CaptureWorldSnapshot(const ve::world::World& world);
 		[[nodiscard]] const CpuTexture& TextureFor(ve::blocks::BlockId block, ve::blocks::BlockFace face) const noexcept;
@@ -179,16 +65,26 @@ namespace ve::rendering
 		void DrawCrosshair(VkFormat format);
 		void DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawTuningPanel(const VulkanSoftwareVoxelRasterizerFrame& frame);
-		void DrawText(const char* text, std::uint32_t x, std::uint32_t y, std::uint32_t scale, std::uint32_t color);
-		void DrawFilledRect(std::uint32_t x, std::uint32_t y, std::uint32_t width, std::uint32_t height, std::uint32_t color);
+		void DrawText(
+			const char* text,
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t scale,
+			std::uint32_t color);
+		void DrawFilledRect(
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t width,
+			std::uint32_t height,
+			std::uint32_t color);
 		bool Slider(const VulkanSoftwareVoxelRasterizerFrame& frame,
 			const char* label,
 			float& value,
 			float min_value,
 			float max_value,
-			std::uint32_t x,
-			std::uint32_t y,
-			std::uint32_t width);
+			std::uint32_t origin_x,
+			std::uint32_t origin_y,
+			std::uint32_t control_width);
 
 		VkExtent2D extent_{};
 		VkExtent2D render_extent_{};

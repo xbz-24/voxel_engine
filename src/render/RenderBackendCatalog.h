@@ -13,6 +13,7 @@ namespace ve::rendering
 		const char* name = "Vulkan";
 		bool is_default = false;
 		bool is_implemented = false;
+		RenderBackendMigrationStatus migration{};
 	};
 
 	/** Exposes the graphics APIs known by the engine. */

@@ -1,12 +1,18 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "GraphicsTypes.h"
+
 #include <string>
 
 class SkyBox
 {
 private:
-	GLuint _front, _back, _top, _bottom, _left, _right;
+	ve::rendering::TextureHandle _front;
+	ve::rendering::TextureHandle _back;
+	ve::rendering::TextureHandle _top;
+	ve::rendering::TextureHandle _bottom;
+	ve::rendering::TextureHandle _left;
+	ve::rendering::TextureHandle _right;
 public:
 	/**
 	 * Loads the skybox textures.

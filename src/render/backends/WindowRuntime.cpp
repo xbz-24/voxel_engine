@@ -1,5 +1,8 @@
 #include "Window.h"
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <cstdint>
 
 void ve::engine::Window::SetVSync(bool isEnabled)
@@ -17,6 +20,13 @@ void ve::engine::Window::Update()
 {
 	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapBuffers(_window);
 	glfwPollEvents();
+}
+
+std::vector<ve::engine::WindowEvent> ve::engine::Window::DrainEvents()
+{
+	std::vector<WindowEvent> events;
+	events.swap(_eventQueue);
+	return events;
 }
 
 bool ve::engine::Window::ShouldClose() const
@@ -41,7 +51,32 @@ int ve::engine::Window::GetHeight() const
 
 float ve::engine::Window::GetAspectRatio() const
 {
-	return static_cast<float>(_width) / static_cast<float>(_height);
+	return static_cast<float>(_width) / static_cast<float>(GetHeight());
+}
+
+ve::engine::Window::WindowSize ve::engine::Window::ClientWindowSize() const noexcept
+{
+	WindowSize size{};
+	if (_window != nullptr)
+	{
+		glfwGetWindowSize(_window, &size.width, &size.height);
+	}
+	return size;
+}
+
+ve::engine::Window::CursorPosition ve::engine::Window::CurrentCursorPosition() const noexcept
+{
+	CursorPosition position{};
+	if (_window != nullptr)
+	{
+		glfwGetCursorPos(_window, &position.x, &position.y);
+	}
+	return position;
+}
+
+ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept
+{
+	return NativeWindowHandle{ _window };
 }
 
 GLFWwindow* ve::engine::Window::GetNativeWindow() const
@@ -73,12 +108,21 @@ void* ve::engine::Window::GetCallbackUserData(GLFWwindow* window)
 	return context ? context->userData : nullptr;
 }
 
+void ve::engine::Window::RecordFramebufferResize(int width, int height)
+{
+	_width = width;
+	_height = height;
+	_eventQueue.push_back(WindowEvent{
+		.kind = WindowEvent::Kind::FramebufferResized,
+		.framebuffer_resized = WindowFramebufferResizeEvent{ width, height }
+	});
+}
+
 void ve::engine::Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
 {
 	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
 	if (context && context->window)
 	{
-		context->window->_width = width;
-		context->window->_height = height;
+		context->window->RecordFramebufferResize(width, height);
 	}
 }

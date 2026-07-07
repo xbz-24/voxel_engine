@@ -5,58 +5,76 @@ namespace ve::world::generation
 	namespace
 	{
 		/// Copies generated chunk storage into a flat result buffer.
-		void CopyStorage(const terrain::BlockStorage& storage, ChunkGenerationResult& result)
+		void CopyGeneratedStorage(
+			const terrain::BlockStorage& generatedBlockStorage,
+			ChunkGenerationResult& generationResult)
 		{
-			ve::core::Index write_index = 0;
-			for (int x = 0; x < terrain::ChunkWidth; x++)
-				for (int y = 0; y < terrain::ChunkHeight; y++)
-					for (int z = 0; z < terrain::ChunkDepth; z++)
-						result.blocks[write_index++] = storage[x][y][z];
+			ve::core::Index destinationBlockIndex = 0;
+			for (int localBlockCoordinateX = 0; localBlockCoordinateX < terrain::ChunkWidth; localBlockCoordinateX++)
+				for (int localBlockCoordinateY = 0; localBlockCoordinateY < terrain::ChunkHeight; localBlockCoordinateY++)
+					for (int localBlockCoordinateZ = 0; localBlockCoordinateZ < terrain::ChunkDepth; localBlockCoordinateZ++)
+						generationResult.blocks[destinationBlockIndex++] =
+							generatedBlockStorage[localBlockCoordinateX][localBlockCoordinateY][localBlockCoordinateZ];
 		}
 
 		/// Generates one chunk result completely on a worker thread.
 		ChunkGenerationResult GenerateChunk(ChunkGenerationRequest request)
 		{
-			terrain::BlockStorage storage{};
-			terrain::GenerateChunkTerrain(request.chunk_x, request.chunk_z, storage);
-			ChunkGenerationResult result{ request.chunk_x, request.chunk_z, {} };
-			CopyStorage(storage, result);
-			return result;
+			terrain::BlockStorage generatedBlockStorage{};
+			terrain::GenerateChunkTerrain(
+				request.chunkCoordinateX,
+				request.chunkCoordinateZ,
+				request.terrainGeneration,
+				generatedBlockStorage);
+			ChunkGenerationResult generationResult{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
+			CopyGeneratedStorage(generatedBlockStorage, generationResult);
+			return generationResult;
 		}
 	}
 
 	/// Starts the async terrain generator.
-	AsyncWorldGenerator::AsyncWorldGenerator(ve::core::Index worker_count)
-		: background_tasks_(worker_count)
+	AsyncWorldGenerator::AsyncWorldGenerator(ve::core::Index workerCount)
+		: backgroundTaskQueue_(workerCount)
 	{
 	}
 
 	/// Queues one chunk coordinate for background generation.
 	bool AsyncWorldGenerator::RequestChunk(ChunkGenerationRequest request)
 	{
-		return background_tasks_.Enqueue([this, request]()
+		outstandingRequestCount_.fetch_add(1, std::memory_order_relaxed);
+		if (!backgroundTaskQueue_.Enqueue([this, request]()
 		{
-			completed_chunks_.Push(GenerateChunk(request));
-		});
+			completedChunks_.Push(GenerateChunk(request));
+		}))
+		{
+			outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
+			return false;
+		}
+		return true;
 	}
 
 	/// Queues every chunk in a square world for background generation.
 	void AsyncWorldGenerator::RequestGrid(const FlatWorldSpawnSettings& settings)
 	{
-		for (int x = 0; x < settings.worldSizeChunks; x++)
-			for (int z = 0; z < settings.worldSizeChunks; z++)
-				RequestChunk(ChunkGenerationRequest{ x, z });
+		for (int chunkX = 0; chunkX < settings.worldSizeChunks; chunkX++)
+			for (int chunkZ = 0; chunkZ < settings.worldSizeChunks; chunkZ++)
+				RequestChunk(ChunkGenerationRequest{ chunkX, chunkZ, settings.terrainGeneration });
 	}
 
 	/// Drains completed generated chunks without blocking the game thread.
 	ve::core::DynamicArray<ChunkGenerationResult> AsyncWorldGenerator::DrainCompletedChunks()
 	{
-		return completed_chunks_.Drain();
+		ve::core::DynamicArray<ChunkGenerationResult> completedGeneratedChunks = completedChunks_.Drain();
+		if (!completedGeneratedChunks.empty())
+		{
+			outstandingRequestCount_.fetch_sub(completedGeneratedChunks.size(), std::memory_order_relaxed);
+		}
+		return completedGeneratedChunks;
 	}
 
-	/// Reports terrain jobs waiting to start.
+	/// Reports terrain requests that still need to be drained on the game thread.
 	ve::core::Index AsyncWorldGenerator::PendingTaskCount() const
 	{
-		return background_tasks_.PendingTaskCount();
+		return outstandingRequestCount_.load(std::memory_order_relaxed);
 	}
 }

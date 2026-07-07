@@ -11,10 +11,12 @@ namespace ve::network
 
 	bool MultiplayerClient::Connect(const NetworkEndpoint& serverEndpoint, const std::string& playerName)
 	{
+		Disconnect();
 		if (!_socketLibrary.IsAvailable()) return false;
 		std::optional<TcpSocket> connectedSocket = TcpSocket::Connect(serverEndpoint);
 		if (!connectedSocket) return false;
 		_connectedSocket = std::make_shared<TcpSocket>(std::move(*connectedSocket));
+		_nextOutboundSequenceNumber = 1;
 		_isConnected = true;
 		const NetworkMessage helloMessage{ NetworkMessageType::ClientHello, SerializeClientHello(playerName) };
 		if (!SendMessage(helloMessage))

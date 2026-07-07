@@ -1,23 +1,28 @@
 #include "GameModel.h"
 
 #include "Logger.h"
-#include "VulkanDemoSceneBuilder.h"
+#include "RenderBackend.h"
 #include "WorkerPolicy.h"
 
 #include <string>
 
 namespace ve::engine
 {
-	GameModel::GameModel(int world_size_chunks, const ve::assets::AssetPaths* asset_paths)
-		: world_(ve::world::CreateInfoForSquareWorld(world_size_chunks)),
+	GameModel::GameModel(int worldSizeChunks,
+		const ve::assets::AssetPaths* assetPaths,
+		ve::blocks::BlockRegistry::TextureLoading textureLoading,
+		const ve::world::TerrainGenerationSettings& terrainGeneration,
+		const ve::rendering::RenderBackend* renderBackend)
+		: world_(ve::world::CreateInfoForSquareWorld(worldSizeChunks)),
 		  world_generator_(ve::tasks::DefaultWorkerCount()),
 		  mesh_pipeline_(ve::tasks::DefaultWorkerCount())
 	{
-		if (asset_paths != nullptr)
+		world_.SetRenderBackend(renderBackend);
+		if (assetPaths != nullptr)
 		{
-			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*asset_paths);
+			block_registry_ = std::make_unique<ve::blocks::BlockRegistry>(*assetPaths, textureLoading);
 		}
-		const ve::world::FlatWorldSpawnSettings settings{ world_size_chunks };
+		const ve::world::FlatWorldSpawnSettings settings{ worldSizeChunks, terrainGeneration };
 		world_.SpawnEmptyGrid(settings);
 		world_generator_.RequestGrid(settings);
 	}
@@ -38,32 +43,40 @@ namespace ve::engine
 
 	const ve::blocks::BlockRegistry* GameModel::GetBlockRegistry() const noexcept { return block_registry_.get(); }
 
-	void GameModel::PumpAsyncWorldGeneration()
+	int GameModel::PumpAsyncWorldGeneration()
 	{
-		int applied_count = 0;
+		int appliedChunkCount = 0;
 		for (const ve::world::generation::ChunkGenerationResult& result : world_generator_.DrainCompletedChunks())
 		{
-			if (world_.ApplyGeneratedChunk(result)) ++applied_count;
+			if (world_.ApplyGeneratedChunk(result)) ++appliedChunkCount;
 		}
-		if (applied_count > 0)
+		if (appliedChunkCount > 0)
 		{
-			VE_LOG_CATEGORY_DEBUG(ve::log::category::World, std::string("Applied generated chunks: ") + std::to_string(applied_count));
-			active_vulkan_demo_config_.reset();
+			VE_LOG_CATEGORY_DEBUG(
+				ve::log::category::World,
+				std::string("Applied generated chunks: ") + std::to_string(appliedChunkCount));
 		}
+		return appliedChunkCount;
 	}
 
-	void GameModel::UpdateVulkanDemoScene(const ve::rendering::VulkanMinecraftDemoSceneConfig& scene_config, bool force_rebuild)
+	ve::world::WorldMetrics GameModel::GetWorldMetrics() const
 	{
-		if (world_generator_.PendingTaskCount() != 0) return;
-		if (!force_rebuild && active_vulkan_demo_config_ && *active_vulkan_demo_config_ == scene_config) return;
-		VulkanDemoSceneBuilder::Build(world_, scene_config);
-		active_vulkan_demo_config_ = scene_config;
-		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Built editable Vulkan Minecraft demo scene");
+		ve::world::WorldMetrics worldMetrics = world_.Metrics();
+		const ve::world::mesh::ChunkMeshPipelineStats meshPipelineStats = mesh_pipeline_.Stats();
+		worldMetrics.pendingChunkMeshTaskCount = meshPipelineStats.pendingBuildTaskCount;
+		worldMetrics.pendingChunkMeshUploadCount = meshPipelineStats.pendingUploadCount;
+		worldMetrics.pendingWorldGenerationTaskCount = world_generator_.PendingTaskCount();
+		return worldMetrics;
 	}
 
-	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& block_registry, int render_distance_chunks)
+	ve::core::Index GameModel::PendingWorldGenerationCount() const
+	{
+		return world_generator_.PendingTaskCount();
+	}
+
+	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int render_distance_chunks)
 	{
 		world_.UploadReadyChunkMeshes(mesh_pipeline_);
-		world_.ScheduleVisibleChunkMeshes(block_registry, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
+		world_.ScheduleVisibleChunkMeshes(blockRegistry, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
 	}
 }

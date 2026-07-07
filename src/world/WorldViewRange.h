@@ -20,10 +20,10 @@ namespace ve::world
 	 *
 	 * @param cameraPosition Camera world position.
 	 * @param worldSize Number of chunks along one world side.
-	 * @param renderDistanceChunks Radius around the camera chunk.
+	 * @param render_distance_chunks Radius around the camera chunk.
 	 * @return Inclusive chunk range clamped to the world bounds.
 	 */
-	ChunkViewRange BuildChunkViewRange(const glm::vec3& cameraPosition, int worldSize, int renderDistanceChunks);
+	ChunkViewRange BuildChunkViewRange(const glm::vec3& cameraPosition, int worldSize, int render_distance_chunks);
 
 	/**
 	 * Checks whether a range contains at least one chunk.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 namespace ve::time
 {
 	/**
@@ -34,10 +36,9 @@ namespace ve::time
 
 	private:
 		double _deltaSeconds;
-		double _lastFrameTimestampSeconds;
+		std::chrono::steady_clock::time_point _lastFrameTimestamp;
 		double _fpsAccumulatorSeconds;
 		int _currentFrameCount;
 		int _displayedFps;
 	};
 }
-

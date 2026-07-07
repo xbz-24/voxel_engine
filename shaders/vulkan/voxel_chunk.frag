@@ -1,19 +1,61 @@
 #version 450
 
-layout(binding = 0) uniform sampler2DArray block_textures;
-
-layout(location = 0) in vec2 frag_uv;
-layout(location = 1) flat in int frag_texture_layer;
-layout(location = 2) in float frag_light;
+layout(location = 0) in vec4 frag_color;
+layout(location = 1) in float frag_light;
+layout(location = 2) in vec3 frag_normal;
+layout(location = 3) in float frag_view_depth;
+layout(location = 4) in vec3 frag_world_position;
 
 layout(location = 0) out vec4 out_color;
 
+vec3 saturate(vec3 value)
+{
+	return clamp(value, vec3(0.0), vec3(1.0));
+}
+
+float hash13(vec3 value)
+{
+	value = fract(value * 0.1031);
+	value += dot(value, value.yzx + 33.33);
+	return fract((value.x + value.y) * value.z);
+}
+
 void main()
 {
-	vec4 texel = texture(block_textures, vec3(frag_uv, frag_texture_layer));
-	if (texel.a < 0.05)
+	if (frag_color.a < 0.05)
 	{
 		discard;
 	}
-	out_color = vec4(texel.rgb * frag_light, texel.a);
+	vec3 normal = normalize(frag_normal);
+	vec3 sun_direction = normalize(vec3(-0.42, 0.78, -0.46));
+	float direct_light = max(dot(normal, sun_direction), 0.0);
+	float sky_bounce = clamp((normal.y * 0.5) + 0.5, 0.0, 1.0);
+	float side_fill = 1.0 - abs(normal.y);
+	float vertex_light = clamp(frag_light, 0.0, 1.70);
+	float height_blend = smoothstep(38.0, 118.0, frag_world_position.y);
+
+	vec3 cool_shadow = vec3(0.58, 0.69, 0.92);
+	vec3 warm_sun = vec3(1.12, 1.02, 0.86);
+	vec3 lowland_warmth = vec3(1.04, 0.97, 0.89);
+	vec3 canopy_coolness = vec3(0.91, 1.02, 1.08);
+	vec3 light_color = mix(cool_shadow, warm_sun, smoothstep(0.05, 0.95, direct_light));
+	float ambient = mix(0.36, 0.62, sky_bounce);
+	float diffuse = mix(0.18, 0.70, direct_light);
+	float rim = 0.055 * side_fill * sky_bounce;
+
+	vec3 lit = frag_color.rgb * vertex_light * (ambient + diffuse + rim) * light_color;
+	lit *= mix(lowland_warmth, canopy_coolness, height_blend * 0.38);
+	lit += vec3(0.018, 0.022, 0.030) * side_fill * (1.0 - direct_light);
+	lit = max(lit - vec3(0.018), vec3(0.0));
+	float luminance = dot(lit, vec3(0.2126, 0.7152, 0.0722));
+	lit = mix(vec3(luminance), lit, 1.08);
+	float grain = (hash13(floor(frag_world_position * 0.73)) - 0.5) * 0.026;
+	lit += vec3(grain);
+	lit = pow(saturate(lit), vec3(0.88));
+
+	vec3 fog_color = mix(vec3(0.68, 0.74, 0.79), vec3(0.53, 0.68, 0.86), height_blend);
+	float fog = smoothstep(170.0, 430.0, frag_view_depth);
+	float ground_haze = smoothstep(34.0, 52.0, frag_world_position.y) * (1.0 - smoothstep(70.0, 120.0, frag_world_position.y));
+	vec3 final_color = mix(saturate(lit), fog_color, (fog * 0.42) + (ground_haze * 0.055));
+	out_color = vec4(saturate(final_color), frag_color.a);
 }

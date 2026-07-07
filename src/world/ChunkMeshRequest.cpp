@@ -33,6 +33,7 @@ namespace ve::world::mesh
 		return ChunkMeshBuildOutput{
 			chunkInput.chunkX,
 			chunkInput.chunkZ,
+			request.chunk.revision,
 			BuildChunkMesh(chunkInput, blockRegistry, neighbors)
 		};
 	}

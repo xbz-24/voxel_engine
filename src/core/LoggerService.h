@@ -3,7 +3,9 @@
 #include "LoggerConfiguration.h"
 #include "SpdlogLoggerBackend.h"
 
+#include <functional>
 #include <mutex>
+#include <string>
 #include <string_view>
 
 namespace ve::log
@@ -33,16 +35,28 @@ namespace ve::log
 		/** @param path File path receiving formatted records. @return True when opened. */
 		bool SetFileOutput(const std::filesystem::path& path);
 
+		/** @param callback Optional sink receiving formatted log lines after built-in sinks. */
+		void SetCallback(std::function<void(std::string)> callback);
+
 		/** Closes the file sink when one is active. */
 		void ClearFileOutput();
 
 		/** @param level Severity. @param category Subsystem. @param message Body. @param source Call site. */
 		void Write(Level level, std::string_view category, std::string_view message, SourceLocation source);
 
+		/** @param fields Structured key-value fields attached to the record. */
+		void Write(
+			Level level,
+			std::string_view category,
+			std::string_view message,
+			std::span<const Field> fields,
+			SourceLocation source);
+
 	private:
 		LoggerService() = default;
 
 		std::mutex mutex_;
 		SpdlogLoggerBackend backend_;
+		std::function<void(std::string)> callback_;
 	};
 }

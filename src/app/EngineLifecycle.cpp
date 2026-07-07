@@ -3,56 +3,73 @@
 #include "Logger.h"
 #include "RenderBackendSelector.h"
 
+#include <algorithm>
+#include <filesystem>
+#include <optional>
+#include <string>
+
 /// Initializes the native window and applies runtime window options.
-bool Engine::InitializeWindow(ve::engine::Window& window)
+ve::engine::EngineStartupResult EngineApplication::InitializeWindow(ve::engine::Window& window)
 {
 	const ve::rendering::GraphicsApi graphics_api = ve::rendering::RenderBackendSelector::SelectApi(
-		_runtimeSettings.renderBackendConfiguration);
+		_runtimeSettings.renderer.backend_configuration);
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, ve::rendering::RenderBackendSelector::Name(graphics_api));
 	if (!window.Initialize(graphics_api))
 	{
-		return false;
+		return ve::engine::EngineStartupResult::Failure(
+			ve::engine::EngineStartupFailure::WindowInitializationFailed,
+			"Window initialization failed for " + std::string{ ve::rendering::RenderBackendSelector::Name(graphics_api) });
 	}
-	window.SetVSync(_runtimeSettings.isVSyncEnabled);
-	return true;
+	window.SetVSync(_runtimeSettings.renderer.is_vsync_enabled);
+	return ve::engine::EngineStartupResult::Success();
 }
 
 /// Initializes logger outputs that need the resolved project root.
-void Engine::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
+void EngineApplication::ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths)
 {
-	constexpr ve::log::Level minimum_level =
-#if defined(NDEBUG)
-		ve::log::Level::Info;
-#else
-		ve::log::Level::Debug;
-#endif
+	const ve::engine::EngineCreateInfo& create_info = CreateInfo();
+	std::optional<std::filesystem::path> file_output_path;
+	if (create_info.logging.file_output_enabled)
+	{
+		file_output_path = create_info.logging.file_output_path.empty()
+			? assetPaths.rootDirectory / "logs/engine.log"
+			: create_info.logging.file_output_path;
+	}
 	ve::log::ApplyConfiguration(ve::log::LoggerConfiguration{
-		minimum_level,
-		true,
-		assetPaths.rootDirectory / "logs/engine.log"
+		create_info.logging.minimum_level,
+		create_info.logging.console_enabled,
+		file_output_path
 	});
 	VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");
 }
 
-/// Updates projection matrices only when the window dimensions changed.
-void Engine::UpdateProjectionIfWindowChanged(const ve::engine::Window& window)
+/// Updates projection matrices from resize events queued by the window backend.
+void EngineApplication::UpdateProjectionIfWindowChanged(ve::engine::Window& window)
 {
-	if (window.GetWidth() == _window_state.current_width && window.GetHeight() == _window_state.current_height)
+	for (const ve::engine::WindowEvent& event : window.DrainEvents())
 	{
-		return;
+		if (event.kind == ve::engine::WindowEvent::Kind::FramebufferResized)
+		{
+			ApplyFramebufferSize(event.framebuffer_resized.width, event.framebuffer_resized.height);
+		}
 	}
-	_window_state.current_width = window.GetWidth();
-	_window_state.current_height = window.GetHeight();
-	UpdateProjections(_window_state.current_width, _window_state.current_height);
+
+	if (_window_state.current_width == 0 || _window_state.current_height == 0)
+	{
+		ApplyFramebufferSize(window.GetWidth(), window.GetHeight());
+	}
 }
 
-/// Releases cached OpenGL resources owned directly by the engine.
-void Engine::ReleaseRenderCaches()
+/// Updates projection matrices only when the framebuffer dimensions changed.
+void EngineApplication::ApplyFramebufferSize(int width, int height)
 {
-	if (_render_cache_state.cloud_display_list_id == 0)
+	const int clamped_width = std::max(1, width);
+	const int clamped_height = std::max(1, height);
+	if (clamped_width == _window_state.current_width && clamped_height == _window_state.current_height)
 	{
 		return;
 	}
-	glDeleteLists(_render_cache_state.cloud_display_list_id, 1);
-	_render_cache_state.cloud_display_list_id = 0;
+	_window_state.current_width = clamped_width;
+	_window_state.current_height = clamped_height;
+	UpdateProjections(_window_state.current_width, _window_state.current_height);
 }

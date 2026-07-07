@@ -20,6 +20,7 @@ namespace ve::rendering
 
 		[[nodiscard]] bool IsInitialized() const noexcept;
 		[[nodiscard]] bool WantsMouseInput() const noexcept;
+		[[nodiscard]] bool WantsKeyboardInput() const noexcept;
 
 	private:
 		VkDevice device_ = VK_NULL_HANDLE;

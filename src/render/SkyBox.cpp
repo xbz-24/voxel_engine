@@ -22,7 +22,7 @@ void SkyBox::draw()
     glColor3f(1.0f, 1.0f, 1.0f);
 
     // Front
-    glBindTexture(GL_TEXTURE_2D, _front);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_front));
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(-skySize, -skySize, -skySize);
     glTexCoord2f(textureRepeat, textureRepeat); glVertex3f(skySize, -skySize, -skySize);
@@ -31,7 +31,7 @@ void SkyBox::draw()
     glEnd();
 
     // Back  
-    glBindTexture(GL_TEXTURE_2D, _back);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_back));
     glBegin(GL_QUADS);
     glTexCoord2f(textureRepeat, textureRepeat); glVertex3f(-skySize, -skySize, skySize);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(-skySize, skySize, skySize);
@@ -40,7 +40,7 @@ void SkyBox::draw()
     glEnd();
 
     // Top
-    glBindTexture(GL_TEXTURE_2D, _top);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_top));
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(-skySize, skySize, -skySize);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-skySize, skySize, skySize);
@@ -49,7 +49,7 @@ void SkyBox::draw()
     glEnd();
 
     // Bottom
-    glBindTexture(GL_TEXTURE_2D, _bottom);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_bottom));
     glBegin(GL_QUADS);
     glTexCoord2f(textureRepeat, textureRepeat); glVertex3f(-skySize, -skySize, -skySize);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(skySize, -skySize, -skySize);
@@ -58,7 +58,7 @@ void SkyBox::draw()
     glEnd();
 
     // Right
-    glBindTexture(GL_TEXTURE_2D, _right);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_right));
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(skySize, -skySize, -skySize);
     glTexCoord2f(textureRepeat, textureRepeat); glVertex3f(skySize, skySize, -skySize);
@@ -67,7 +67,7 @@ void SkyBox::draw()
     glEnd();
 
     // Left
-    glBindTexture(GL_TEXTURE_2D, _left);
+    glBindTexture(GL_TEXTURE_2D, ve::rendering::NativeOpenGLTexture(_left));
     glBegin(GL_QUADS);
     glTexCoord2f(textureRepeat, textureRepeat); glVertex3f(-skySize, -skySize, -skySize);
     glTexCoord2f(0.0f, textureRepeat); glVertex3f(-skySize, -skySize, skySize);

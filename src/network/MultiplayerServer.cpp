@@ -7,11 +7,13 @@ namespace ve::network
 		Stop();
 	}
 
-	bool MultiplayerServer::Start(const TcpListenSettings& listenSettings)
+	bool MultiplayerServer::Start(const TcpListenSettings& listenSettings, std::size_t maxConnectedClients)
 	{
+		Stop();
 		if (!_socketLibrary.IsAvailable()) return false;
 		std::optional<TcpSocket> listeningSocket = TcpSocket::Listen(listenSettings);
 		if (!listeningSocket) return false;
+		_maxConnectedClients = maxConnectedClients == 0 ? 1 : maxConnectedClients;
 		_listeningSocket = std::make_shared<TcpSocket>(std::move(*listeningSocket));
 		_acceptThread = std::jthread([this](std::stop_token stopToken) { AcceptClientsUntilStopped(stopToken); });
 		return true;
@@ -21,6 +23,7 @@ namespace ve::network
 	{
 		if (_acceptThread.joinable()) _acceptThread.request_stop();
 		if (_listeningSocket) _listeningSocket->Close();
+		if (_acceptThread.joinable()) _acceptThread.join();
 		std::lock_guard<std::mutex> clientsLock(_clientsMutex);
 		for (ConnectedClient& connectedClient : _connectedClients)
 		{

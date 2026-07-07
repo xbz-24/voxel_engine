@@ -1,12 +1,15 @@
 #pragma once
 
-struct GLFWwindow;
+#include <array>
+#include <cstddef>
+
+namespace ve::engine
+{
+	class Window;
+}
 
 namespace ve::input
 {
-	/**
-	 * Names the keyboard keys understood by the engine input layer.
-	 */
 	enum class Key
 	{
 		Escape,
@@ -22,6 +25,8 @@ namespace ve::input
 		S,
 		D,
 		F,
+		F1,
+		F2,
 		F3,
 		LeftBracket,
 		RightBracket,
@@ -33,53 +38,30 @@ namespace ve::input
 		Digit6,
 		Digit7,
 		Digit8,
-		Digit9
+		Digit9,
+		Count
 	};
 
-	/**
-	 * Names the mouse buttons understood by the engine input layer.
-	 */
 	enum class MouseButton
 	{
 		Left,
-		Right
+		Right,
+		Count
 	};
 
-	/**
-	 * Reads whether a key is held down this frame.
-	 *
-	 * @param window Native window that owns the input state.
-	 * @param key Engine key to query.
-	 * @return True when the key is currently pressed.
-	 */
-	bool IsPressed(GLFWwindow* window, Key key) noexcept;
+	struct InputSnapshot
+	{
+		std::array<bool, static_cast<std::size_t>(Key::Count)> keys{};
+		std::array<bool, static_cast<std::size_t>(MouseButton::Count)> mouse_buttons{};
+	};
 
-	/**
-	 * Reads whether a mouse button is held down this frame.
-	 *
-	 * @param window Native window that owns the input state.
-	 * @param button Engine mouse button to query.
-	 * @return True when the button is currently pressed.
-	 */
-	bool IsPressed(GLFWwindow* window, MouseButton button) noexcept;
-
-	/**
-	 * Converts a held key into a one-shot press event.
-	 *
-	 * @param window Native window that owns the input state.
-	 * @param key Engine key to query.
-	 * @param wasPressed Previous frame state updated by this call.
-	 * @return True only on the first pressed frame.
-	 */
-	bool WasPressed(GLFWwindow* window, Key key, bool& wasPressed) noexcept;
-
-	/**
-	 * Converts a held mouse button into a one-shot press event.
-	 *
-	 * @param window Native window that owns the input state.
-	 * @param button Engine mouse button to query.
-	 * @param wasPressed Previous frame state updated by this call.
-	 * @return True only on the first pressed frame.
-	 */
-	bool WasPressed(GLFWwindow* window, MouseButton button, bool& wasPressed) noexcept;
+	InputSnapshot CaptureInputSnapshot(const ve::engine::Window& window) noexcept;
+	bool IsPressed(const ve::engine::Window& window, Key key) noexcept;
+	bool IsPressed(const InputSnapshot& snapshot, Key key) noexcept;
+	bool IsPressed(const ve::engine::Window& window, MouseButton button) noexcept;
+	bool IsPressed(const InputSnapshot& snapshot, MouseButton button) noexcept;
+	bool WasPressed(const ve::engine::Window& window, Key key, bool& wasPressed) noexcept;
+	bool WasPressed(const InputSnapshot& snapshot, Key key, bool& wasPressed) noexcept;
+	bool WasPressed(const ve::engine::Window& window, MouseButton button, bool& wasPressed) noexcept;
+	bool WasPressed(const InputSnapshot& snapshot, MouseButton button, bool& wasPressed) noexcept;
 }

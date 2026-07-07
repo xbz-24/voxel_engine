@@ -39,4 +39,13 @@ namespace ve::world::mesh
 	{
 		return _uploadQueue.PendingUploadCount();
 	}
+
+	/// Reports async build and upload backlog counters.
+	ChunkMeshPipelineStats ChunkMeshPipeline::Stats() const
+	{
+		return ChunkMeshPipelineStats{
+			PendingTaskCount(),
+			PendingUploadCount()
+		};
+	}
 }

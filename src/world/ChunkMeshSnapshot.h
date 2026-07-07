@@ -3,6 +3,8 @@
 #include "ChunkMeshInput.h"
 #include "CoreTypes.h"
 
+#include <cstdint>
+
 class Chunk;
 
 namespace ve::world::mesh
@@ -11,6 +13,7 @@ namespace ve::world::mesh
 	{
 		int chunkX;
 		int chunkZ;
+		std::uint64_t revision;
 		ve::core::DynamicArray<ve::blocks::BlockId> blocks;
 
 		/**

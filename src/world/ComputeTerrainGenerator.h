@@ -1,6 +1,8 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "ComputeDispatcher.h"
+
+#include <cstdint>
 
 namespace ve::world::generation
 {
@@ -10,23 +12,29 @@ namespace ve::world::generation
 		/**
 		 * Creates a compute terrain dispatcher.
 		 *
-		 * @param compute_program OpenGL compute shader program, or zero until assigned.
+		 * @param compute_program Backend compute shader program, or empty until assigned.
+		 * @param dispatcher Backend compute dispatcher, or null until compute is available.
 		 */
-		explicit ComputeTerrainGenerator(GLuint compute_program = 0) noexcept;
+		explicit ComputeTerrainGenerator(ve::rendering::ComputeProgramHandle compute_program = {},
+			const ve::rendering::ComputeDispatcher* dispatcher = nullptr) noexcept;
 
-		/** @param compute_program OpenGL compute shader program used for terrain generation. */
-		void SetProgram(GLuint compute_program) noexcept;
+		/** @param compute_program Backend compute shader program used for terrain generation. */
+		void SetProgram(ve::rendering::ComputeProgramHandle compute_program) noexcept;
 
-		/** @return True when compute shaders are supported by the current OpenGL context. */
+		/** @param dispatcher Backend compute dispatcher, or null when unavailable. */
+		void SetDispatcher(const ve::rendering::ComputeDispatcher* dispatcher) noexcept;
+
+		/** @return True when compute shaders are supported by the active backend. */
 		[[nodiscard]] bool IsSupported() const noexcept;
 
 		/** @return True when a compute program has been assigned. */
 		[[nodiscard]] bool HasProgram() const noexcept;
 
-		/** @param groups_x X work groups. @param groups_y Y work groups. @param groups_z Z work groups. */
-		void Dispatch(GLuint groups_x, GLuint groups_y, GLuint groups_z) const;
+		/** @return True when compute terrain work was submitted. */
+		[[nodiscard]] bool Dispatch(std::uint32_t groups_x, std::uint32_t groups_y, std::uint32_t groups_z) const;
 
 	private:
-		GLuint compute_program_ = 0;
+		ve::rendering::ComputeProgramHandle compute_program_;
+		const ve::rendering::ComputeDispatcher* dispatcher_;
 	};
 }

@@ -13,6 +13,10 @@ namespace ve::world::mesh
 		{
 			return false;
 		}
+		if (chunk.MeshRevision() != output.chunkRevision)
+		{
+			return false;
+		}
 
 		chunk.UploadMesh(std::move(output.mesh));
 		return true;

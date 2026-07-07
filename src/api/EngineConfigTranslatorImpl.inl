@@ -1,0 +1,89 @@
+		class EngineConfigTranslator final : public IEngineConfigTranslator
+		{
+		public:
+			[[nodiscard]] ve::engine::EngineCreateInfo Translate(const EngineConfig& config) const override
+			{
+				ve::engine::EngineCreateInfo result{};
+				result.window.title = config.window.title;
+				result.window.width = std::max(1, config.window.width);
+				result.window.height = std::max(1, config.window.height);
+				result.window.display_index = std::max(0, config.window.monitor_index);
+				result.window.refresh_rate_hertz = std::max(0, config.window.refresh_rate_hertz);
+				result.window.fullscreen = config.window.fullscreen;
+				result.window.resizable = config.window.resizable;
+				result.window.high_dpi_framebuffer = config.window.high_dpi_framebuffer;
+				result.window.capture_cursor_on_start = config.window.capture_cursor_on_start;
+				result.render_backend.preferred_api = ToInternalApi(config.graphics_api);
+				result.logging = ToInternalLogging(config.logging);
+				result.vulkan_demo_preset = ToInternalDemoPreset(config.demo_scene);
+				result.camera_position = ToInternalVec3(config.camera.position);
+				result.camera_look_at = ToInternalVec3(config.camera.look_at);
+				result.has_custom_camera = config.camera.has_custom_view;
+				result.vsync = config.window.vsync;
+				result.show_debug_overlay = config.show_debug_overlay;
+				result.settings_menu_enabled = config.enable_settings_menu;
+				result.world_size_chunks = std::max(1, config.world.size_chunks);
+				result.terrain_generation = ToInternalTerrainGeneration(config.world);
+				result.render_distance_chunks = std::max(0, config.render_distance_chunks);
+				result.asset_search_roots.reserve(config.assets.search_roots.size());
+				for (const std::string& search_root : config.assets.search_roots)
+				{
+					result.asset_search_roots.emplace_back(search_root);
+				}
+				result.world_edits.reserve(config.world.edits.size());
+				for (const WorldEdit& edit : config.world.edits)
+				{
+					result.world_edits.push_back(ToInternalWorldEdit(edit));
+				}
+				if (config.on_update)
+				{
+					result.on_update = [callback = config.on_update](ve::engine::RuntimeFrameContext& frame) {
+						FrameContext public_frame{};
+						public_frame.delta_seconds = frame.delta_seconds;
+						public_frame.elapsed_seconds = frame.elapsed_seconds;
+						public_frame.fps = frame.fps;
+						public_frame.input.move_forward = frame.input.move_forward;
+						public_frame.input.move_left = frame.input.move_left;
+						public_frame.input.move_back = frame.input.move_back;
+						public_frame.input.move_right = frame.input.move_right;
+						public_frame.input.jump = frame.input.jump;
+						public_frame.input.escape = frame.input.escape;
+						public_frame.input.f1 = frame.input.f1;
+						public_frame.input.f2 = frame.input.f2;
+						public_frame.input.primary_action = frame.input.primary_action;
+						public_frame.input.mouse_x = frame.input.mouse_x;
+						public_frame.input.mouse_y = frame.input.mouse_y;
+						public_frame.camera.position = ToPublicVec3(frame.camera.position);
+						public_frame.camera.forward = ToPublicVec3(frame.camera.forward);
+						public_frame.selected_block = ToPublicBlock(frame.selected_block);
+						public_frame.hit_result.has_hit = frame.hit_result.has_hit;
+						public_frame.hit_result.target_block = ToPublicBlockPosition(frame.hit_result.target_block);
+						public_frame.hit_result.placement_block = ToPublicBlockPosition(frame.hit_result.placement_block);
+						public_frame.hit_result.target_block_type = ToPublicBlock(frame.hit_result.target_block_id);
+						callback(public_frame);
+						frame.world_edits.reserve(public_frame.commands.world_edits.size());
+						for (const WorldEdit& edit : public_frame.commands.world_edits)
+						{
+							frame.world_edits.push_back(ToInternalWorldEdit(edit));
+						}
+						frame.request_close = public_frame.commands.request_close;
+					};
+				}
+				if (config.on_diagnostics)
+				{
+					result.on_diagnostics = [callback = config.on_diagnostics](const ve::engine::RuntimeDiagnostics& diagnostics) {
+						callback(Diagnostics{
+							diagnostics.fps,
+							diagnostics.pending_world_events,
+							diagnostics.render_distance_chunks,
+							diagnostics.pending_chunk_mesh_tasks,
+							diagnostics.pending_chunk_mesh_uploads,
+							diagnostics.pending_world_generation_tasks
+						});
+					};
+				}
+				result.on_log = config.on_log;
+				return result;
+			}
+		};
+	}

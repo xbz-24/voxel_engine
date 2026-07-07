@@ -19,3 +19,13 @@ std::pmr::memory_resource& LevelSpawn::MemoryResource() noexcept
 {
 	return _arena.Resource();
 }
+
+std::size_t LevelSpawn::MemoryCapacityBytes() const noexcept
+{
+	return _arena.Capacity();
+}
+
+std::size_t LevelSpawn::MemoryBytesUsed() const noexcept
+{
+	return _arena.BytesUsed();
+}

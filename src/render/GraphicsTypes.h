@@ -3,11 +3,26 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <span>
 
 namespace ve::rendering
 {
-	using TextureHandle = std::uint32_t;
-	inline constexpr TextureHandle kInvalidTextureHandle = 0;
+	/** Backend-neutral texture identifier. Native API ids stay behind backend upload/bind code. */
+	struct TextureHandle
+	{
+		std::uint32_t value = 0;
+
+		[[nodiscard]] constexpr bool IsValid() const noexcept { return value != 0; }
+		[[nodiscard]] explicit constexpr operator bool() const noexcept { return IsValid(); }
+	};
+
+	[[nodiscard]] constexpr bool operator==(TextureHandle left, TextureHandle right) noexcept { return left.value == right.value; }
+	[[nodiscard]] constexpr bool operator!=(TextureHandle left, TextureHandle right) noexcept { return !(left == right); }
+	[[nodiscard]] constexpr bool operator<(TextureHandle left, TextureHandle right) noexcept { return left.value < right.value; }
+	[[nodiscard]] constexpr bool operator==(TextureHandle left, std::uint32_t right) noexcept { return left.value == right; }
+	[[nodiscard]] constexpr bool operator==(std::uint32_t left, TextureHandle right) noexcept { return left == right.value; }
+
+	inline constexpr TextureHandle kInvalidTextureHandle{};
 
 	struct ColorRgba
 	{
@@ -52,6 +67,13 @@ namespace ve::rendering
 		TextureHandle texture = kInvalidTextureHandle;
 		std::uint32_t first_vertex = 0;
 		std::uint32_t vertex_count = 0;
+	};
+
+	/** Immutable mesh payload passed to a backend resource object for upload. */
+	struct MeshDescription
+	{
+		std::span<const ChunkVertex> vertices;
+		std::span<const ChunkMeshBatch> batches;
 	};
 
 	struct GraphicsAabb

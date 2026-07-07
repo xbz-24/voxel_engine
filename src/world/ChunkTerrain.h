@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Block.h"
+#include "WorldConfiguration.h"
 
 namespace ve::world::terrain
 {
@@ -13,9 +14,23 @@ namespace ve::world::terrain
 	/**
 	 * Fills chunk block storage with procedural terrain.
 	 *
-	 * @param chunkX Chunk-grid X coordinate.
-	 * @param chunkZ Chunk-grid Z coordinate.
+	 * @param chunk_x Chunk-grid X coordinate.
+	 * @param chunk_z Chunk-grid Z coordinate.
+	 * @param terrain_generation Settings used to shape terrain and block palette.
 	 * @param blocks Storage filled with generated block ids.
 	 */
-	void GenerateChunkTerrain(int chunkX, int chunkZ, BlockStorage& blocks);
+	void GenerateChunkTerrain(
+		int chunk_x,
+		int chunk_z,
+		const ve::world::TerrainGenerationSettings& terrain_generation,
+		BlockStorage& blocks);
+
+	/**
+	 * Fills chunk block storage with default procedural terrain.
+	 *
+	 * @param chunk_x Chunk-grid X coordinate.
+	 * @param chunk_z Chunk-grid Z coordinate.
+	 * @param blocks Storage filled with generated block ids.
+	 */
+	void GenerateChunkTerrain(int chunk_x, int chunk_z, BlockStorage& blocks);
 }

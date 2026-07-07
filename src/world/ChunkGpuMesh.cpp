@@ -1,90 +1,59 @@
 #include "ChunkGpuMesh.h"
 
-#include <cstddef>
 #include <utility>
 
 namespace ve::rendering
 {
-	ChunkGpuMesh::ChunkGpuMesh() : _vertexBuffer(0), _vertexCount(0) {}
+	ChunkGpuMesh::ChunkGpuMesh()
+		: ChunkGpuMesh(nullptr)
+	{
+	}
+
+	ChunkGpuMesh::ChunkGpuMesh(std::unique_ptr<RenderMesh> render_mesh_resource) noexcept
+		: _mesh(std::move(render_mesh_resource))
+	{
+	}
 
 	ChunkGpuMesh::~ChunkGpuMesh()
 	{
 		Release();
 	}
 
-	ChunkGpuMesh::ChunkGpuMesh(ChunkGpuMesh&& other) noexcept
-		: _vertexBuffer(other._vertexBuffer), _vertexCount(other._vertexCount), _batches(std::move(other._batches))
-	{
-		other._vertexBuffer = 0;
-		other._vertexCount = 0;
-	}
+	ChunkGpuMesh::ChunkGpuMesh(ChunkGpuMesh&& other) noexcept = default;
 
 	ChunkGpuMesh& ChunkGpuMesh::operator=(ChunkGpuMesh&& other) noexcept
 	{
 		if (this != &other)
 		{
 			Release();
-			_vertexBuffer = other._vertexBuffer;
-			_vertexCount = other._vertexCount;
-			_batches = std::move(other._batches);
-			other._vertexBuffer = 0;
-			other._vertexCount = 0;
+			_mesh = std::move(other._mesh);
+			cpu_vertices_ = std::move(other.cpu_vertices_);
+			cpu_batches_ = std::move(other.cpu_batches_);
 		}
 		return *this;
 	}
 
 	void ChunkGpuMesh::Upload(const std::vector<ChunkVertex>& vertices, std::vector<ChunkMeshBatch> batches)
 	{
-		Release();
-		if (vertices.empty())
-		{
-			return;
-		}
+		cpu_vertices_ = vertices;
+		cpu_batches_ = std::move(batches);
+		if (_mesh != nullptr) _mesh->Upload(CpuMesh());
+	}
 
-		glGenBuffers(1, &_vertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(ChunkVertex)), vertices.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		_vertexCount = static_cast<GLsizei>(vertices.size());
-		_batches = std::move(batches);
+	MeshDescription ChunkGpuMesh::CpuMesh() const noexcept
+	{
+		return MeshDescription{ cpu_vertices_, cpu_batches_ };
 	}
 
 	void ChunkGpuMesh::Draw() const
 	{
-		if (_vertexBuffer == 0 || _vertexCount == 0)
-		{
-			return;
-		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(ChunkVertex), reinterpret_cast<void*>(offsetof(ChunkVertex, x)));
-		glTexCoordPointer(2, GL_FLOAT, sizeof(ChunkVertex), reinterpret_cast<void*>(offsetof(ChunkVertex, u)));
-		glColorPointer(3, GL_FLOAT, sizeof(ChunkVertex), reinterpret_cast<void*>(offsetof(ChunkVertex, r)));
-
-		for (const ChunkMeshBatch& batch : _batches)
-		{
-			glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(batch.texture));
-			glDrawArrays(GL_QUADS, static_cast<GLint>(batch.first_vertex), static_cast<GLsizei>(batch.vertex_count));
-		}
-
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glColor3f(1.0f, 1.0f, 1.0f);
+		if (_mesh != nullptr) _mesh->Draw();
 	}
 
 	void ChunkGpuMesh::Release()
 	{
-		if (_vertexBuffer != 0)
-		{
-			glDeleteBuffers(1, &_vertexBuffer);
-			_vertexBuffer = 0;
-		}
-		_vertexCount = 0;
-		_batches.clear();
+		if (_mesh != nullptr) _mesh->Release();
+		cpu_vertices_.clear();
+		cpu_batches_.clear();
 	}
 }

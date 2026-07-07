@@ -1,5 +1,7 @@
 #include "SpdlogLoggerBackend.h"
 
+#include "LogFormatter.h"
+
 #include <spdlog/logger.h>
 #include <spdlog/common.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -76,8 +78,9 @@ namespace ve::log
 	void SpdlogLoggerBackend::Write(const Record& record)
 	{
 		if (!logger_ || record.level < minimum_level_) return;
+		const std::string message = FormatMessageWithFields(record);
 		logger_->log(ToSpdlogLevel(record.level), "[{}] {} ({}:{} {})",
-			record.category, record.message, record.source.file, record.source.line, record.source.function);
+			record.category, message, record.source.file, record.source.line, record.source.function);
 	}
 
 	/** Rebuilds the sink list and recreates the internal logger. */

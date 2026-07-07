@@ -1,39 +1,87 @@
 #include <doctest/doctest.h>
 
 #include "NetworkProtocol.h"
+#include "NetworkBlockReplication.h"
+#include "MultiplayerServer.h"
+#include "NetworkSequenceTracker.h"
+#include "NetworkSession.h"
 #include "NetworkSerialization.h"
+#include "World.h"
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <optional>
+#include <string>
 #include <vector>
 
-TEST_CASE("network block mutation serialization roundtrips signed coordinates")
+#include "NetworkPacketFramingTests.inl"
+#include "NetworkSerializationTests.inl"
+
+TEST_CASE("network sequence tracker rejects duplicate and stale packets")
 {
-	const ve::network::BlockMutationPayload mutation{ -17, 64, 33, 4 };
-	const ve::network::ByteBuffer bytes = ve::network::SerializeBlockMutation(mutation);
+	ve::network::NetworkSequenceTracker sequenceTracker;
 
-	const std::optional<ve::network::BlockMutationPayload> decoded = ve::network::TryDeserializeBlockMutation(bytes);
+	CHECK(sequenceTracker.LastAcceptedSequenceNumber() == 0U);
+	CHECK(!sequenceTracker.TryAccept(0U));
+	CHECK(sequenceTracker.TryAccept(2U));
+	CHECK(sequenceTracker.LastAcceptedSequenceNumber() == 2U);
+	CHECK(!sequenceTracker.TryAccept(2U));
+	CHECK(!sequenceTracker.TryAccept(1U));
+	CHECK(sequenceTracker.TryAccept(5U));
 
-	REQUIRE(decoded.has_value());
-	CHECK(decoded->blockX == -17);
-	CHECK(decoded->blockY == 64);
-	CHECK(decoded->blockZ == 33);
-	CHECK(decoded->blockId == 4);
+	sequenceTracker.Reset();
+	CHECK(sequenceTracker.LastAcceptedSequenceNumber() == 0U);
+	CHECK(sequenceTracker.TryAccept(1U));
 }
 
-TEST_CASE("network packet parser rejects truncated and corrupted packets")
+TEST_CASE("network block mutation applies through shared world edit command")
 {
-	const ve::network::ByteBuffer payload = ve::network::SerializeClientHello("Renato");
-	const ve::network::ByteBuffer packet = ve::network::BuildPacket(ve::network::NetworkMessageType::ClientHello, payload);
+	ve::world::World world(ve::world::CreateInfoForSquareWorld(1));
+	world.SpawnEmptyGrid(ve::world::FlatWorldSpawnSettings{ 1 });
 
-	std::vector<std::byte> truncated_packet(packet.begin(), packet.end() - 1);
-	CHECK(!ve::network::TryParsePacket(truncated_packet).has_value());
+	const ve::network::BlockMutationPayload blockMutation{
+		1U,
+		7U,
+		3,
+		12,
+		4,
+		static_cast<std::uint8_t>(ve::blocks::BlockId::Stone)
+	};
+	const ve::network::NetworkMessage message{
+		ve::network::NetworkMessageType::BlockMutation,
+		ve::network::SerializeBlockMutation(blockMutation)
+	};
 
-	std::vector<std::byte> corrupt_packet(packet.begin(), packet.end());
-	corrupt_packet[0] = std::byte{ 0 };
-	CHECK(!ve::network::TryParsePacket(corrupt_packet).has_value());
+	CHECK(ve::network::ApplyNetworkBlockMutation(world, message));
+	CHECK(world.GetBlock(3, 12, 4) == ve::blocks::BlockId::Stone);
+}
 
-	const std::optional<ve::network::NetworkMessage> parsed = ve::network::TryParsePacket(packet);
-	REQUIRE(parsed.has_value());
-	CHECK(parsed->messageType == ve::network::NetworkMessageType::ClientHello);
-	CHECK(ve::network::TryDeserializeClientHello(parsed->payloadBytes) == "Renato");
+TEST_CASE("multiplayer server broadcast reports actual recipient writes")
+{
+	ve::network::MultiplayerServer server;
+	const ve::network::NetworkMessage message{
+		ve::network::NetworkMessageType::Ping,
+		{}
+	};
+
+	CHECK(server.Broadcast(message) == 0U);
+	CHECK(server.BroadcastExcept(1U, message) == 0U);
+}
+
+TEST_CASE("network session reports invalid host settings through events")
+{
+	ve::network::NetworkSession session;
+	ve::network::NetworkHostSettings settings;
+	settings.simulationTickRateHz = 0;
+
+	CHECK(!session.HostGame(settings));
+	CHECK(session.LastError() == ve::network::NetworkSessionError::InvalidHostTickRate);
+	std::vector<ve::network::NetworkSessionEvent> events = session.DrainEvents();
+	REQUIRE(events.size() == 1U);
+	CHECK(events.front().eventType == ve::network::NetworkSessionEventType::HostStartFailed);
+	CHECK(events.front().mode == ve::network::NetworkSessionMode::Offline);
+	CHECK(events.front().error == ve::network::NetworkSessionError::InvalidHostTickRate);
+	CHECK(session.DrainEvents().empty());
 }

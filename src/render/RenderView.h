@@ -2,22 +2,22 @@
 
 #include "RenderApi.h"
 
-#include <concepts>
-
-namespace ve::engine
-{
-	class OpenGLRenderView;
-	class VulkanRenderView;
-}
+class BlockSelectionCube;
+class Plane;
+class SkyBox;
 
 namespace ve::rendering
 {
 	class GraphicsFacade;
 }
 
+namespace ve::ui
+{
+	class HudRenderer;
+}
+
 namespace ve::engine
 {
-
 	/** Backend-neutral view contract consumed by the engine runtime. */
 	class RenderView
 	{
@@ -34,60 +34,22 @@ namespace ve::engine
 		/** @return Read-only primitive drawing API, or null when unavailable. */
 		[[nodiscard]] virtual const ve::rendering::GraphicsFacade* Graphics() const noexcept;
 
-		/** @return OpenGL compatibility adapter, or null when the view is not OpenGL. */
-		[[nodiscard]] virtual OpenGLRenderView* AsOpenGLRenderView() noexcept;
+		/** @return Skybox renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual SkyBox* Skybox() noexcept;
 
-		/** @return Read-only OpenGL compatibility adapter, or null when unavailable. */
-		[[nodiscard]] virtual const OpenGLRenderView* AsOpenGLRenderView() const noexcept;
+		/** @return Ground/debug plane renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual Plane* GroundPlane() noexcept;
 
-		/** @return Vulkan adapter, or null when the view is not Vulkan. */
-		[[nodiscard]] virtual VulkanRenderView* AsVulkanRenderView() noexcept;
+		/** @return Selected-block renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual BlockSelectionCube* SelectionCube() noexcept;
 
-		/** @return Read-only Vulkan adapter, or null when unavailable. */
-		[[nodiscard]] virtual const VulkanRenderView* AsVulkanRenderView() const noexcept;
+		/** @return HUD renderer capability, or null when unavailable. */
+		[[nodiscard]] virtual ve::ui::HudRenderer* Hud() noexcept;
+
+		/** Renders an optional backend-owned sky/cloud layer before world geometry. */
+		virtual void RenderCloudLayer();
+
+		/** Releases optional cached native resources owned by the view. */
+		virtual void ReleaseCachedResources();
 	};
-
-	template <typename ViewT>
-	concept RenderViewAdapter =
-		std::same_as<ViewT, OpenGLRenderView> || std::same_as<ViewT, VulkanRenderView>;
-
-	/**
-	 * Converts a backend-neutral render view into a specific adapter type.
-	 *
-	 * @tparam ViewT Concrete adapter type requested by the caller.
-	 * @param view Backend-neutral render view to inspect.
-	 * @return Adapter pointer when the view matches ViewT; otherwise null.
-	 */
-	template <RenderViewAdapter ViewT>
-	[[nodiscard]] ViewT* TryRenderViewCast(RenderView& view) noexcept
-	{
-		if constexpr (std::same_as<ViewT, OpenGLRenderView>)
-		{
-			return view.AsOpenGLRenderView();
-		}
-		else
-		{
-			return view.AsVulkanRenderView();
-		}
-	}
-
-	/**
-	 * Converts a read-only backend-neutral render view into a specific adapter type.
-	 *
-	 * @tparam ViewT Concrete adapter type requested by the caller.
-	 * @param view Backend-neutral render view to inspect.
-	 * @return Const adapter pointer when the view matches ViewT; otherwise null.
-	 */
-	template <RenderViewAdapter ViewT>
-	[[nodiscard]] const ViewT* TryRenderViewCast(const RenderView& view) noexcept
-	{
-		if constexpr (std::same_as<ViewT, OpenGLRenderView>)
-		{
-			return view.AsOpenGLRenderView();
-		}
-		else
-		{
-			return view.AsVulkanRenderView();
-		}
-	}
 }

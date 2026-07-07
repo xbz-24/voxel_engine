@@ -34,6 +34,12 @@ public:
 	 */
 	std::pmr::memory_resource& MemoryResource() noexcept;
 
+	/** @return Bytes reserved by the level memory arena. */
+	[[nodiscard]] std::size_t MemoryCapacityBytes() const noexcept;
+
+	/** @return Bytes already handed out by the level memory arena. */
+	[[nodiscard]] std::size_t MemoryBytesUsed() const noexcept;
+
 private:
 	ve::memory::MemoryArena _arena;
 };

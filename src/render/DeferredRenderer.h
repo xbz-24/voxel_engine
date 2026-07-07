@@ -1,14 +1,12 @@
 #pragma once
 
+#include "RenderResources.h"
+
 #include <GL/glew.h>
 
 namespace ve::rendering
 {
-	struct DeferredFramebufferSpecification
-	{
-		int width = 1;
-		int height = 1;
-	};
+	using DeferredFramebufferSpecification = RenderTargetDescriptor;
 
 	class DeferredRenderer
 	{

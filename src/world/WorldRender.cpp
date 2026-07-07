@@ -12,10 +12,19 @@ namespace ve::world
 	 */
 	void World::Draw(const WorldRenderRequest& request)
 	{
-		const ChunkViewRange range = BuildChunkViewRange(request.cameraPosition, _worldSize, request.renderDistanceChunks);
+		for (const ChunkRenderItem& item : ExtractVisibleChunks(request))
+		{
+			if (item.mesh != nullptr) item.mesh->Draw();
+		}
+	}
+
+	ChunkRenderItemList World::ExtractVisibleChunks(const WorldRenderRequest& request) const
+	{
+		ChunkRenderItemList items;
+		const ChunkViewRange range = BuildChunkViewRange(request.camera_position, _worldSize, request.render_distance_chunks);
 		if (!HasChunks(range))
 		{
-			return;
+			return items;
 		}
 
 		const visibility::ChunkVisibilityCuller culler(request);
@@ -25,26 +34,15 @@ namespace ve::world
 			{
 				if (culler.IsChunkVisible(chunkX, chunkZ))
 				{
-					DrawVisibleChunk(request, chunkX, chunkZ);
+					const Chunk* chunk = FindChunk(chunkX, chunkZ);
+					if (chunk != nullptr)
+					{
+						items.push_back(ChunkRenderItem{ &chunk->RenderMesh(), ChunkRenderId{ chunkX, chunkZ }, chunk->MeshRevision() });
+					}
 				}
 			}
 		}
-	}
-
-	/**
-	 * Draws one chunk when it passes camera-direction culling.
-	 *
-	 * @param request Camera and render data used for culling and drawing.
-	 * @param chunkX Chunk-grid X coordinate to test.
-	 * @param chunkZ Chunk-grid Z coordinate to test.
-	 */
-	void World::DrawVisibleChunk(const WorldRenderRequest& request, int chunkX, int chunkZ)
-	{
-		Chunk* chunk = FindChunk(chunkX, chunkZ);
-		if (chunk)
-		{
-			chunk->Draw(request.blockRegistry, FindNeighborChunks(chunkX, chunkZ));
-		}
+		return items;
 	}
 
 	/**

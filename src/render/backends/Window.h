@@ -1,13 +1,16 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include "RenderApi.h"
+#include "WindowCreateInfo.h"
+#include "WindowEvents.h"
 
 #include <string>
 #include <string_view>
 #include <vector>
+
+struct GLFWmonitor;
+struct GLFWvidmode;
+struct GLFWwindow;
 
 namespace ve::engine
 {
@@ -16,6 +19,23 @@ namespace ve::engine
 	public:
 		enum class CursorMode { Normal, Captured };
 
+		struct WindowSize
+		{
+			int width = 1;
+			int height = 1;
+		};
+
+		struct CursorPosition
+		{
+			double x = 0.0;
+			double y = 0.0;
+		};
+
+		struct NativeWindowHandle
+		{
+			void* opaque_handle = nullptr;
+		};
+
 		struct CallbackContext
 		{
 			Window* window;
@@ -23,6 +43,7 @@ namespace ve::engine
 		};
 
 		explicit Window(std::string_view title);
+		explicit Window(WindowCreateInfo create_info);
 		~Window();
 
 		Window(const Window&) = delete;
@@ -38,6 +59,7 @@ namespace ve::engine
 
 		void SetCursorMode(CursorMode mode);
 		void Update();
+		[[nodiscard]] std::vector<WindowEvent> DrainEvents();
 
 		[[nodiscard]] bool ShouldClose() const;
 		void Close();
@@ -45,6 +67,9 @@ namespace ve::engine
 		[[nodiscard]] int GetWidth() const;
 		[[nodiscard]] int GetHeight() const;
 		[[nodiscard]] float GetAspectRatio() const;
+		[[nodiscard]] WindowSize ClientWindowSize() const noexcept;
+		[[nodiscard]] CursorPosition CurrentCursorPosition() const noexcept;
+		[[nodiscard]] NativeWindowHandle NativeHandle() const noexcept;
 		[[nodiscard]] GLFWwindow* GetNativeWindow() const;
 
 		[[nodiscard]] ve::rendering::GraphicsApi GraphicsApi() const noexcept;
@@ -56,18 +81,28 @@ namespace ve::engine
 
 	private:
 		bool InitializeGlfw();
-		const GLFWvidmode* ReadPrimaryMonitorMode();
+		GLFWmonitor* SelectDisplayMonitor();
+		const GLFWvidmode* ReadDisplayMode(GLFWmonitor* display_monitor);
 		void ApplyWindowHints(const GLFWvidmode& videoMode);
 		void ApplyGraphicsApiHints();
-		bool CreateNativeWindow();
+		bool CreateNativeWindow(GLFWmonitor* fullscreen_monitor);
+		void ApplyInitialCursorMode();
 		void ConfigureNativeCallbacks();
+		void RecordFramebufferResize(int width, int height);
 
 		GLFWwindow* _window = nullptr;
 		int _width = 0;
 		int _height = 0;
+		int _displayIndex = 0;
+		int _refreshRateHertz = 0;
 		bool _isVSyncEnabled = false;
 		ve::rendering::GraphicsApi _graphicsApi = ve::rendering::GraphicsApi::Vulkan;
 		std::string _title;
+		bool _fullscreen = false;
+		bool _resizable = true;
+		bool _highDpiFramebuffer = true;
+		bool _captureCursorOnStart = false;
 		CallbackContext _callbackContext{};
+		std::vector<WindowEvent> _eventQueue;
 	};
 }

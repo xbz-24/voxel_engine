@@ -1,46 +1,59 @@
-#include "Engine.h"
+#include "OpenGLRenderView.h"
 
 #include <cmath>
 
-void Engine::RenderClouds()
+namespace ve::engine
 {
-	if (_render_cache_state.cloud_display_list_id == 0)
+	void OpenGLRenderView::RenderCloudLayer()
 	{
-		BuildCloudDisplayList();
-	}
-	glCallList(_render_cache_state.cloud_display_list_id);
-}
-
-void Engine::BuildCloudDisplayList()
-{
-	_render_cache_state.cloud_display_list_id = glGenLists(1);
-	glNewList(_render_cache_state.cloud_display_list_id, GL_COMPILE);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-	glBegin(GL_QUADS);
-
-	constexpr float cloudHeight = 120.0f;
-	constexpr float cloudSize = 8.0f;
-	for (float x = -200.0f; x < 200.0f; x += cloudSize)
-	{
-		for (float z = -200.0f; z < 200.0f; z += cloudSize)
+		if (cloud_display_list_id_ == 0)
 		{
-			const float cloudShape = std::sin(x * 0.05f) * std::cos(z * 0.05f);
-			if (cloudShape > 0.2f)
+			BuildCloudDisplayList();
+		}
+		glCallList(cloud_display_list_id_);
+	}
+
+	void OpenGLRenderView::ReleaseCachedResources()
+	{
+		if (cloud_display_list_id_ == 0)
+		{
+			return;
+		}
+		glDeleteLists(cloud_display_list_id_, 1);
+		cloud_display_list_id_ = 0;
+	}
+
+	void OpenGLRenderView::BuildCloudDisplayList()
+	{
+		cloud_display_list_id_ = glGenLists(1);
+		glNewList(cloud_display_list_id_, GL_COMPILE);
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+		glBegin(GL_QUADS);
+
+		constexpr float cloudHeight = 120.0f;
+		constexpr float cloudSize = 8.0f;
+		for (float x = -200.0f; x < 200.0f; x += cloudSize)
+		{
+			for (float z = -200.0f; z < 200.0f; z += cloudSize)
 			{
-				glVertex3f(x, cloudHeight, z);
-				glVertex3f(x + cloudSize, cloudHeight, z);
-				glVertex3f(x + cloudSize, cloudHeight, z + cloudSize);
-				glVertex3f(x, cloudHeight, z + cloudSize);
+				const float cloudShape = std::sin(x * 0.05f) * std::cos(z * 0.05f);
+				if (cloudShape > 0.2f)
+				{
+					glVertex3f(x, cloudHeight, z);
+					glVertex3f(x + cloudSize, cloudHeight, z);
+					glVertex3f(x + cloudSize, cloudHeight, z + cloudSize);
+					glVertex3f(x, cloudHeight, z + cloudSize);
+				}
 			}
 		}
-	}
 
-	glEnd();
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glDisable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
-	glEndList();
+		glEnd();
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glDisable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		glEndList();
+	}
 }

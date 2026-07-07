@@ -21,11 +21,13 @@ namespace ve::engine
 	/** Returns the read-only high-level primitive drawing facade. */
 	const ve::rendering::GraphicsFacade* OpenGLRenderView::Graphics() const noexcept { return &graphics_; }
 
-	/** Returns this object for explicit legacy renderer access. */
-	OpenGLRenderView* OpenGLRenderView::AsOpenGLRenderView() noexcept { return this; }
+	SkyBox* OpenGLRenderView::Skybox() noexcept { return &sky_box_; }
 
-	/** Returns this object for explicit legacy renderer access. */
-	const OpenGLRenderView* OpenGLRenderView::AsOpenGLRenderView() const noexcept { return this; }
+	Plane* OpenGLRenderView::GroundPlane() noexcept { return &plane_; }
+
+	BlockSelectionCube* OpenGLRenderView::SelectionCube() noexcept { return &selection_cube_; }
+
+	ve::ui::HudRenderer* OpenGLRenderView::Hud() noexcept { return &hud_renderer_; }
 
 	/** Returns the mutable skybox renderer. */
 	SkyBox& OpenGLRenderView::MutableSkyBox() noexcept { return sky_box_; }

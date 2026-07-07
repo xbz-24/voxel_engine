@@ -6,6 +6,7 @@ namespace ve::rendering
 {
 	struct RaymarchingSettings
 	{
+		// Compatibility pass: shader program ids remain local to the OpenGL raymarcher.
 		int step_count = 64;
 		float max_distance = 96.0f;
 		float density = 0.035f;

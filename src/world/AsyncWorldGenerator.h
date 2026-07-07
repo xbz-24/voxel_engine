@@ -6,26 +6,29 @@
 #include "ThreadSafeMessageQueue.h"
 #include "WorldConfiguration.h"
 
+#include <atomic>
+
 namespace ve::world::generation
 {
 	struct ChunkGenerationRequest
 	{
-		int chunk_x = 0;
-		int chunk_z = 0;
+		int chunkCoordinateX = 0;
+		int chunkCoordinateZ = 0;
+		TerrainGenerationSettings terrainGeneration{};
 	};
 
 	struct ChunkGenerationResult
 	{
-		int chunk_x = 0;
-		int chunk_z = 0;
+		int chunkCoordinateX = 0;
+		int chunkCoordinateZ = 0;
 		ve::core::StaticArray<ve::blocks::BlockId, terrain::ChunkBlockCount> blocks{};
 	};
 
 	class AsyncWorldGenerator
 	{
 	public:
-		/** @param worker_count Number of CPU terrain workers. */
-		explicit AsyncWorldGenerator(ve::core::Index worker_count);
+		/** @param workerCount Number of CPU terrain workers. */
+		explicit AsyncWorldGenerator(ve::core::Index workerCount);
 
 		/** @param request Chunk coordinate to generate. @return True when queued. */
 		bool RequestChunk(ChunkGenerationRequest request);
@@ -36,11 +39,12 @@ namespace ve::world::generation
 		/** @return Completed generated chunks ready for the game thread. */
 		ve::core::DynamicArray<ChunkGenerationResult> DrainCompletedChunks();
 
-		/** @return Number of terrain jobs waiting to start. */
+		/** @return Number of terrain requests not yet drained by the game thread. */
 		ve::core::Index PendingTaskCount() const;
 
 	private:
-		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completed_chunks_;
-		ve::tasks::BackgroundTaskQueue background_tasks_;
+		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completedChunks_;
+		ve::tasks::BackgroundTaskQueue backgroundTaskQueue_;
+		std::atomic<ve::core::Index> outstandingRequestCount_ = 0;
 	};
 }

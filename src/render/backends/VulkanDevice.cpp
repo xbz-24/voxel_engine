@@ -1,26 +1,15 @@
 #include "VulkanDevice.h"
 
+#include "VulkanDeviceExtensions.h"
+
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <vector>
 
 namespace ve::rendering
 {
 	namespace
 	{
-		bool DeviceSupportsExtension(VkPhysicalDevice physical_device, const char* extension_name)
-		{
-			std::uint32_t extension_count = 0;
-			if (vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, nullptr) != VK_SUCCESS) return false;
-			std::vector<VkExtensionProperties> extensions(extension_count);
-			if (extension_count > 0 && vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, extensions.data()) != VK_SUCCESS) return false;
-			return std::ranges::any_of(extensions, [extension_name](const VkExtensionProperties& extension)
-			{
-				return std::strcmp(extension.extensionName, extension_name) == 0;
-			});
-		}
-
 		/** @param queue_family Queue family index. @param priority Queue priority storage. @return Queue create info. */
 		VkDeviceQueueCreateInfo CreateQueueInfo(std::uint32_t queue_family, const float& priority) noexcept
 		{
@@ -38,15 +27,22 @@ namespace ve::rendering
 	/** Creates the logical device and stores queues. */
 	bool VulkanDevice::Create(VkPhysicalDevice physical_device, const VulkanQueueFamilyIndices& queues)
 	{
+		return Create(physical_device, queues, VulkanDeviceSettings{});
+	}
+
+	bool VulkanDevice::Create(
+		VkPhysicalDevice physical_device,
+		const VulkanQueueFamilyIndices& queues,
+		const VulkanDeviceSettings& settings)
+	{
 		Release();
-		const float queue_priority = 1.0f;
-		std::array queue_infos{ CreateQueueInfo(queues.graphics_family, queue_priority), CreateQueueInfo(queues.present_family, queue_priority) };
+		if (!VulkanDeviceSupportsRequiredExtensions(physical_device, settings)) return false;
+		std::array queue_infos{
+			CreateQueueInfo(queues.graphics_family, settings.queue_priority),
+			CreateQueueInfo(queues.present_family, settings.queue_priority)
+		};
 		const bool same_queue = queues.graphics_family == queues.present_family;
-		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-		if (DeviceSupportsExtension(physical_device, "VK_KHR_portability_subset"))
-		{
-			extensions.push_back("VK_KHR_portability_subset");
-		}
+		const std::vector<const char*> extensions = SelectEnabledVulkanDeviceExtensions(physical_device, settings);
 		VkDeviceCreateInfo create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		create_info.queueCreateInfoCount = same_queue ? 1u : 2u;
 		create_info.pQueueCreateInfos = queue_infos.data();
@@ -54,6 +50,7 @@ namespace ve::rendering
 		create_info.ppEnabledExtensionNames = extensions.data();
 		if (vkCreateDevice(physical_device, &create_info, nullptr, &device_) != VK_SUCCESS) return false;
 		volkLoadDevice(device_);
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Device{ device_ });
 		vkGetDeviceQueue(device_, queues.graphics_family, 0, &graphics_queue_);
 		vkGetDeviceQueue(device_, queues.present_family, 0, &present_queue_);
 		return true;

@@ -30,22 +30,23 @@ namespace ve::ui
 {
 	void HudRenderer::DrawDebugOverlay(const HudFrameInfo& frame)
 	{
-		const std::string selectedPlacementName(frame.blockRegistry.Get(frame.selectedPlacementBlock).name);
-		DrawText("Block " + selectedPlacementName + "  1-9 hotbar", 10.0f, 10.0f, 1.2f);
+		const std::string selected_placement_name(frame.block_registry.Get(frame.selected_placement_block).name);
+		DrawText("Block " + selected_placement_name + "  1-9 hotbar", 10.0f, 10.0f, 1.2f);
 		DrawText("LMB break  RMB place  Space jump  F fly  [] distance  F3 debug", 10.0f, 26.0f, 1.2f);
-		if (!frame.showDebugOverlay)
+		if (!frame.show_debug_overlay)
 		{
 			return;
 		}
 
-		const glm::vec3 cameraPosition = frame.camera.GetPosition();
-		DrawText(std::to_string(frame.displayedFps) + " FPS", 10.0f, 50.0f, 1.6f);
-		DrawText("XYZ " + FormatVec3(cameraPosition), 10.0f, 70.0f, 1.2f);
-		DrawText(std::string("Mode ") + (frame.isFlying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
-		DrawText("Render distance " + std::to_string(frame.renderDistanceChunks) + " chunks", 10.0f, 102.0f, 1.2f);
-		DrawText("World events " + std::to_string(frame.pendingWorldEvents), 10.0f, 118.0f, 1.2f);
+		const glm::vec3 camera_position = frame.camera.GetPosition();
+		DrawText(std::to_string(frame.displayed_fps) + " FPS", 10.0f, 50.0f, 1.6f);
+		DrawText("XYZ " + FormatVec3(camera_position), 10.0f, 70.0f, 1.2f);
+		DrawText(std::string("Mode ") + (frame.is_flying ? "fly" : "walk"), 10.0f, 86.0f, 1.2f);
+		DrawText("Render distance " + std::to_string(frame.render_distance_chunks) + " chunks", 10.0f, 102.0f, 1.2f);
+		DrawText("World events " + std::to_string(frame.pending_world_events), 10.0f, 118.0f, 1.2f);
 
-		const std::string selectedText = frame.isBlockSelected ? "Target " + FormatIvec3(frame.targetBlock) : "Target none";
-		DrawText(selectedText, 10.0f, 134.0f, 1.2f);
+		const std::string selected_target_text =
+			frame.is_block_selected ? "Target " + FormatIvec3(frame.target_block) : "Target none";
+		DrawText(selected_target_text, 10.0f, 134.0f, 1.2f);
 	}
 }

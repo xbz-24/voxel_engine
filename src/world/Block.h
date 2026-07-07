@@ -55,6 +55,13 @@ namespace ve::blocks
 		CherryLog,
 		CherryPlanks,
 		CherryLeaves,
+		Sandstone,
+		CutSandstone,
+		RedSand,
+		RedSandstone,
+		Terracotta,
+		Cactus,
+		DeadBush,
 		Count
 	};
 

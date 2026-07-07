@@ -11,14 +11,18 @@ namespace ve::world
 	/// Spawns a square grid of generated chunks.
 	void World::SpawnFlatGrid(const FlatWorldSpawnSettings& settings)
 	{
-		_chunks.clear();
-		_worldSize = settings.worldSizeChunks;
-		for (int x = 0; x < settings.worldSizeChunks; x++)
+		ResetChunkStorageForRespawn(settings.worldSizeChunks);
+		for (int chunkCoordinateX = 0; chunkCoordinateX < settings.worldSizeChunks; chunkCoordinateX++)
 		{
-			for (int z = 0; z < settings.worldSizeChunks; z++)
+			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
 			{
-				_chunks.emplace_back(x, z, ChunkGenerationMode::GenerateNow);
-				RecordChunkGenerated(x, z);
+				_chunks.emplace_back(
+					chunkCoordinateX,
+					chunkCoordinateZ,
+					ChunkGenerationMode::GenerateNow,
+					settings.terrainGeneration,
+					CreateChunkRenderMeshResource());
+				RecordChunkGenerated(chunkCoordinateX, chunkCoordinateZ);
 			}
 		}
 		++_revision;
@@ -27,11 +31,24 @@ namespace ve::world
 	/// Spawns a square grid of air chunks ready for async generation.
 	void World::SpawnEmptyGrid(const FlatWorldSpawnSettings& settings)
 	{
-		_chunks.clear();
-		_worldSize = settings.worldSizeChunks;
-		for (int x = 0; x < settings.worldSizeChunks; x++)
-			for (int z = 0; z < settings.worldSizeChunks; z++)
-				_chunks.emplace_back(x, z, ChunkGenerationMode::Empty);
+		ResetChunkStorageForRespawn(settings.worldSizeChunks);
+		for (int chunkCoordinateX = 0; chunkCoordinateX < settings.worldSizeChunks; chunkCoordinateX++)
+			for (int chunkCoordinateZ = 0; chunkCoordinateZ < settings.worldSizeChunks; chunkCoordinateZ++)
+				_chunks.emplace_back(
+					chunkCoordinateX,
+					chunkCoordinateZ,
+					ChunkGenerationMode::Empty,
+					ve::world::TerrainGenerationSettings{},
+					CreateChunkRenderMeshResource());
 		++_revision;
+	}
+
+	void World::ResetChunkStorageForRespawn(int worldSizeChunks)
+	{
+		_chunks.clear();
+		dirty_chunks_.clear();
+		_pendingEvents.clear();
+		_worldSize = worldSizeChunks;
+		++_chunkStorageRevision;
 	}
 }

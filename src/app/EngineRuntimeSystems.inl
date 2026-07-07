@@ -1,0 +1,105 @@
+	/** Creates model, callbacks, editor UI, and view resources. */
+	EngineStartupResult EngineRuntime::CreateRuntimeSystems()
+	{
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
+		const EngineStartupResult backend_result = CreateRenderBackend();
+		if (!backend_result) return backend_result;
+		ve::rendering::VulkanBackend* vulkan_backend = nullptr;
+		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
+		{
+			vulkan_backend = static_cast<ve::rendering::VulkanBackend*>(backend_.get());
+		}
+		view_ = RenderViewFactory::Create({ window_.GraphicsApi(), &asset_paths_, vulkan_backend });
+		if (view_ == nullptr)
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Render view creation failed");
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderViewCreationFailed,
+				"Render view creation failed");
+		}
+		const int world_size_chunks = create_info.world_size_chunks;
+		const auto texture_loading = window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan
+			? ve::blocks::BlockRegistry::TextureLoading::MetadataOnly
+			: ve::blocks::BlockRegistry::TextureLoading::LoadTextures;
+		model_ = std::make_unique<GameModel>(
+			world_size_chunks,
+			&asset_paths_,
+			texture_loading,
+			create_info.terrain_generation,
+			backend_.get());
+		vulkan_demo_settings_.scene = ve::rendering::VulkanMinecraftDemoDefaultSceneConfig(create_info.vulkan_demo_preset);
+		vulkan_demo_settings_.request_scene_rebuild = true;
+		input_router_.BindMouseLook(
+			model_->MutableCamera(),
+			engine_._runtimeSettings.editor.is_settings_menu_open,
+			engine_._runtimeSettings.player.mouse_look);
+		engine_.ConfigureCallbacks(window_, input_router_);
+		if (create_info.has_custom_camera)
+		{
+			model_->MutableCamera().MoveTo(create_info.camera_position);
+			model_->MutableCamera().TurnTo(create_info.camera_look_at);
+		}
+		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
+		{
+			model_->MutableCamera().MoveTo(glm::vec3(90.0f, 58.0f, 124.0f));
+			model_->MutableCamera().TurnTo(glm::vec3(78.0f, 53.0f, 91.0f));
+			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Vulkan runtime is using the voxel world model");
+		}
+		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility)
+		{
+			editor_controller_.Initialize(window_, engine_._runtimeSettings);
+		}
+		return EngineStartupResult::Success();
+	}
+
+	/** Creates and initializes the selected backend before constructing its view. */
+	EngineStartupResult EngineRuntime::CreateRenderBackend()
+	{
+		const EngineCreateInfo& create_info = engine_.CreateInfo();
+		backend_ = ve::rendering::RenderBackendFactory::Create(window_.GraphicsApi());
+		if (backend_ == nullptr)
+		{
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderBackendUnavailable,
+				"Render backend factory returned no backend");
+		}
+		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) return EngineStartupResult::Success();
+		if (window_.GraphicsApi() != ve::rendering::GraphicsApi::Vulkan)
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Selected render backend is not implemented");
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::UnsupportedRenderBackend,
+				"Selected render backend is not implemented");
+		}
+
+		auto& vulkan_backend = static_cast<ve::rendering::VulkanBackend&>(*backend_);
+		ve::rendering::VulkanBackendSettings settings{};
+#if !defined(NDEBUG)
+		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
+		{
+			settings.context.enable_validation_layers = true;
+			settings.context.enable_debug_utils = true;
+		}
+#endif
+		const ve::rendering::VulkanBackendInitializationResult vulkan_backend_result =
+			vulkan_backend.InitializeDetailed(settings, window_);
+		if (!vulkan_backend_result)
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine,
+				"Vulkan backend initialization failed: " + vulkan_backend_result.message);
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderBackendInitializationFailed,
+				"Vulkan backend initialization failed: " + vulkan_backend_result.message);
+		}
+		if (!vulkan_frame_orchestrator_.Initialize(vulkan_backend,
+			window_,
+			asset_paths_.blockTexturesDirectory,
+			create_info.show_debug_overlay && create_info.settings_menu_enabled))
+		{
+			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame orchestrator initialization failed");
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RenderFrameRendererInitializationFailed,
+				"Vulkan frame orchestrator initialization failed");
+		}
+		return EngineStartupResult::Success();
+	}

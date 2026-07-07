@@ -8,70 +8,69 @@
 #include "GameModel.h"
 #include "RenderBackend.h"
 #include "RenderView.h"
-#include "VulkanFrameRenderer.h"
+#include "RuntimeInput.h"
+#include "RuntimeInputRouter.h"
+#include "VulkanFrameOrchestrator.h"
 
-#include <bitset>
 #include <memory>
 
 namespace ve::engine
 {
-	class OpenGLRenderView;
-
-	class VulkanInputController
-	{
-	public:
-		enum class Action : size_t { LeftClick, F1, F2, Count };
-
-		void Update(GLFWwindow* window);
-		bool IsDown(Action action) const;
-		bool IsJustPressed(Action action) const;
-
-	private:
-		std::bitset<static_cast<size_t>(Action::Count)> current_state_;
-		std::bitset<static_cast<size_t>(Action::Count)> previous_state_;
-	};
-
-	/** Owns the active runtime systems created by Engine::Run. */
+	/** Owns the active runtime systems created by EngineApplication::Run. */
 	class EngineRuntime
 	{
 	public:
 		/** Keeps a reference to the engine facade that owns shared settings and callbacks. */
-		explicit EngineRuntime(Engine& engine) noexcept;
+		explicit EngineRuntime(EngineApplication& engine) noexcept;
 
 		/** Initializes systems, runs the frame loop, shuts down, and returns a process status. */
 		[[nodiscard]] int Execute();
 
-	private:
-		[[nodiscard]] bool Initialize();
-		void PrepareAssetsAndLogging();
-		[[nodiscard]] bool CreateRuntimeSystems();
-		[[nodiscard]] bool CreateRenderBackend();
+		/** Initializes all runtime systems without entering the main loop. */
+		[[nodiscard]] EngineStartupResult Start();
 
-		[[nodiscard]] OpenGLRenderView& LegacyOpenGLView() noexcept;
+		/** Runs exactly one frame and reports whether another frame should be requested. */
+		[[nodiscard]] bool Step();
+
+		/** Releases runtime systems and returns the object to an unstarted state. */
+		void Shutdown();
+
+	private:
+		[[nodiscard]] EngineStartupResult Initialize();
+		void PrepareAssetsAndLogging();
+		[[nodiscard]] EngineStartupResult CreateRuntimeSystems();
+		[[nodiscard]] EngineStartupResult CreateRenderBackend();
 
 		void RunMainLoop();
 		void RunFrame();
 		void RunOpenGLFrame();
 		void RunVulkanFrame();
+		[[nodiscard]] ve::rendering::VulkanDemoInput CaptureVulkanDemoInput();
+		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input);
+		[[nodiscard]] bool ShouldContinue() const noexcept;
 		void BeginRuntimeFrame();
 		void UpdateGameplay();
-		void RenderWorld(OpenGLRenderView& legacyView);
-		void RenderHud(OpenGLRenderView& legacyView);
+		void RenderWorld(RenderView& renderView);
+		void RenderHud(RenderView& renderView);
 		void EndRuntimeFrame();
-		void Shutdown();
-
-		Engine& engine_;
-		Window window_{ "Voxel Engine v1.0.0" };
-		Engine::CallbackContext callback_context_{ nullptr, nullptr, { 0.0, 0.0, true } };
+		void ApplyConfiguredWorldEditsOnce();
+		void ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits);
+		void InvokePublicApiFrameCallbacks();
+		EngineApplication& engine_;
+		Window window_;
+		RuntimeInputRouter input_router_;
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;
 		std::unique_ptr<RenderView> view_;
-		ve::rendering::VulkanFrameRenderer vulkan_frame_renderer_;
+		ve::rendering::VulkanFrameOrchestrator vulkan_frame_orchestrator_;
+		// Temporary demo settings owned by runtime until public scenes drive Vulkan rendering.
 		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
-		VulkanInputController vulkan_input_;
+		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;
 		ve::time::FrameTimer frame_timer_;
+		double elapsed_seconds_ = 0.0;
+		bool configured_world_edits_applied_ = false;
 	};
 }

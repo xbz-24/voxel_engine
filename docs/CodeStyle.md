@@ -24,6 +24,8 @@ This project is moving toward Google-style C++ with small engine-specific rules.
 - Prefer `std::unique_ptr` for OpenGL-backed resources that need delayed construction.
 - Prefer move-only outputs for heavy mesh/network payloads.
 - Avoid raw owning pointers.
+- Use raw pointers only for nullable, non-owning views. Prefer references when null is invalid, `std::span` for contiguous borrowed ranges, and smart pointers only when ownership is transferred or shared.
+- Prefer `std::ranges`, constrained templates, and small generic helpers when they remove real duplication without hiding domain names.
 
 ## Migration Rule
 

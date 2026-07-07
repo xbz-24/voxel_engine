@@ -1,7 +1,16 @@
 #include "AmbientOcclusionPass.h"
 
+#include <algorithm>
+#include <cstdint>
+
 namespace
 {
+	/// Converts dimensions to the unsigned frame graph metadata type.
+	ve::core::Index ResourceExtent(int value) noexcept
+	{
+		return static_cast<ve::core::Index>(std::max(1, value));
+	}
+
 	/// Creates one single-channel texture used as the AO output.
 	GLuint CreateOcclusionTexture(int width, int height)
 	{
@@ -31,6 +40,11 @@ namespace ve::rendering
 		height_ = specification.height;
 		radius_ = specification.radius;
 		strength_ = specification.strength;
+		resources_ = specification.resources;
+		if (resources_.depth_input.name.empty() || resources_.occlusion_output.name.empty())
+		{
+			resources_ = DescribeResources(width_, height_);
+		}
 		glGenFramebuffers(1, &framebuffer_);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
 		occlusion_texture_ = CreateOcclusionTexture(width_, height_);
@@ -41,6 +55,29 @@ namespace ve::rendering
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return is_complete;
 	}
+
+	/// Describes AO frame graph resources without requiring an OpenGL context.
+	AmbientOcclusionResources AmbientOcclusionPass::DescribeResources(int width, int height)
+	{
+		AmbientOcclusionResources resources{};
+		resources.depth_input.name = "ao.depth";
+		resources.depth_input.format = FrameGraphResourceFormat::Depth24Stencil8;
+		resources.depth_input.width = ResourceExtent(width);
+		resources.depth_input.height = ResourceExtent(height);
+		resources.depth_input.lifetime = FrameGraphResourceLifetime::Imported;
+		resources.depth_input.imported = true;
+
+		resources.occlusion_output.name = "ao.occlusion";
+		resources.occlusion_output.format = FrameGraphResourceFormat::R8;
+		resources.occlusion_output.width = ResourceExtent(width);
+		resources.occlusion_output.height = ResourceExtent(height);
+		resources.occlusion_output.lifetime = FrameGraphResourceLifetime::Exported;
+		resources.occlusion_output.exported = true;
+		return resources;
+	}
+
+	/// Returns the current AO frame graph resource metadata.
+	const AmbientOcclusionResources& AmbientOcclusionPass::Resources() const noexcept { return resources_; }
 
 	/// Binds the AO framebuffer so the occlusion shader can write into it.
 	void AmbientOcclusionPass::BeginPass() const

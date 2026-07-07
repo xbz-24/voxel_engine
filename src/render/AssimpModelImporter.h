@@ -26,7 +26,7 @@ namespace ve::assets
 		/** @param material Assimp material. @param model_directory Directory used to resolve relative textures. @return Internal material. */
 		[[nodiscard]] static ImportedMaterial ReadMaterial(const aiMaterial& material, const std::filesystem::path& model_directory);
 
-		/** @param mesh Assimp mesh. @return Internal mesh. */
-		[[nodiscard]] static ImportedMesh ReadMesh(const aiMesh& mesh);
+		/** @param mesh Assimp mesh. @param options Import options. @return Internal mesh. */
+		[[nodiscard]] static ImportedMesh ReadMesh(const aiMesh& mesh, const ModelImportOptions& options);
 	};
 }

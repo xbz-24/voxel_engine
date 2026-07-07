@@ -30,13 +30,13 @@ namespace ve::rendering
 	/// Returns the texture containing previous resolved history.
 	GLuint TemporalAntiAliasingPass::PreviousHistoryTexture() const noexcept
 	{
-		return history_textures_[(frame_index_ + 1) % 2];
+		return history_cache_.PreviousTexture(frame_index_);
 	}
 
 	/// Returns the texture that should receive the current resolve.
 	GLuint TemporalAntiAliasingPass::CurrentHistoryTexture() const noexcept
 	{
-		return history_textures_[frame_index_ % 2];
+		return history_cache_.CurrentTexture(frame_index_);
 	}
 
 	/// Returns the blend factor used by the resolve shader.

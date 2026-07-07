@@ -6,10 +6,9 @@ namespace ve::rendering
 	{
 		switch (preset)
 		{
-		case VulkanMinecraftDemoPreset::LakesideVillage: return "Lakeside village";
-		case VulkanMinecraftDemoPreset::QuarryOutpost: return "Quarry outpost";
-		case VulkanMinecraftDemoPreset::ForestFarm: return "Forest farm";
-		case VulkanMinecraftDemoPreset::StressTown: return "Stress town";
+		case VulkanMinecraftDemoPreset::HyperrealDesert: return "Crystal jungle";
+		case VulkanMinecraftDemoPreset::AquaModel: return "Aqua model preview";
+		case VulkanMinecraftDemoPreset::SponzaAtrium: return "Sponza atrium preview";
 		}
 		return "Unknown";
 	}

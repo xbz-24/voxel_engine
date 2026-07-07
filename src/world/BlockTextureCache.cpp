@@ -19,8 +19,7 @@ namespace ve::blocks
 		auto [entry, inserted] = _textures.try_emplace(fileName, ve::rendering::kInvalidTextureHandle);
 		if (inserted)
 		{
-			entry->second = static_cast<ve::rendering::TextureHandle>(
-				ve::rendering::LoadTexture((_blockTextureDirectory / fileName).string().c_str()));
+			entry->second = ve::rendering::LoadTexture((_blockTextureDirectory / fileName).string().c_str());
 		}
 		return entry->second;
 	}

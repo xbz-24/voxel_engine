@@ -1,6 +1,8 @@
 #include "Engine.h"
 
-void Engine::renderDebugCoordinateSystemAxes()
+#include <GL/glew.h>
+
+void EngineApplication::renderDebugCoordinateSystemAxes()
 {
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -15,7 +17,7 @@ void Engine::renderDebugCoordinateSystemAxes()
 	glEnd();
 }
 
-void Engine::drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube)
+void EngineApplication::drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube)
 {
 	glPushMatrix();
 	glTranslatef(static_cast<float>(blockPos.x), static_cast<float>(blockPos.y), static_cast<float>(blockPos.z));

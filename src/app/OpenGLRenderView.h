@@ -10,6 +10,8 @@
 #include "RenderView.h"
 #include "SkyBox.h"
 
+#include <GL/glew.h>
+
 namespace ve::engine
 {
 	/** OpenGL compatibility adapter for the current voxel world renderer. */
@@ -28,11 +30,23 @@ namespace ve::engine
 		/** @return Read-only high-level primitive drawing API. */
 		[[nodiscard]] const ve::rendering::GraphicsFacade* Graphics() const noexcept override;
 
-		/** @return This object as the OpenGL compatibility adapter. */
-		[[nodiscard]] OpenGLRenderView* AsOpenGLRenderView() noexcept override;
+		/** @return Skybox render service. */
+		[[nodiscard]] SkyBox* Skybox() noexcept override;
 
-		/** @return This object as the read-only OpenGL compatibility adapter. */
-		[[nodiscard]] const OpenGLRenderView* AsOpenGLRenderView() const noexcept override;
+		/** @return Ground/debug plane render service. */
+		[[nodiscard]] Plane* GroundPlane() noexcept override;
+
+		/** @return Selected-block render service. */
+		[[nodiscard]] BlockSelectionCube* SelectionCube() noexcept override;
+
+		/** @return HUD render service. */
+		[[nodiscard]] ve::ui::HudRenderer* Hud() noexcept override;
+
+		/** Renders the cached OpenGL cloud layer. */
+		void RenderCloudLayer() override;
+
+		/** Releases OpenGL display lists owned by this view. */
+		void ReleaseCachedResources() override;
 
 		/** @return Mutable skybox renderer. */
 		[[nodiscard]] SkyBox& MutableSkyBox() noexcept;
@@ -57,5 +71,8 @@ namespace ve::engine
 		ve::ui::HudRenderer hud_renderer_;
 		ve::rendering::OpenGLRenderCommandExecutor primitive_command_executor_;
 		ve::rendering::GraphicsFacade graphics_;
+		GLuint cloud_display_list_id_ = 0;
+
+		void BuildCloudDisplayList();
 	};
 }

@@ -25,8 +25,8 @@ namespace ve::rendering
 	bool DeferredRenderer::Initialize(const DeferredFramebufferSpecification& specification)
 	{
 		Release();
-		width_ = specification.width;
-		height_ = specification.height;
+		width_ = static_cast<int>(specification.width);
+		height_ = static_cast<int>(specification.height);
 		glGenFramebuffers(1, &framebuffer_);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
 		albedo_texture_ = CreateColorTarget(width_, height_, GL_RGBA8);

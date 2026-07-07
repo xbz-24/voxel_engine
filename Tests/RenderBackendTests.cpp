@@ -5,8 +5,16 @@
 #include "RenderBackendCatalog.h"
 #include "RenderBackendFactory.h"
 #include "RenderBackendSelector.h"
+#include "TextureLoader.h"
+#include "VulkanBackendSettings.h"
 #include "VulkanChunkMeshTranslator.h"
+#include "VulkanDebugLabels.h"
+#include "VulkanGpuChunkRendererTypes.h"
+#include "VulkanMinecraftDemoProfiles.h"
+#include "VulkanMinecraftDemoSettings.h"
 #include "VulkanRenderView.h"
+#include "VulkanSoftwareRasterizerColor.h"
+#include "VulkanSoftwareVoxelRasterizerData.h"
 #include "VulkanSwapchainChoices.h"
 
 #include <array>
@@ -14,114 +22,48 @@
 #include <string>
 #include <vector>
 
-TEST_CASE("render backend selector uses the explicitly requested compatibility backend")
+#include "RenderBackendSelectionTests.inl"
+#include "RenderBackendCapabilityTests.inl"
+#include "RenderBackendVulkanTests.inl"
+
+TEST_CASE("decoded image validates rgba8 metadata and payload size")
 {
-	const ve::rendering::RenderBackendConfiguration configuration{
-		.preferred_api = ve::rendering::GraphicsApi::OpenGLCompatibility
+	ve::rendering::DecodedImage image;
+	image.width = 2;
+	image.height = 1;
+	image.source_channel_count = 3;
+	image.rgba = {
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 }
 	};
 
-	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration);
+	CHECK(image.pixel_format == ve::rendering::ImagePixelFormat::Rgba8);
+	CHECK(image.color_space == ve::rendering::TextureColorSpace::Srgb);
+	CHECK(image.mip_level_count == 1);
+	CHECK(image.IsValid());
 
-	CHECK(selected_api == ve::rendering::GraphicsApi::OpenGLCompatibility);
+	ve::rendering::DirectX12Backend backend;
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
+
+	image.rgba.pop_back();
+	CHECK(!image.IsValid());
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
 }
 
-TEST_CASE("render backend selector defaults to vulkan when legacy rendering is gone")
+TEST_CASE("vulkan debug labels are safe before debug utils are available")
 {
-	const ve::rendering::RenderBackendConfiguration configuration{};
+	ve::rendering::VulkanDebugLabels labels;
 
-	const ve::rendering::GraphicsApi selected_api = ve::rendering::RenderBackendSelector::SelectApi(configuration);
-
-	CHECK(selected_api == ve::rendering::GraphicsApi::Vulkan);
-	CHECK(!configuration.allow_opengl_compatibility_fallback);
-}
-
-TEST_CASE("render backend catalog exposes vulkan as the default api")
-{
-	const ve::rendering::RenderBackendDescriptor& backend = ve::rendering::RenderBackendCatalog::DefaultBackend();
-
-	CHECK(backend.api == ve::rendering::GraphicsApi::Vulkan);
-	CHECK(backend.is_default);
-	CHECK(backend.is_implemented);
-}
-
-TEST_CASE("render backend factory creates every declared backend object")
-{
-	for (const ve::rendering::RenderBackendDescriptor& descriptor : ve::rendering::RenderBackendCatalog::Backends())
-	{
-		const std::unique_ptr<ve::rendering::RenderBackend> backend = ve::rendering::RenderBackendFactory::Create(descriptor.api);
-		REQUIRE(backend != nullptr);
-		CHECK(backend->Api() == descriptor.api);
-	}
-}
-
-TEST_CASE("opengl compatibility backend exposes conservative capabilities")
-{
-	const ve::rendering::OpenGLCompatibilityBackend backend;
-	const ve::rendering::RenderBackendCapabilities capabilities = backend.Capabilities();
-
-	CHECK(backend.Api() == ve::rendering::GraphicsApi::OpenGLCompatibility);
-	CHECK(!capabilities.supports_compute);
-	CHECK(!capabilities.supports_ray_tracing);
-	CHECK(capabilities.is_available);
-}
-
-TEST_CASE("directx backend is declared but unavailable until implemented")
-{
-	const ve::rendering::DirectX12Backend backend;
-	const ve::rendering::RenderBackendCapabilities capabilities = backend.Capabilities();
-
-	CHECK(backend.Api() == ve::rendering::GraphicsApi::DirectX12);
-	CHECK(!capabilities.is_available);
-	CHECK(std::string{ backend.Name() } == "DirectX12");
-}
-
-TEST_CASE("vulkan swapchain choices prefer uncapped present and srgb")
-{
-	const VkSurfaceFormatKHR fallback{ VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-	const VkSurfaceFormatKHR preferred{ VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-	const std::array formats{ fallback, preferred };
-	const std::array modes{ VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR };
-	const std::array low_latency_modes{ VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_MAILBOX_KHR };
-
-	CHECK(ve::rendering::ChooseSwapchainSurfaceFormat(formats).format == VK_FORMAT_B8G8R8A8_SRGB);
-	CHECK(ve::rendering::ChooseSwapchainPresentMode(modes) == VK_PRESENT_MODE_IMMEDIATE_KHR);
-	CHECK(ve::rendering::ChooseSwapchainPresentMode(low_latency_modes) == VK_PRESENT_MODE_MAILBOX_KHR);
-}
-
-TEST_CASE("vulkan render view exposes vulkan hpp handles")
-{
-	const vk::Extent2D extent{ 1280U, 720U };
-	const ve::engine::VulkanRenderView view({ vk::Device{}, vk::SwapchainKHR{}, extent });
-
-	CHECK(view.Api() == ve::rendering::GraphicsApi::Vulkan);
-	CHECK(view.Device() == vk::Device{});
-	CHECK(view.Swapchain() == vk::SwapchainKHR{});
-	CHECK(view.SwapchainExtent().width == 1280U);
-	CHECK(view.SwapchainExtent().height == 720U);
-	CHECK(view.AsVulkanRenderView() == &view);
-	CHECK(ve::engine::TryRenderViewCast<ve::engine::VulkanRenderView>(view) == &view);
-	CHECK(view.AsOpenGLRenderView() == nullptr);
-}
-
-TEST_CASE("vulkan chunk mesh translator triangulates legacy quads")
-{
-	ve::world::mesh::ChunkMeshBuildResult mesh;
-	mesh.vertices = {
-		{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f },
-		{ 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f },
-		{ 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
-		{ 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f }
-	};
-	mesh.batches = { ve::rendering::ChunkMeshBatch{ 42u, 0u, 4u } };
-
-	const ve::rendering::VulkanChunkMeshPayload payload = ve::rendering::BuildVulkanChunkMeshPayload(mesh);
-
-	CHECK(payload.vertices.size() == 4u);
-	CHECK(payload.indices == std::vector<std::uint32_t>{ 0u, 1u, 2u, 0u, 2u, 3u });
-	REQUIRE(payload.batches.size() == 1u);
-	CHECK(payload.batches.front().texture == 42u);
-	CHECK(payload.batches.front().first_index == 0u);
-	CHECK(payload.batches.front().index_count == 6u);
-	CHECK(payload.draw.index_count == 6u);
-	CHECK(payload.draw.instance_count == 1u);
+	CHECK(!labels.IsAvailable());
+	CHECK(!labels.NameObject(VK_OBJECT_TYPE_DEVICE, 1U, "device"));
+	labels.Initialize(VK_NULL_HANDLE, true);
+	CHECK(!labels.IsAvailable());
+	labels.Release();
+	CHECK(!labels.IsAvailable());
 }

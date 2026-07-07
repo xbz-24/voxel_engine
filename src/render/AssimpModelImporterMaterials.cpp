@@ -24,13 +24,23 @@ namespace
 		return value;
 	}
 
-	/// Reads the first available albedo texture path.
-	std::filesystem::path ReadAlbedoTexture(const aiMaterial& material, const std::filesystem::path& model_directory)
+	/// Reads the first available texture path for the requested Assimp slots.
+	std::filesystem::path ReadTexture(
+		const aiMaterial& material,
+		const std::filesystem::path& model_directory,
+		aiTextureType primary_type,
+		aiTextureType fallback_type = aiTextureType_NONE)
 	{
 		aiString texture_path;
-		if (material.GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) != AI_SUCCESS &&
-			material.GetTexture(aiTextureType_DIFFUSE, 0, &texture_path) != AI_SUCCESS) return {};
-		return model_directory / texture_path.C_Str();
+		if (material.GetTexture(primary_type, 0, &texture_path) == AI_SUCCESS)
+		{
+			return model_directory / texture_path.C_Str();
+		}
+		if (fallback_type != aiTextureType_NONE && material.GetTexture(fallback_type, 0, &texture_path) == AI_SUCCESS)
+		{
+			return model_directory / texture_path.C_Str();
+		}
+		return {};
 	}
 }
 
@@ -41,12 +51,18 @@ namespace ve::assets
 	{
 		aiString name;
 		material.Get(AI_MATKEY_NAME, name);
-		return ImportedMaterial{
-			name.C_Str(),
-			ReadBaseColor(material),
-			ReadScalar(material, AI_MATKEY_METALLIC_FACTOR, 0.0f),
-			ReadScalar(material, AI_MATKEY_ROUGHNESS_FACTOR, 0.8f),
-			ReadAlbedoTexture(material, model_directory)
-		};
+		ImportedMaterial imported_material{};
+		imported_material.name = name.C_Str();
+		imported_material.base_color = ReadBaseColor(material);
+		imported_material.metallic = ReadScalar(material, AI_MATKEY_METALLIC_FACTOR, 0.0f);
+		imported_material.roughness = ReadScalar(material, AI_MATKEY_ROUGHNESS_FACTOR, 0.8f);
+		imported_material.albedo_texture = ReadTexture(material, model_directory, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
+		imported_material.normal_texture = ReadTexture(material, model_directory, aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
+		imported_material.metallic_roughness_texture = ReadTexture(material, model_directory, aiTextureType_GLTF_METALLIC_ROUGHNESS);
+		imported_material.metallic_texture = ReadTexture(material, model_directory, aiTextureType_METALNESS);
+		imported_material.roughness_texture = ReadTexture(material, model_directory, aiTextureType_DIFFUSE_ROUGHNESS);
+		imported_material.occlusion_texture = ReadTexture(material, model_directory, aiTextureType_AMBIENT_OCCLUSION);
+		imported_material.emissive_texture = ReadTexture(material, model_directory, aiTextureType_EMISSION_COLOR, aiTextureType_EMISSIVE);
+		return imported_material;
 	}
 }

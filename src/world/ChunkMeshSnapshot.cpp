@@ -16,7 +16,7 @@ namespace ve::world::mesh
 	ChunkMeshSnapshot CaptureChunkMeshSnapshot(const Chunk& chunk)
 	{
 		const ChunkMeshInput chunkInput = chunk.CreateMeshInput();
-		ChunkMeshSnapshot snapshot{ chunkInput.chunkX, chunkInput.chunkZ };
+		ChunkMeshSnapshot snapshot{ chunkInput.chunkX, chunkInput.chunkZ, chunk.MeshRevision() };
 		snapshot.blocks.assign(chunkInput.blocks.begin(), chunkInput.blocks.end());
 		return snapshot;
 	}

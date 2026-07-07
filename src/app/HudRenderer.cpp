@@ -5,22 +5,32 @@
 #include <glm/ext.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+
 namespace ve::ui
 {
+	namespace
+	{
+		ve::rendering::TextureHandle LoadHudTexture(const std::filesystem::path& path)
+		{
+			return ve::rendering::LoadTexture(path.string().c_str());
+		}
+	}
+
 	HudRenderer::HudRenderer(const ve::assets::AssetPaths& paths)
-		: _textures{
-			ve::rendering::LoadTexture(paths.crosshairTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hotbarTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hotbarSelectionTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.experienceBarTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.healthTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.hungerTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.fontTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuBackgroundTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuButtonTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuButtonHighlightedTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuSliderTexture.string().c_str()),
-			ve::rendering::LoadTexture(paths.menuSliderHandleTexture.string().c_str())
+		: textures_{
+			LoadHudTexture(paths.crosshairTexture),
+			LoadHudTexture(paths.hotbarTexture),
+			LoadHudTexture(paths.hotbarSelectionTexture),
+			LoadHudTexture(paths.experienceBarTexture),
+			LoadHudTexture(paths.healthTexture),
+			LoadHudTexture(paths.hungerTexture),
+			LoadHudTexture(paths.fontTexture),
+			LoadHudTexture(paths.menuBackgroundTexture),
+			LoadHudTexture(paths.menuButtonTexture),
+			LoadHudTexture(paths.menuButtonHighlightedTexture),
+			LoadHudTexture(paths.menuSliderTexture),
+			LoadHudTexture(paths.menuSliderHandleTexture)
 		}
 	{
 	}
@@ -40,13 +50,13 @@ namespace ve::ui
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 
-		if (frame.settingsMenu.isOpen)
+		if (frame.settings_menu.is_open)
 		{
 			DrawSettingsMenu(frame);
 		}
 		else
 		{
-			DrawSurvivalHud(frame.window, frame.blockRegistry, frame.selectedPlacementBlock);
+			DrawSurvivalHud(frame.window, frame.block_registry, frame.selected_placement_block);
 			DrawDebugOverlay(frame);
 		}
 

@@ -1,7 +1,8 @@
 #include "Logger.h"
 #include "Window.h"
 
-#include <GL/glew.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 /// Starts GLFW and reports whether initialization succeeded.
 bool ve::engine::Window::InitializeGlfw()
@@ -11,48 +12,20 @@ bool ve::engine::Window::InitializeGlfw()
 	return false;
 }
 
-/// Reads the primary monitor video mode and updates window dimensions.
-const GLFWvidmode* ve::engine::Window::ReadPrimaryMonitorMode()
-{
-	GLFWmonitor* primaryDisplayMonitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode* videoMode = glfwGetVideoMode(primaryDisplayMonitor);
-	_width = videoMode->width;
-	_height = videoMode->height;
-	return videoMode;
-}
-
-/// Applies GLFW window hints from a video mode.
-void ve::engine::Window::ApplyWindowHints(const GLFWvidmode& videoMode)
-{
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	glfwWindowHint(GLFW_RED_BITS, videoMode.redBits);
-	glfwWindowHint(GLFW_GREEN_BITS, videoMode.greenBits);
-	glfwWindowHint(GLFW_BLUE_BITS, videoMode.blueBits);
-	glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
-	ApplyGraphicsApiHints();
-}
-
-/// Applies API-specific window hints.
-void ve::engine::Window::ApplyGraphicsApiHints()
-{
-	if (_graphicsApi == ve::rendering::GraphicsApi::Vulkan || _graphicsApi == ve::rendering::GraphicsApi::DirectX12)
-	{
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		return;
-	}
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-}
-
 /// Creates the native GLFW window.
-bool ve::engine::Window::CreateNativeWindow()
+bool ve::engine::Window::CreateNativeWindow(GLFWmonitor* fullscreen_monitor)
 {
-	_window = glfwCreateWindow(_width, _height, _title.c_str(), nullptr, nullptr);
+	_window = glfwCreateWindow(_width, _height, _title.c_str(), fullscreen_monitor, nullptr);
 	if (_window) return true;
 	VE_LOG_ERROR("Failed to create GLFW window");
 	glfwTerminate();
 	return false;
+}
+
+/// Applies startup-only window input state.
+void ve::engine::Window::ApplyInitialCursorMode()
+{
+	if (_captureCursorOnStart) SetCursorMode(CursorMode::Captured);
 }
 
 /// Wires GLFW user data, callbacks and current context.
@@ -62,17 +35,6 @@ void ve::engine::Window::ConfigureNativeCallbacks()
 	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
 	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window);
 }
-
-/// Initializes GLEW after the OpenGL context exists.
-//la borro por completo
-/*bool ve::engine::Window::InitializeOpenGLLoader()
-{
-	if (_graphicsApi != ve::rendering::GraphicsApi::OpenGLCompatibility) return true;
-	glewExperimental = GL_TRUE;
-	if (glewInit() == GLEW_OK) return true;
-	VE_LOG_ERROR("Failed to initialize GLEW");
-	return false;
-}*/
 
 /// Initializes the native window with the default Vulkan backend.
 bool ve::engine::Window::Initialize()
@@ -85,9 +47,18 @@ bool ve::engine::Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
 {
 	if (!InitializeGlfw()) return false;
 	_graphicsApi = graphicsApi;
-	const GLFWvidmode* videoMode = ReadPrimaryMonitorMode();
+	GLFWmonitor* display_monitor = SelectDisplayMonitor();
+	const GLFWvidmode* videoMode = ReadDisplayMode(display_monitor);
+	if (!videoMode)
+	{
+		VE_LOG_ERROR("Failed to read GLFW display mode");
+		glfwTerminate();
+		return false;
+	}
 	ApplyWindowHints(*videoMode);
-	if (!CreateNativeWindow()) return false;
+	GLFWmonitor* fullscreen_monitor = _fullscreen ? display_monitor : nullptr;
+	if (!CreateNativeWindow(fullscreen_monitor)) return false;
 	ConfigureNativeCallbacks();
+	ApplyInitialCursorMode();
 	return true;
 }

@@ -14,4 +14,10 @@ namespace ve::rendering
 		graph_.AddPass(ve::core::Move(name), ve::core::Move(execute));
 		return *this;
 	}
+
+	FrameGraphBuilder& FrameGraphBuilder::AddPass(FrameGraphPass pass)
+	{
+		graph_.AddPass(ve::core::Move(pass));
+		return *this;
+	}
 }
