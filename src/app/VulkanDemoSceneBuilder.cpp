@@ -7,6 +7,7 @@
 #include "ImportedModel.h"
 #include "Logger.h"
 #include "ModelAssetLibrary.h"
+#include "VulkanMinecraftDemoProfiles.h"
 #include "World.h"
 
 #include <stb_image.h>

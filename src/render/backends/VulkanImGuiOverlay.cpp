@@ -2,6 +2,7 @@
 
 #include "Logger.h"
 #include "VulkanBackend.h"
+#include "VulkanMinecraftDemoProfiles.h"
 #include "Window.h"
 
 #define GLFW_INCLUDE_NONE
