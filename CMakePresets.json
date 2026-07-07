@@ -13,6 +13,20 @@
       }
     },
     {
+      "name": "windows-vcpkg-fast-dev",
+      "displayName": "Windows Fast Dev (vcpkg)",
+      "inherits": "windows-vcpkg",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "VE_BUILD_API_DOCS": false,
+        "VE_BUILD_EXAMPLES": false,
+        "VE_BUILD_TESTS": false,
+        "VE_BUILD_RUNTIME_SMOKE_TESTS": false,
+        "VE_ENABLE_STRICT_WARNINGS": false,
+        "VE_WARNINGS_AS_ERRORS": false
+      }
+    },
+    {
       "name": "windows-visual-studio",
       "displayName": "Visual Studio solution",
       "generator": "Visual Studio 18 2026",
@@ -76,6 +90,13 @@
       "name": "windows-vcpkg-build",
       "displayName": "Build voxel engine",
       "configurePreset": "windows-vcpkg",
+      "configuration": "Debug",
+      "targets": ["voxel_engine"]
+    },
+    {
+      "name": "windows-vcpkg-fast-dev-build",
+      "displayName": "Fast dev build voxel engine",
+      "configurePreset": "windows-vcpkg-fast-dev",
       "configuration": "Debug",
       "targets": ["voxel_engine"]
     },
