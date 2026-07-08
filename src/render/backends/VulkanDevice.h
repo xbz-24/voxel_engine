@@ -8,6 +8,7 @@
 
 namespace ve::rendering
 {
+	/** Logical device creation settings for queues and extension negotiation. */
 	struct VulkanDeviceSettings
 	{
 		float queue_priority = 1.0f;

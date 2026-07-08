@@ -2,10 +2,10 @@
 
 #include "BlockDefinitions.h"
 #include "Logger.h"
+#include "StbiImageData.h"
 #include "VulkanSoftwareRasterizerBlockColor.h"
 
 #include <boost/container/flat_map.hpp>
-#include <stb_image.h>
 
 #include <algorithm>
 #include <array>
@@ -39,7 +39,7 @@ namespace ve::rendering
 			int width = 0;
 			int height = 0;
 			int channels = 0;
-			unsigned char* data = stbi_load(texture_path.string().c_str(), &width, &height, &channels, 4);
+			StbiImageData data(stbi_load(texture_path.string().c_str(), &width, &height, &channels, 4));
 			if (data != nullptr && width > 0 && height > 0)
 			{
 				texture.width = static_cast<std::uint32_t>(width);
@@ -47,7 +47,7 @@ namespace ve::rendering
 				texture.pixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height));
 				for (std::size_t index = 0; index < texture.pixels.size(); ++index)
 				{
-					const unsigned char* pixel = data + (index * 4u);
+					const stbi_uc* pixel = data.get() + (index * 4u);
 					const Rgb color{ pixel[0], pixel[1], pixel[2] };
 					texture.pixels[index] = pixel[3] < 16u ? PackRgb(fallback) : PackRgb(color);
 				}
@@ -56,7 +56,6 @@ namespace ve::rendering
 			{
 				texture = CpuTexture{ std::vector<std::uint32_t>{ PackRgb(fallback) }, 1u, 1u };
 			}
-			stbi_image_free(data);
 
 			const auto next_index = static_cast<std::uint16_t>(texture_library_.textures.size());
 			texture_library_.textures.push_back(std::move(texture));

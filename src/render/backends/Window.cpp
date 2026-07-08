@@ -8,6 +8,14 @@
 
 namespace ve::engine
 {
+	void Window::GlfwWindowDeleter::operator()(GLFWwindow* window) const noexcept
+	{
+		if (window != nullptr)
+		{
+			glfwDestroyWindow(window);
+		}
+	}
+
 	Window::Window(std::string_view title)
 		: Window(WindowCreateInfo{ .title = std::string{ title }, .fullscreen = true })
 	{
@@ -32,10 +40,7 @@ namespace ve::engine
 	}
 	Window::~Window()
 	{
-		if (_window)
-		{
-			glfwDestroyWindow(_window);
-		}
+		_window.reset();
 		glfwTerminate();
 	}
 }

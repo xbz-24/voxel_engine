@@ -20,5 +20,5 @@ namespace
 /// Applies the cursor mode used by menus and first-person camera control.
 void ve::engine::Window::SetCursorMode(CursorMode mode)
 {
-	glfwSetInputMode(_window, GLFW_CURSOR, ToGlfwCursorMode(mode));
+	glfwSetInputMode(_window.get(), GLFW_CURSOR, ToGlfwCursorMode(mode));
 }

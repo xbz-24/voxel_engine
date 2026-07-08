@@ -27,15 +27,14 @@
 				int width = 0;
 				int height = 0;
 				int channels = 0;
-				stbi_uc* data = stbi_load(path.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				ve::rendering::StbiImageData data(stbi_load(path.string().c_str(), &width, &height, &channels, STBI_rgb_alpha));
 				if (data != nullptr && width > 0 && height > 0)
 				{
 					const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
 					texture.width = width;
 					texture.height = height;
-					texture.pixels.assign(data, data + byte_count);
+					texture.pixels.assign(data.get(), data.get() + byte_count);
 				}
-				stbi_image_free(data);
 			}
 
 			const auto inserted = cache.emplace(key, std::move(texture));

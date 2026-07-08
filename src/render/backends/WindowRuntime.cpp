@@ -18,7 +18,7 @@ bool ve::engine::Window::IsVSyncEnabled() const noexcept
 
 void ve::engine::Window::Update()
 {
-	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapBuffers(_window);
+	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapBuffers(_window.get());
 	glfwPollEvents();
 }
 
@@ -31,12 +31,12 @@ std::vector<ve::engine::WindowEvent> ve::engine::Window::DrainEvents()
 
 bool ve::engine::Window::ShouldClose() const
 {
-	return static_cast<bool>(glfwWindowShouldClose(_window));
+	return static_cast<bool>(glfwWindowShouldClose(_window.get()));
 }
 
 void ve::engine::Window::Close()
 {
-	glfwSetWindowShouldClose(_window, GLFW_TRUE);
+	glfwSetWindowShouldClose(_window.get(), GLFW_TRUE);
 }
 
 int ve::engine::Window::GetWidth() const
@@ -59,7 +59,7 @@ ve::engine::Window::WindowSize ve::engine::Window::ClientWindowSize() const noex
 	WindowSize size{};
 	if (_window != nullptr)
 	{
-		glfwGetWindowSize(_window, &size.width, &size.height);
+		glfwGetWindowSize(_window.get(), &size.width, &size.height);
 	}
 	return size;
 }
@@ -69,19 +69,19 @@ ve::engine::Window::CursorPosition ve::engine::Window::CurrentCursorPosition() c
 	CursorPosition position{};
 	if (_window != nullptr)
 	{
-		glfwGetCursorPos(_window, &position.x, &position.y);
+		glfwGetCursorPos(_window.get(), &position.x, &position.y);
 	}
 	return position;
 }
 
 ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept
 {
-	return NativeWindowHandle{ _window };
+	return NativeWindowHandle{ _window.get() };
 }
 
 GLFWwindow* ve::engine::Window::GetNativeWindow() const
 {
-	return _window;
+	return _window.get();
 }
 
 ve::rendering::GraphicsApi ve::engine::Window::GraphicsApi() const noexcept

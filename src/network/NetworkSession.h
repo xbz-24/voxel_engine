@@ -19,6 +19,7 @@ namespace ve::world
 
 namespace ve::network
 {
+	/** High-level networking role for the current runtime. */
 	enum class NetworkSessionMode
 	{
 		Offline,
@@ -26,16 +27,19 @@ namespace ve::network
 		Joined
 	};
 
+	/** Authentication policy for accepting or joining sessions. */
 	enum class NetworkAuthMode
 	{
 		NoAuthentication
 	};
 
+	/** Policy describing which world state is published over the network. */
 	enum class NetworkWorldSnapshotPolicy
 	{
 		LiveMutationsOnly
 	};
 
+	/** Last session-level error reported by host/join operations. */
 	enum class NetworkSessionError
 	{
 		None,
@@ -44,6 +48,7 @@ namespace ve::network
 		JoinFailed
 	};
 
+	/** Lifecycle event kind emitted by NetworkSession. */
 	enum class NetworkSessionEventType
 	{
 		HostingStarted,
@@ -53,6 +58,7 @@ namespace ve::network
 		Stopped
 	};
 
+	/** Settings used when starting a local multiplayer host. */
 	struct NetworkHostSettings
 	{
 		std::uint16_t port = 25565;
@@ -63,12 +69,14 @@ namespace ve::network
 		NetworkWorldSnapshotPolicy worldSnapshotPolicy = NetworkWorldSnapshotPolicy::LiveMutationsOnly;
 	};
 
+	/** Settings used when joining a remote host. */
 	struct NetworkJoinSettings
 	{
 		NetworkEndpoint serverEndpoint;
 		std::string playerName;
 	};
 
+	/** Counters produced by one network pump pass. */
 	struct NetworkPumpStats
 	{
 		std::size_t messagesReceived = 0;
@@ -80,6 +88,7 @@ namespace ve::network
 		std::size_t invalidMessagesRejected = 0;
 	};
 
+	/** Queued lifecycle event reported by NetworkSession::DrainEvents. */
 	struct NetworkSessionEvent
 	{
 		NetworkSessionEventType eventType = NetworkSessionEventType::Stopped;
@@ -87,6 +96,7 @@ namespace ve::network
 		NetworkSessionError error = NetworkSessionError::None;
 	};
 
+	/** Coordinates client/server ownership, message publication, and incoming world mutation application. */
 	class NetworkSession
 	{
 	public:

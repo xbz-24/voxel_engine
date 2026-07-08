@@ -2,8 +2,8 @@
 
 #include "Logger.h"
 #include "RenderBackend.h"
+#include "StbiImageData.h"
 
-#include <stb_image.h>
 #include <cstring>
 #include <string>
 
@@ -24,7 +24,7 @@ namespace ve::rendering
 		int height = 0;
 		int sourceChannels = 0;
 		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(path, &width, &height, &sourceChannels, 4);
+		StbiImageData data(stbi_load(path, &width, &height, &sourceChannels, 4));
 		if (!data)
 		{
 			ve::log::Error(std::string("Failed to load texture: ") + path);
@@ -38,8 +38,7 @@ namespace ve::rendering
 		image.source_channel_count = sourceChannels;
 		const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
 		image.rgba.resize(byte_count);
-		std::memcpy(image.rgba.data(), data, byte_count);
-		stbi_image_free(data);
+		std::memcpy(image.rgba.data(), data.get(), byte_count);
 		return image;
 	}
 

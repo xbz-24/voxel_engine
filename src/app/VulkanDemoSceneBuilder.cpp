@@ -7,10 +7,9 @@
 #include "ImportedModel.h"
 #include "Logger.h"
 #include "ModelAssetLibrary.h"
+#include "StbiImageData.h"
 #include "VulkanMinecraftDemoProfiles.h"
 #include "World.h"
-
-#include <stb_image.h>
 
 #include <glm/geometric.hpp>
 

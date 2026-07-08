@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file Voxel.h Public SDK umbrella include. */
+
 #include "voxel/Assets.h"
 #include "voxel/Blocks.h"
 #include "voxel/Camera.h"

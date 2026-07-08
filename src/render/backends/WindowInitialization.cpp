@@ -15,8 +15,8 @@ bool ve::engine::Window::InitializeGlfw()
 /// Creates the native GLFW window.
 bool ve::engine::Window::CreateNativeWindow(GLFWmonitor* fullscreen_monitor)
 {
-	_window = glfwCreateWindow(_width, _height, _title.c_str(), fullscreen_monitor, nullptr);
-	if (_window) return true;
+	_window.reset(glfwCreateWindow(_width, _height, _title.c_str(), fullscreen_monitor, nullptr));
+	if (_window != nullptr) return true;
 	VE_LOG_ERROR("Failed to create GLFW window");
 	glfwTerminate();
 	return false;
@@ -31,9 +31,9 @@ void ve::engine::Window::ApplyInitialCursorMode()
 /// Wires GLFW user data, callbacks and current context.
 void ve::engine::Window::ConfigureNativeCallbacks()
 {
-	glfwSetWindowUserPointer(_window, &_callbackContext);
-	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
-	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window);
+	glfwSetWindowUserPointer(_window.get(), &_callbackContext);
+	glfwSetFramebufferSizeCallback(_window.get(), FramebufferResizeCallback);
+	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window.get());
 }
 
 /// Initializes the native window with the default Vulkan backend.
