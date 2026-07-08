@@ -1,5 +1,7 @@
 #include "VulkanChunkMeshTranslator.h"
 
+#include "CoreTypes.h"
+
 namespace ve::rendering
 {
 	namespace
@@ -37,7 +39,7 @@ namespace ve::rendering
 				});
 			}
 		}
-		payload.draw.index_count = static_cast<std::uint32_t>(payload.indices.size());
+		payload.draw.index_count = ve::core::ToU32(payload.indices.size());
 		payload.draw.instance_count = payload.draw.index_count > 0u ? 1u : 0u;
 		return payload;
 	}

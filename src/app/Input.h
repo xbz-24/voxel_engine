@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreTypes.h"
+
 #include <array>
 #include <cstddef>
 
@@ -49,10 +51,23 @@ namespace ve::input
 		Count
 	};
 
+	inline constexpr std::size_t KeyCount = ve::core::ToIndex(Key::Count);
+	inline constexpr std::size_t MouseButtonCount = ve::core::ToIndex(MouseButton::Count);
+
+	[[nodiscard]] constexpr std::size_t ToKeyIndex(Key key) noexcept
+	{
+		return ve::core::ToIndex(key);
+	}
+
+	[[nodiscard]] constexpr std::size_t ToMouseButtonIndex(MouseButton button) noexcept
+	{
+		return ve::core::ToIndex(button);
+	}
+
 	struct InputSnapshot
 	{
-		std::array<bool, static_cast<std::size_t>(Key::Count)> keys{};
-		std::array<bool, static_cast<std::size_t>(MouseButton::Count)> mouse_buttons{};
+		std::array<bool, KeyCount> keys{};
+		std::array<bool, MouseButtonCount> mouse_buttons{};
 	};
 
 	InputSnapshot CaptureInputSnapshot(const ve::engine::Window& window) noexcept;

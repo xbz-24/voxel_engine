@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include "CoreTypes.h"
+
 #include <GL/glew.h>
 
 void EngineApplication::renderDebugCoordinateSystemAxes()
@@ -20,7 +22,7 @@ void EngineApplication::renderDebugCoordinateSystemAxes()
 void EngineApplication::drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube)
 {
 	glPushMatrix();
-	glTranslatef(static_cast<float>(blockPos.x), static_cast<float>(blockPos.y), static_cast<float>(blockPos.z));
+	glTranslatef(ve::core::ToFloat(blockPos.x), ve::core::ToFloat(blockPos.y), ve::core::ToFloat(blockPos.z));
 	glTranslatef(0.5f, 0.5f, 0.5f);
 	glScalef(1.02f, 1.02f, 1.02f);
 	glTranslatef(-0.5f, -0.5f, -0.5f);

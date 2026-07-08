@@ -142,7 +142,7 @@ namespace ve::ecs
 
 			void EnsureSlot(std::uint32_t entity_id)
 			{
-				if (entity_id >= slots_.size()) slots_.resize(static_cast<ve::core::Index>(entity_id) + 1U);
+				if (entity_id >= slots_.size()) slots_.resize(ve::core::ToIndex(entity_id) + 1U);
 			}
 
 			ve::core::DynamicArray<ComponentSlot> slots_;

@@ -1,5 +1,7 @@
 #include "NetworkProtocol.h"
 
+#include "CoreTypes.h"
+
 #include <cstddef>
 #include <cstring>
 #include <utility>
@@ -13,7 +15,7 @@ namespace ve::network
 		std::span<const std::byte> payloadBytes,
 		std::uint32_t sequenceNumber)
 	{
-		if (payloadBytes.size() > static_cast<std::size_t>(MaxPacketPayloadByteCount)) return {};
+		if (payloadBytes.size() > ve::core::ToIndex(MaxPacketPayloadByteCount)) return {};
 		if (!IsKnownMessageType(messageType)) return {};
 		ByteBuffer packetBytes;
 		const PacketHeader packetHeader{
@@ -21,7 +23,7 @@ namespace ve::network
 			ProtocolVersion,
 			messageType,
 			sequenceNumber,
-			static_cast<std::uint32_t>(payloadBytes.size()),
+			ve::core::ToU32(payloadBytes.size()),
 			CalculatePayloadChecksum(payloadBytes)
 		};
 		packetBytes.reserve(PacketHeaderByteCount + payloadBytes.size());

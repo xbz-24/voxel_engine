@@ -1,6 +1,7 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
 #include "Camera.h"
+#include "CoreTypes.h"
 #include "VulkanSoftwareVoxelRasterizerRaycast.h"
 #include "World.h"
 
@@ -67,7 +68,7 @@ namespace ve::rendering
 		last_timing_.snapshot_cpu_ms = std::chrono::duration<double, std::milli>(snapshot_end - snapshot_start).count();
 		last_timing_.raster_cpu_ms = std::chrono::duration<double, std::milli>(raster_end - raster_start).count();
 		last_timing_.upscale_cpu_ms = std::chrono::duration<double, std::milli>(overlay_end - raster_end).count();
-		last_timing_.worker_count = static_cast<std::uint32_t>(workers_.size() + 1u);
+		last_timing_.worker_count = ve::core::ToU32(workers_.size() + 1u);
 		last_timing_.sample_step = sample_step;
 		last_timing_.render_extent = render_extent_;
 	}

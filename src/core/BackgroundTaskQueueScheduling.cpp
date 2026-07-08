@@ -1,5 +1,7 @@
 #include "BackgroundTaskQueue.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <chrono>
 #include <iterator>
@@ -70,7 +72,7 @@ namespace ve::tasks
 			{
 				return queuedTask.options.cancellationId == cancellationId;
 			});
-		const std::size_t canceledTaskCount = static_cast<std::size_t>(std::distance(firstTaskToCancel, _tasks.end()));
+		const std::size_t canceledTaskCount = ve::core::ToIndex(std::distance(firstTaskToCancel, _tasks.end()));
 		_tasks.erase(firstTaskToCancel, _tasks.end());
 		_stats.canceledTaskCount += canceledTaskCount;
 		return canceledTaskCount;

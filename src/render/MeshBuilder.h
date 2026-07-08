@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreTypes.h"
 #include "GraphicsMesh.h"
 
 #include <array>
@@ -75,7 +76,7 @@ namespace ve::rendering
 		std::uint32_t AddVertex(glm::vec3 position, glm::vec3 normal, ColorRgba color)
 		{
 			mesh_.vertices.push_back(Vertex3D{ position, normal, glm::vec2{ 0.0f }, color });
-			return static_cast<std::uint32_t>(mesh_.vertices.size() - 1U);
+			return ve::core::ToU32(mesh_.vertices.size() - 1U);
 		}
 
 		/** @param first First index. @param second Second index. @param third Third index. */

@@ -1,5 +1,7 @@
 #include "GreedyChunkMesher.h"
 
+#include "CoreTypes.h"
+
 #include <cstddef>
 #include <vector>
 
@@ -34,7 +36,7 @@ namespace ve::world::mesh
 			for (int column = 0; column < width; column++)
 			{
 				const std::size_t merged_cell_index =
-					static_cast<std::size_t>((v_coordinate + row) * u_axis_block_count + u_coordinate + column);
+					ve::core::ToIndex((v_coordinate + row) * u_axis_block_count + u_coordinate + column);
 				mask[merged_cell_index].visible = false;
 			}
 		}
@@ -48,14 +50,14 @@ namespace ve::world::mesh
 		const int normal_axis_block_count = DimensionForAxis(axis_plan.normal_axis);
 		const int u_axis_block_count = DimensionForAxis(axis_plan.u_axis);
 		const int v_axis_block_count = DimensionForAxis(axis_plan.v_axis);
-		std::vector<MaskCell> mask(static_cast<std::size_t>(u_axis_block_count * v_axis_block_count));
+		std::vector<MaskCell> mask(ve::core::ToIndex(u_axis_block_count * v_axis_block_count));
 		for (int normal_coordinate = 0; normal_coordinate < normal_axis_block_count; normal_coordinate++)
 		{
 			for (int v_coordinate = 0; v_coordinate < v_axis_block_count; v_coordinate++)
 			{
 				for (int u_coordinate = 0; u_coordinate < u_axis_block_count; u_coordinate++)
 				{
-					MaskCell& mask_cell = mask[static_cast<std::size_t>(v_coordinate * u_axis_block_count + u_coordinate)];
+					MaskCell& mask_cell = mask[ve::core::ToIndex(v_coordinate * u_axis_block_count + u_coordinate)];
 					mask_cell = BuildMaskCell(axis_plan, normal_coordinate, u_coordinate, v_coordinate);
 					if (diagnostics && mask_cell.has_source_block_face)
 					{
@@ -70,11 +72,11 @@ namespace ve::world::mesh
 				for (int u_coordinate = 0; u_coordinate < u_axis_block_count;)
 				{
 					const MaskCell& merge_start_cell =
-						mask[static_cast<std::size_t>(v_coordinate * u_axis_block_count + u_coordinate)];
+						mask[ve::core::ToIndex(v_coordinate * u_axis_block_count + u_coordinate)];
 					if (!merge_start_cell.visible) { u_coordinate++; continue; }
 					int width = 1;
 					while (u_coordinate + width < u_axis_block_count &&
-						CanMerge(merge_start_cell, mask[static_cast<std::size_t>(v_coordinate * u_axis_block_count + u_coordinate + width)]))
+						CanMerge(merge_start_cell, mask[ve::core::ToIndex(v_coordinate * u_axis_block_count + u_coordinate + width)]))
 					{
 						width++;
 					}
@@ -85,7 +87,7 @@ namespace ve::world::mesh
 						for (int column = 0; column < width; column++)
 						{
 							const std::size_t next_row_cell_index =
-								static_cast<std::size_t>((v_coordinate + height) * u_axis_block_count + u_coordinate + column);
+								ve::core::ToIndex((v_coordinate + height) * u_axis_block_count + u_coordinate + column);
 							can_grow = CanMerge(merge_start_cell, mask[next_row_cell_index]);
 							if (!can_grow) break;
 						}

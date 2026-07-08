@@ -1,5 +1,7 @@
 #include "Hotbar.h"
 
+#include "CoreTypes.h"
+
 namespace ve::gameplay
 {
 	const std::array<ve::blocks::BlockId, HotbarSlotCount>& DefaultHotbarBlocks()
@@ -24,7 +26,7 @@ namespace ve::gameplay
 		const auto& blocks = DefaultHotbarBlocks();
 		for (int index = 0; index < HotbarSlotCount; index++)
 		{
-			if (blocks[static_cast<std::size_t>(index)] == blockId)
+			if (blocks[ve::core::ToIndex(index)] == blockId)
 			{
 				return index;
 			}

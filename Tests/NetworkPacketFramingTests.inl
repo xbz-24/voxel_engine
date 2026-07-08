@@ -65,7 +65,7 @@ TEST_CASE("network packet header carries sequence numbers")
 	REQUIRE(parsed.has_value());
 	CHECK(header->sequenceNumber == 42U);
 	CHECK(parsed->sequenceNumber == 42U);
-	CHECK(header->payloadByteCount == static_cast<std::uint32_t>(payload.size()));
+	CHECK(header->payloadByteCount == ve::core::ToU32(payload.size()));
 }
 
 TEST_CASE("network packet parser rejects oversized and unknown payload headers")
@@ -82,7 +82,7 @@ TEST_CASE("network packet parser rejects oversized and unknown payload headers")
 	CHECK(!ve::network::TryParsePacketHeader(unknownHeaderBytes).has_value());
 
 	const ve::network::ByteBuffer oversizedPayloadBytes(
-		static_cast<std::size_t>(ve::network::MaxPacketPayloadByteCount) + 1U,
+		ve::core::ToIndex(ve::network::MaxPacketPayloadByteCount) + 1U,
 		std::byte{ 0 });
 	CHECK(ve::network::BuildPacket(ve::network::NetworkMessageType::ClientHello, oversizedPayloadBytes).empty());
 	CHECK(ve::network::BuildPacket(unknownMessageType, {}).empty());

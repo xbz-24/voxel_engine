@@ -1,5 +1,6 @@
 #include "EngineRuntime.h"
 
+#include "CoreTypes.h"
 #include "Logger.h"
 #include "OpenGLRenderView.h"
 #include "RenderBackendFactory.h"

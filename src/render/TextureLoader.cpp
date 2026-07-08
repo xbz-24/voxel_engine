@@ -1,5 +1,6 @@
 #include "TextureLoader.h"
 
+#include "CoreTypes.h"
 #include "Logger.h"
 #include "RenderBackend.h"
 #include "StbiImageData.h"
@@ -12,7 +13,7 @@ namespace ve::rendering
 	bool DecodedImage::IsValid() const noexcept
 	{
 		const std::size_t expected_byte_count =
-			static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+			ve::core::ToIndex(width) * ve::core::ToIndex(height) * 4u;
 		return width > 0 && height > 0 && mip_level_count > 0 &&
 			pixel_format == ImagePixelFormat::Rgba8 &&
 			rgba.size() == expected_byte_count;
@@ -36,7 +37,7 @@ namespace ve::rendering
 		image.width = width;
 		image.height = height;
 		image.source_channel_count = sourceChannels;
-		const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+		const std::size_t byte_count = ve::core::ToIndex(width) * ve::core::ToIndex(height) * 4u;
 		image.rgba.resize(byte_count);
 		std::memcpy(image.rgba.data(), data.get(), byte_count);
 		return image;
@@ -65,9 +66,9 @@ namespace ve::rendering
 		}
 
 		const RenderTextureDescriptor descriptor{
-			static_cast<std::uint32_t>(image.width),
-			static_cast<std::uint32_t>(image.height),
-			static_cast<std::uint32_t>(image.mip_level_count),
+			ve::core::ToU32(image.width),
+			ve::core::ToU32(image.height),
+			ve::core::ToU32(image.mip_level_count),
 			RenderTextureFormat::Rgba8,
 			RenderTextureUsage::Sampled | RenderTextureUsage::TransferDestination
 		};

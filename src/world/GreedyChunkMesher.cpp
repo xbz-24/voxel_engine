@@ -1,5 +1,7 @@
 #include "GreedyChunkMesher.h"
 
+#include "CoreTypes.h"
+
 #include <array>
 
 namespace
@@ -7,13 +9,13 @@ namespace
 	/// Writes one coordinate into an xyz array.
 	void SetAxisValue(std::array<int, 3>& block_coordinate, int axis, int value)
 	{
-		block_coordinate[static_cast<std::size_t>(axis)] = value;
+		block_coordinate[ve::core::ToIndex(axis)] = value;
 	}
 
 	/// Adds a span offset to the center coordinate for a merged face.
 	void AddSpanCenter(std::array<float, 3>& face_center, int axis, int merged_face_span)
 	{
-		face_center[static_cast<std::size_t>(axis)] += static_cast<float>(merged_face_span - 1) * 0.5f;
+		face_center[ve::core::ToIndex(axis)] += ve::core::ToFloat(merged_face_span - 1) * 0.5f;
 	}
 }
 
@@ -49,7 +51,7 @@ namespace ve::world::mesh
 		MaskCell mask_cell{};
 		mask_cell.has_source_block_face = true;
 		mask_cell.block_id = block_id;
-		block_coordinate[static_cast<std::size_t>(axis_plan.normal_axis)] += axis_plan.normal_sign;
+		block_coordinate[ve::core::ToIndex(axis_plan.normal_axis)] += axis_plan.normal_sign;
 		if (block_registry_.OccludesNeighborFaces(ReadBlock(block_coordinate[0], block_coordinate[1], block_coordinate[2]))) return mask_cell;
 		const bool is_grass_top = block_id == ve::blocks::BlockId::Grass && axis_plan.block_face == ve::blocks::BlockFace::Top;
 		mask_cell.visible = true;
@@ -70,13 +72,13 @@ namespace ve::world::mesh
 		int height) const
 	{
 		std::array<float, 3> face_center{};
-		face_center[static_cast<std::size_t>(axis_plan.normal_axis)] = static_cast<float>(normal_coordinate);
-		face_center[static_cast<std::size_t>(axis_plan.u_axis)] = static_cast<float>(u_coordinate);
-		face_center[static_cast<std::size_t>(axis_plan.v_axis)] = static_cast<float>(v_coordinate);
+		face_center[ve::core::ToIndex(axis_plan.normal_axis)] = ve::core::ToFloat(normal_coordinate);
+		face_center[ve::core::ToIndex(axis_plan.u_axis)] = ve::core::ToFloat(u_coordinate);
+		face_center[ve::core::ToIndex(axis_plan.v_axis)] = ve::core::ToFloat(v_coordinate);
 		AddSpanCenter(face_center, axis_plan.u_axis, width);
 		AddSpanCenter(face_center, axis_plan.v_axis, height);
-		face_center[0] += static_cast<float>(mesh_input_.chunkX * terrain::ChunkWidth);
-		face_center[2] += static_cast<float>(mesh_input_.chunkZ * terrain::ChunkDepth);
+		face_center[0] += ve::core::ToFloat(mesh_input_.chunkX * terrain::ChunkWidth);
+		face_center[2] += ve::core::ToFloat(mesh_input_.chunkZ * terrain::ChunkDepth);
 		return MeshFace{
 			cell.material,
 			axis_plan.direction,

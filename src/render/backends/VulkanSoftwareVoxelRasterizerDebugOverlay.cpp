@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerColor.h"
 
 #include <algorithm>
@@ -23,7 +24,7 @@ namespace ve::rendering
 			++bar_pixel_y)
 		{
 			std::uint32_t* row =
-				render_pixels_.data() + (static_cast<std::size_t>(bar_pixel_y) * render_extent_.width);
+				render_pixels_.data() + (ve::core::ToIndex(bar_pixel_y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, shadow);
 		}
 		for (std::uint32_t bar_pixel_y = bar_y;
@@ -31,7 +32,7 @@ namespace ve::rendering
 			++bar_pixel_y)
 		{
 			std::uint32_t* row =
-				render_pixels_.data() + (static_cast<std::size_t>(bar_pixel_y) * render_extent_.width);
+				render_pixels_.data() + (ve::core::ToIndex(bar_pixel_y) * render_extent_.width);
 			std::fill(row + bar_x, row + bar_end_x, accent);
 		}
 

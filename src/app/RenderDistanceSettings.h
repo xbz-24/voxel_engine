@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreTypes.h"
+
 namespace ve::gameplay
 {
 	inline constexpr int MinimumRenderDistanceChunks = 1;
@@ -16,7 +18,7 @@ namespace ve::gameplay
 	[[nodiscard]] constexpr float RenderDistanceSliderRatio(int value) noexcept
 	{
 		const int clamped = ClampRenderDistanceChunks(value);
-		constexpr float range = static_cast<float>(MaximumRenderDistanceChunks - MinimumRenderDistanceChunks);
-		return static_cast<float>(clamped - MinimumRenderDistanceChunks) / range;
+		constexpr float range = ve::core::ToFloat(MaximumRenderDistanceChunks - MinimumRenderDistanceChunks);
+		return ve::core::ToFloat(clamped - MinimumRenderDistanceChunks) / range;
 	}
 }

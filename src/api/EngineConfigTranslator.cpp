@@ -1,5 +1,7 @@
 #include "EngineRuntimeBridge.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <utility>
 

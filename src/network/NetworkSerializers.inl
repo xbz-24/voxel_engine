@@ -9,8 +9,8 @@ namespace ve::network
 	{
 		PayloadWriter writer;
 		const std::size_t boundedNameByteCount =
-			std::min(clientHello.playerName.size(), static_cast<std::size_t>(MaxPlayerNameByteCount));
-		const std::uint16_t nameByteCount = static_cast<std::uint16_t>(boundedNameByteCount);
+			std::min(clientHello.playerName.size(), ve::core::ToIndex(MaxPlayerNameByteCount));
+		const std::uint16_t nameByteCount = ve::core::NumericCast<std::uint16_t>(boundedNameByteCount);
 		writer.Write(nameByteCount);
 		writer.WriteBytes(std::as_bytes(std::span(clientHello.playerName.data(), boundedNameByteCount)));
 		writer.Write(clientHello.capabilityFlags & SupportedProtocolCapabilityFlags);

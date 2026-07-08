@@ -20,7 +20,7 @@
 		demo_settings.request_scene_rebuild = false;
 
 		window.SetCursorMode(demo_settings.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
-		const float speed = 18.0f * static_cast<float>(std::max(delta_seconds, 0.001));
+		const float speed = 18.0f * ve::core::ToFloat(std::max(delta_seconds, 0.001));
 		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(input);
 		if (!ui_captures_input)
 		{

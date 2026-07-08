@@ -63,7 +63,7 @@ namespace ve::ecs
 		/** @param id Entity id that must fit in the sparse array. */
 		void EnsureSlot(std::uint32_t id)
 		{
-			if (id >= slots_.size()) slots_.resize(static_cast<ve::core::Index>(id) + 1);
+			if (id >= slots_.size()) slots_.resize(ve::core::ToIndex(id) + 1);
 		}
 
 		ve::core::DynamicArray<Slot> slots_;

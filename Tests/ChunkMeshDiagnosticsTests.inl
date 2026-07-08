@@ -2,7 +2,7 @@ namespace
 {
 	std::size_t LocalBlockIndex(int local_block_x, int local_block_y, int local_block_z)
 	{
-		return static_cast<std::size_t>(
+		return ve::core::ToIndex(
 			(local_block_x * ve::world::terrain::ChunkHeight + local_block_y) *
 			ve::world::terrain::ChunkDepth + local_block_z);
 	}

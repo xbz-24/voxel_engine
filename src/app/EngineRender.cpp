@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+#include "CoreTypes.h"
 #include "Plane.h"
 #include "RenderView.h"
 #include "RenderState.h"
@@ -44,7 +45,7 @@ void EngineApplication::UpdateProjections(int width, int height)
 		height = 1;
 	}
 
-	const float aspect = static_cast<float>(width) / static_cast<float>(height);
+	const float aspect = ve::core::ToFloat(width) / ve::core::ToFloat(height);
 	_render_cache_state.projection_3d = glm::frustum(-0.1f * aspect, 0.1f * aspect, -0.1f, 0.1f, 0.1f, FarWorldClipDistance);
 	ve::rendering::SetViewport(width, height);
 }

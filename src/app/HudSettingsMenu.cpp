@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "CoreTypes.h"
 #include "Render2D.h"
 
 #include <array>
@@ -14,7 +15,7 @@ namespace ve::ui
 			const char* label;
 		};
 
-		constexpr std::array<SettingsRow, static_cast<std::size_t>(SettingsMenuOption::Count)> Rows{{
+		constexpr std::array<SettingsRow, ve::core::ToIndex(SettingsMenuOption::Count)> Rows{{
 			{ SettingsMenuOption::RenderDistance, "Render Distance" },
 			{ SettingsMenuOption::VSync, "VSync" },
 			{ SettingsMenuOption::DebugOverlay, "Debug Overlay" },
@@ -28,15 +29,15 @@ namespace ve::ui
 		 */
 		std::size_t RowIndex(SettingsMenuOption option)
 		{
-			return static_cast<std::size_t>(option);
+			return ve::core::ToIndex(option);
 		}
 	}
 
 	/// Draws the full settings menu overlay.
 	void HudRenderer::DrawSettingsMenu(const HudFrameInfo& frame)
 	{
-		const float width = static_cast<float>(frame.window.GetWidth());
-		const float height = static_cast<float>(frame.window.GetHeight());
+		const float width = ve::core::ToFloat(frame.window.GetWidth());
+		const float height = ve::core::ToFloat(frame.window.GetHeight());
 		ve::rendering::DrawTexturedQuad(textures_.menu_background, 0.0f, 0.0f, width, height);
 
 		const float panel_width = 520.0f;

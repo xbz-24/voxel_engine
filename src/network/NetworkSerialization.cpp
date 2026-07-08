@@ -1,5 +1,7 @@
 #include "NetworkSerialization.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <cstring>
 #include <type_traits>

@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerColor.h"
 
 #include <algorithm>
@@ -23,9 +24,9 @@ namespace ve::rendering
 		DrawFilledRect(panel_x + panel_width - 3u, panel_y, 3u, panel_height, border);
 		DrawText("VULKAN DEMO TUNING", panel_x + 12u, panel_y + 10u, 1u, text);
 
-		float res_x = static_cast<float>(frame.settings.max_internal_width);
-		float res_y = static_cast<float>(frame.settings.max_internal_height);
-		float pixel = static_cast<float>(frame.settings.pixel_block_size);
+		float res_x = ve::core::ToFloat(frame.settings.max_internal_width);
+		float res_y = ve::core::ToFloat(frame.settings.max_internal_height);
+		float pixel = ve::core::ToFloat(frame.settings.pixel_block_size);
 		float ray = frame.settings.max_ray_distance;
 		float fog = frame.settings.fog_strength;
 		float outline = frame.settings.outline_strength;
@@ -38,9 +39,9 @@ namespace ve::rendering
 		Slider(frame, "FOG", fog, 0.0f, 0.9f, slider_x, panel_y + 103u, slider_w);
 		Slider(frame, "OUTLINE", outline, 0.0f, 0.65f, slider_x, panel_y + 121u, slider_w);
 
-		frame.settings.max_internal_width = static_cast<std::uint32_t>(std::clamp(res_x, 320.0f, 1920.0f));
-		frame.settings.max_internal_height = static_cast<std::uint32_t>(std::clamp(res_y, 180.0f, 1080.0f));
-		frame.settings.pixel_block_size = static_cast<std::uint32_t>(std::round(std::clamp(pixel, 1.0f, 8.0f)));
+		frame.settings.max_internal_width = ve::core::ToU32(std::clamp(res_x, 320.0f, 1920.0f));
+		frame.settings.max_internal_height = ve::core::ToU32(std::clamp(res_y, 180.0f, 1080.0f));
+		frame.settings.pixel_block_size = ve::core::ToU32(std::round(std::clamp(pixel, 1.0f, 8.0f)));
 		frame.settings.max_ray_distance = std::clamp(ray, 32.0f, 144.0f);
 		frame.settings.fog_strength = std::clamp(fog, 0.0f, 0.9f);
 		frame.settings.outline_strength = std::clamp(outline, 0.0f, 0.65f);

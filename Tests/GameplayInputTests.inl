@@ -2,17 +2,17 @@ namespace
 {
 	void PressKey(ve::input::InputSnapshot& input, ve::input::Key key) noexcept
 	{
-		input.keys[static_cast<std::size_t>(key)] = true;
+		input.keys[ve::input::ToKeyIndex(key)] = true;
 	}
 
 	void ReleaseKey(ve::input::InputSnapshot& input, ve::input::Key key) noexcept
 	{
-		input.keys[static_cast<std::size_t>(key)] = false;
+		input.keys[ve::input::ToKeyIndex(key)] = false;
 	}
 
 	void PressMouseButton(ve::input::InputSnapshot& input, ve::input::MouseButton button) noexcept
 	{
-		input.mouse_buttons[static_cast<std::size_t>(button)] = true;
+		input.mouse_buttons[ve::input::ToMouseButtonIndex(button)] = true;
 	}
 }
 

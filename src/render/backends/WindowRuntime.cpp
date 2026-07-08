@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include "CoreTypes.h"
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -31,7 +33,7 @@ std::vector<ve::engine::WindowEvent> ve::engine::Window::DrainEvents()
 
 bool ve::engine::Window::ShouldClose() const
 {
-	return static_cast<bool>(glfwWindowShouldClose(_window.get()));
+	return glfwWindowShouldClose(_window.get()) != 0;
 }
 
 void ve::engine::Window::Close()
@@ -51,7 +53,7 @@ int ve::engine::Window::GetHeight() const
 
 float ve::engine::Window::GetAspectRatio() const
 {
-	return static_cast<float>(_width) / static_cast<float>(GetHeight());
+	return ve::core::ToFloat(_width) / ve::core::ToFloat(GetHeight());
 }
 
 ve::engine::Window::WindowSize ve::engine::Window::ClientWindowSize() const noexcept

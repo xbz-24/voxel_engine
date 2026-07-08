@@ -3,6 +3,7 @@
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
 #include "BlockRaycaster.h"
+#include "CoreTypes.h"
 #include "GameplayInput.h"
 #include "Hotbar.h"
 #include "Input.h"

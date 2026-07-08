@@ -70,7 +70,7 @@ TEST_CASE("physics bvh exposes parent depth metadata")
 	{
 		const ve::physics::PhysicsBvh::NodeDebugInfo node = bvh.DebugNode(node_index);
 		REQUIRE(node.parent >= 0);
-		const ve::physics::PhysicsBvh::NodeDebugInfo parent = bvh.DebugNode(static_cast<ve::core::Index>(node.parent));
+		const ve::physics::PhysicsBvh::NodeDebugInfo parent = bvh.DebugNode(ve::core::ToIndex(node.parent));
 		CHECK(node.depth == parent.depth + 1);
 	}
 

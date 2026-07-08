@@ -1,6 +1,7 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
 #include "Camera.h"
+#include "CoreTypes.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -31,21 +32,21 @@ namespace ve::rendering
 			return;
 		}
 
-		const float render_width = static_cast<float>(render_extent_.width);
-		const float render_height = static_cast<float>(render_extent_.height);
+		const float render_width = ve::core::ToFloat(render_extent_.width);
+		const float render_height = ve::core::ToFloat(render_extent_.height);
 		const float aspect = render_width / render_height;
 		const float tan_half_fov = std::tan(glm::radians(35.0f));
 		ray_cache_.clear();
 		const std::uint32_t sample_columns = (render_extent_.width + sample_step - 1u) / sample_step;
 		const std::uint32_t sample_rows = (render_extent_.height + sample_step - 1u) / sample_step;
-		ray_cache_.reserve(static_cast<std::size_t>(sample_columns) * sample_rows);
+		ray_cache_.reserve(ve::core::ToIndex(sample_columns) * sample_rows);
 
 		for (std::uint32_t sample_y = 0; sample_y < render_extent_.height; sample_y += sample_step)
 		{
 			for (std::uint32_t sample_x = 0; sample_x < render_extent_.width; sample_x += sample_step)
 			{
-				const float screen_x = ((static_cast<float>(sample_x) + 0.5f) / render_width) * 2.0f - 1.0f;
-				const float screen_y = 1.0f - ((static_cast<float>(sample_y) + 0.5f) / render_height) * 2.0f;
+				const float screen_x = ((ve::core::ToFloat(sample_x) + 0.5f) / render_width) * 2.0f - 1.0f;
+				const float screen_y = 1.0f - ((ve::core::ToFloat(sample_y) + 0.5f) / render_height) * 2.0f;
 				const glm::vec3 ray_direction = glm::normalize(
 					forward +
 					(right * screen_x * tan_half_fov * aspect) +

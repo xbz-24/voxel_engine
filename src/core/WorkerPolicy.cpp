@@ -9,6 +9,6 @@ namespace ve::tasks
 	{
 		const unsigned int hardwareThreadCount = std::thread::hardware_concurrency();
 		if (hardwareThreadCount <= reservedThreadCount + 1) return 1;
-		return static_cast<ve::core::Index>(hardwareThreadCount) - reservedThreadCount;
+		return ve::core::ToIndex(hardwareThreadCount) - reservedThreadCount;
 	}
 }

@@ -20,7 +20,7 @@
 			1,
 			input_state_.was_render_distance_increase_pressed);
 
-		const float movement_distance_this_frame = 5.0f * static_cast<float>(frame.delta_seconds);
+		const float movement_distance_this_frame = 5.0f * ve::core::ToFloat(frame.delta_seconds);
 		const ve::gameplay::PlayerMoveIntent intent = ve::gameplay::ReadPlayerMoveIntent(frame.input);
 		ve::gameplay::ApplyPlanarMovement(intent, frame.camera, movement_distance_this_frame);
 		if (frame.settings.player.is_flying)
@@ -46,8 +46,8 @@
 		constexpr float gravity_blocks_per_second = 22.0f;
 		constexpr float player_eye_height = 1.7f;
 		glm::vec3 position = frame.camera.GetPosition();
-		frame.settings.player.vertical_velocity -= gravity_blocks_per_second * static_cast<float>(frame.delta_seconds);
-		position.y += frame.settings.player.vertical_velocity * static_cast<float>(frame.delta_seconds);
+		frame.settings.player.vertical_velocity -= gravity_blocks_per_second * ve::core::ToFloat(frame.delta_seconds);
+		position.y += frame.settings.player.vertical_velocity * ve::core::ToFloat(frame.delta_seconds);
 
 		const int player_feet_block_x = static_cast<int>(std::floor(position.x));
 		const int player_feet_block_y = static_cast<int>(std::floor(position.y - player_eye_height));
@@ -56,7 +56,7 @@
 			frame.world.GetBlock(player_feet_block_x, player_feet_block_y, player_feet_block_z);
 		if (frame.settings.player.vertical_velocity <= 0.0f && frame.block_registry.IsSolid(block_below_player))
 		{
-			position.y = static_cast<float>(player_feet_block_y) + 1.0f + player_eye_height;
+			position.y = ve::core::ToFloat(player_feet_block_y) + 1.0f + player_eye_height;
 			frame.settings.player.vertical_velocity = 0.0f;
 			input_state_.is_grounded = true;
 		}

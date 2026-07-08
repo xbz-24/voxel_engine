@@ -47,7 +47,7 @@ TEST_CASE("network block mutation applies through shared world edit command")
 		3,
 		12,
 		4,
-		static_cast<std::uint8_t>(ve::blocks::BlockId::Stone)
+		ve::blocks::ToBlockByte(ve::blocks::BlockId::Stone)
 	};
 	const ve::network::NetworkMessage message{
 		ve::network::NetworkMessageType::BlockMutation,

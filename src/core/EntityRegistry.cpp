@@ -1,5 +1,7 @@
 #include "EntityRegistry.h"
 
+#include "CoreTypes.h"
+
 namespace ve::ecs
 {
 	/// Creates a new or recycled entity handle.
@@ -13,7 +15,7 @@ namespace ve::ecs
 			alive_count_++;
 			return Entity{ id, slots_[id].generation };
 		}
-		const std::uint32_t id = static_cast<std::uint32_t>(slots_.size());
+		const std::uint32_t id = ve::core::ToU32(slots_.size());
 		slots_.push_back(EntitySlot{ 1, true });
 		alive_count_++;
 		return Entity{ id, 1 };

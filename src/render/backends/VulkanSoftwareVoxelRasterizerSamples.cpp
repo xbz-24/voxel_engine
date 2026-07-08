@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerBlockColor.h"
 #include "VulkanSoftwareVoxelRasterizerRaycast.h"
 
@@ -25,13 +26,13 @@ namespace ve::rendering
 			const std::uint32_t packed = PackColor(color, work.format);
 			if (sample.end_x == sample.begin_x + 1u && sample.end_y == sample.begin_y + 1u)
 			{
-				render_pixels_[(static_cast<std::size_t>(sample.begin_y) * render_extent_.width) + sample.begin_x] = packed;
+				render_pixels_[(ve::core::ToIndex(sample.begin_y) * render_extent_.width) + sample.begin_x] = packed;
 				continue;
 			}
 
 			for (std::uint32_t fill_y = sample.begin_y; fill_y < sample.end_y; ++fill_y)
 			{
-				std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(fill_y) * render_extent_.width);
+				std::uint32_t* row = render_pixels_.data() + (ve::core::ToIndex(fill_y) * render_extent_.width);
 				std::fill(row + sample.begin_x, row + sample.end_x, packed);
 			}
 		}

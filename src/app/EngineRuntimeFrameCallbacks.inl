@@ -2,9 +2,9 @@
 	{
 		[[nodiscard]] int ToDiagnosticCounter(std::size_t value) noexcept
 		{
-			return value > static_cast<std::size_t>(std::numeric_limits<int>::max())
+			return value > ve::core::ToIndex(std::numeric_limits<int>::max())
 				? std::numeric_limits<int>::max()
-				: static_cast<int>(value);
+				: ve::core::ToInt(value);
 		}
 	}
 
@@ -30,8 +30,8 @@
 		if (create_info.on_update)
 		{
 			RuntimeFrameContext runtime_frame_context{};
-			runtime_frame_context.delta_seconds = static_cast<float>(frame_timer_.DeltaSeconds());
-			runtime_frame_context.elapsed_seconds = static_cast<float>(elapsed_seconds_);
+			runtime_frame_context.delta_seconds = ve::core::ToFloat(frame_timer_.DeltaSeconds());
+			runtime_frame_context.elapsed_seconds = ve::core::ToFloat(elapsed_seconds_);
 			runtime_frame_context.fps = frame_timer_.DisplayedFps();
 			runtime_frame_context.input = runtime_input_snapshot;
 			if (model_ != nullptr)
@@ -60,7 +60,7 @@
 			const ve::world::WorldMetrics world_metrics =
 				model_ != nullptr ? model_->GetWorldMetrics() : ve::world::WorldMetrics{};
 			create_info.on_diagnostics(RuntimeDiagnostics{
-				static_cast<double>(frame_timer_.DisplayedFps()),
+				ve::core::ToDouble(frame_timer_.DisplayedFps()),
 				ToDiagnosticCounter(world_metrics.pendingWorldEventCount),
 				engine_._runtimeSettings.renderer.render_distance_chunks,
 				ToDiagnosticCounter(world_metrics.pendingChunkMeshTaskCount),

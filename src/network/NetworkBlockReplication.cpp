@@ -1,5 +1,6 @@
 #include "NetworkBlockReplication.h"
 
+#include "Block.h"
 #include "NetworkSerialization.h"
 #include "World.h"
 #include "WorldBlockEdit.h"
@@ -11,7 +12,7 @@ namespace
 	/// Returns true when a byte maps to a concrete block id.
 	bool IsReplicatedBlockIdValid(std::uint8_t blockIdByte)
 	{
-		return blockIdByte < static_cast<std::uint8_t>(ve::blocks::BlockId::Count);
+		return ve::blocks::IsStoredBlockByte(blockIdByte);
 	}
 
 	/// Builds a world position from a protocol payload.
@@ -23,7 +24,7 @@ namespace
 	/// Converts a protocol byte into an engine block id.
 	ve::blocks::BlockId ToBlockId(const ve::network::BlockMutationPayload& blockMutation)
 	{
-		return static_cast<ve::blocks::BlockId>(blockMutation.blockId);
+		return ve::blocks::BlockIdFromByte(blockMutation.blockId);
 	}
 
 	/// Chooses the gameplay interaction represented by a replicated block id.
@@ -58,7 +59,7 @@ namespace ve::network
 			blockChangedEvent.worldBlockPosition.x,
 			blockChangedEvent.worldBlockPosition.y,
 			blockChangedEvent.worldBlockPosition.z,
-			static_cast<std::uint8_t>(blockChangedEvent.newBlockId)
+			ve::blocks::ToBlockByte(blockChangedEvent.newBlockId)
 		};
 		return NetworkMessage{ NetworkMessageType::BlockMutation, SerializeBlockMutation(blockMutation) };
 	}

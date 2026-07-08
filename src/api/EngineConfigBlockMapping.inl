@@ -65,11 +65,11 @@ namespace voxel::detail
 
 		[[nodiscard]] Block ToPublicBlock(ve::blocks::BlockId block) noexcept
 		{
-			const auto value = static_cast<std::uint8_t>(block);
-			const auto last_public_value = static_cast<std::uint8_t>(Block::DeadBush);
+			const auto value = ve::blocks::ToBlockByte(block);
+			const auto last_public_value = ve::core::ToU8(Block::DeadBush);
 			if (value > last_public_value)
 			{
 				return Block::Air;
 			}
-			return static_cast<Block>(value);
+			return ve::core::NumericCast<Block>(value);
 		}

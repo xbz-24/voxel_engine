@@ -36,12 +36,12 @@ namespace ve::input
 		InputSnapshot snapshot;
 		for (std::size_t index = 0; index < snapshot.keys.size(); ++index)
 		{
-			const Key key = static_cast<Key>(index);
+			const Key key = ve::core::NumericCast<Key>(index);
 			snapshot.keys[index] = IsKeyPressed(native_window, key);
 		}
 		for (std::size_t index = 0; index < snapshot.mouse_buttons.size(); ++index)
 		{
-			const MouseButton button = static_cast<MouseButton>(index);
+			const MouseButton button = ve::core::NumericCast<MouseButton>(index);
 			snapshot.mouse_buttons[index] = IsMouseButtonPressed(native_window, button);
 		}
 		return snapshot;
@@ -55,7 +55,7 @@ namespace ve::input
 
 	bool IsPressed(const InputSnapshot& snapshot, Key key) noexcept
 	{
-		const std::size_t index = static_cast<std::size_t>(key);
+		const std::size_t index = ToKeyIndex(key);
 		return index < snapshot.keys.size() && snapshot.keys[index];
 	}
 
@@ -67,7 +67,7 @@ namespace ve::input
 
 	bool IsPressed(const InputSnapshot& snapshot, MouseButton button) noexcept
 	{
-		const std::size_t index = static_cast<std::size_t>(button);
+		const std::size_t index = ToMouseButtonIndex(button);
 		return index < snapshot.mouse_buttons.size() && snapshot.mouse_buttons[index];
 	}
 

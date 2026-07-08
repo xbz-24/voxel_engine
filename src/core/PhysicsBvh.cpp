@@ -42,8 +42,8 @@ namespace ve::physics
 	{
 		Aabb bounds = proxies_[begin].bounds;
 		for (ve::core::Index index = begin + 1; index < end; index++) bounds = MergeBounds(bounds, proxies_[index].bounds);
-		const int node_index = static_cast<int>(nodes_.size());
-		const ve::core::Index node_slot = static_cast<ve::core::Index>(node_index);
+		const int node_index = ve::core::ToInt(nodes_.size());
+		const ve::core::Index node_slot = ve::core::ToIndex(node_index);
 		BvhNode node{};
 		node.bounds = bounds;
 		node.parent = parent;
@@ -57,9 +57,9 @@ namespace ve::physics
 		}
 		const int axis = WidestAxis(bounds);
 		const ve::core::Index middle = begin + ((end - begin) / 2);
-		const auto begin_offset = static_cast<std::ptrdiff_t>(begin);
-		const auto middle_offset = static_cast<std::ptrdiff_t>(middle);
-		const auto end_offset = static_cast<std::ptrdiff_t>(end);
+		const auto begin_offset = ve::core::ToPtrdiff(begin);
+		const auto middle_offset = ve::core::ToPtrdiff(middle);
+		const auto end_offset = ve::core::ToPtrdiff(end);
 		std::nth_element(proxies_.begin() + begin_offset, proxies_.begin() + middle_offset, proxies_.begin() + end_offset,
 			[axis](const PhysicsProxy& left, const PhysicsProxy& right)
 			{
@@ -93,15 +93,15 @@ namespace ve::physics
 	/// Recomputes one internal node from its children.
 	void PhysicsBvh::RefitNodeBounds(int node_index)
 	{
-		BvhNode& node = nodes_[static_cast<ve::core::Index>(node_index)];
+		BvhNode& node = nodes_[ve::core::ToIndex(node_index)];
 		if (node.is_leaf)
 		{
 			node.bounds = proxies_[node.proxy_index].bounds;
 			return;
 		}
 
-		const BvhNode& left_child = nodes_[static_cast<ve::core::Index>(node.left_child)];
-		const BvhNode& right_child = nodes_[static_cast<ve::core::Index>(node.right_child)];
+		const BvhNode& left_child = nodes_[ve::core::ToIndex(node.left_child)];
+		const BvhNode& right_child = nodes_[ve::core::ToIndex(node.right_child)];
 		node.bounds = MergeBounds(left_child.bounds, right_child.bounds);
 	}
 
@@ -111,7 +111,7 @@ namespace ve::physics
 		while (node_index >= 0)
 		{
 			RefitNodeBounds(node_index);
-			node_index = nodes_[static_cast<ve::core::Index>(node_index)].parent;
+			node_index = nodes_[ve::core::ToIndex(node_index)].parent;
 		}
 	}
 

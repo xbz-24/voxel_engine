@@ -6,7 +6,7 @@ TEST_CASE("block registry stores block metadata by stable id")
 
 	CHECK(registry.Contains(ve::blocks::BlockId::Stone));
 	CHECK(!registry.Contains(ve::blocks::BlockId::Count));
-	CHECK(registry.RegisteredBlockCount() == static_cast<std::size_t>(ve::blocks::BlockId::Count));
+	CHECK(registry.RegisteredBlockCount() == ve::blocks::BlockTypeCount);
 	CHECK(registry.Get(ve::blocks::BlockId::Count).id == ve::blocks::BlockId::Air);
 }
 

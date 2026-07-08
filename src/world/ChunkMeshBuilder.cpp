@@ -3,6 +3,7 @@
 #include "Chunk.h"
 #include "ChunkFaceEmitter.h"
 #include "ChunkMeshCollector.h"
+#include "CoreTypes.h"
 
 #include <algorithm>
 #include <optional>
@@ -28,7 +29,7 @@ namespace ve::world::mesh
 		 */
 		void AppendBatch(ChunkMeshBuildResult& result, ve::rendering::TextureHandle texture, std::uint32_t first_vertex)
 		{
-			const std::uint32_t vertex_count = static_cast<std::uint32_t>(result.vertices.size()) - first_vertex;
+			const std::uint32_t vertex_count = ve::core::ToU32(result.vertices.size()) - first_vertex;
 			if (vertex_count > 0)
 			{
 				result.batches.push_back(ve::rendering::ChunkMeshBatch{ texture, first_vertex, vertex_count });
@@ -62,7 +63,7 @@ namespace ve::world::mesh
 					{
 						AppendBatch(result, current_texture, batch_start);
 						current_texture = face.material.texture;
-						batch_start = static_cast<std::uint32_t>(result.vertices.size());
+						batch_start = ve::core::ToU32(result.vertices.size());
 					}
 					AppendFaceVertices(face, result.vertices);
 				}

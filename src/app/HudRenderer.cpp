@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "CoreTypes.h"
 #include "TextureLoader.h"
 
 #include <glm/ext.hpp>
@@ -39,7 +40,13 @@ namespace ve::ui
 	{
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
-		const glm::mat4 projection2D = glm::ortho(0.0f, static_cast<float>(frame.window.GetWidth()), static_cast<float>(frame.window.GetHeight()), 0.0f, -1.0f, 1.0f);
+		const glm::mat4 projection2D = glm::ortho(
+			0.0f,
+			ve::core::ToFloat(frame.window.GetWidth()),
+			ve::core::ToFloat(frame.window.GetHeight()),
+			0.0f,
+			-1.0f,
+			1.0f);
 		glLoadMatrixf(glm::value_ptr(projection2D));
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();

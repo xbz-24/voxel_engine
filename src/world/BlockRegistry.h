@@ -42,10 +42,12 @@ namespace ve::blocks
 		BlockId id = BlockId::Air;
 		std::string name;
 		bool is_solid = false;
-		std::array<std::string, static_cast<std::size_t>(BlockFace::Count)> face_texture_files{};
+		PerBlockFaceArray<std::string> face_texture_files{};
 		ve::rendering::PbrMaterial material;
 		BlockGameplayProperties gameplay{};
 	};
+
+	using BlockFaceTextureHandles = PerBlockFaceArray<ve::rendering::TextureHandle>;
 
 	/**
 	 * Rendering/gameplay metadata for one block type.
@@ -55,7 +57,7 @@ namespace ve::blocks
 		BlockId id;
 		std::string name;
 		bool isSolid;
-		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faceTextures;
+		BlockFaceTextureHandles faceTextures;
 		ve::rendering::PbrMaterial material;
 		BlockGameplayProperties gameplay{};
 	};

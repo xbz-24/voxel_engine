@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerColor.h"
 #include "VulkanSoftwareVoxelRasterizerGlyphs.h"
 
@@ -36,16 +37,16 @@ namespace ve::rendering
 			{
 				for (std::uint32_t column = 0; column < 5u; ++column)
 				{
-					const std::uint8_t mask = static_cast<std::uint8_t>(1u << (4u - column));
+					const std::uint8_t mask = ve::core::ToU8(1u << (4u - column));
 					if ((glyph[row_index] & mask) == 0u) continue;
 
 					const std::uint32_t pixel_x = cursor_x + (column * scale);
-					const std::uint32_t pixel_y = origin_y + (static_cast<std::uint32_t>(row_index) * scale);
+					const std::uint32_t pixel_y = origin_y + (ve::core::ToU32(row_index) * scale);
 					for (std::uint32_t pixel_offset_y = 0; pixel_offset_y < scale; ++pixel_offset_y)
 					{
 						if (pixel_y + pixel_offset_y >= render_extent_.height) continue;
 						std::uint32_t* row = render_pixels_.data() +
-							(static_cast<std::size_t>(pixel_y + pixel_offset_y) * render_extent_.width);
+							(ve::core::ToIndex(pixel_y + pixel_offset_y) * render_extent_.width);
 						for (std::uint32_t pixel_offset_x = 0; pixel_offset_x < scale; ++pixel_offset_x)
 						{
 							if (pixel_x + pixel_offset_x < render_extent_.width)
@@ -79,7 +80,7 @@ namespace ve::rendering
 		const std::uint32_t end_y = std::min(origin_y + height, render_extent_.height);
 		for (std::uint32_t row_y = origin_y; row_y < end_y; ++row_y)
 		{
-			std::uint32_t* row = render_pixels_.data() + (static_cast<std::size_t>(row_y) * render_extent_.width);
+			std::uint32_t* row = render_pixels_.data() + (ve::core::ToIndex(row_y) * render_extent_.width);
 			std::fill(row + origin_x, row + end_x, color);
 		}
 	}

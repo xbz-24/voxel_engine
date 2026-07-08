@@ -3,7 +3,6 @@
 #include "BlockDefinitions.h"
 #include "BlockPbrMaterials.h"
 #include "BlockTextureCache.h"
-#include "CoreTypes.h"
 
 #include <utility>
 
@@ -12,17 +11,9 @@ namespace ve::blocks
 	namespace
 	{
 		/**
-		 * Converts a face id into an array index.
-		 */
-		constexpr std::size_t IndexOf(BlockFace face)
-		{
-			return ve::core::ToIndex(face);
-		}
-
-		/**
 		 * Loads all face textures for a block definition.
 		 */
-		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> LoadFaces(BlockTextureCache& cache, const FaceTextureFiles& files)
+		BlockFaceTextureHandles LoadFaces(BlockTextureCache& cache, const FaceTextureFiles& files)
 		{
 			return { {
 				cache.Load(files.top),
@@ -34,9 +25,9 @@ namespace ve::blocks
 			} };
 		}
 
-		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> EmptyFaces() noexcept
+		BlockFaceTextureHandles EmptyFaces() noexcept
 		{
-			std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faces{};
+			BlockFaceTextureHandles faces{};
 			faces.fill(ve::rendering::kInvalidTextureHandle);
 			return faces;
 		}
@@ -58,13 +49,14 @@ namespace ve::blocks
 			return properties;
 		}
 
-		std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> LoadFaces(
+		BlockFaceTextureHandles LoadFaces(
 			BlockTextureCache& cache,
 			const DataBlockDefinition& definition)
 		{
-			std::array<ve::rendering::TextureHandle, static_cast<std::size_t>(BlockFace::Count)> faces{};
-			for (std::size_t face_index = 0; face_index < faces.size(); ++face_index)
+			BlockFaceTextureHandles faces{};
+			for (BlockFace face : AllBlockFaces)
 			{
+				const BlockFaceOrdinal face_index = ToBlockFaceOrdinal(face);
 				const std::string& texture_file = definition.face_texture_files[face_index];
 				faces[face_index] = cache.Load(texture_file.empty() ? nullptr : texture_file.c_str());
 			}
@@ -93,7 +85,7 @@ namespace ve::blocks
 
 	bool IsUsableBlockId(BlockId id) noexcept
 	{
-		return id != BlockId::Count;
+		return IsStoredBlockId(id);
 	}
 
 	BlockRegistry::BlockRegistry(const ve::assets::AssetPaths& paths, TextureLoading texture_loading)
@@ -199,7 +191,7 @@ namespace ve::blocks
 
 	ve::rendering::TextureHandle BlockRegistry::TextureFor(BlockId id, BlockFace face) const
 	{
-		return Get(id).faceTextures[IndexOf(face)];
+		return Get(id).faceTextures[ToBlockFaceOrdinal(face)];
 	}
 
 	const ve::rendering::PbrMaterial& BlockRegistry::MaterialFor(BlockId id) const

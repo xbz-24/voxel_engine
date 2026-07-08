@@ -32,8 +32,8 @@ namespace ve::rendering::raster_ray
 
 	bool IsSolidBlock(ve::blocks::BlockId block) noexcept
 	{
-		const auto block_index = static_cast<std::size_t>(block);
-		return block_index < static_cast<std::size_t>(ve::blocks::BlockId::Count) &&
+		const ve::blocks::BlockOrdinal block_index = ve::blocks::ToBlockOrdinal(block);
+		return block_index < ve::blocks::BlockTypeCount &&
 			ve::blocks::BuiltInBlockDefinitions[block_index].isSolid;
 	}
 

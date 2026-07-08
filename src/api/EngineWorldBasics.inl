@@ -2,7 +2,7 @@ namespace
 {
 	[[nodiscard]] int ToSerializedBlock(voxel::Block block) noexcept
 	{
-		return static_cast<int>(static_cast<std::uint8_t>(block));
+		return ve::core::ToInt(ve::core::ToU8(block));
 	}
 
 	[[nodiscard]] voxel::Block FromSerializedBlock(int value) noexcept
@@ -11,7 +11,7 @@ namespace
 		{
 			return voxel::Block::Air;
 		}
-		return static_cast<voxel::Block>(static_cast<std::uint8_t>(value));
+		return ve::core::NumericCast<voxel::Block>(ve::core::ToU8(value));
 	}
 
 }

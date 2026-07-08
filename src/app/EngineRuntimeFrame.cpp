@@ -1,5 +1,6 @@
 #include "EngineRuntime.h"
 
+#include "CoreTypes.h"
 #include "OpenGLRenderView.h"
 
 #include <algorithm>

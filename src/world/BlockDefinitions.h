@@ -97,5 +97,5 @@ namespace ve::blocks
 		{ BlockId::DeadBush, "Dead Bush", true, Same("dead_bush.png") }
 	};
 
-	static_assert((sizeof(BuiltInBlockDefinitions) / sizeof(BuiltInBlockDefinitions[0])) == static_cast<std::size_t>(BlockId::Count), "Every BlockId must have one built-in definition.");
+	static_assert((sizeof(BuiltInBlockDefinitions) / sizeof(BuiltInBlockDefinitions[0])) == BlockTypeCount, "Every BlockId must have one built-in definition.");
 }

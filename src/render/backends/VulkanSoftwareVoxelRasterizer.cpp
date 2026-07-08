@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerColor.h"
 
 #include <algorithm>
@@ -21,9 +22,9 @@ namespace ve::rendering
 		}
 
 		const std::size_t index =
-			((static_cast<std::size_t>(position.x) * static_cast<std::size_t>(height)) +
-				static_cast<std::size_t>(position.y)) *
-			static_cast<std::size_t>(depth) + static_cast<std::size_t>(position.z);
+			((ve::core::ToIndex(position.x) * ve::core::ToIndex(height)) +
+				ve::core::ToIndex(position.y)) *
+			ve::core::ToIndex(depth) + ve::core::ToIndex(position.z);
 		if (index >= blocks.size()) return ve::blocks::BlockId::Air;
 		return blocks[index];
 	}
@@ -35,12 +36,12 @@ namespace ve::rendering
 
 		const float wrapped_u = texture_u - std::floor(texture_u);
 		const float wrapped_v = texture_v - std::floor(texture_v);
-		const auto sample_x = static_cast<std::uint32_t>(
-			std::clamp(wrapped_u, 0.0f, 0.9999f) * static_cast<float>(width));
-		const auto sample_y = static_cast<std::uint32_t>(
-			std::clamp(1.0f - wrapped_v, 0.0f, 0.9999f) * static_cast<float>(height));
+		const auto sample_x = ve::core::ToU32(
+			std::clamp(wrapped_u, 0.0f, 0.9999f) * ve::core::ToFloat(width));
+		const auto sample_y = ve::core::ToU32(
+			std::clamp(1.0f - wrapped_v, 0.0f, 0.9999f) * ve::core::ToFloat(height));
 		const std::size_t pixel_index =
-			static_cast<std::size_t>(std::min(sample_y, height - 1u)) * width +
+			ve::core::ToIndex(std::min(sample_y, height - 1u)) * width +
 			std::min(sample_x, width - 1u);
 		if (pixel_index >= pixels.size()) return fallback_color;
 		return pixels[pixel_index];

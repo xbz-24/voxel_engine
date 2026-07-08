@@ -1,5 +1,6 @@
 #include "SettingsMenuController.h"
 
+#include "CoreTypes.h"
 #include "Input.h"
 
 namespace ve::gameplay
@@ -51,9 +52,10 @@ namespace ve::gameplay
 	/// Moves the selected menu row.
 	void SettingsMenuController::MoveSelection(RuntimeSettings& settings, int direction)
 	{
-		const int count = static_cast<int>(ve::ui::SettingsMenuOption::Count);
-		const int selected = static_cast<int>(settings.editor.selected_settings_menu_option);
-		settings.editor.selected_settings_menu_option = static_cast<ve::ui::SettingsMenuOption>((selected + direction + count) % count);
+		const int count = ve::core::ToInt(ve::ui::SettingsMenuOption::Count);
+		const int selected = ve::core::ToInt(settings.editor.selected_settings_menu_option);
+		settings.editor.selected_settings_menu_option = ve::core::NumericCast<ve::ui::SettingsMenuOption>(
+			(selected + direction + count) % count);
 	}
 
 	/// Applies left/right changes to configurable rows.

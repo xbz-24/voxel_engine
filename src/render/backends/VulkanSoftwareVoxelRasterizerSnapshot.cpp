@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "World.h"
 
 namespace ve::rendering
@@ -12,9 +13,9 @@ namespace ve::rendering
 		world_snapshot_.depth = metrics.worldSizeInChunks * ve::world::terrain::ChunkDepth;
 
 		const std::size_t block_count =
-			static_cast<std::size_t>(world_snapshot_.width) *
-			static_cast<std::size_t>(world_snapshot_.height) *
-			static_cast<std::size_t>(world_snapshot_.depth);
+			ve::core::ToIndex(world_snapshot_.width) *
+			ve::core::ToIndex(world_snapshot_.height) *
+			ve::core::ToIndex(world_snapshot_.depth);
 		world_snapshot_.blocks.resize(block_count);
 
 		std::size_t snapshot_block_index = 0;

@@ -8,8 +8,8 @@
 		window_width = client_window_size.width;
 		window_height = client_window_size.height;
 
-		const double scale_x = static_cast<double>(window_.GetWidth()) / static_cast<double>(std::max(window_width, 1));
-		const double scale_y = static_cast<double>(window_.GetHeight()) / static_cast<double>(std::max(window_height, 1));
+		const double scale_x = ve::core::ToDouble(window_.GetWidth()) / ve::core::ToDouble(std::max(window_width, 1));
+		const double scale_y = ve::core::ToDouble(window_.GetHeight()) / ve::core::ToDouble(std::max(window_height, 1));
 
 		runtime_input_actions_.Update(runtime_input_snapshot);
 		return ve::rendering::VulkanDemoInput{

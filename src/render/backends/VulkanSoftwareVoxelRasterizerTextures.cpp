@@ -1,6 +1,7 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
 #include "BlockDefinitions.h"
+#include "CoreTypes.h"
 #include "Logger.h"
 #include "StbiImageData.h"
 #include "VulkanSoftwareRasterizerBlockColor.h"
@@ -14,14 +15,6 @@
 
 namespace ve::rendering
 {
-	namespace
-	{
-		std::size_t FaceIndex(ve::blocks::BlockId block, ve::blocks::BlockFace face) noexcept
-		{
-			return (static_cast<std::size_t>(block) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)) +
-				static_cast<std::size_t>(face);
-		}
-	}
 	void VulkanSoftwareVoxelRasterizer::LoadBlockTextures(const std::filesystem::path& block_texture_directory)
 	{
 		texture_library_ = {};
@@ -42,9 +35,9 @@ namespace ve::rendering
 			StbiImageData data(stbi_load(texture_path.string().c_str(), &width, &height, &channels, 4));
 			if (data != nullptr && width > 0 && height > 0)
 			{
-				texture.width = static_cast<std::uint32_t>(width);
-				texture.height = static_cast<std::uint32_t>(height);
-				texture.pixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height));
+				texture.width = ve::core::ToU32(width);
+				texture.height = ve::core::ToU32(height);
+				texture.pixels.resize(ve::core::ToIndex(width) * ve::core::ToIndex(height));
 				for (std::size_t index = 0; index < texture.pixels.size(); ++index)
 				{
 					const stbi_uc* pixel = data.get() + (index * 4u);
@@ -57,7 +50,7 @@ namespace ve::rendering
 				texture = CpuTexture{ std::vector<std::uint32_t>{ PackRgb(fallback) }, 1u, 1u };
 			}
 
-			const auto next_index = static_cast<std::uint16_t>(texture_library_.textures.size());
+			const auto next_index = ve::core::NumericCast<std::uint16_t>(texture_library_.textures.size());
 			texture_library_.textures.push_back(std::move(texture));
 			texture_indices.emplace(key, next_index);
 			return next_index;
@@ -66,7 +59,7 @@ namespace ve::rendering
 		for (const ve::blocks::BlockDefinition& definition : ve::blocks::BuiltInBlockDefinitions)
 		{
 			const Rgb fallback = BaseBlockColor(definition.id);
-			const std::array<const char*, static_cast<std::size_t>(ve::blocks::BlockFace::Count)> files{
+			const ve::blocks::PerBlockFaceArray<const char*> files{
 				definition.textures.top,
 				definition.textures.bottom,
 				definition.textures.front,
@@ -74,9 +67,10 @@ namespace ve::rendering
 				definition.textures.left,
 				definition.textures.right
 			};
-			for (std::size_t face = 0; face < files.size(); ++face)
+			for (ve::blocks::BlockFace face : ve::blocks::AllBlockFaces)
 			{
-				texture_library_.face_texture_indices[FaceIndex(definition.id, static_cast<ve::blocks::BlockFace>(face))] = load_texture(files[face], fallback);
+				texture_library_.face_texture_indices[ve::blocks::BlockFaceTextureSlot(definition.id, face)] =
+					load_texture(files[ve::blocks::ToBlockFaceOrdinal(face)], fallback);
 			}
 		}
 		texture_library_.loaded = true;
@@ -86,9 +80,9 @@ namespace ve::rendering
 	{
 		static const CpuTexture fallback{ std::vector<std::uint32_t>{ PackRgb({ 132, 132, 132 }) }, 1u, 1u };
 		if (!texture_library_.loaded || texture_library_.textures.empty()) return fallback;
-		const std::size_t block_index = static_cast<std::size_t>(block);
-		if (block_index >= static_cast<std::size_t>(ve::blocks::BlockId::Count)) return texture_library_.textures.front();
-		const std::uint16_t texture_index = texture_library_.face_texture_indices[FaceIndex(block, face)];
+		const ve::blocks::BlockOrdinal block_index = ve::blocks::ToBlockOrdinal(block);
+		if (block_index >= ve::blocks::BlockTypeCount) return texture_library_.textures.front();
+		const std::uint16_t texture_index = texture_library_.face_texture_indices[ve::blocks::BlockFaceTextureSlot(block, face)];
 		if (texture_index >= texture_library_.textures.size()) return texture_library_.textures.front();
 		return texture_library_.textures[texture_index];
 	}

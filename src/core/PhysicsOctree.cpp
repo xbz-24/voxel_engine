@@ -19,7 +19,7 @@ namespace ve::physics
 	/// Creates one octree node.
 	int PhysicsOctree::CreateNode(const Aabb& bounds, int depth)
 	{
-		const int node_index = static_cast<int>(nodes_.size());
+		const int node_index = ve::core::ToInt(nodes_.size());
 		OctreeNode node{ bounds };
 		node.children.fill(-1);
 		node.depth = depth;

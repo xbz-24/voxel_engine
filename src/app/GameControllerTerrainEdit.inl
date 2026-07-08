@@ -29,14 +29,14 @@ namespace ve::engine
 				for (int offset_z = -tunnel_radius; offset_z <= tunnel_radius; ++offset_z)
 				{
 					const float normalized_horizontal_distance =
-						static_cast<float>((offset_x * offset_x) + (offset_z * offset_z)) /
-						static_cast<float>(tunnel_radius * tunnel_radius);
+						ve::core::ToFloat((offset_x * offset_x) + (offset_z * offset_z)) /
+						ve::core::ToFloat(tunnel_radius * tunnel_radius);
 					if (normalized_horizontal_distance > 1.10f) continue;
 					for (int offset_y = 0; offset_y >= -tunnel_depth; --offset_y)
 					{
 						const float normalized_vertical_distance =
-							static_cast<float>(offset_y * offset_y) /
-							static_cast<float>(tunnel_depth * tunnel_depth);
+							ve::core::ToFloat(offset_y * offset_y) /
+							ve::core::ToFloat(tunnel_depth * tunnel_depth);
 						if (normalized_horizontal_distance + (normalized_vertical_distance * 0.72f) > 1.0f) continue;
 						const glm::ivec3 block_position = tunnel_center + glm::ivec3{ offset_x, offset_y, offset_z };
 						const ve::blocks::BlockId block = world.GetBlock(block_position);

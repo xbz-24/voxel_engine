@@ -90,7 +90,7 @@ namespace ve::rendering
 			if (free_slots_.empty())
 			{
 				slots_.push_back(Slot{});
-				return static_cast<std::uint32_t>(slots_.size() - 1U);
+				return ve::core::ToU32(slots_.size() - 1U);
 			}
 			const std::uint32_t slot_index = free_slots_.back();
 			free_slots_.pop_back();
