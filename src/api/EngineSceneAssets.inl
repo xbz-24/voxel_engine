@@ -2,23 +2,28 @@ namespace voxel
 {
 	namespace
 	{
-		[[nodiscard]] std::string AssetPathFromSource(const AssetSource& source)
+		[[nodiscard]] std::string LegacyAssetPathFromSource(const AssetSource& source)
 		{
 			return source.location;
 		}
 
-		[[nodiscard]] float Clamp01(float value) noexcept
+		[[nodiscard]] float ClampToNormalizedFloatRange(float value) noexcept
 		{
-			return std::clamp(value, 0.0f, 1.0f);
+			return std::clamp(value, NormalizedFloatRange.minimum, NormalizedFloatRange.maximum);
 		}
 
-		[[nodiscard]] Color ClampColor(Color value) noexcept
+		[[nodiscard]] float ClampToNonNegativeFloat(float value) noexcept
+		{
+			return std::max(0.0f, value);
+		}
+
+		[[nodiscard]] Color ClampColorToNormalizedRange(Color value) noexcept
 		{
 			return {
-				Clamp01(value.r),
-				Clamp01(value.g),
-				Clamp01(value.b),
-				Clamp01(value.a)
+				ClampToNormalizedFloatRange(value.r),
+				ClampToNormalizedFloatRange(value.g),
+				ClampToNormalizedFloatRange(value.b),
+				ClampToNormalizedFloatRange(value.a)
 			};
 		}
 	}
@@ -67,7 +72,7 @@ namespace voxel
 
 	AssetCatalog& AssetCatalog::Texture(std::string name, AssetSource source)
 	{
-		textures.push_back(TextureAsset{ std::move(name), AssetPathFromSource(source), std::move(source) });
+		textures.push_back(TextureAsset{ std::move(name), LegacyAssetPathFromSource(source), std::move(source) });
 		return *this;
 	}
 
@@ -78,7 +83,7 @@ namespace voxel
 
 	AssetCatalog& AssetCatalog::Model(std::string name, AssetSource source)
 	{
-		models.push_back(ModelAsset{ std::move(name), AssetPathFromSource(source), std::move(source) });
+		models.push_back(ModelAsset{ std::move(name), LegacyAssetPathFromSource(source), std::move(source) });
 		return *this;
 	}
 
@@ -89,6 +94,6 @@ namespace voxel
 
 	AssetCatalog& AssetCatalog::Sound(std::string name, AssetSource source)
 	{
-		sounds.push_back(SoundAsset{ std::move(name), AssetPathFromSource(source), std::move(source) });
+		sounds.push_back(SoundAsset{ std::move(name), LegacyAssetPathFromSource(source), std::move(source) });
 		return *this;
 	}

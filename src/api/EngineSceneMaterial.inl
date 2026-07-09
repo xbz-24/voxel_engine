@@ -7,7 +7,7 @@
 
 	Material& Material::BaseColor(Color value) noexcept
 	{
-		base_color = ClampColor(value);
+		base_color = ClampColorToNormalizedRange(value);
 		return *this;
 	}
 
@@ -49,19 +49,19 @@
 
 	Material& Material::Metallic(float value) noexcept
 	{
-		metallic = Clamp01(value);
+		metallic = ClampToNormalizedFloatRange(value);
 		return *this;
 	}
 
 	Material& Material::Roughness(float value) noexcept
 	{
-		roughness = Clamp01(value);
+		roughness = ClampToNormalizedFloatRange(value);
 		return *this;
 	}
 
 	Material& Material::Emissive(float strength) noexcept
 	{
-		emission = std::max(0.0f, strength);
+		emission = ClampToNonNegativeFloat(strength);
 		return *this;
 	}
 

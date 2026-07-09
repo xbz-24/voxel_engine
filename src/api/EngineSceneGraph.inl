@@ -9,20 +9,35 @@
 			return "scene entity '" + entity.name + "'";
 		}
 
+		[[nodiscard]] bool ContainsEntityId(const std::vector<Entity>& entities,
+			EntityId requested_entity_id) noexcept
+		{
+			return std::ranges::any_of(entities,
+				[requested_entity_id](const Entity& entity) noexcept {
+					return entity.id == requested_entity_id;
+				});
+		}
+
 		[[nodiscard]] EntityId NextSceneEntityId(const std::vector<Entity>& entities) noexcept
 		{
 			for (std::uint32_t candidate_id = 1; candidate_id != 0; ++candidate_id)
 			{
-				const bool candidate_is_used = std::ranges::any_of(entities,
-					[candidate_id](const Entity& entity) noexcept {
-						return entity.id.value == candidate_id;
-					});
-				if (!candidate_is_used)
+				const EntityId candidate_entity_id{ candidate_id };
+				if (!ContainsEntityId(entities, candidate_entity_id))
 				{
-					return EntityId{ candidate_id };
+					return candidate_entity_id;
 				}
 			}
 			return InvalidEntityId;
+		}
+
+		template <typename EntityRange>
+		[[nodiscard]] auto FindEntityById(EntityRange& entities, EntityId requested_entity_id) noexcept
+		{
+			return std::ranges::find_if(entities,
+				[requested_entity_id](const Entity& candidate_entity) noexcept {
+					return candidate_entity.id == requested_entity_id;
+				});
 		}
 
 		[[nodiscard]] std::set<std::uint32_t> CollectValidEntityIds(
@@ -179,11 +194,8 @@
 		{
 			return nullptr;
 		}
-		const auto entity = std::ranges::find_if(entities,
-			[entity_id](const Entity& candidate) noexcept {
-				return candidate.id == entity_id;
-			});
-		return entity == entities.end() ? nullptr : &*entity;
+		const auto entity_iterator = FindEntityById(entities, entity_id);
+		return entity_iterator == entities.end() ? nullptr : &*entity_iterator;
 	}
 
 	const Entity* SceneGraph::FindEntity(EntityId entity_id) const noexcept
@@ -192,11 +204,8 @@
 		{
 			return nullptr;
 		}
-		const auto entity = std::ranges::find_if(entities,
-			[entity_id](const Entity& candidate) noexcept {
-				return candidate.id == entity_id;
-			});
-		return entity == entities.end() ? nullptr : &*entity;
+		const auto entity_iterator = FindEntityById(entities, entity_id);
+		return entity_iterator == entities.end() ? nullptr : &*entity_iterator;
 	}
 
 	SceneGraph& SceneGraph::Add(Light light)

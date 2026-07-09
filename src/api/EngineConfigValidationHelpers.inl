@@ -14,69 +14,107 @@ namespace voxel
 			return source.location.empty() ? std::string{ legacy_path } : source.location;
 		}
 
-		void ValidateAssetSource(const AssetSource& source,
-			std::string_view legacy_path,
-			std::string_view kind,
+		void ValidateAssetHotReloadSource(const AssetSource& source,
+			std::string_view asset_kind,
+			std::vector<std::string>& issues)
+		{
+			if (source.hot_reload && source.storage != AssetStorage::FilePath)
+			{
+				issues.push_back(std::string{ asset_kind } + " asset hot reload requires a filesystem path");
+			}
+		}
+
+		void ValidateEmbeddedAssetSource(const AssetSource& source,
+			std::string_view asset_kind,
+			std::vector<std::string>& issues)
+		{
+			if (source.embedded_data.empty())
+			{
+				issues.push_back(std::string{ asset_kind } + " embedded asset data must not be empty");
+			}
+		}
+
+		void ValidatePackagedArchiveAssetSource(const AssetSource& source,
+			const std::string& asset_location,
+			std::string_view asset_kind,
+			std::vector<std::string>& issues)
+		{
+			if (source.archive_path.empty())
+			{
+				issues.push_back(std::string{ asset_kind } + " archive path must not be empty");
+			}
+			if (asset_location.empty())
+			{
+				issues.push_back(std::string{ asset_kind } + " archive entry path must not be empty");
+			}
+		}
+
+		void ValidateFilePathAssetSource(const std::string& asset_location,
+			std::string_view asset_kind,
 			bool require_existing_files,
 			std::vector<std::string>& issues)
 		{
-			const std::string location = AssetLocation(source, legacy_path);
-			if (source.hot_reload && source.storage != AssetStorage::FilePath)
+			if (asset_location.empty())
 			{
-				issues.push_back(std::string{ kind } + " asset hot reload requires a filesystem path");
+				issues.push_back(std::string{ asset_kind } + " asset path must not be empty");
 			}
+			else if (require_existing_files && !std::filesystem::exists(asset_location))
+			{
+				issues.push_back(std::string{ asset_kind } + " asset path does not exist: " + asset_location);
+			}
+		}
+
+		void ValidateAssetSource(const AssetSource& source,
+			std::string_view legacy_path,
+			std::string_view asset_kind,
+			bool require_existing_files,
+			std::vector<std::string>& issues)
+		{
+			const std::string asset_location = AssetLocation(source, legacy_path);
+			ValidateAssetHotReloadSource(source, asset_kind, issues);
 
 			switch (source.storage)
 			{
 			case AssetStorage::EmbeddedData:
-				if (source.embedded_data.empty())
-				{
-					issues.push_back(std::string{ kind } + " embedded asset data must not be empty");
-				}
+				ValidateEmbeddedAssetSource(source, asset_kind, issues);
 				return;
 			case AssetStorage::PackagedArchive:
-				if (source.archive_path.empty())
-				{
-					issues.push_back(std::string{ kind } + " archive path must not be empty");
-				}
-				if (location.empty())
-				{
-					issues.push_back(std::string{ kind } + " archive entry path must not be empty");
-				}
+				ValidatePackagedArchiveAssetSource(source, asset_location, asset_kind, issues);
 				return;
 			case AssetStorage::FilePath:
 			default:
-				if (location.empty())
-				{
-					issues.push_back(std::string{ kind } + " asset path must not be empty");
-				}
-				else if (require_existing_files && !std::filesystem::exists(location))
-				{
-					issues.push_back(std::string{ kind } + " asset path does not exist: " + location);
-				}
+				ValidateFilePathAssetSource(asset_location, asset_kind, require_existing_files, issues);
 				return;
+			}
+		}
+
+		void ValidateAssetNameIsPresentAndUnique(std::string_view asset_name,
+			std::string_view asset_kind,
+			std::set<std::string>& asset_names_seen,
+			std::vector<std::string>& issues)
+		{
+			if (asset_name.empty())
+			{
+				issues.push_back(std::string{ asset_kind } + " asset name must not be empty");
+			}
+			else if (!asset_names_seen.insert(std::string{ asset_name }).second)
+			{
+				issues.push_back(std::string{ asset_kind } + " asset name is duplicated: " + std::string{ asset_name });
 			}
 		}
 
 		template <std::ranges::input_range AssetRange>
 			requires PublicAssetRecord<std::remove_cvref_t<std::ranges::range_reference_t<AssetRange>>>
 		void ValidateAssets(const AssetRange& assets,
-			std::string_view kind,
+			std::string_view asset_kind,
 			bool require_existing_files,
 			std::vector<std::string>& issues)
 		{
-			std::set<std::string> names;
-			for (const auto& asset : assets)
+			std::set<std::string> asset_names_seen;
+			for (const auto& asset_record : assets)
 			{
-				if (asset.name.empty())
-				{
-					issues.push_back(std::string{ kind } + " asset name must not be empty");
-				}
-				else if (!names.insert(asset.name).second)
-				{
-					issues.push_back(std::string{ kind } + " asset name is duplicated: " + asset.name);
-				}
-				ValidateAssetSource(asset.source, asset.path, kind, require_existing_files, issues);
+				ValidateAssetNameIsPresentAndUnique(asset_record.name, asset_kind, asset_names_seen, issues);
+				ValidateAssetSource(asset_record.source, asset_record.path, asset_kind, require_existing_files, issues);
 			}
 		}
 
@@ -142,40 +180,61 @@ namespace voxel
 			ValidateFiniteRange(color.a, label + ".a", NormalizedFloatRange, issues);
 		}
 
+		void ValidateMaterialNameIsPresentAndUnique(const Material& material,
+			std::set<std::string>& material_names_seen,
+			std::vector<std::string>& issues)
+		{
+			if (material.name.empty())
+			{
+				issues.push_back("material name must not be empty");
+			}
+			else if (!material_names_seen.insert(material.name).second)
+			{
+				issues.push_back("material name is duplicated: " + material.name);
+			}
+		}
+
+		void ValidateMaterialScalarProperties(const Material& material,
+			const std::string& material_label,
+			std::vector<std::string>& issues)
+		{
+			ValidateColor(material.base_color, material_label + ".base_color", issues);
+			ValidateFiniteRange(material.metallic, material_label + ".metallic", NormalizedFloatRange, issues);
+			ValidateFiniteRange(material.roughness, material_label + ".roughness", NormalizedFloatRange, issues);
+			ValidateNonNegative(material.emission, material_label + ".emission", issues);
+		}
+
+		void ValidateMaterialDefinition(const Material& material,
+			std::set<std::string>& material_names_seen,
+			std::vector<std::string>& issues)
+		{
+			ValidateMaterialNameIsPresentAndUnique(material, material_names_seen, issues);
+
+			const std::string material_label = MaterialLabel(material);
+			ValidateMaterialScalarProperties(material, material_label, issues);
+		}
+
 		void ValidateMaterials(const std::vector<Material>& materials, std::vector<std::string>& issues)
 		{
-			std::set<std::string> names;
+			std::set<std::string> material_names_seen;
 			for (const Material& material : materials)
 			{
-				if (material.name.empty())
-				{
-					issues.push_back("material name must not be empty");
-				}
-				else if (!names.insert(material.name).second)
-				{
-					issues.push_back("material name is duplicated: " + material.name);
-				}
-
-				const std::string material_label = MaterialLabel(material);
-				ValidateColor(material.base_color, material_label + ".base_color", issues);
-				ValidateFiniteRange(material.metallic, material_label + ".metallic", NormalizedFloatRange, issues);
-				ValidateFiniteRange(material.roughness, material_label + ".roughness", NormalizedFloatRange, issues);
-				ValidateNonNegative(material.emission, material_label + ".emission", issues);
+				ValidateMaterialDefinition(material, material_names_seen, issues);
 			}
 		}
 
 		template <std::ranges::input_range NamedRange>
-		[[nodiscard]] std::set<std::string, std::less<>> NamesFrom(const NamedRange& named_values)
+		[[nodiscard]] std::set<std::string, std::less<>> CollectNonEmptyNamesFrom(const NamedRange& named_values)
 		{
-			std::set<std::string, std::less<>> names;
+			std::set<std::string, std::less<>> non_empty_names;
 			for (const auto& named_value : named_values)
 			{
 				if (!named_value.name.empty())
 				{
-					names.insert(named_value.name);
+					non_empty_names.insert(named_value.name);
 				}
 			}
-			return names;
+			return non_empty_names;
 		}
 
 		void ValidateOptionalReference(std::string_view reference,
@@ -192,21 +251,28 @@ namespace voxel
 				std::string{ reference });
 		}
 
+		void ValidateMaterialTextureBindingReferences(const Material& material,
+			const std::set<std::string, std::less<>>& texture_names,
+			std::vector<std::string>& issues)
+		{
+			const std::string material_label = MaterialLabel(material);
+			ValidateOptionalReference(material.texture, texture_names, material_label, "texture asset", issues);
+			ValidateOptionalReference(material.normal_texture, texture_names, material_label, "texture asset", issues);
+			ValidateOptionalReference(material.roughness_texture, texture_names, material_label, "texture asset", issues);
+			ValidateOptionalReference(material.metallic_texture, texture_names, material_label, "texture asset", issues);
+			ValidateOptionalReference(material.occlusion_texture, texture_names, material_label, "texture asset", issues);
+			ValidateOptionalReference(material.emissive_texture, texture_names, material_label, "texture asset", issues);
+		}
+
 		void ValidateMaterialTextureReferences(
 			const MaterialLibrary& materials,
 			const AssetCatalog& assets,
 			std::vector<std::string>& issues)
 		{
-			const std::set<std::string, std::less<>> texture_names = NamesFrom(assets.textures);
+			const std::set<std::string, std::less<>> texture_names = CollectNonEmptyNamesFrom(assets.textures);
 			for (const Material& material : materials.materials)
 			{
-				const std::string material_label = MaterialLabel(material);
-				ValidateOptionalReference(material.texture, texture_names, material_label, "texture asset", issues);
-				ValidateOptionalReference(material.normal_texture, texture_names, material_label, "texture asset", issues);
-				ValidateOptionalReference(material.roughness_texture, texture_names, material_label, "texture asset", issues);
-				ValidateOptionalReference(material.metallic_texture, texture_names, material_label, "texture asset", issues);
-				ValidateOptionalReference(material.occlusion_texture, texture_names, material_label, "texture asset", issues);
-				ValidateOptionalReference(material.emissive_texture, texture_names, material_label, "texture asset", issues);
+				ValidateMaterialTextureBindingReferences(material, texture_names, issues);
 			}
 		}
 
@@ -216,8 +282,8 @@ namespace voxel
 			const MaterialLibrary& materials,
 			std::vector<std::string>& issues)
 		{
-			const std::set<std::string, std::less<>> model_names = NamesFrom(assets.models);
-			const std::set<std::string, std::less<>> material_names = NamesFrom(materials.materials);
+			const std::set<std::string, std::less<>> model_names = CollectNonEmptyNamesFrom(assets.models);
+			const std::set<std::string, std::less<>> material_names = CollectNonEmptyNamesFrom(materials.materials);
 			for (const Entity& entity : scene_graph.entities)
 			{
 				const std::string entity_label = EntityLabel(entity);

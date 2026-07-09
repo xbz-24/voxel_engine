@@ -3,7 +3,7 @@
 		Light light{};
 		light.kind = LightKind::Directional;
 		light.direction = direction;
-		light.intensity = std::max(0.0f, intensity);
+		light.intensity = ClampToNonNegativeFloat(intensity);
 		light.intensity_unit = LightIntensityUnit::Lux;
 		return light;
 	}
@@ -13,9 +13,9 @@
 		Light light{};
 		light.kind = LightKind::Point;
 		light.position = position;
-		light.color = ClampColor(color);
-		light.intensity = std::max(0.0f, intensity);
-		light.range = std::max(0.0f, range);
+		light.color = ClampColorToNormalizedRange(color);
+		light.intensity = ClampToNonNegativeFloat(intensity);
+		light.range = ClampToNonNegativeFloat(range);
 		light.intensity_unit = LightIntensityUnit::Lumens;
 		return light;
 	}
@@ -45,8 +45,8 @@
 	Light& Light::CastShadows(bool enabled, float max_distance, float depth_bias) noexcept
 	{
 		shadows.enabled = enabled;
-		shadows.max_distance = std::max(0.0f, max_distance);
-		shadows.depth_bias = std::max(0.0f, depth_bias);
+		shadows.max_distance = ClampToNonNegativeFloat(max_distance);
+		shadows.depth_bias = ClampToNonNegativeFloat(depth_bias);
 		return *this;
 	}
 
@@ -59,14 +59,14 @@
 
 	Environment& Environment::Ambient(Color value) noexcept
 	{
-		ambient = ClampColor(value);
+		ambient = ClampColorToNormalizedRange(value);
 		return *this;
 	}
 
 	Environment& Environment::Fog(Color value, float density) noexcept
 	{
-		fog = ClampColor(value);
-		fog_density = std::max(0.0f, density);
+		fog = ClampColorToNormalizedRange(value);
+		fog_density = ClampToNonNegativeFloat(density);
 		return *this;
 	}
 
