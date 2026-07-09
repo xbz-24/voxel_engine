@@ -81,6 +81,36 @@ namespace ve::blocks
 			}
 			return gameplay;
 		}
+
+		bool CanRegisterDataDefinition(const DataBlockDefinition& definition) noexcept
+		{
+			return IsUsableBlockId(definition.id) && !definition.name.empty();
+		}
+
+		BlockFaceTextureHandles LoadDataFaces(
+			BlockTextureCache& cache,
+			const DataBlockDefinition& definition,
+			BlockRegistry::TextureLoading texture_loading)
+		{
+			return texture_loading == BlockRegistry::TextureLoading::LoadTextures
+				? LoadFaces(cache, definition)
+				: EmptyFaces();
+		}
+
+		BlockType BuildDataBlockType(
+			BlockTextureCache& cache,
+			const DataBlockDefinition& definition,
+			BlockRegistry::TextureLoading texture_loading)
+		{
+			return BlockType{
+				definition.id,
+				definition.name,
+				definition.is_solid,
+				LoadDataFaces(cache, definition, texture_loading),
+				definition.material,
+				NormalizeDataGameplay(definition)
+			};
+		}
 	}
 
 	bool IsUsableBlockId(BlockId id) noexcept
@@ -119,20 +149,13 @@ namespace ve::blocks
 		const ve::assets::AssetPaths& paths,
 		TextureLoading texture_loading)
 	{
-		if (!IsUsableBlockId(definition.id) || definition.name.empty())
+		if (!CanRegisterDataDefinition(definition))
 		{
 			return false;
 		}
 
 		BlockTextureCache cache(paths.blockTexturesDirectory);
-		return Register(BlockType{
-			definition.id,
-			definition.name,
-			definition.is_solid,
-			texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition) : EmptyFaces(),
-			definition.material,
-			NormalizeDataGameplay(definition)
-		});
+		return Register(BuildDataBlockType(cache, definition, texture_loading));
 	}
 
 	std::size_t BlockRegistry::RegisterDataDefinitions(
@@ -144,18 +167,11 @@ namespace ve::blocks
 		BlockTextureCache cache(paths.blockTexturesDirectory);
 		for (const DataBlockDefinition& definition : definitions)
 		{
-			if (!IsUsableBlockId(definition.id) || definition.name.empty())
+			if (!CanRegisterDataDefinition(definition))
 			{
 				continue;
 			}
-			if (Register(BlockType{
-				definition.id,
-				definition.name,
-				definition.is_solid,
-				texture_loading == TextureLoading::LoadTextures ? LoadFaces(cache, definition) : EmptyFaces(),
-				definition.material,
-				NormalizeDataGameplay(definition)
-			}))
+			if (Register(BuildDataBlockType(cache, definition, texture_loading)))
 			{
 				++accepted_definition_count;
 			}

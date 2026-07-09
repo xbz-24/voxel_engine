@@ -156,13 +156,13 @@ namespace ve::ecs
 			auto existing_pool = component_pools_.find(component_type);
 			if (existing_pool != component_pools_.end())
 			{
-				return static_cast<ComponentPool<Component>&>(*existing_pool->second);
+				return TypedComponentPool<Component>(*existing_pool->second);
 			}
 			auto [new_pool, inserted] = component_pools_.emplace(
 				component_type,
 				std::make_unique<ComponentPool<Component>>());
 			(void)inserted;
-			return static_cast<ComponentPool<Component>&>(*new_pool->second);
+			return TypedComponentPool<Component>(*new_pool->second);
 		}
 
 		template <typename Component>
@@ -170,7 +170,7 @@ namespace ve::ecs
 		{
 			const auto existing_pool = component_pools_.find(std::type_index(typeid(Component)));
 			if (existing_pool == component_pools_.end()) return nullptr;
-			return static_cast<ComponentPool<Component>*>(existing_pool->second.get());
+			return TypedComponentPool<Component>(existing_pool->second.get());
 		}
 
 		template <typename Component>
@@ -178,7 +178,25 @@ namespace ve::ecs
 		{
 			const auto existing_pool = component_pools_.find(std::type_index(typeid(Component)));
 			if (existing_pool == component_pools_.end()) return nullptr;
-			return static_cast<const ComponentPool<Component>*>(existing_pool->second.get());
+			return TypedComponentPool<Component>(existing_pool->second.get());
+		}
+
+		template <typename Component>
+		[[nodiscard]] static ComponentPool<Component>& TypedComponentPool(IComponentPool& pool) noexcept
+		{
+			return static_cast<ComponentPool<Component>&>(pool);
+		}
+
+		template <typename Component>
+		[[nodiscard]] static ComponentPool<Component>* TypedComponentPool(IComponentPool* pool) noexcept
+		{
+			return static_cast<ComponentPool<Component>*>(pool);
+		}
+
+		template <typename Component>
+		[[nodiscard]] static const ComponentPool<Component>* TypedComponentPool(const IComponentPool* pool) noexcept
+		{
+			return static_cast<const ComponentPool<Component>*>(pool);
 		}
 
 		EntityRegistry registry_;

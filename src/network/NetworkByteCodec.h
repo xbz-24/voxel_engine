@@ -14,7 +14,8 @@ namespace ve::network
 	[[nodiscard]] std::span<const std::byte> SerializedValueBytes(const Value& value) noexcept
 	{
 		static_assert(std::is_trivially_copyable_v<Value>);
-		return { reinterpret_cast<const std::byte*>(&value), sizeof(Value) };
+		const std::span<const Value> value_span{ &value, 1U };
+		return std::as_bytes(value_span);
 	}
 
 	template <typename Value>

@@ -1,5 +1,6 @@
 #include "NetworkTcpSocket.h"
 
+#include "NetworkByteCodec.h"
 #include "NetworkSocketPlatform.h"
 
 namespace ve::network
@@ -9,7 +10,7 @@ namespace ve::network
 		std::size_t bytesAlreadySent = 0;
 		while (bytesAlreadySent < bytes.size())
 		{
-			const char* nextByte = reinterpret_cast<const char*>(bytes.data() + bytesAlreadySent);
+			const char* nextByte = SocketSendCursor(bytes, bytesAlreadySent);
 			const int sentByteCount = send(
 				platform::ToNativeSocket(_nativeSocketHandle),
 				nextByte,
@@ -26,7 +27,7 @@ namespace ve::network
 		std::size_t bytesAlreadyReceived = 0;
 		while (bytesAlreadyReceived < destinationBytes.size())
 		{
-			char* nextByte = reinterpret_cast<char*>(destinationBytes.data() + bytesAlreadyReceived);
+			char* nextByte = SocketReceiveCursor(destinationBytes, bytesAlreadyReceived);
 			const int receivedByteCount = recv(
 				platform::ToNativeSocket(_nativeSocketHandle),
 				nextByte,
