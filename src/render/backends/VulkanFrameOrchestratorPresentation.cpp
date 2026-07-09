@@ -67,7 +67,7 @@ namespace ve::rendering
 			fences[index] = frames_[index].in_flight;
 		}
 		return vkWaitForFences(device_,
-			static_cast<std::uint32_t>(fences.size()),
+			RenderElementCount(fences.size()),
 			fences.data(),
 			VK_TRUE,
 			UINT64_MAX) == VK_SUCCESS;

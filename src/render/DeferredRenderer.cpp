@@ -1,14 +1,26 @@
 #include "DeferredRenderer.h"
 
+#include "CoreTypes.h"
+
 namespace
 {
+	[[nodiscard]] GLint TextureInternalFormat(GLenum internal_format) noexcept
+	{
+		return ve::core::NumericCast<GLint>(internal_format);
+	}
+
+	[[nodiscard]] int FramebufferDimension(std::uint32_t value) noexcept
+	{
+		return ve::core::ToInt(value);
+	}
+
 	/// Creates a 2D color target for a framebuffer.
 	GLuint CreateColorTarget(int width, int height, GLenum internal_format)
 	{
 		GLuint texture = 0;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(internal_format), width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, TextureInternalFormat(internal_format), width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		return texture;
@@ -25,8 +37,8 @@ namespace ve::rendering
 	bool DeferredRenderer::Initialize(const DeferredFramebufferSpecification& specification)
 	{
 		Release();
-		width_ = static_cast<int>(specification.width);
-		height_ = static_cast<int>(specification.height);
+		width_ = FramebufferDimension(specification.width);
+		height_ = FramebufferDimension(specification.height);
 		glGenFramebuffers(1, &framebuffer_);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
 		albedo_texture_ = CreateColorTarget(width_, height_, GL_RGBA8);

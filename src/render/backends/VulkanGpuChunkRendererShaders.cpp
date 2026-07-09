@@ -1,5 +1,7 @@
 #include "VulkanGpuChunkRenderer.h"
 
+#include "CoreTypes.h"
+
 #include <fstream>
 #include <vector>
 
@@ -13,7 +15,7 @@ namespace ve::rendering
 			if (!file) return {};
 			const std::streamsize size = file.tellg();
 			if (size <= 0) return {};
-			std::vector<char> bytes(static_cast<std::size_t>(size));
+			std::vector<char> bytes(ve::core::ToIndex(size));
 			file.seekg(0);
 			file.read(bytes.data(), size);
 			return bytes;

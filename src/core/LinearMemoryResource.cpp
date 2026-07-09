@@ -1,5 +1,7 @@
 #include "LinearMemoryResource.h"
 
+#include "CoreTypes.h"
+
 #include <new>
 #include <cstdint>
 
@@ -15,7 +17,7 @@ namespace
 	/// Converts a pointer to an integer address for alignment math.
 	std::size_t AddressOf(std::byte* pointer) noexcept
 	{
-		return static_cast<std::size_t>(reinterpret_cast<std::uintptr_t>(pointer));
+		return ve::core::ToIndex(reinterpret_cast<std::uintptr_t>(pointer));
 	}
 }
 

@@ -22,7 +22,7 @@
 					<< ToSerializedBlock(edit.block) << '\n';
 			}
 		}
-		return static_cast<bool>(file);
+		return file.good();
 	}
 
 	WorldConfig LoadWorldConfig(const std::string& path)

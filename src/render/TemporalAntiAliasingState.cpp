@@ -1,17 +1,19 @@
 #include "TemporalAntiAliasingPass.h"
 
+#include "CoreTypes.h"
+
 namespace
 {
 	/// Computes one Halton sequence value for jitter.
 	float Halton(int index, int base) noexcept
 	{
 		float result = 0.0f;
-		float weight = 1.0f / static_cast<float>(base);
+		float weight = 1.0f / ve::core::ToFloat(base);
 		while (index > 0)
 		{
-			result += weight * static_cast<float>(index % base);
+			result += weight * ve::core::ToFloat(index % base);
 			index /= base;
-			weight /= static_cast<float>(base);
+			weight /= ve::core::ToFloat(base);
 		}
 		return result;
 	}
@@ -24,7 +26,7 @@ namespace ve::rendering
 	{
 		const int sequence_index = (frame_index_ % 8) + 1;
 		const glm::vec2 jitter(Halton(sequence_index, 2) - 0.5f, Halton(sequence_index, 3) - 0.5f);
-		return glm::vec2(jitter.x / static_cast<float>(width_), jitter.y / static_cast<float>(height_));
+		return glm::vec2(jitter.x / ve::core::ToFloat(width_), jitter.y / ve::core::ToFloat(height_));
 	}
 
 	/// Returns the texture containing previous resolved history.

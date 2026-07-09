@@ -1,7 +1,7 @@
 		void BuildGroundCover(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (config.farm_rows <= 0) return;
-			const float threshold = 0.006f + (static_cast<float>(config.farm_rows) * 0.0018f);
+			const float threshold = 0.006f + (SceneFloat(config.farm_rows) * 0.0018f);
 			const int radius_sq = config.terrain_radius * config.terrain_radius;
 			for (int x = bounds.center_x - config.terrain_radius; x <= bounds.center_x + config.terrain_radius; ++x)
 			{
@@ -10,7 +10,7 @@
 					const int dx = x - bounds.center_x;
 					const int dz = z - bounds.center_z;
 					if ((dx * dx) + (dz * dz) > radius_sq) continue;
-					const float wave = std::sin((static_cast<float>(x) * 0.72f) + (static_cast<float>(z) * 0.22f) + (static_cast<float>(config.seed) * 0.01f));
+					const float wave = std::sin((SceneFloat(x) * 0.72f) + (SceneFloat(z) * 0.22f) + (SceneFloat(config.seed) * 0.01f));
 					if (std::abs(wave) > threshold) continue;
 					if (Hash01(x, z, config.seed + 101) < 0.48f) continue;
 					const int y = FindGroundY(world, bounds, x, z, config.ground_y);

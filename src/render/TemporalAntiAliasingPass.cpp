@@ -1,5 +1,7 @@
 #include "TemporalAntiAliasingPass.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 
 namespace
@@ -7,7 +9,7 @@ namespace
 	/// Converts dimensions to the unsigned frame graph metadata type.
 	ve::core::Index ResourceExtent(int value) noexcept
 	{
-		return static_cast<ve::core::Index>(std::max(1, value));
+		return ve::core::ToIndex(std::max(1, value));
 	}
 
 	/// Creates one floating-point history texture.
@@ -28,13 +30,13 @@ namespace ve::rendering
 	/// Returns the history texture sampled by the current frame.
 	GLuint TemporalHistoryResourceCache::PreviousTexture(int frame_index) const noexcept
 	{
-		return textures[(static_cast<std::size_t>(frame_index) + 1U) % textures.size()];
+		return textures[(ve::core::ToIndex(frame_index) + 1U) % textures.size()];
 	}
 
 	/// Returns the history texture written by the current frame.
 	GLuint TemporalHistoryResourceCache::CurrentTexture(int frame_index) const noexcept
 	{
-		return textures[static_cast<std::size_t>(frame_index) % textures.size()];
+		return textures[ve::core::ToIndex(frame_index) % textures.size()];
 	}
 
 	/// Releases OpenGL history resources.

@@ -10,10 +10,10 @@ namespace ve::rendering
 {
 	bool VulkanGpuChunkRenderer::UploadMeshBuffers(std::span<const VoxelVertex> vertices, std::span<const std::uint32_t> indices)
 	{
-		index_count_ = static_cast<std::uint32_t>(indices.size());
+		index_count_ = RenderElementCount(indices.size());
 		if (vertices.empty() || indices.empty()) return true;
-		const VkDeviceSize vertex_bytes = static_cast<VkDeviceSize>(vertices.size_bytes());
-		const VkDeviceSize index_bytes = static_cast<VkDeviceSize>(indices.size_bytes());
+		const VkDeviceSize vertex_bytes = VulkanByteSize(vertices.size_bytes());
+		const VkDeviceSize index_bytes = VulkanByteSize(indices.size_bytes());
 		const bool uploaded = UploadDeviceLocalBuffer(
 			vertices.data(),
 			vertex_bytes,
@@ -49,10 +49,10 @@ namespace ve::rendering
 		mesh_stats_ = VulkanGpuChunkMeshStats{
 			rebuild_ms,
 			upload_ms,
-			static_cast<std::uint32_t>(vertices.size()),
+			RenderElementCount(vertices.size()),
 			index_count_,
 			last_rebuilt_chunk_count_,
-			static_cast<std::uint32_t>(cached_chunk_meshes_.size()),
+			RenderElementCount(cached_chunk_meshes_.size()),
 			vertex_buffer_capacity_bytes_,
 			index_buffer_capacity_bytes_
 		};

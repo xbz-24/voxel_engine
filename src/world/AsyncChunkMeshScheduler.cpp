@@ -1,5 +1,7 @@
 #include "AsyncChunkMeshScheduler.h"
 
+#include "WorldGridMath.h"
+
 #include <cstdint>
 #include <utility>
 
@@ -9,8 +11,8 @@ namespace ve::world::mesh
 	{
 		std::uint64_t BuildCancellationIdForChunk(int chunkCoordinateX, int chunkCoordinateZ) noexcept
 		{
-			const std::uint64_t chunkCoordinateXBits = static_cast<std::uint32_t>(chunkCoordinateX);
-			const std::uint64_t chunkCoordinateZBits = static_cast<std::uint32_t>(chunkCoordinateZ);
+			const std::uint64_t chunkCoordinateXBits = ve::world::grid::SignedCoordinateBits(chunkCoordinateX);
+			const std::uint64_t chunkCoordinateZBits = ve::world::grid::SignedCoordinateBits(chunkCoordinateZ);
 			return 0x9e3779b97f4a7c15ULL ^ (chunkCoordinateXBits << 32U) ^ chunkCoordinateZBits;
 		}
 	}

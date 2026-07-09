@@ -1,5 +1,6 @@
 #include "VulkanImGuiOverlay.h"
 
+#include "CoreTypes.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
 #include "VulkanMinecraftDemoProfiles.h"

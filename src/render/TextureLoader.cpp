@@ -77,7 +77,12 @@ namespace ve::rendering
 
 	GLuint NativeOpenGLTexture(TextureHandle handle) noexcept
 	{
-		return static_cast<GLuint>(handle.value);
+		return ve::core::NumericCast<GLuint>(handle.value);
+	}
+
+	float PackedRgbUnitChannel(int hexColor, int bit_shift) noexcept
+	{
+		return ve::core::ToFloat((hexColor >> bit_shift) & 0xFF) / 255.0f;
 	}
 
 	TextureHandle LoadTexture(const char* path)
@@ -92,9 +97,9 @@ namespace ve::rendering
 	 */
 	void SetColorFromHex(int hexColor)
 	{
-		const float red = static_cast<float>((hexColor >> 16) & 0xFF) / 255.0f;
-		const float green = static_cast<float>((hexColor >> 8) & 0xFF) / 255.0f;
-		const float blue = static_cast<float>(hexColor & 0xFF) / 255.0f;
+		const float red = PackedRgbUnitChannel(hexColor, 16);
+		const float green = PackedRgbUnitChannel(hexColor, 8);
+		const float blue = PackedRgbUnitChannel(hexColor, 0);
 		glColor3f(red, green, blue);
 	}
 }

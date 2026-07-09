@@ -1,5 +1,6 @@
 #include "voxel/Engine.h"
 
+#include "CoreTypes.h"
 #include "VulkanMinecraftDemoProfiles.h"
 
 #include <cstddef>

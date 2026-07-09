@@ -57,7 +57,8 @@
 			ImGui::Text("Mesh upload CPU %.2f ms", stats.mesh_upload_cpu_ms);
 			ImGui::Text("Chunks rebuilt/cached %u/%u", stats.rebuilt_chunk_count, stats.cached_chunk_count);
 			ImGui::Text("Indices %u", stats.index_count);
-			ImGui::Text("World revision %llu", static_cast<unsigned long long>(stats.world_revision));
+			const std::string world_revision = std::to_string(stats.world_revision);
+			ImGui::Text("World revision %s", world_revision.c_str());
 			ImGui::Text("Renderer %s", stats.gpu_renderer_active ? "Vulkan GPU" : "CPU fallback");
 		}
 	}

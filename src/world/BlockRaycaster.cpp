@@ -1,5 +1,7 @@
 #include "BlockRaycaster.h"
 
+#include "WorldGridMath.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>

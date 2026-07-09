@@ -18,6 +18,7 @@
 #include "MouseLookInput.h"
 #include "PhysicsBvh.h"
 #include "RuntimeInputRouter.h"
+#include "TestTypeHelpers.h"
 
 #include <glm/geometric.hpp>
 

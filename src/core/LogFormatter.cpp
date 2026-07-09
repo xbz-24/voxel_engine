@@ -1,5 +1,7 @@
 #include "LogFormatter.h"
 
+#include "CoreTypes.h"
+
 #include <cctype>
 #include <iomanip>
 #include <sstream>
@@ -28,7 +30,7 @@ namespace ve::log
 			if (value.empty()) return true;
 			for (const char character : value)
 			{
-				const unsigned char unsigned_character = static_cast<unsigned char>(character);
+				const unsigned char unsigned_character = ve::core::ToUnsignedChar(character);
 				if (std::isspace(unsigned_character) || character == '"' || character == '\\')
 				{
 					return true;

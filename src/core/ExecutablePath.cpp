@@ -1,5 +1,7 @@
 #include "ExecutablePath.h"
 
+#include "CoreTypes.h"
+
 #include <array>
 #include <cstddef>
 
@@ -22,9 +24,9 @@ namespace ve::core
 		const DWORD copied_character_count = GetModuleFileNameW(
 			nullptr,
 			executable_path_buffer.data(),
-			static_cast<DWORD>(executable_path_buffer.size()));
+			NumericCast<DWORD>(executable_path_buffer.size()));
 		if (copied_character_count > 0 &&
-			static_cast<std::size_t>(copied_character_count) < executable_path_buffer.size())
+			ToIndex(copied_character_count) < executable_path_buffer.size())
 		{
 			return std::filesystem::path{
 				std::wstring{ executable_path_buffer.data(), copied_character_count }

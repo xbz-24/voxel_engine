@@ -24,7 +24,7 @@ namespace ve::physics
 	{
 		if (delta_seconds <= 0.0f) return;
 		const int safe_substep_count = std::clamp(substep_count, 1, 16);
-		const float fixed_delta_seconds = delta_seconds / static_cast<float>(safe_substep_count);
+		const float fixed_delta_seconds = delta_seconds / ve::core::ToFloat(safe_substep_count);
 		for (int substep_index = 0; substep_index < safe_substep_count; ++substep_index)
 		{
 			IntegrateSubstep(fixed_delta_seconds);

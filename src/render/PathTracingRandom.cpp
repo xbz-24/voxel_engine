@@ -1,5 +1,7 @@
 #include "PathTracingRandom.h"
 
+#include "CoreTypes.h"
+
 namespace ve::rendering
 {
 	/** Creates a deterministic random stream. */
@@ -20,6 +22,6 @@ namespace ve::rendering
 	/** Converts the next integer into a normalized float. */
 	float PathTracingRandom::NextFloat() noexcept
 	{
-		return static_cast<float>(NextU32() & 0x00FFFFFFu) / static_cast<float>(0x01000000u);
+		return ve::core::ToFloat(NextU32() & 0x00FFFFFFu) / ve::core::ToFloat(0x01000000u);
 	}
 }

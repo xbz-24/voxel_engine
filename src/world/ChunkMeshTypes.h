@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreTypes.h"
 #include "GraphicsTypes.h"
 
 #include <cstddef>
@@ -74,7 +75,7 @@ namespace ve::world::mesh
 		[[nodiscard]] float MergeRatio() const noexcept
 		{
 			if (merged_face_count == 0) return 0.0f;
-			return static_cast<float>(visible_block_face_count) / static_cast<float>(merged_face_count);
+			return ve::core::ToFloat(visible_block_face_count) / ve::core::ToFloat(merged_face_count);
 		}
 	};
 

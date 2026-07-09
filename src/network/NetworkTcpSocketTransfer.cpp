@@ -1,7 +1,6 @@
 #include "NetworkTcpSocket.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
+#include "NetworkSocketPlatform.h"
 
 namespace ve::network
 {
@@ -11,9 +10,13 @@ namespace ve::network
 		while (bytesAlreadySent < bytes.size())
 		{
 			const char* nextByte = reinterpret_cast<const char*>(bytes.data() + bytesAlreadySent);
-			const int sentByteCount = send(static_cast<SOCKET>(_nativeSocketHandle), nextByte, static_cast<int>(bytes.size() - bytesAlreadySent), 0);
+			const int sentByteCount = send(
+				platform::ToNativeSocket(_nativeSocketHandle),
+				nextByte,
+				platform::SocketTransferByteCount(bytes.size() - bytesAlreadySent),
+				0);
 			if (sentByteCount <= 0) return false;
-			bytesAlreadySent += static_cast<std::size_t>(sentByteCount);
+			bytesAlreadySent += platform::TransferredByteCount(sentByteCount);
 		}
 		return true;
 	}
@@ -24,9 +27,13 @@ namespace ve::network
 		while (bytesAlreadyReceived < destinationBytes.size())
 		{
 			char* nextByte = reinterpret_cast<char*>(destinationBytes.data() + bytesAlreadyReceived);
-			const int receivedByteCount = recv(static_cast<SOCKET>(_nativeSocketHandle), nextByte, static_cast<int>(destinationBytes.size() - bytesAlreadyReceived), 0);
+			const int receivedByteCount = recv(
+				platform::ToNativeSocket(_nativeSocketHandle),
+				nextByte,
+				platform::SocketTransferByteCount(destinationBytes.size() - bytesAlreadyReceived),
+				0);
 			if (receivedByteCount <= 0) return false;
-			bytesAlreadyReceived += static_cast<std::size_t>(receivedByteCount);
+			bytesAlreadyReceived += platform::TransferredByteCount(receivedByteCount);
 		}
 		return true;
 	}

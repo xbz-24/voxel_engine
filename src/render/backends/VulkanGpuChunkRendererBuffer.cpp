@@ -59,7 +59,7 @@ namespace ve::rendering
 	{
 		void* mapped = nullptr;
 		if (vkMapMemory(device_, memory, 0, byte_size, 0, &mapped) != VK_SUCCESS) return false;
-		std::memcpy(mapped, source, static_cast<std::size_t>(byte_size));
+		std::memcpy(mapped, source, HostByteSize(byte_size));
 		vkUnmapMemory(device_, memory);
 		return true;
 	}

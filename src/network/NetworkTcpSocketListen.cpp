@@ -1,8 +1,7 @@
 #include "NetworkAddressInfo.h"
 #include "NetworkTcpSocket.h"
+#include "NetworkSocketPlatform.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
 #include <WS2tcpip.h>
 
 #include <string>
@@ -19,19 +18,20 @@ namespace ve::network
 
 		const addrinfo& firstAddress = **resolvedAddresses;
 		SOCKET listenSocket = socket(firstAddress.ai_family, firstAddress.ai_socktype, firstAddress.ai_protocol);
-		const bool bound = listenSocket != INVALID_SOCKET && bind(listenSocket, firstAddress.ai_addr, static_cast<int>(firstAddress.ai_addrlen)) == 0;
+		const bool bound = listenSocket != INVALID_SOCKET &&
+			bind(listenSocket, firstAddress.ai_addr, platform::SocketAddressByteCount(firstAddress.ai_addrlen)) == 0;
 		if (!bound || listen(listenSocket, listenSettings.pendingConnectionBacklog) != 0)
 		{
 			if (listenSocket != INVALID_SOCKET) closesocket(listenSocket);
 			return std::nullopt;
 		}
-		return TcpSocket(static_cast<std::uintptr_t>(listenSocket));
+		return TcpSocket(platform::StoreNativeSocket(listenSocket));
 	}
 
 	std::optional<TcpSocket> TcpSocket::Accept() const
 	{
-		const SOCKET acceptedSocket = accept(static_cast<SOCKET>(_nativeSocketHandle), nullptr, nullptr);
+		const SOCKET acceptedSocket = accept(platform::ToNativeSocket(_nativeSocketHandle), nullptr, nullptr);
 		if (acceptedSocket == INVALID_SOCKET) return std::nullopt;
-		return TcpSocket(static_cast<std::uintptr_t>(acceptedSocket));
+		return TcpSocket(platform::StoreNativeSocket(acceptedSocket));
 	}
 }

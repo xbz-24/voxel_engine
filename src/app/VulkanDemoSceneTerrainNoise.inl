@@ -1,12 +1,12 @@
 		[[nodiscard]] float Hash01(int x, int z, int seed) noexcept
 		{
-			std::uint32_t value = static_cast<std::uint32_t>(x) * 0x9E3779B9u;
-			value ^= static_cast<std::uint32_t>(z) * 0x85EBCA6Bu;
-			value ^= static_cast<std::uint32_t>(seed) * 0xC2B2AE35u;
+			std::uint32_t value = SceneSeed(x) * 0x9E3779B9u;
+			value ^= SceneSeed(z) * 0x85EBCA6Bu;
+			value ^= SceneSeed(seed) * 0xC2B2AE35u;
 			value ^= value >> 16u;
 			value *= 0x7FEB352Du;
 			value ^= value >> 15u;
-			return static_cast<float>(value & 0xFFFFu) / 65535.0f;
+			return SceneFloat(value & 0xFFFFu) / 65535.0f;
 		}
 
 		[[nodiscard]] float SignedHash(int x, int z, int seed) noexcept
@@ -27,30 +27,30 @@
 
 		[[nodiscard]] int TerrainHeightAt(const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config, int x, int z) noexcept
 		{
-			const float fx = static_cast<float>(x - bounds.center_x);
-			const float fz = static_cast<float>(z - bounds.center_z);
+			const float fx = SceneFloat(x - bounds.center_x);
+			const float fz = SceneFloat(z - bounds.center_z);
 			const float distance = std::sqrt((fx * fx) + (fz * fz));
-			const float radius = static_cast<float>(std::max(config.terrain_radius, 1));
+			const float radius = SceneFloat(std::max(config.terrain_radius, 1));
 			const float radial_fade = std::clamp(1.0f - (distance / (radius + 42.0f)), 0.0f, 1.0f);
-			const float canopy_a = std::sin((static_cast<float>(x + config.seed) * 0.037f) + (static_cast<float>(z) * 0.019f));
-			const float canopy_b = std::sin((static_cast<float>(x - z) * 0.027f) + (static_cast<float>(config.seed) * 0.009f));
-			const float ridge = std::cos((static_cast<float>(x) * 0.075f) + (static_cast<float>(z) * 0.041f) -
-				(static_cast<float>(config.seed) * 0.007f));
+			const float canopy_a = std::sin((SceneFloat(x + config.seed) * 0.037f) + (SceneFloat(z) * 0.019f));
+			const float canopy_b = std::sin((SceneFloat(x - z) * 0.027f) + (SceneFloat(config.seed) * 0.009f));
+			const float ridge = std::cos((SceneFloat(x) * 0.075f) + (SceneFloat(z) * 0.041f) -
+				(SceneFloat(config.seed) * 0.007f));
 			const float local = SignedHash(x / 3, z / 3, config.seed + 71) * 1.9f;
 			const float height =
-				static_cast<float>(config.ground_y) +
-				(canopy_a * static_cast<float>(config.hill_height) * 0.34f * radial_fade) +
-				(canopy_b * static_cast<float>(config.hill_height) * 0.26f) +
+				SceneFloat(config.ground_y) +
+				(canopy_a * SceneFloat(config.hill_height) * 0.34f * radial_fade) +
+				(canopy_b * SceneFloat(config.hill_height) * 0.26f) +
 				(ridge * 2.8f * radial_fade) +
 				local;
-			return std::clamp(static_cast<int>(std::round(height)), 6, bounds.height - 10);
+			return std::clamp(RoundedSceneInt(height), 6, bounds.height - 10);
 		}
 
 		[[nodiscard]] BlockId SurfaceBlockFor(const VulkanMinecraftDemoSceneConfig& config, int x, int z, int surface_y) noexcept
 		{
-			const float vein_width = 0.014f + (static_cast<float>(config.ore_richness) * 0.0006f);
-			const float root_line = std::abs(std::sin((static_cast<float>(x) * 0.24f) + (static_cast<float>(z) * 0.17f) +
-				(static_cast<float>(config.seed) * 0.005f)));
+			const float vein_width = 0.014f + (SceneFloat(config.ore_richness) * 0.0006f);
+			const float root_line = std::abs(std::sin((SceneFloat(x) * 0.24f) + (SceneFloat(z) * 0.17f) +
+				(SceneFloat(config.seed) * 0.005f)));
 			const float warm_patch = Hash01(x / 2, z / 2, config.seed + 19);
 			if (root_line < vein_width && warm_patch > 0.30f) return warm_patch > 0.68f ? BlockId::MossyCobblestone : BlockId::MossBlock;
 			if (surface_y > config.ground_y + (config.hill_height / 2) && warm_patch < 0.16f) return BlockId::Stone;

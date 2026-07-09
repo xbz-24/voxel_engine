@@ -1,5 +1,6 @@
 #include "ChunkTerrainColumn.h"
 
+#include "ChunkTerrainMath.h"
 #include "ChunkTerrainPalette.h"
 #include "ChunkTerrainSurface.h"
 
@@ -14,17 +15,17 @@ namespace ve::world::terrain::detail
 		int local_block_z,
 		const ve::world::TerrainGenerationSettings& terrain_generation)
 	{
-		const float world_block_x = static_cast<float>(local_block_x + (chunk_coordinate_x * ChunkWidth));
-		const float world_block_z = static_cast<float>(local_block_z + (chunk_coordinate_z * ChunkDepth));
-		const int seed_pattern = static_cast<int>(terrain_generation.terrainSeed % 8191U);
+		const float world_block_x = WorldBlockCoordinate(chunk_coordinate_x, local_block_x, ChunkWidth);
+		const float world_block_z = WorldBlockCoordinate(chunk_coordinate_z, local_block_z, ChunkDepth);
+		const int seed_pattern = TerrainSeedPattern(terrain_generation.terrainSeed);
 		return {
 			local_block_x,
 			local_block_z,
 			world_block_x,
 			world_block_z,
 			SurfaceHeight(world_block_x, world_block_z, terrain_generation),
-			static_cast<int>(world_block_x * 3.0f + world_block_z * 11.0f) + seed_pattern,
-			static_cast<int>(world_block_x * 5.0f + world_block_z * 9.0f) + seed_pattern
+			WeightedTerrainPattern(world_block_x, world_block_z, 3.0f, 11.0f, seed_pattern),
+			WeightedTerrainPattern(world_block_x, world_block_z, 5.0f, 9.0f, seed_pattern)
 		};
 	}
 

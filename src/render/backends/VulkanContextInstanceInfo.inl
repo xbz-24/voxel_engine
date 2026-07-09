@@ -53,9 +53,9 @@
 			VkInstanceCreateInfo info{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 			info.pNext = next;
 			info.pApplicationInfo = &app_info;
-			info.enabledLayerCount = static_cast<std::uint32_t>(layers.size());
+			info.enabledLayerCount = ve::core::ToU32(layers.size());
 			info.ppEnabledLayerNames = layers.data();
-			info.enabledExtensionCount = static_cast<std::uint32_t>(extensions.size());
+			info.enabledExtensionCount = ve::core::ToU32(extensions.size());
 			info.ppEnabledExtensionNames = extensions.data();
 			return info;
 		}

@@ -1,8 +1,7 @@
 #include "NetworkAddressInfo.h"
 #include "NetworkTcpSocket.h"
+#include "NetworkSocketPlatform.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
 #include <WS2tcpip.h>
 
 #include <string>
@@ -18,12 +17,13 @@ namespace ve::network
 
 		const addrinfo& firstAddress = **resolvedAddresses;
 		SOCKET connectedSocket = socket(firstAddress.ai_family, firstAddress.ai_socktype, firstAddress.ai_protocol);
-		if (connectedSocket != INVALID_SOCKET && connect(connectedSocket, firstAddress.ai_addr, static_cast<int>(firstAddress.ai_addrlen)) != 0)
+		if (connectedSocket != INVALID_SOCKET &&
+			connect(connectedSocket, firstAddress.ai_addr, platform::SocketAddressByteCount(firstAddress.ai_addrlen)) != 0)
 		{
 			closesocket(connectedSocket);
 			connectedSocket = INVALID_SOCKET;
 		}
 		if (connectedSocket == INVALID_SOCKET) return std::nullopt;
-		return TcpSocket(static_cast<std::uintptr_t>(connectedSocket));
+		return TcpSocket(platform::StoreNativeSocket(connectedSocket));
 	}
 }

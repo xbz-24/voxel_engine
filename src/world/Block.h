@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreTypes.h"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -84,8 +86,8 @@ namespace ve::blocks
 	using BlockOrdinal = std::size_t;
 	using BlockFaceOrdinal = std::size_t;
 
-	inline constexpr BlockOrdinal BlockTypeCount = static_cast<BlockOrdinal>(BlockId::Count);
-	inline constexpr BlockFaceOrdinal BlockFaceCount = static_cast<BlockFaceOrdinal>(BlockFace::Count);
+	inline constexpr BlockOrdinal BlockTypeCount = ve::core::ToIndex(BlockId::Count);
+	inline constexpr BlockFaceOrdinal BlockFaceCount = ve::core::ToIndex(BlockFace::Count);
 	inline constexpr std::size_t BlockFaceTextureSlotCount = BlockTypeCount * BlockFaceCount;
 	inline constexpr std::array<BlockFace, BlockFaceCount> AllBlockFaces{ {
 		BlockFace::Top,
@@ -101,22 +103,22 @@ namespace ve::blocks
 
 	[[nodiscard]] constexpr BlockOrdinal ToBlockOrdinal(BlockId id) noexcept
 	{
-		return static_cast<BlockOrdinal>(id);
+		return ve::core::ToIndex(id);
 	}
 
 	[[nodiscard]] constexpr BlockFaceOrdinal ToBlockFaceOrdinal(BlockFace face) noexcept
 	{
-		return static_cast<BlockFaceOrdinal>(face);
+		return ve::core::ToIndex(face);
 	}
 
 	[[nodiscard]] constexpr std::uint8_t ToBlockByte(BlockId id) noexcept
 	{
-		return static_cast<std::uint8_t>(id);
+		return ve::core::ToU8(id);
 	}
 
 	[[nodiscard]] constexpr BlockId BlockIdFromByte(std::uint8_t id) noexcept
 	{
-		return static_cast<BlockId>(id);
+		return ve::core::NumericCast<BlockId>(id);
 	}
 
 	[[nodiscard]] constexpr bool IsStoredBlockId(BlockId id) noexcept

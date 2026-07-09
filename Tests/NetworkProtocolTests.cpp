@@ -7,6 +7,7 @@
 #include "NetworkSession.h"
 #include "NetworkSerialization.h"
 #include "World.h"
+#include "TestTypeHelpers.h"
 
 #include <array>
 #include <cstddef>

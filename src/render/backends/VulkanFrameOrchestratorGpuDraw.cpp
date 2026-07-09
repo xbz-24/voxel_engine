@@ -1,6 +1,7 @@
 #include "VulkanFrameOrchestrator.h"
 
 #include "Camera.h"
+#include "CoreTypes.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
 #include "VulkanFrameOrchestratorPresentation.h"
@@ -11,6 +12,14 @@
 
 namespace ve::rendering
 {
+	namespace
+	{
+		[[nodiscard]] int VulkanResultCode(VkResult result) noexcept
+		{
+			return ve::core::ToInt(result);
+		}
+	}
+
 	bool VulkanFrameOrchestrator::DrawGpuFrame(const ve::world::World& world,
 		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
@@ -58,7 +67,7 @@ namespace ve::rendering
 		const VkResult acquire_result = AcquireSwapchainImage(device_, *backend_, frames_[current_frame_].image_available, image_index);
 		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR)
 		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to acquire Vulkan swapchain image: " + std::to_string(static_cast<int>(acquire_result)));
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to acquire Vulkan swapchain image: " + std::to_string(VulkanResultCode(acquire_result)));
 			return false;
 		}
 		if (!WaitForSwapchainImage(device_, images_in_flight_, image_index))
@@ -88,7 +97,7 @@ namespace ve::rendering
 			fence);
 		if (submit_result != VK_SUCCESS)
 		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to submit Vulkan GPU frame: " + std::to_string(static_cast<int>(submit_result)));
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to submit Vulkan GPU frame: " + std::to_string(VulkanResultCode(submit_result)));
 			return false;
 		}
 		images_in_flight_[image_index] = fence;

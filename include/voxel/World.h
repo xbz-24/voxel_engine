@@ -41,6 +41,15 @@ namespace voxel
 	/** Wraps an int as a chunk count. */
 	[[nodiscard]] constexpr ChunkCount Chunks(int value) noexcept { return ChunkCount{ value }; }
 
+	/** Returns the raw integer carried by a block coordinate. */
+	[[nodiscard]] constexpr int BlockCoordinateValue(BlockCoordinate coordinate) noexcept { return coordinate.value; }
+
+	/** Returns the raw integer carried by a chunk coordinate. */
+	[[nodiscard]] constexpr int ChunkCoordinateValue(ChunkCoordinate coordinate) noexcept { return coordinate.value; }
+
+	/** Returns the raw integer carried by a chunk count. */
+	[[nodiscard]] constexpr int ChunkCountValue(ChunkCount count) noexcept { return count.value; }
+
 	/** Integer block position in world coordinates. */
 	struct BlockPosition
 	{

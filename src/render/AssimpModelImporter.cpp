@@ -1,5 +1,7 @@
 #include "AssimpModelImporter.h"
 
+#include "CoreTypes.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -13,7 +15,7 @@ namespace
 	std::string LowerExtension(const std::filesystem::path& path)
 	{
 		std::string extension = path.extension().string();
-		std::ranges::transform(extension, extension.begin(), [](unsigned char value) { return static_cast<char>(std::tolower(value)); });
+		std::ranges::transform(extension, extension.begin(), [](unsigned char value) { return ve::core::ToChar(std::tolower(value)); });
 		return extension;
 	}
 

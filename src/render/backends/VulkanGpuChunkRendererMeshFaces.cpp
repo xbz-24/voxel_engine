@@ -33,8 +33,9 @@ namespace ve::rendering
 		[[nodiscard]] glm::ivec3 CornerSideOffset(const BlockFaceGeometry& face, std::size_t corner, int axis) noexcept
 		{
 			glm::ivec3 offset{ 0 };
-			const float value = ChunkFaceCorner(face, corner)[static_cast<glm::length_t>(axis)];
-			offset[static_cast<glm::length_t>(axis)] = value < 0.5f ? -1 : 1;
+			const glm::length_t glm_axis = GlmAxis(axis);
+			const float value = ChunkFaceCorner(face, corner)[glm_axis];
+			offset[glm_axis] = value < 0.5f ? -1 : 1;
 			return offset;
 		}
 
@@ -48,7 +49,7 @@ namespace ve::rendering
 			std::size_t side_count = 0;
 			for (int axis = 0; axis < 3 && side_count < sides.size(); ++axis)
 			{
-				if (face.neighbor_offset[static_cast<glm::length_t>(axis)] == 0)
+				if (face.neighbor_offset[GlmAxis(axis)] == 0)
 				{
 					sides[side_count++] = CornerSideOffset(face, corner, axis);
 				}
@@ -75,13 +76,13 @@ namespace ve::rendering
 		std::vector<VoxelVertex>& vertices,
 		std::vector<std::uint32_t>& indices) const
 	{
-		const std::uint32_t first_face_vertex_index = static_cast<std::uint32_t>(vertices.size());
+		const std::uint32_t first_face_vertex_index = RenderElementCount(vertices.size());
 		const ve::blocks::SolidBlockColor color = ve::blocks::JitteredSolidColor(block, block_x, block_y, block_z);
 		const glm::ivec3 block_coordinate{ block_x, block_y, block_z };
 		const glm::vec3 block_origin{
-			static_cast<float>(block_x),
-			static_cast<float>(block_y),
-			static_cast<float>(block_z)
+			VertexCoordinate(block_x),
+			VertexCoordinate(block_y),
+			VertexCoordinate(block_z)
 		};
 		for (std::size_t corner = 0; corner < face.offsets.size(); ++corner)
 		{

@@ -6,9 +6,9 @@
 			std::size_t& budget)
 		{
 			if (budget == 0) return;
-			const int block_x = static_cast<int>(std::round(position.x));
-			const int block_y = static_cast<int>(std::round(position.y));
-			const int block_z = static_cast<int>(std::round(position.z));
+			const int block_x = RoundedSceneInt(position.x);
+			const int block_y = RoundedSceneInt(position.y);
+			const int block_z = RoundedSceneInt(position.z);
 			if (!IsInside(bounds, block_x, block_y, block_z)) return;
 			const std::uint64_t voxel_key = VoxelKey(block_x, block_y, block_z);
 			if (!occupied.insert(voxel_key).second) return;
@@ -30,13 +30,13 @@
 				glm::length(second_vertex - third_vertex),
 				glm::length(third_vertex - first_vertex)
 			});
-			const int sample_count = std::clamp(static_cast<int>(std::ceil(longest_edge * 1.55f)), 1, 24);
+			const int sample_count = std::clamp(CeilSceneInt(longest_edge * 1.55f), 1, 24);
 			for (int barycentric_u_step = 0; barycentric_u_step <= sample_count && budget > 0; ++barycentric_u_step)
 			{
 				for (int barycentric_v_step = 0; barycentric_v_step <= sample_count - barycentric_u_step && budget > 0; ++barycentric_v_step)
 				{
-					const float barycentric_u = static_cast<float>(barycentric_u_step) / static_cast<float>(sample_count);
-					const float barycentric_v = static_cast<float>(barycentric_v_step) / static_cast<float>(sample_count);
+					const float barycentric_u = NormalizedRatio(barycentric_u_step, sample_count);
+					const float barycentric_v = NormalizedRatio(barycentric_v_step, sample_count);
 					const float barycentric_w = 1.0f - barycentric_u - barycentric_v;
 					const glm::vec3 sampled_position =
 						(first_vertex * barycentric_u) +
@@ -60,12 +60,12 @@
 			const glm::vec3 source_size = maximum - minimum;
 			const float longest_axis = std::max({ source_size.x, source_size.y, source_size.z });
 			if (longest_axis <= 0.0001f) return false;
-			const float scale = static_cast<float>(target_extent) / longest_axis;
+			const float scale = SceneFloat(target_extent) / longest_axis;
 			const glm::vec3 target_size = source_size * scale;
 			const glm::vec3 target_origin{
-				static_cast<float>(bounds.center_x) - (target_size.x * 0.5f),
-				static_cast<float>(base_y),
-				static_cast<float>(bounds.center_z) - (target_size.z * 0.5f)
+				SceneFloat(bounds.center_x) - (target_size.x * 0.5f),
+				SceneFloat(base_y),
+				SceneFloat(bounds.center_z) - (target_size.z * 0.5f)
 			};
 
 			std::unordered_set<std::uint64_t> occupied;

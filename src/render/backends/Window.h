@@ -123,6 +123,13 @@ namespace ve::engine
 		/** @return User data previously stored on the native window callback context. */
 		static void* GetCallbackUserData(GLFWwindow* window);
 
+		/** @return Typed user data previously stored on the native window callback context. */
+		template <typename UserData>
+		static UserData* GetCallbackUserDataAs(GLFWwindow* window)
+		{
+			return static_cast<UserData*>(GetCallbackUserData(window));
+		}
+
 		/** Records resize events from the native framebuffer callback. */
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
 
@@ -141,6 +148,7 @@ namespace ve::engine
 		void ApplyInitialCursorMode();
 		void ConfigureNativeCallbacks();
 		void RecordFramebufferResize(int width, int height);
+		static CallbackContext* GetCallbackContext(GLFWwindow* window);
 
 		std::unique_ptr<GLFWwindow, GlfwWindowDeleter> _window;
 		int _width = 0;

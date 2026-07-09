@@ -15,16 +15,16 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	invalid.window.height = -1;
 	invalid.window.display_index = -1;
 	invalid.window.refresh_rate_hertz = -60;
-	invalid.render_backend.preferred_api = static_cast<ve::rendering::GraphicsApi>(255);
-	invalid.render_backend.selection_policy = static_cast<ve::rendering::RenderBackendSelectionPolicy>(255);
-	invalid.vulkan_demo_preset = static_cast<ve::rendering::VulkanMinecraftDemoPreset>(255);
+	invalid.render_backend.preferred_api = ve::tests::InvalidEnumValue<ve::rendering::GraphicsApi>();
+	invalid.render_backend.selection_policy = ve::tests::InvalidEnumValue<ve::rendering::RenderBackendSelectionPolicy>();
+	invalid.vulkan_demo_preset = ve::tests::InvalidEnumValue<ve::rendering::VulkanMinecraftDemoPreset>();
 	invalid.world_size_chunks = 0;
 	invalid.render_distance_chunks = -1;
 	invalid.has_custom_camera = true;
 	invalid.camera_position.x = std::numeric_limits<float>::infinity();
 	invalid.camera_look_at.y = std::numeric_limits<float>::quiet_NaN();
 	invalid.world_edits.push_back(ve::world::MakeSingleBlockEdit(1, 2, 3, ve::blocks::BlockId::Stone));
-	invalid.world_edits.back().kind = static_cast<ve::world::WorldBlockEdit::Kind>(255);
+	invalid.world_edits.back().kind = ve::tests::InvalidEnumValue<ve::world::WorldBlockEdit::Kind>();
 
 	std::vector<std::string> builder_issues;
 	const std::vector<std::string> issues = ve::engine::ValidateEngineCreateInfo(invalid);

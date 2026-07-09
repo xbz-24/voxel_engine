@@ -58,7 +58,7 @@ namespace ve::rendering
 			std::array attachments{ swapchain_image_views_[index], depth_view_ };
 			VkFramebufferCreateInfo framebuffer_info{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			framebuffer_info.renderPass = render_pass_;
-			framebuffer_info.attachmentCount = static_cast<std::uint32_t>(attachments.size());
+			framebuffer_info.attachmentCount = RenderElementCount(attachments.size());
 			framebuffer_info.pAttachments = attachments.data();
 			framebuffer_info.width = extent_.width;
 			framebuffer_info.height = extent_.height;

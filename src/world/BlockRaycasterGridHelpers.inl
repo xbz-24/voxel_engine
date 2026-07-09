@@ -7,10 +7,7 @@ namespace ve::gameplay
 		 */
 		glm::ivec3 FloorToBlock(const glm::vec3& value)
 		{
-			return glm::ivec3(
-				static_cast<int>(std::floor(value.x)),
-				static_cast<int>(std::floor(value.y)),
-				static_cast<int>(std::floor(value.z)));
+			return ve::world::grid::BlockPositionFromWorld(value);
 		}
 
 		/**
@@ -29,7 +26,7 @@ namespace ve::gameplay
 		float InitialAxisDistance(float origin, float direction, int block, int step)
 		{
 			if (step == 0) return std::numeric_limits<float>::infinity();
-			const float boundary = static_cast<float>(block + (step > 0 ? 1 : 0));
+			const float boundary = ve::world::grid::GridBoundaryForStep(block, step);
 			return (boundary - origin) / direction;
 		}
 

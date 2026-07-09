@@ -1,5 +1,6 @@
 #include "VulkanContext.h"
 
+#include "CoreTypes.h"
 #include "Logger.h"
 
 #include <algorithm>

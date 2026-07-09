@@ -4,7 +4,7 @@
 			{
 				for (int dz = -radius; dz <= radius; ++dz)
 				{
-					const float normalized = static_cast<float>((dx * dx) + (dz * dz)) / static_cast<float>(std::max(radius * radius, 1));
+					const float normalized = NormalizedRatio((dx * dx) + (dz * dz), radius * radius);
 					if (normalized > 1.0f) continue;
 					if (normalized > 0.78f && Hash01(cx + dx, cz + dz, noise_seed) < 0.35f) continue;
 					SetBlock(world, bounds, cx + dx, y, cz + dz, block);
@@ -34,7 +34,7 @@
 			for (int step = -config.terrain_radius; step <= config.terrain_radius; ++step)
 			{
 				const int cx = bounds.center_x + step;
-				const int cz = bounds.center_z - 8 + static_cast<int>(std::round(std::sin(static_cast<float>(step) * 0.12f) * 9.0f));
+				const int cz = bounds.center_z - 8 + RoundedSceneInt(std::sin(SceneFloat(step) * 0.12f) * 9.0f);
 				const int half_width = 1 + (std::abs(step) % 4);
 				for (int offset = -half_width; offset <= half_width; ++offset)
 				{
@@ -57,9 +57,9 @@
 				{
 					for (int dz = -rz; dz <= rz; ++dz)
 					{
-						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(rx, 1));
-						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(ry, 1));
-						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(rz, 1));
+						const float nx = NormalizedRatio(dx, rx);
+						const float ny = NormalizedRatio(dy, ry);
+						const float nz = NormalizedRatio(dz, rz);
 						const float distance = (nx * nx) + (ny * ny * 1.4f) + (nz * nz);
 						if (distance <= 1.0f) SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, BlockId::Air);
 						else if (distance <= 1.25f && Hash01(cx + dx, cz + dz, cy + dy) > 0.38f)
@@ -87,7 +87,7 @@
 			for (int step = 0; step < 74; ++step)
 			{
 				const int x = start_x + step;
-				const int z = start_z + static_cast<int>(std::round(std::sin(static_cast<float>(step) * 0.18f) * 7.0f));
+				const int z = start_z + RoundedSceneInt(std::sin(SceneFloat(step) * 0.18f) * 7.0f);
 				const int ground = FindGroundY(world, bounds, x, z, config.ground_y);
 				const int y = std::max(8, ground - 3 - (step / 18));
 				CarveCavePocket(world, bounds, x, y + 2, z, 4, 4, 3);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreTypes.h"
 #include "GraphicsTypes.h"
 
 #include <cstdint>
@@ -25,13 +26,13 @@ namespace ve::rendering
 
 	[[nodiscard]] constexpr RenderTextureUsage operator|(RenderTextureUsage left, RenderTextureUsage right) noexcept
 	{
-		return static_cast<RenderTextureUsage>(
-			static_cast<std::uint32_t>(left) | static_cast<std::uint32_t>(right));
+		return ve::core::NumericCast<RenderTextureUsage>(
+			ve::core::ToU32(left) | ve::core::ToU32(right));
 	}
 
 	[[nodiscard]] constexpr bool HasUsage(RenderTextureUsage value, RenderTextureUsage flag) noexcept
 	{
-		return (static_cast<std::uint32_t>(value) & static_cast<std::uint32_t>(flag)) != 0u;
+		return (ve::core::ToU32(value) & ve::core::ToU32(flag)) != 0u;
 	}
 
 	struct RenderTextureDescriptor

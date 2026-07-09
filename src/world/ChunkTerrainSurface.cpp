@@ -1,5 +1,6 @@
 #include "ChunkTerrainSurface.h"
 
+#include "ChunkTerrainMath.h"
 #include "ChunkTerrainUnderground.h"
 
 #include <algorithm>
@@ -15,7 +16,7 @@ namespace ve::world::terrain::detail
 		[[nodiscard]] float SeedOffset(std::uint32_t terrain_seed, std::uint32_t channel) noexcept
 		{
 			const std::uint32_t mixed_seed = (terrain_seed * 1664525U) + (channel * 1013904223U);
-			return static_cast<float>(mixed_seed % 4096U) * 0.03125f;
+			return ve::core::ToFloat(mixed_seed % 4096U) * 0.03125f;
 		}
 
 		[[nodiscard]] BlockId SurfaceBlock(
@@ -56,7 +57,7 @@ namespace ve::world::terrain::detail
 		const float hills =
 			std::sin(seeded_world_block_x * 0.15f) * std::cos(seeded_world_block_z * 0.15f) * 4.0f;
 		return std::clamp(
-			terrain_generation.baseSurfaceHeight + static_cast<int>(continent + mountains + hills),
+			terrain_generation.baseSurfaceHeight + TerrainHeightOffset(continent + mountains + hills),
 			1,
 			ChunkHeight - 2);
 	}

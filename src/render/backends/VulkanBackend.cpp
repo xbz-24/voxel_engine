@@ -8,12 +8,12 @@ namespace ve::rendering
 	bool VulkanBackend::Initialize(ve::engine::Window& window)
 	{
 		VulkanBackendSettings settings{};
-		return static_cast<bool>(InitializeDetailed(settings, window));
+		return InitializeDetailed(settings, window).failure == VulkanBackendInitializationFailure::None;
 	}
 
 	bool VulkanBackend::Initialize(const VulkanBackendSettings& settings, ve::engine::Window& window)
 	{
-		return static_cast<bool>(InitializeDetailed(settings, window));
+		return InitializeDetailed(settings, window).failure == VulkanBackendInitializationFailure::None;
 	}
 
 	VulkanBackendInitializationResult VulkanBackend::InitializeDetailed(

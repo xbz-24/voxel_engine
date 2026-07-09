@@ -46,7 +46,7 @@ namespace ve::rendering
 		const int chunk_origin_z = chunk.GetChunkZ() * Chunk::CHUNK_DEPTH;
 		cached_mesh.vertices.clear();
 		cached_mesh.indices.clear();
-		constexpr std::size_t chunk_column_count = static_cast<std::size_t>(Chunk::CHUNK_WIDTH * Chunk::CHUNK_DEPTH);
+		constexpr std::size_t chunk_column_count = ChunkColumnCount(Chunk::CHUNK_WIDTH, Chunk::CHUNK_DEPTH);
 		cached_mesh.vertices.reserve(std::max<std::size_t>(2'048u, chunk_column_count * 16u));
 		cached_mesh.indices.reserve(std::max<std::size_t>(3'072u, chunk_column_count * 24u));
 
@@ -72,7 +72,7 @@ namespace ve::rendering
 		std::vector<VoxelVertex>& vertices,
 		std::vector<std::uint32_t>& indices) const
 	{
-		const std::uint32_t first_vertex_index = static_cast<std::uint32_t>(vertices.size());
+		const std::uint32_t first_vertex_index = RenderElementCount(vertices.size());
 		vertices.insert(vertices.end(), cached_mesh.vertices.begin(), cached_mesh.vertices.end());
 		indices.reserve(indices.size() + cached_mesh.indices.size());
 		for (std::uint32_t index : cached_mesh.indices)
@@ -94,8 +94,7 @@ namespace ve::rendering
 		vertices.clear();
 		indices.clear();
 		last_rebuilt_chunk_count_ = 0;
-		const std::size_t world_column_count = static_cast<std::size_t>(std::max(world_width_blocks, 0)) *
-			static_cast<std::size_t>(std::max(world_depth_blocks, 0));
+		const std::size_t world_column_count = WorldColumnCount(world_width_blocks, world_depth_blocks);
 		vertices.reserve(std::max<std::size_t>(140'000u, world_column_count * 16u));
 		indices.reserve(std::max<std::size_t>(210'000u, world_column_count * 24u));
 

@@ -1,9 +1,12 @@
 #include "ChunkDecorationRules.h"
 
+#include "ChunkTerrainMath.h"
+
 #include <array>
 #include <cmath>
 
 using ve::blocks::BlockId;
+using ve::world::terrain::detail::WorldBlockPatternCoordinate;
 
 namespace ve::world::terrain::decorations::detail
 {
@@ -28,8 +31,8 @@ namespace ve::world::terrain::decorations::detail
 
 		bool WorldPatternMatches(float world_block_x, float world_block_z, const TreeDecorationRule& rule)
 		{
-			const int world_block_x_integer = static_cast<int>(world_block_x);
-			const int world_block_z_integer = static_cast<int>(world_block_z);
+			const int world_block_x_integer = WorldBlockPatternCoordinate(world_block_x);
+			const int world_block_z_integer = WorldBlockPatternCoordinate(world_block_z);
 			return world_block_x_integer % rule.x_divisor == rule.x_remainder &&
 				world_block_z_integer % rule.z_divisor == rule.z_remainder;
 		}

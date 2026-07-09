@@ -1,5 +1,6 @@
 #include "VulkanUploadBuffer.h"
 
+#include "CoreTypes.h"
 #include "VulkanBackend.h"
 
 #include <cstring>
@@ -81,7 +82,8 @@ namespace ve::rendering
 	bool VulkanUploadBuffer::CopyFrom(VkDevice device, const void* source, std::size_t byte_count) const
 	{
 		(void)device;
-		if (buffer_ == VK_NULL_HANDLE || memory_ == VK_NULL_HANDLE || mapped_memory_ == nullptr || byte_count > static_cast<std::size_t>(size_)) return false;
+		if (buffer_ == VK_NULL_HANDLE || memory_ == VK_NULL_HANDLE || mapped_memory_ == nullptr ||
+			byte_count > ve::core::ToIndex(size_)) return false;
 		std::memcpy(mapped_memory_, source, byte_count);
 		return true;
 	}

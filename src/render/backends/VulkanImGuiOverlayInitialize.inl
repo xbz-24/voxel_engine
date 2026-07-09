@@ -17,7 +17,7 @@
 			return false;
 		}
 
-		const std::uint32_t image_count = static_cast<std::uint32_t>(backend.Swapchain().Images().size());
+		const std::uint32_t image_count = ve::core::ToU32(backend.Swapchain().Images().size());
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Initializing Vulkan ImGui renderer backend with swapchain images: " + std::to_string(image_count));
 		ImGui_ImplVulkan_InitInfo init_info{};
 		init_info.ApiVersion = VK_API_VERSION_1_0;

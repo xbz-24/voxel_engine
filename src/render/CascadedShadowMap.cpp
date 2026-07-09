@@ -1,5 +1,7 @@
 #include "CascadedShadowMap.h"
 
+#include "OpenGLTypeConversions.h"
+
 namespace ve::rendering
 {
 	CascadedShadowMap::~CascadedShadowMap()
@@ -13,7 +15,7 @@ namespace ve::rendering
 		resolution_ = resolution;
 		depth_textures_.resize(cascade_count, 0);
 		glGenFramebuffers(1, &framebuffer_);
-		glGenTextures(static_cast<GLsizei>(depth_textures_.size()), depth_textures_.data());
+		glGenTextures(OpenGLCount(depth_textures_.size()), depth_textures_.data());
 		for (GLuint depth_texture : depth_textures_)
 		{
 			glBindTexture(GL_TEXTURE_2D, depth_texture);
@@ -44,7 +46,7 @@ namespace ve::rendering
 
 	void CascadedShadowMap::Release()
 	{
-		if (!depth_textures_.empty()) glDeleteTextures(static_cast<GLsizei>(depth_textures_.size()), depth_textures_.data());
+		if (!depth_textures_.empty()) glDeleteTextures(OpenGLCount(depth_textures_.size()), depth_textures_.data());
 		if (framebuffer_ != 0) glDeleteFramebuffers(1, &framebuffer_);
 		depth_textures_.clear();
 		framebuffer_ = 0;

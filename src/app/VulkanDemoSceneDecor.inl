@@ -19,13 +19,13 @@
 		{
 			const int count = config.market_stall_count * (config.stress_blocks ? 16 : 6);
 			if (count <= 0) return;
-			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 701));
+			std::mt19937 rng(SceneSeed(config.seed + 701));
 			const std::array<BlockId, 6> palette{ BlockId::Gravel, BlockId::Granite, BlockId::Andesite, BlockId::Diorite, BlockId::MossBlock, BlockId::OakLeaves };
 			for (int index = 0; index < count; ++index)
 			{
 				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
 				if (Hash01(point.x, point.z, config.seed + index) < 0.25f) continue;
-				const std::size_t palette_index = static_cast<std::size_t>(index % static_cast<int>(palette.size()));
+				const std::size_t palette_index = SceneIndex(index % SceneInt(palette.size()));
 				SetBlock(world, bounds, point.x, point.y + 1, point.z, palette[palette_index]);
 			}
 		}
@@ -35,10 +35,10 @@
 			if (!config.lights || config.lantern_count <= 0) return;
 			for (int index = 0; index < config.lantern_count; ++index)
 			{
-				const float angle = (static_cast<float>(index) / static_cast<float>(std::max(config.lantern_count, 1))) * 6.2831853f;
+				const float angle = NormalizedRatio(index, config.lantern_count) * 6.2831853f;
 				const int radius = 18 + ((index * 11) % std::max(config.terrain_radius - 18, 1));
-				const int x = bounds.center_x + static_cast<int>(std::round(std::cos(angle) * static_cast<float>(radius)));
-				const int z = bounds.center_z + static_cast<int>(std::round(std::sin(angle) * static_cast<float>(radius)));
+				const int x = bounds.center_x + RoundedSceneInt(std::cos(angle) * SceneFloat(radius));
+				const int z = bounds.center_z + RoundedSceneInt(std::sin(angle) * SceneFloat(radius));
 				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
 				SetBlock(world, bounds, x, y + 1, z, BlockId::Glass);
 				if (index % 4 == 0) SetBlock(world, bounds, x, y, z, BlockId::SeaLantern);
@@ -51,9 +51,9 @@
 			const int radius = std::max(28, config.terrain_radius - 4);
 			for (int index = 0; index < config.vista_marker_count; ++index)
 			{
-				const float angle = (static_cast<float>(index) / static_cast<float>(std::max(config.vista_marker_count, 1))) * 6.2831853f;
-				const int x = bounds.center_x + static_cast<int>(std::round(std::cos(angle) * static_cast<float>(radius)));
-				const int z = bounds.center_z + static_cast<int>(std::round(std::sin(angle) * static_cast<float>(radius)));
+				const float angle = NormalizedRatio(index, config.vista_marker_count) * 6.2831853f;
+				const int x = bounds.center_x + RoundedSceneInt(std::cos(angle) * SceneFloat(radius));
+				const int z = bounds.center_z + RoundedSceneInt(std::sin(angle) * SceneFloat(radius));
 				const int y = FindGroundY(world, bounds, x, z, config.ground_y);
 				SetBlock(world, bounds, x, y + 1, z, BlockId::SeaLantern);
 				SetBlock(world, bounds, x, y + 2, z, index % 2 == 0 ? BlockId::DiamondOre : BlockId::AmethystBlock);

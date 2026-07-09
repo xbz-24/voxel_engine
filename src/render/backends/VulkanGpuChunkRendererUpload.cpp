@@ -22,9 +22,14 @@ namespace ve::rendering
 			VkDeviceSize byte_size = 0;
 		};
 
+		[[nodiscard]] const BufferCopyContext& BufferCopyFromUserData(void* user_data) noexcept
+		{
+			return *static_cast<const BufferCopyContext*>(user_data);
+		}
+
 		void RecordBufferCopy(VkCommandBuffer command_buffer, void* user_data)
 		{
-			const auto& context = *static_cast<const BufferCopyContext*>(user_data);
+			const BufferCopyContext& context = BufferCopyFromUserData(user_data);
 			VkBufferCopy copy{};
 			copy.size = context.byte_size;
 			vkCmdCopyBuffer(command_buffer, context.source, context.destination, 1u, &copy);

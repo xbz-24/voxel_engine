@@ -9,6 +9,7 @@
 #include "Input.h"
 #include "PlayerMovementInput.h"
 #include "RenderDistanceSettings.h"
+#include "WorldGridMath.h"
 
 #include <algorithm>
 #include <array>

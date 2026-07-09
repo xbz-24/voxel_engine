@@ -6,7 +6,7 @@ namespace ve::rendering
 		{
 			if (result != VK_SUCCESS)
 			{
-				VE_LOG_CATEGORY_ERROR(ve::log::category::Render, "ImGui Vulkan call failed: " + std::to_string(static_cast<int>(result)));
+				VE_LOG_CATEGORY_ERROR(ve::log::category::Render, "ImGui Vulkan call failed: " + std::to_string(ve::core::ToInt(result)));
 			}
 		}
 

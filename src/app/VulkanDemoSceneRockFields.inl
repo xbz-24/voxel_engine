@@ -7,12 +7,12 @@
 				{
 					for (int dy = 0; dy <= height; ++dy)
 					{
-						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(radius, 1));
-						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(radius, 1));
-						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(height, 1));
+						const float nx = NormalizedRatio(dx, radius);
+						const float nz = NormalizedRatio(dz, radius);
+						const float ny = NormalizedRatio(dy, height);
 						if ((nx * nx) + (nz * nz) + (ny * ny * 1.3f) > 1.05f) continue;
 						if (Hash01(cx + dx, cz + dz + dy, seed) < 0.16f) continue;
-						const std::size_t palette_index = static_cast<std::size_t>((std::abs(dx) + std::abs(dz) + dy + seed) % static_cast<int>(palette.size()));
+						const std::size_t palette_index = SceneModuloIndex(std::abs(dx) + std::abs(dz) + dy + seed, palette.size());
 						SetBlock(world, bounds, cx + dx, base_y + dy + 1, cz + dz, palette[palette_index]);
 					}
 				}
@@ -34,7 +34,7 @@
 
 		void BuildRockFields(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 501));
+			std::mt19937 rng(SceneSeed(config.seed + 501));
 			for (int index = 0; index < config.house_count; ++index)
 			{
 				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);

@@ -104,10 +104,15 @@ void ve::engine::Window::SetCallbackUserData(void* userData)
 	_callbackContext.userData = userData;
 }
 
+ve::engine::Window::CallbackContext* ve::engine::Window::GetCallbackContext(GLFWwindow* window)
+{
+	return static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
+}
+
 void* ve::engine::Window::GetCallbackUserData(GLFWwindow* window)
 {
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
-	return context ? context->userData : nullptr;
+	CallbackContext* context = GetCallbackContext(window);
+	return context != nullptr ? context->userData : nullptr;
 }
 
 void ve::engine::Window::RecordFramebufferResize(int width, int height)
@@ -122,7 +127,7 @@ void ve::engine::Window::RecordFramebufferResize(int width, int height)
 
 void ve::engine::Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
 {
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
+	CallbackContext* context = GetCallbackContext(window);
 	if (context && context->window)
 	{
 		context->window->RecordFramebufferResize(width, height);

@@ -4,7 +4,7 @@
 
 bool EngineApplication::Start()
 {
-	return static_cast<bool>(StartDetailed());
+	return StartDetailed().failure == ve::engine::EngineStartupFailure::None;
 }
 
 ve::engine::EngineStartupResult EngineApplication::StartDetailed()

@@ -24,15 +24,15 @@ namespace ve::rendering
 		binding.stride = sizeof(VoxelVertex);
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		std::array attributes{
-			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, position)) },
-			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R8G8B8A8_UNORM, static_cast<std::uint32_t>(offsetof(VoxelVertex, color_rgba8)) },
-			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, static_cast<std::uint32_t>(offsetof(VoxelVertex, light)) },
-			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R8G8B8A8_SNORM, static_cast<std::uint32_t>(offsetof(VoxelVertex, normal_snorm8)) }
+			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, VertexAttributeOffset(offsetof(VoxelVertex, position)) },
+			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R8G8B8A8_UNORM, VertexAttributeOffset(offsetof(VoxelVertex, color_rgba8)) },
+			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, VertexAttributeOffset(offsetof(VoxelVertex, light)) },
+			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R8G8B8A8_SNORM, VertexAttributeOffset(offsetof(VoxelVertex, normal_snorm8)) }
 		};
 		VkPipelineVertexInputStateCreateInfo vertex_input{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 		vertex_input.vertexBindingDescriptionCount = 1u;
 		vertex_input.pVertexBindingDescriptions = &binding;
-		vertex_input.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(attributes.size());
+		vertex_input.vertexAttributeDescriptionCount = RenderElementCount(attributes.size());
 		vertex_input.pVertexAttributeDescriptions = attributes.data();
 
 		VkPipelineInputAssemblyStateCreateInfo assembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
@@ -42,7 +42,7 @@ namespace ve::rendering
 		viewport_state.scissorCount = 1u;
 		std::array dynamic_states{ VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamic_state{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
-		dynamic_state.dynamicStateCount = static_cast<std::uint32_t>(dynamic_states.size());
+		dynamic_state.dynamicStateCount = RenderElementCount(dynamic_states.size());
 		dynamic_state.pDynamicStates = dynamic_states.data();
 
 		VkPipelineRasterizationStateCreateInfo rasterization{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
@@ -71,7 +71,7 @@ namespace ve::rendering
 		blend.pAttachments = &blend_attachment;
 
 		VkGraphicsPipelineCreateInfo pipeline_info{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-		pipeline_info.stageCount = static_cast<std::uint32_t>(shader_stages.size());
+		pipeline_info.stageCount = RenderElementCount(shader_stages.size());
 		pipeline_info.pStages = shader_stages.data();
 		pipeline_info.pVertexInputState = &vertex_input;
 		pipeline_info.pInputAssemblyState = &assembly;

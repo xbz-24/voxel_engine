@@ -1,5 +1,7 @@
 #include "VulkanSwapchainChoices.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 
 namespace ve::rendering
@@ -35,7 +37,7 @@ namespace ve::rendering
 	VkExtent2D ChooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height) noexcept
 	{
 		if (capabilities.currentExtent.width != UINT32_MAX) return capabilities.currentExtent;
-		VkExtent2D extent{ static_cast<std::uint32_t>(std::max(width, 1)), static_cast<std::uint32_t>(std::max(height, 1)) };
+		VkExtent2D extent{ ve::core::ToU32(std::max(width, 1)), ve::core::ToU32(std::max(height, 1)) };
 		extent.width = std::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 		extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 		return extent;

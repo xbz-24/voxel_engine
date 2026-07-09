@@ -9,11 +9,21 @@
 
 namespace ve::rendering
 {
+	namespace
+	{
+		[[nodiscard]] VkDeviceSize FramebufferUploadByteCount(VkExtent2D render_extent) noexcept
+		{
+			return VulkanByteSize(render_extent.width) *
+				VulkanByteSize(render_extent.height) *
+				VulkanByteSize(sizeof(std::uint32_t));
+		}
+	}
+
 	bool VulkanFrameOrchestrator::EnsureFrameBuffer(VkExtent2D extent)
 	{
 		if (!rasterizer_.Resize(extent, demo_settings_)) return false;
 		const VkExtent2D render_extent = rasterizer_.RenderExtent();
-		const VkDeviceSize byte_size = static_cast<VkDeviceSize>(render_extent.width) * static_cast<VkDeviceSize>(render_extent.height) * sizeof(std::uint32_t);
+		const VkDeviceSize byte_size = FramebufferUploadByteCount(render_extent);
 		const bool size_changed = frames_.front().upload_buffer.Size() != byte_size;
 		for (FrameResources& frame : frames_)
 		{

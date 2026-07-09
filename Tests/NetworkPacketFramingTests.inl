@@ -75,7 +75,7 @@ TEST_CASE("network packet parser rejects oversized and unknown payload headers")
 		ve::network::MaxPacketPayloadByteCount + 1U);
 	CHECK(!ve::network::TryParsePacketHeader(oversizedHeaderBytes).has_value());
 
-	const auto unknownMessageType = static_cast<ve::network::NetworkMessageType>(999);
+	const auto unknownMessageType = ve::tests::InvalidEnumValue<ve::network::NetworkMessageType>(999);
 	const std::array<std::byte, ve::network::PacketHeaderByteCount> unknownHeaderBytes = BuildPacketHeaderForTest(
 		unknownMessageType,
 		0);

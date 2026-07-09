@@ -4,6 +4,7 @@
 #include "BlockSolidColor.h"
 #include "Chunk.h"
 #include "ChunkTerrain.h"
+#include "CoreTypes.h"
 #include "ImportedModel.h"
 #include "Logger.h"
 #include "ModelAssetLibrary.h"
@@ -31,6 +32,7 @@
 #include <vector>
 
 #include "VulkanDemoSceneCore.inl"
+#include "VulkanDemoSceneMath.inl"
 #include "VulkanDemoSceneModelAssets.inl"
 #include "VulkanDemoSceneTextureSampling.inl"
 #include "VulkanDemoSceneMaterialBlocks.inl"

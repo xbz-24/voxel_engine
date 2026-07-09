@@ -30,7 +30,7 @@
 				ve::rendering::StbiImageData data(stbi_load(path.string().c_str(), &width, &height, &channels, STBI_rgb_alpha));
 				if (data != nullptr && width > 0 && height > 0)
 				{
-					const std::size_t byte_count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4u;
+					const std::size_t byte_count = RgbaTextureByteCount(width, height);
 					texture.width = width;
 					texture.height = height;
 					texture.pixels.assign(data.get(), data.get() + byte_count);
@@ -66,13 +66,13 @@
 		{
 			uv.x -= std::floor(uv.x);
 			uv.y -= std::floor(uv.y);
-			const int x = std::clamp(static_cast<int>(uv.x * static_cast<float>(texture.width)), 0, texture.width - 1);
-			const int y = std::clamp(static_cast<int>((1.0f - uv.y) * static_cast<float>(texture.height)), 0, texture.height - 1);
-			const std::size_t index = ((static_cast<std::size_t>(y) * static_cast<std::size_t>(texture.width)) + static_cast<std::size_t>(x)) * 4u;
+			const int x = std::clamp(SceneInt(uv.x * SceneFloat(texture.width)), 0, texture.width - 1);
+			const int y = std::clamp(SceneInt((1.0f - uv.y) * SceneFloat(texture.height)), 0, texture.height - 1);
+			const std::size_t index = RgbaTexturePixelOffset(x, y, texture.width);
 			return {
-				static_cast<float>(texture.pixels[index]) / 255.0f,
-				static_cast<float>(texture.pixels[index + 1u]) / 255.0f,
-				static_cast<float>(texture.pixels[index + 2u]) / 255.0f,
-				static_cast<float>(texture.pixels[index + 3u]) / 255.0f
+				UnitColorChannel(texture.pixels[index]),
+				UnitColorChannel(texture.pixels[index + 1u]),
+				UnitColorChannel(texture.pixels[index + 2u]),
+				UnitColorChannel(texture.pixels[index + 3u])
 			};
 		}

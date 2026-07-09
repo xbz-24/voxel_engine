@@ -1,6 +1,6 @@
 #include "WorldVisibility.h"
 
-#include "ChunkTerrain.h"
+#include "WorldGridMath.h"
 
 #include <glm/ext.hpp>
 
@@ -10,8 +10,8 @@ namespace ve::world::visibility
 	{
 		constexpr float alwaysVisibleDistance = 24.0f;
 		constexpr float rearCullCosine = -0.35f;
-		const float centerX = static_cast<float>(chunkX * terrain::ChunkWidth) + (terrain::ChunkWidth * 0.5f);
-		const float centerZ = static_cast<float>(chunkZ * terrain::ChunkDepth) + (terrain::ChunkDepth * 0.5f);
+		const float centerX = grid::ChunkCenterX(chunkX);
+		const float centerZ = grid::ChunkCenterZ(chunkZ);
 		glm::vec3 toChunk(centerX - cameraPosition.x, 0.0f, centerZ - cameraPosition.z);
 		if (glm::length(toChunk) <= alwaysVisibleDistance)
 		{

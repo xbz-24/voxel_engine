@@ -30,7 +30,7 @@ TEST_CASE("world block edits normalize ranges and reuse single block apply path"
 		2,
 		1,
 		ve::blocks::BlockId::Stone);
-	invalid_kind_edit.kind = static_cast<ve::world::WorldBlockEdit::Kind>(255);
+	invalid_kind_edit.kind = ve::tests::InvalidEnumValue<ve::world::WorldBlockEdit::Kind>();
 
 	CHECK(!ve::world::ApplyWorldBlockEdit(world, invalid_kind_edit));
 	CHECK(world.GetBlock(1, 2, 1) == ve::blocks::BlockId::Air);

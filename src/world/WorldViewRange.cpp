@@ -1,10 +1,9 @@
 #include "WorldViewRange.h"
 
 #include "Chunk.h"
-#include "WorldCoordinates.h"
+#include "WorldGridMath.h"
 
 #include <algorithm>
-#include <cmath>
 
 namespace ve::world
 {
@@ -23,8 +22,8 @@ namespace ve::world
 			return { 0, -1, 0, -1 };
 		}
 
-		const int cameraChunkX = coordinates::FloorDiv(static_cast<int>(std::floor(cameraPosition.x)), Chunk::CHUNK_WIDTH);
-		const int cameraChunkZ = coordinates::FloorDiv(static_cast<int>(std::floor(cameraPosition.z)), Chunk::CHUNK_DEPTH);
+		const int cameraChunkX = grid::ChunkXFromWorld(cameraPosition.x);
+		const int cameraChunkZ = grid::ChunkZFromWorld(cameraPosition.z);
 		const int lastChunk = worldSize - 1;
 		return {
 			std::max(0, cameraChunkX - render_distance_chunks),

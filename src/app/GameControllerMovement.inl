@@ -49,9 +49,9 @@
 		frame.settings.player.vertical_velocity -= gravity_blocks_per_second * ve::core::ToFloat(frame.delta_seconds);
 		position.y += frame.settings.player.vertical_velocity * ve::core::ToFloat(frame.delta_seconds);
 
-		const int player_feet_block_x = static_cast<int>(std::floor(position.x));
-		const int player_feet_block_y = static_cast<int>(std::floor(position.y - player_eye_height));
-		const int player_feet_block_z = static_cast<int>(std::floor(position.z));
+		const int player_feet_block_x = ve::world::grid::BlockCoordinateFromWorld(position.x);
+		const int player_feet_block_y = ve::world::grid::BlockCoordinateFromWorld(position.y - player_eye_height);
+		const int player_feet_block_z = ve::world::grid::BlockCoordinateFromWorld(position.z);
 		const ve::blocks::BlockId block_below_player =
 			frame.world.GetBlock(player_feet_block_x, player_feet_block_y, player_feet_block_z);
 		if (frame.settings.player.vertical_velocity <= 0.0f && frame.block_registry.IsSolid(block_below_player))

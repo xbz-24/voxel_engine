@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <vulkan/vulkan.h>
@@ -20,41 +22,66 @@ namespace ve::rendering
 			format == VK_FORMAT_B8G8R8A8_SNORM;
 	}
 
+	[[nodiscard]] inline std::uint32_t ColorBits(std::uint8_t value) noexcept
+	{
+		return ve::core::ToU32(value);
+	}
+
+	[[nodiscard]] inline std::uint8_t ColorByte(std::uint32_t value) noexcept
+	{
+		return ve::core::ToU8(value);
+	}
+
+	[[nodiscard]] inline float ColorChannelFloat(std::uint8_t value) noexcept
+	{
+		return ve::core::ToFloat(value);
+	}
+
+	[[nodiscard]] inline std::uint8_t ColorChannelByte(float value) noexcept
+	{
+		return ve::core::ToU8(value);
+	}
+
+	[[nodiscard]] inline int PackedChannelInt(std::uint32_t packed, std::uint32_t shift) noexcept
+	{
+		return ve::core::ToInt((packed >> shift) & 0xffu);
+	}
+
 	[[nodiscard]] inline std::uint32_t PackColor(Rgb color, VkFormat format) noexcept
 	{
 		constexpr std::uint32_t alpha = 255u;
 		if (IsBgraFormat(format))
 		{
 			return (alpha << 24u) |
-				(static_cast<std::uint32_t>(color.r) << 16u) |
-				(static_cast<std::uint32_t>(color.g) << 8u) |
-				static_cast<std::uint32_t>(color.b);
+				(ColorBits(color.r) << 16u) |
+				(ColorBits(color.g) << 8u) |
+				ColorBits(color.b);
 		}
 		return (alpha << 24u) |
-			(static_cast<std::uint32_t>(color.b) << 16u) |
-			(static_cast<std::uint32_t>(color.g) << 8u) |
-			static_cast<std::uint32_t>(color.r);
+			(ColorBits(color.b) << 16u) |
+			(ColorBits(color.g) << 8u) |
+			ColorBits(color.r);
 	}
 
 	[[nodiscard]] inline std::uint8_t Scale(std::uint8_t value, float amount) noexcept
 	{
-		const float scaled = std::clamp(static_cast<float>(value) * amount, 0.0f, 255.0f);
-		return static_cast<std::uint8_t>(scaled);
+		const float scaled = std::clamp(ColorChannelFloat(value) * amount, 0.0f, 255.0f);
+		return ColorChannelByte(scaled);
 	}
 
 	[[nodiscard]] inline std::uint32_t PackRgb(Rgb color) noexcept
 	{
-		return (static_cast<std::uint32_t>(color.r) << 16u) |
-			(static_cast<std::uint32_t>(color.g) << 8u) |
-			static_cast<std::uint32_t>(color.b);
+		return (ColorBits(color.r) << 16u) |
+			(ColorBits(color.g) << 8u) |
+			ColorBits(color.b);
 	}
 
 	[[nodiscard]] inline Rgb UnpackRgb(std::uint32_t packed) noexcept
 	{
 		return {
-			static_cast<std::uint8_t>((packed >> 16u) & 0xffu),
-			static_cast<std::uint8_t>((packed >> 8u) & 0xffu),
-			static_cast<std::uint8_t>(packed & 0xffu)
+			ColorByte((packed >> 16u) & 0xffu),
+			ColorByte((packed >> 8u) & 0xffu),
+			ColorByte(packed & 0xffu)
 		};
 	}
 
@@ -63,8 +90,8 @@ namespace ve::rendering
 		const float t = std::clamp(amount, 0.0f, 1.0f);
 		const auto channel = [t](std::uint8_t value, std::uint8_t tint_value)
 		{
-			const float tinted = (static_cast<float>(value) * static_cast<float>(tint_value)) / 255.0f;
-			return static_cast<std::uint8_t>((static_cast<float>(value) * (1.0f - t)) + (tinted * t));
+			const float tinted = (ColorChannelFloat(value) * ColorChannelFloat(tint_value)) / 255.0f;
+			return ColorChannelByte((ColorChannelFloat(value) * (1.0f - t)) + (tinted * t));
 		};
 		return { channel(color.r, tint.r), channel(color.g, tint.g), channel(color.b, tint.b) };
 	}
@@ -74,7 +101,7 @@ namespace ve::rendering
 		const float t = std::clamp(amount, 0.0f, 1.0f);
 		const auto lerp = [t](std::uint8_t a, std::uint8_t b)
 		{
-			return static_cast<std::uint8_t>((static_cast<float>(a) * (1.0f - t)) + (static_cast<float>(b) * t));
+			return ColorChannelByte((ColorChannelFloat(a) * (1.0f - t)) + (ColorChannelFloat(b) * t));
 		};
 		return { lerp(left.r, right.r), lerp(left.g, right.g), lerp(left.b, right.b) };
 	}

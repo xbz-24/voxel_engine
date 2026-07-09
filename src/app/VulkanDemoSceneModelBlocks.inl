@@ -33,7 +33,7 @@
 			}
 			const std::string source = Lowercase(model.source_path.string());
 			const float height = NormalizedHeight(centroid, minimum, maximum);
-			const std::uint32_t hash = StableStringHash(hints) + static_cast<std::uint32_t>(height * 997.0f);
+			const std::uint32_t hash = StableStringHash(hints) + SceneSeed(height * 997.0f);
 			const BlockId sampled_block = sampled_color ? ve::blocks::NearestSolidColorBlock(*sampled_color) : BlockId::Air;
 			if (source.find("aqua") != std::string::npos || source.find("konosuba") != std::string::npos)
 			{

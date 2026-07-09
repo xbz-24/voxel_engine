@@ -42,7 +42,7 @@
 
 		[[nodiscard]] bool Start()
 		{
-			return static_cast<bool>(StartDetailed());
+			return StartDetailed().failure == EngineStartFailure::None;
 		}
 
 		[[nodiscard]] EngineStartResult StartDetailed()

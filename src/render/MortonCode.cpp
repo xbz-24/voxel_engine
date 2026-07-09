@@ -1,5 +1,7 @@
 #include "MortonCode.h"
 
+#include "CoreTypes.h"
+
 namespace ve::rendering
 {
 	namespace
@@ -25,7 +27,7 @@ namespace ve::rendering
 			value = (value ^ (value >> 8U)) & 0x1f0000ff0000ffULL;
 			value = (value ^ (value >> 16U)) & 0x1f00000000ffffULL;
 			value = (value ^ (value >> 32U)) & 0x1fffffULL;
-			return static_cast<std::uint32_t>(value);
+			return ve::core::ToU32(value);
 		}
 	}
 

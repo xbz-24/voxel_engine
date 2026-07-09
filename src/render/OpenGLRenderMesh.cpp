@@ -1,5 +1,6 @@
 #include "RenderMesh.h"
 
+#include "OpenGLTypeConversions.h"
 #include "TextureLoader.h"
 
 #include <GL/glew.h>
@@ -30,7 +31,7 @@ namespace ve::rendering
 				indexed_batches_.reserve(description.batches.size());
 				for (const ChunkMeshBatch& source_batch : description.batches)
 				{
-					const std::uint32_t first_index = static_cast<std::uint32_t>(indices.size());
+					const std::uint32_t first_index = OpenGLMeshIndex(indices.size());
 					for (std::uint32_t vertex_offset = 0; vertex_offset + 3U < source_batch.vertex_count; vertex_offset += 4U)
 					{
 						const std::uint32_t first_vertex = source_batch.first_vertex + vertex_offset;
@@ -43,7 +44,7 @@ namespace ve::rendering
 							first_vertex + 3U
 						});
 					}
-					const std::uint32_t index_count = static_cast<std::uint32_t>(indices.size()) - first_index;
+					const std::uint32_t index_count = OpenGLMeshIndex(indices.size()) - first_index;
 					if (index_count > 0U)
 					{
 						indexed_batches_.push_back(IndexedChunkMeshBatch{ source_batch.texture, first_index, index_count });
@@ -53,7 +54,7 @@ namespace ve::rendering
 				glGenBuffers(1, &vertex_buffer_);
 				glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
 				glBufferData(GL_ARRAY_BUFFER,
-					static_cast<GLsizeiptr>(description.vertices.size_bytes()),
+					OpenGLByteCount(description.vertices.size_bytes()),
 					description.vertices.data(),
 					GL_STATIC_DRAW);
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -61,12 +62,12 @@ namespace ve::rendering
 				glGenBuffers(1, &index_buffer_);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-					static_cast<GLsizeiptr>(indices.size() * sizeof(std::uint32_t)),
+					OpenGLByteCount(indices.size() * sizeof(std::uint32_t)),
 					indices.data(),
 					GL_STATIC_DRAW);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-				vertex_count_ = static_cast<GLsizei>(description.vertices.size());
-				index_count_ = static_cast<GLsizei>(indices.size());
+				vertex_count_ = OpenGLCount(description.vertices.size());
+				index_count_ = OpenGLCount(indices.size());
 			}
 
 			void Draw() const override
@@ -85,9 +86,8 @@ namespace ve::rendering
 				for (const IndexedChunkMeshBatch& batch : indexed_batches_)
 				{
 					glBindTexture(GL_TEXTURE_2D, NativeOpenGLTexture(batch.texture));
-					const auto* first_index_offset =
-						reinterpret_cast<const void*>(static_cast<std::uintptr_t>(batch.first_index) * sizeof(std::uint32_t));
-					glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.index_count), GL_UNSIGNED_INT, first_index_offset);
+					const void* first_index_offset = OpenGLIndexByteOffset(batch.first_index);
+					glDrawElements(GL_TRIANGLES, OpenGLCount(batch.index_count), GL_UNSIGNED_INT, first_index_offset);
 				}
 
 				glDisableClientState(GL_COLOR_ARRAY);

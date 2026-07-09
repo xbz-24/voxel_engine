@@ -20,9 +20,9 @@
 				{
 					for (int dz = -rz; dz <= rz; ++dz)
 					{
-						const float nx = static_cast<float>(dx) / static_cast<float>(std::max(rx, 1));
-						const float ny = static_cast<float>(dy) / static_cast<float>(std::max(ry, 1));
-						const float nz = static_cast<float>(dz) / static_cast<float>(std::max(rz, 1));
+						const float nx = NormalizedRatio(dx, rx);
+						const float ny = NormalizedRatio(dy, ry);
+						const float nz = NormalizedRatio(dz, rz);
 						if ((nx * nx) + (ny * ny) + (nz * nz) <= 1.0f)
 						{
 							SetBlock(world, bounds, cx + dx, cy + dy, cz + dz, block);
@@ -34,7 +34,7 @@
 
 		[[nodiscard]] std::string Lowercase(std::string value)
 		{
-			std::ranges::transform(value, value.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+			std::ranges::transform(value, value.begin(), [](unsigned char ch) { return ve::core::ToChar(std::tolower(ch)); });
 			return value;
 		}
 
@@ -114,9 +114,7 @@
 
 		[[nodiscard]] std::uint64_t VoxelKey(int x, int y, int z) noexcept
 		{
-			return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(x)) << 40u) ^
-				(static_cast<std::uint64_t>(static_cast<std::uint32_t>(y)) << 20u) ^
-				static_cast<std::uint64_t>(static_cast<std::uint32_t>(z));
+			return PackedSceneVoxelKey(x, y, z);
 		}
 
 		[[nodiscard]] std::uint32_t StableStringHash(std::string_view value) noexcept
@@ -124,7 +122,7 @@
 			std::uint32_t hash = 2166136261u;
 			for (char ch : value)
 			{
-				hash ^= static_cast<std::uint8_t>(ch);
+				hash ^= SceneByte(ch);
 				hash *= 16777619u;
 			}
 			return hash;

@@ -1,7 +1,7 @@
 		void BuildJunglePlants(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
 			if (!config.trees || config.tree_count <= 0) return;
-			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 601));
+			std::mt19937 rng(SceneSeed(config.seed + 601));
 			for (int index = 0; index < config.tree_count; ++index)
 			{
 				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);
@@ -23,7 +23,7 @@
 
 		void BuildWildlife(ve::world::World& world, const DemoBounds& bounds, const VulkanMinecraftDemoSceneConfig& config)
 		{
-			std::mt19937 rng(static_cast<std::uint32_t>(config.seed + 901));
+			std::mt19937 rng(SceneSeed(config.seed + 901));
 			for (int index = 0; index < 34; ++index)
 			{
 				const SurfacePoint point = RandomSurfacePoint(world, bounds, config, rng);

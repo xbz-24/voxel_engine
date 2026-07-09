@@ -24,7 +24,7 @@ TEST_CASE("public world api supports typed coordinate units")
 	CHECK(position.x == 1);
 	CHECK(position.y == 64);
 	CHECK(position.z == -2);
-	CHECK(static_cast<int>(chunk_coordinate) == 3);
+	CHECK(voxel::ChunkCoordinateValue(chunk_coordinate) == 3);
 	CHECK(world.size_chunks == 6);
 	REQUIRE(world.edits.size() == 1U);
 	CHECK(world.edits.front().position.x == 1);

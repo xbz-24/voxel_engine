@@ -37,7 +37,7 @@ namespace ve::rendering
 
 		std::array attachments{ color_attachment, depth_attachment };
 		VkRenderPassCreateInfo render_pass_info{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		render_pass_info.attachmentCount = static_cast<std::uint32_t>(attachments.size());
+		render_pass_info.attachmentCount = RenderElementCount(attachments.size());
 		render_pass_info.pAttachments = attachments.data();
 		render_pass_info.subpassCount = 1u;
 		render_pass_info.pSubpasses = &subpass;

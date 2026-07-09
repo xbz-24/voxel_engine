@@ -39,6 +39,20 @@ namespace ve::core
 		return static_cast<std::uint8_t>(value);
 	}
 
+	/** @param value Numeric or character value to convert. @return Value as an unsigned character. */
+	template <typename Value>
+	constexpr unsigned char ToUnsignedChar(Value value) noexcept
+	{
+		return static_cast<unsigned char>(value);
+	}
+
+	/** @param value Numeric or character value to convert. @return Value as a character. */
+	template <typename Value>
+	constexpr char ToChar(Value value) noexcept
+	{
+		return static_cast<char>(value);
+	}
+
 	/** @param value Numeric value to convert. @return Value as a signed int. */
 	template <typename Value>
 	constexpr int ToInt(Value value) noexcept

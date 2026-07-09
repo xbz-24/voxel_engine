@@ -1,6 +1,7 @@
 #include "VulkanSoftwareVoxelRasterizerRayTraversal.h"
 
 #include "BlockDefinitions.h"
+#include "CoreTypes.h"
 
 #include <cmath>
 #include <cstddef>
@@ -39,7 +40,7 @@ namespace ve::rendering::raster_ray
 
 	int FloorBlockCoordinate(float value) noexcept
 	{
-		return static_cast<int>(std::floor(value));
+		return ve::core::ToInt(std::floor(value));
 	}
 
 	bool IsInsideWorld(const glm::ivec3& block, const VulkanRasterFrameWorldSnapshot& world) noexcept

@@ -31,13 +31,13 @@ namespace ve::rendering
 		begin_info.renderPass = render_pass_;
 		begin_info.framebuffer = framebuffers_[image_index];
 		begin_info.renderArea.extent = extent_;
-		begin_info.clearValueCount = static_cast<std::uint32_t>(clear_values.size());
+		begin_info.clearValueCount = RenderElementCount(clear_values.size());
 		begin_info.pClearValues = clear_values.data();
 		vkCmdBeginRenderPass(command_buffer, &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport viewport{};
-		viewport.width = static_cast<float>(extent_.width);
-		viewport.height = static_cast<float>(extent_.height);
+		viewport.width = ExtentFloat(extent_.width);
+		viewport.height = ExtentFloat(extent_.height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		VkRect2D scissor{};
@@ -46,7 +46,7 @@ namespace ve::rendering
 		vkCmdSetScissor(command_buffer, 0u, 1u, &scissor);
 		vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
 
-		const float aspect = static_cast<float>(extent_.width) / static_cast<float>(std::max(extent_.height, 1u));
+		const float aspect = ExtentFloat(extent_.width) / ExtentFloat(std::max(extent_.height, 1u));
 		glm::mat4 projection = glm::perspective(glm::radians(72.0f), aspect, 0.05f, FarWorldClipDistance);
 		projection[1][1] *= -1.0f;
 		const glm::mat4 mvp = projection * camera.GetWorldToViewMatrix();

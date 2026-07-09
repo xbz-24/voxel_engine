@@ -12,7 +12,6 @@ namespace
 		CommandLineArguments arguments{};
 		if (argc <= 0 || argv == nullptr) return arguments;
 
-		arguments.reserve(static_cast<CommandLineArguments::size_type>(argc));
 		for (int index = 0; index < argc; ++index)
 		{
 			arguments.emplace_back(argv[index] == nullptr ? std::string_view{} : std::string_view{ argv[index] });

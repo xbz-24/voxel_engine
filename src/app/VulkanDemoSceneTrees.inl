@@ -10,7 +10,7 @@
 
 		void PlaceCanopyTree(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int seed)
 		{
-			const int height = 12 + static_cast<int>(Hash01(x, z, seed) * 12.0f);
+			const int height = 12 + SceneInt(Hash01(x, z, seed) * 12.0f);
 			const BlockId trunk = Hash01(x, z, seed + 1) < 0.70f ? BlockId::SpruceLog : BlockId::OakLog;
 			const float leaf_roll = Hash01(x, z, seed + 2);
 			const BlockId leaves = leaf_roll < 0.58f ? BlockId::OakLeaves : (leaf_roll < 0.90f ? BlockId::BirchLeaves : BlockId::CherryLeaves);
@@ -27,7 +27,7 @@
 
 		void PlaceEmergentTree(ve::world::World& world, const DemoBounds& bounds, int x, int y, int z, int seed)
 		{
-			const int height = 24 + static_cast<int>(Hash01(x, z, seed) * 16.0f);
+			const int height = 24 + SceneInt(Hash01(x, z, seed) * 16.0f);
 			FillBox(world, bounds, x, y + 1, z, x, y + height, z, BlockId::SpruceLog);
 			FillBox(world, bounds, x - 1, y + 1, z, x + 1, y + 6, z, BlockId::SpruceLog);
 			FillBox(world, bounds, x, y + 1, z - 1, x, y + 6, z + 1, BlockId::SpruceLog);

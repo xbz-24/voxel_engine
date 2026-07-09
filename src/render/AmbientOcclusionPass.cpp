@@ -1,5 +1,7 @@
 #include "AmbientOcclusionPass.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <cstdint>
 
@@ -8,7 +10,7 @@ namespace
 	/// Converts dimensions to the unsigned frame graph metadata type.
 	ve::core::Index ResourceExtent(int value) noexcept
 	{
-		return static_cast<ve::core::Index>(std::max(1, value));
+		return ve::core::ToIndex(std::max(1, value));
 	}
 
 	/// Creates one single-channel texture used as the AO output.

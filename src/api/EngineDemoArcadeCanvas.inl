@@ -58,9 +58,9 @@
 				int row_index = 0;
 				for (const std::string_view row : rows)
 				{
-					for (int column = 0; column < static_cast<int>(row.size()); ++column)
+					for (int column = 0; column < ve::core::ToInt(row.size()); ++column)
 					{
-						if (row[static_cast<std::size_t>(column)] != ' ')
+						if (row[ve::core::ToIndex(column)] != ' ')
 						{
 							Pixel(x + column, y + row_index, block, layer);
 						}
