@@ -1,9 +1,9 @@
 #include "NetworkProtocol.h"
 
 #include "CoreTypes.h"
+#include "NetworkByteCodec.h"
 
 #include <cstddef>
-#include <cstring>
 #include <utility>
 
 #include "NetworkPacketHeaderCodec.inl"
@@ -42,12 +42,12 @@ namespace ve::network
 		if (headerBytes.size() != PacketHeaderByteCount) return std::nullopt;
 		PacketHeader packetHeader{};
 		std::size_t headerByteOffset = 0;
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.magic);
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.version);
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.messageType);
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.sequenceNumber);
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadByteCount);
-		ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadChecksum);
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.magic)) return std::nullopt;
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.version)) return std::nullopt;
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.messageType)) return std::nullopt;
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.sequenceNumber)) return std::nullopt;
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadByteCount)) return std::nullopt;
+		if (!ReadHeaderField(headerBytes, headerByteOffset, packetHeader.payloadChecksum)) return std::nullopt;
 		if (packetHeader.magic != ProtocolMagic || packetHeader.version != ProtocolVersion) return std::nullopt;
 		if (!IsKnownMessageType(packetHeader.messageType)) return std::nullopt;
 		if (packetHeader.payloadByteCount > MaxPacketPayloadByteCount) return std::nullopt;

@@ -6,9 +6,7 @@ namespace
 		template <typename Value>
 		void Write(const Value& value)
 		{
-			static_assert(std::is_trivially_copyable_v<Value>);
-			const auto* firstSerializedByte = reinterpret_cast<const std::byte*>(&value);
-			_payloadBytes.insert(_payloadBytes.end(), firstSerializedByte, firstSerializedByte + sizeof(Value));
+			ve::network::AppendSerializedValue(_payloadBytes, value);
 		}
 
 		void WriteBytes(std::span<const std::byte> sourceBytes)
@@ -36,12 +34,12 @@ namespace
 		template <typename Value>
 		bool Read(Value& output)
 		{
-			static_assert(std::is_trivially_copyable_v<Value>);
-			if (_readOffset > _serializedPayloadBytes.size()) return false;
-			if (_serializedPayloadBytes.size() - _readOffset < sizeof(Value)) return false;
-			std::memcpy(&output, _serializedPayloadBytes.data() + _readOffset, sizeof(Value));
-			_readOffset += sizeof(Value);
-			return true;
+			return ve::network::ReadSerializedValue(_serializedPayloadBytes, _readOffset, output);
+		}
+
+		[[nodiscard]] std::optional<std::span<const std::byte>> ReadBytes(std::size_t byteCount)
+		{
+			return ve::network::ReadByteSpan(_serializedPayloadBytes, _readOffset, byteCount);
 		}
 
 		[[nodiscard]] bool IsFinished() const noexcept

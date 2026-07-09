@@ -7,18 +7,18 @@
 
 	std::optional<ClientHelloPayload> TryDeserializeClientHelloPayload(std::span<const std::byte> payloadBytes)
 	{
-		if (payloadBytes.size() < sizeof(std::uint16_t)) return std::nullopt;
+		PayloadReader reader(payloadBytes);
 		std::uint16_t nameByteCount = 0;
-		std::memcpy(&nameByteCount, payloadBytes.data(), sizeof(nameByteCount));
+		if (!reader.Read(nameByteCount)) return std::nullopt;
 		if (nameByteCount == 0 || nameByteCount > MaxPlayerNameByteCount) return std::nullopt;
-		const std::size_t capabilityFlagsOffset = sizeof(nameByteCount) + nameByteCount;
-		if (payloadBytes.size() != capabilityFlagsOffset + sizeof(std::uint32_t)) return std::nullopt;
-		const char* firstCharacter = reinterpret_cast<const char*>(payloadBytes.data() + sizeof(nameByteCount));
+		const std::optional<std::span<const std::byte>> nameBytes = reader.ReadBytes(nameByteCount);
+		if (!nameBytes.has_value()) return std::nullopt;
 		std::uint32_t capabilityFlags = 0;
-		std::memcpy(&capabilityFlags, payloadBytes.data() + capabilityFlagsOffset, sizeof(capabilityFlags));
+		if (!reader.Read(capabilityFlags)) return std::nullopt;
+		if (!reader.IsFinished()) return std::nullopt;
 		if ((capabilityFlags & ~SupportedProtocolCapabilityFlags) != 0U) return std::nullopt;
 		if ((capabilityFlags & SupportedProtocolCapabilityFlags) == 0U) return std::nullopt;
-		return ClientHelloPayload{ std::string(firstCharacter, firstCharacter + nameByteCount), capabilityFlags };
+		return ClientHelloPayload{ ByteSpanToString(*nameBytes), capabilityFlags };
 	}
 
 	std::optional<PlayerSnapshotPayload> TryDeserializePlayerSnapshot(std::span<const std::byte> payloadBytes)

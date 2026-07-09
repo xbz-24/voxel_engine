@@ -37,14 +37,15 @@ namespace
 	template <typename Value>
 	void AppendHeaderField(ve::network::ByteBuffer& packetBytes, const Value& value)
 	{
-		const auto* firstByte = reinterpret_cast<const std::byte*>(&value);
-		packetBytes.insert(packetBytes.end(), firstByte, firstByte + sizeof(Value));
+		ve::network::AppendSerializedValue(packetBytes, value);
 	}
 
 	template <typename Value>
-	void ReadHeaderField(std::span<const std::byte> headerBytes, std::size_t& headerByteOffset, Value& output)
+	[[nodiscard]] bool ReadHeaderField(
+		std::span<const std::byte> headerBytes,
+		std::size_t& headerByteOffset,
+		Value& output)
 	{
-		std::memcpy(&output, headerBytes.data() + headerByteOffset, sizeof(Value));
-		headerByteOffset += sizeof(Value);
+		return ve::network::ReadSerializedValue(headerBytes, headerByteOffset, output);
 	}
 }

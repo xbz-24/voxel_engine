@@ -1,10 +1,9 @@
 #include "NetworkSerialization.h"
 
 #include "CoreTypes.h"
+#include "NetworkByteCodec.h"
 
 #include <algorithm>
-#include <cstring>
-#include <type_traits>
 #include <utility>
 
 #include "NetworkPayloadCodec.inl"

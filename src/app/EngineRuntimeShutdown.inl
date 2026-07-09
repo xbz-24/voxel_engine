@@ -23,9 +23,9 @@
 			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
 			return;
 		}
-		if (backend_->Api() == ve::rendering::GraphicsApi::Vulkan)
+		if (ve::rendering::VulkanBackend* vulkan_backend = ActiveVulkanBackend())
 		{
-			static_cast<ve::rendering::VulkanBackend&>(*backend_).Release();
+			vulkan_backend->Release();
 		}
 		backend_.reset();
 		model_.reset();

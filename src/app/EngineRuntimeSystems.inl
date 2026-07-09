@@ -1,14 +1,23 @@
+	ve::rendering::VulkanBackend* EngineRuntime::ActiveVulkanBackend() noexcept
+	{
+		if (backend_ == nullptr || backend_->Api() != ve::rendering::GraphicsApi::Vulkan) return nullptr;
+		return static_cast<ve::rendering::VulkanBackend*>(backend_.get());
+	}
+
+	ve::rendering::VulkanBackend& EngineRuntime::RequiredVulkanBackend() noexcept
+	{
+		ve::rendering::VulkanBackend* vulkan_backend = ActiveVulkanBackend();
+		assert(vulkan_backend != nullptr);
+		return *vulkan_backend;
+	}
+
 	/** Creates model, callbacks, editor UI, and view resources. */
 	EngineStartupResult EngineRuntime::CreateRuntimeSystems()
 	{
 		const EngineCreateInfo& create_info = engine_.CreateInfo();
 		const EngineStartupResult backend_result = CreateRenderBackend();
 		if (!backend_result) return backend_result;
-		ve::rendering::VulkanBackend* vulkan_backend = nullptr;
-		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::Vulkan)
-		{
-			vulkan_backend = static_cast<ve::rendering::VulkanBackend*>(backend_.get());
-		}
+		ve::rendering::VulkanBackend* vulkan_backend = ActiveVulkanBackend();
 		view_ = RenderViewFactory::Create({ window_.GraphicsApi(), &asset_paths_, vulkan_backend });
 		if (view_ == nullptr)
 		{
@@ -72,7 +81,7 @@
 				"Selected render backend is not implemented");
 		}
 
-		auto& vulkan_backend = static_cast<ve::rendering::VulkanBackend&>(*backend_);
+		ve::rendering::VulkanBackend& vulkan_backend = RequiredVulkanBackend();
 		ve::rendering::VulkanBackendSettings settings{};
 #if !defined(NDEBUG)
 		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))

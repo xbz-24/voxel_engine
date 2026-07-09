@@ -14,6 +14,11 @@
 
 #include <memory>
 
+namespace ve::rendering
+{
+	class VulkanBackend;
+}
+
 namespace ve::engine
 {
 	/** Owns the active runtime systems created by EngineApplication::Run. */
@@ -40,6 +45,8 @@ namespace ve::engine
 		void PrepareAssetsAndLogging();
 		[[nodiscard]] EngineStartupResult CreateRuntimeSystems();
 		[[nodiscard]] EngineStartupResult CreateRenderBackend();
+		[[nodiscard]] ve::rendering::VulkanBackend* ActiveVulkanBackend() noexcept;
+		[[nodiscard]] ve::rendering::VulkanBackend& RequiredVulkanBackend() noexcept;
 
 		void RunMainLoop();
 		void RunFrame();
