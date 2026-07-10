@@ -1,9 +1,28 @@
+#include <voxel/WorldTypes.h>
+#include <voxel/WorldConfig.h>
+
+#include <voxel/Assets.h>
+#include <voxel/Blocks.h>
+#include <voxel/Camera.h>
+#include <voxel/Engine.h>
+#include <voxel/EngineConfig.h>
+#include <voxel/EngineConfigTypes.h>
+#include <voxel/EngineRun.h>
+#include <voxel/Materials.h>
+#include <voxel/Runtime.h>
+#include <voxel/Scene.h>
 #include <voxel/Voxel.h>
+#include <voxel/World.h>
 
 #include <utility>
 
 int PublicApiHeadersOnlySmokeCompileAnchor()
 {
+	const voxel::BlockPosition origin = voxel::At(
+		voxel::BlockCoord(0),
+		voxel::BlockCoord(63),
+		voxel::BlockCoord(0));
+
 	voxel::AssetCatalog assets{};
 	assets.SearchRoot("assets")
 		.Texture("grass", "assets/grass.png")
@@ -27,7 +46,8 @@ int PublicApiHeadersOnlySmokeCompileAnchor()
 	voxel::EngineConfig config{};
 	config.WithWindow(voxel::Window("Headers Only", 320, 200))
 		.WithWorld(voxel::Scene()
-			.WithSizeChunks(2)
+			.WithSizeChunks(voxel::Chunks(2))
+			.SetBlock(origin, voxel::Stone)
 			.AddFloor(63, 2, voxel::Grass))
 		.WithAssets(std::move(assets))
 		.WithMaterials(std::move(materials))

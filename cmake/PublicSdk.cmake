@@ -1,13 +1,4 @@
-add_library(voxel_engine_sdk STATIC
-    "${VE_SOURCE_ROOT}/api/EngineConfigTranslator.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineConfigValidation.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineDemoPresets.cpp"
-    "${VE_SOURCE_ROOT}/api/Engine.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineRuntimeApi.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.h"
-    "${VE_SOURCE_ROOT}/api/EngineSceneApi.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineWorldApi.cpp"
+set(VE_PUBLIC_SDK_HEADERS
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Assets.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/BlockAliases.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Blocks.h"
@@ -22,6 +13,21 @@ add_library(voxel_engine_sdk STATIC
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Scene.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Voxel.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/World.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/WorldConfig.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/WorldTypes.h"
+)
+
+add_library(voxel_engine_sdk STATIC
+    "${VE_SOURCE_ROOT}/api/EngineConfigTranslator.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineConfigValidation.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineDemoPresets.cpp"
+    "${VE_SOURCE_ROOT}/api/Engine.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeApi.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.h"
+    "${VE_SOURCE_ROOT}/api/EngineSceneApi.cpp"
+    "${VE_SOURCE_ROOT}/api/EngineWorldApi.cpp"
+    ${VE_PUBLIC_SDK_HEADERS}
 )
 target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
 target_link_libraries(voxel_engine_sdk PRIVATE ve_project_options ve_app)
