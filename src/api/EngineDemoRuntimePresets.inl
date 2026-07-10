@@ -19,6 +19,34 @@
 			return { value.x, value.y, value.z };
 		}
 
+		[[nodiscard]] VoxelRenderStyle VoxelRenderStyleFor(
+			ve::rendering::VulkanMinecraftDemoPreset preset) noexcept
+		{
+			VoxelRenderStyle style{};
+			switch (preset)
+			{
+			case ve::rendering::VulkanMinecraftDemoPreset::AquaModel:
+				return style
+					.WithSunDirection({ -0.30f, 0.72f, -0.62f })
+					.WithSunColor({ 0.86f, 1.02f, 1.20f })
+					.WithSunIntensity(1.08f)
+					.WithSkyColors({ 0.38f, 0.62f, 0.76f }, { 0.15f, 0.34f, 0.62f })
+					.WithExposure(1.04f)
+					.WithFogRange(120.0f, 390.0f);
+			case ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium:
+				return style
+					.WithSunDirection({ -0.55f, 0.62f, -0.56f })
+					.WithSunColor({ 1.30f, 0.98f, 0.72f })
+					.WithSunIntensity(1.14f)
+					.WithSkyColors({ 0.74f, 0.60f, 0.48f }, { 0.42f, 0.55f, 0.72f })
+					.WithExposure(0.98f)
+					.WithFogRange(140.0f, 430.0f);
+			case ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert:
+			default:
+				return style;
+			}
+		}
+
 		[[nodiscard]] EngineConfig VulkanDemoConfig(ve::rendering::VulkanMinecraftDemoPreset preset)
 		{
 			const ve::rendering::VulkanMinecraftDemoProfile profile =
@@ -31,6 +59,7 @@
 				ToPublicVec3(profile.camera_target));
 			config.graphics_api = GraphicsApi::Vulkan;
 			config.demo_scene = ToPublicDemoScene(profile.preset);
+			config.voxel_render_style = VoxelRenderStyleFor(profile.preset);
 			config.render_distance_chunks = profile.render_distance_chunks;
 			config.show_debug_overlay = true;
 			return config;

@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "LogRecord.h"
 #include "VulkanMinecraftDemoSettings.h"
+#include "VoxelRenderStyle.h"
 #include "WorldBlockEdit.h"
 #include "WorldConfiguration.h"
 
@@ -132,6 +133,7 @@ namespace ve::engine
 		bool settings_menu_enabled = true;
 		bool has_custom_camera = false;
 		ve::rendering::VulkanMinecraftDemoPreset vulkan_demo_preset = ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
+		ve::rendering::VoxelRenderStyle voxel_render_style{};
 		int world_size_chunks = 8;
 		ve::world::TerrainGenerationSettings terrain_generation{};
 		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;

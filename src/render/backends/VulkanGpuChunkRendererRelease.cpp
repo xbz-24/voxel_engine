@@ -46,10 +46,12 @@ namespace ve::rendering
 	}
 	void VulkanGpuChunkRenderer::ReleasePipelineResources()
 	{
-		if (pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, pipeline_, nullptr);
+		if (sky_pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, sky_pipeline_, nullptr);
+		if (voxel_pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, voxel_pipeline_, nullptr);
 		if (pipeline_layout_ != VK_NULL_HANDLE) vkDestroyPipelineLayout(device_, pipeline_layout_, nullptr);
 		if (render_pass_ != VK_NULL_HANDLE) vkDestroyRenderPass(device_, render_pass_, nullptr);
-		pipeline_ = VK_NULL_HANDLE;
+		sky_pipeline_ = VK_NULL_HANDLE;
+		voxel_pipeline_ = VK_NULL_HANDLE;
 		pipeline_layout_ = VK_NULL_HANDLE;
 		render_pass_ = VK_NULL_HANDLE;
 	}
@@ -64,6 +66,7 @@ namespace ve::rendering
 		physical_device_ = VK_NULL_HANDLE;
 		command_pool_ = VK_NULL_HANDLE;
 		color_format_ = VK_FORMAT_UNDEFINED;
+		shader_environment_ = {};
 		initialized_ = false;
 	}
 }

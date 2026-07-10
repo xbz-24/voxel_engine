@@ -12,6 +12,7 @@ namespace ve::rendering
 	bool VulkanFrameOrchestrator::Initialize(VulkanBackend& backend,
 		ve::engine::Window& window,
 		const std::filesystem::path& block_texture_directory,
+		const VoxelRenderStyle& render_style,
 		bool enable_imgui_overlay)
 	{
 		Release();
@@ -30,7 +31,12 @@ namespace ve::rendering
 #else
 			{};
 #endif
-		if (!gpu_chunk_renderer_.Initialize(backend, command_pool_, block_texture_directory, shader_directory))
+		if (!gpu_chunk_renderer_.Initialize(
+			backend,
+			command_pool_,
+			block_texture_directory,
+			shader_directory,
+			render_style))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan GPU chunk renderer failed; falling back to CPU voxel rasterizer");
 			rasterizer_.LoadBlockTextures(block_texture_directory);

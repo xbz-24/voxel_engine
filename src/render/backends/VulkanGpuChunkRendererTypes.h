@@ -1,13 +1,16 @@
 #pragma once
 
 #include "CoreTypes.h"
+#include "VoxelRenderStyle.h"
 
 #include <volk.h>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cmath>
 #include <glm/glm.hpp>
+#include <type_traits>
 
 namespace ve::rendering
 {
@@ -18,6 +21,81 @@ namespace ve::rendering
 		float light = 1.0f;
 		std::uint32_t normal_snorm8 = 0x7f000000U;
 	};
+
+	/** std430-compatible environment payload shared by voxel and sky shader stages. */
+	struct alignas(16) VulkanVoxelEnvironmentPushConstants
+	{
+		glm::vec4 sun_direction_and_intensity{};
+		glm::vec4 sun_color_and_exposure{};
+		glm::vec4 sky_horizon_color_and_fog_start{};
+		glm::vec4 sky_zenith_color_and_fog_end{};
+	};
+
+	/** Portable 128-byte push-constant contract used by both Vulkan graphics pipelines. */
+	struct alignas(16) VulkanVoxelPushConstants
+	{
+		glm::mat4 transform{ 1.0f };
+		VulkanVoxelEnvironmentPushConstants environment{};
+	};
+
+	static_assert(std::is_standard_layout_v<VulkanVoxelEnvironmentPushConstants>);
+	static_assert(std::is_standard_layout_v<VulkanVoxelPushConstants>);
+	static_assert(sizeof(VulkanVoxelEnvironmentPushConstants) == 64U);
+	static_assert(offsetof(VulkanVoxelPushConstants, environment) == 64U);
+	static_assert(sizeof(VulkanVoxelPushConstants) == 128U);
+
+	[[nodiscard]] inline VulkanVoxelEnvironmentPushConstants PackVulkanVoxelEnvironment(
+		const VoxelRenderStyle& style) noexcept
+	{
+		const auto finite_non_negative = [](float value, float fallback) noexcept
+		{
+			return std::isfinite(value) && value >= 0.0f ? value : fallback;
+		};
+		const auto finite_non_negative_color = [&finite_non_negative](glm::vec3 color, glm::vec3 fallback) noexcept
+		{
+			return glm::vec3{
+				finite_non_negative(color.x, fallback.x),
+				finite_non_negative(color.y, fallback.y),
+				finite_non_negative(color.z, fallback.z)
+			};
+		};
+
+		glm::vec3 sun_direction = style.sun_direction;
+		const bool direction_is_finite = std::isfinite(sun_direction.x) &&
+			std::isfinite(sun_direction.y) && std::isfinite(sun_direction.z);
+		float largest_direction_component = direction_is_finite
+			? std::max(std::abs(sun_direction.x), std::max(std::abs(sun_direction.y), std::abs(sun_direction.z)))
+			: 0.0f;
+		if (largest_direction_component <= 0.000001f)
+		{
+			sun_direction = { -0.42f, 0.78f, -0.46f };
+			largest_direction_component = 0.78f;
+		}
+		const glm::vec3 scaled_direction = sun_direction / largest_direction_component;
+		sun_direction = scaled_direction / std::sqrt(glm::dot(scaled_direction, scaled_direction));
+
+		const float sun_intensity = finite_non_negative(style.sun_intensity, 1.0f);
+		const float exposure = std::max(finite_non_negative(style.exposure, 1.0f), 0.001f);
+		const float fog_start_distance = finite_non_negative(style.fog_start_distance, 165.0f);
+		const float fog_end_distance = std::max(
+			finite_non_negative(style.fog_end_distance, 455.0f),
+			fog_start_distance + 0.001f);
+		const glm::vec3 sun_color = finite_non_negative_color(
+			style.sun_color,
+			{ 1.16f, 1.04f, 0.84f });
+		const glm::vec3 sky_horizon_color = finite_non_negative_color(
+			style.sky_horizon_color,
+			{ 0.72f, 0.70f, 0.64f });
+		const glm::vec3 sky_zenith_color = finite_non_negative_color(
+			style.sky_zenith_color,
+			{ 0.52f, 0.68f, 0.88f });
+		return VulkanVoxelEnvironmentPushConstants{
+			glm::vec4{ sun_direction, sun_intensity },
+			glm::vec4{ sun_color, exposure },
+			glm::vec4{ sky_horizon_color, fog_start_distance },
+			glm::vec4{ sky_zenith_color, fog_end_distance }
+		};
+	}
 
 	[[nodiscard]] inline glm::length_t GlmAxis(int axis) noexcept
 	{

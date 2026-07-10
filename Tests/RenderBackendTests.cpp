@@ -66,4 +66,5 @@ TEST_CASE("vulkan debug labels are safe before debug utils are available")
 	CHECK(!labels.IsAvailable());
 	labels.Release();
 	CHECK(!labels.IsAvailable());
+	CHECK(ve::rendering::VulkanPipelineObjectHandle(VkPipeline{}) == 0U);
 }

@@ -103,6 +103,7 @@
 		if (!vulkan_frame_orchestrator_.Initialize(vulkan_backend,
 			window_,
 			asset_paths_.blockTexturesDirectory,
+			create_info.voxel_render_style,
 			create_info.show_debug_overlay && create_info.settings_menu_enabled))
 		{
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, "Vulkan frame orchestrator initialization failed");

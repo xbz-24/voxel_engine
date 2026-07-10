@@ -6,7 +6,11 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateGraphicsPipeline(VkShaderModule vertex_shader, VkShaderModule fragment_shader)
+	bool VulkanGpuChunkRenderer::CreateGraphicsPipeline(
+		VkShaderModule vertex_shader,
+		VkShaderModule fragment_shader,
+		const GraphicsPipelineSettings& settings,
+		VkPipeline& output_pipeline) const
 	{
 		std::array shader_stages{
 			VkPipelineShaderStageCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO },
@@ -19,6 +23,7 @@ namespace ve::rendering
 		shader_stages[1].module = fragment_shader;
 		shader_stages[1].pName = "main";
 
+		const bool uses_voxel_vertices = settings.vertex_layout == VertexLayout::Voxel;
 		VkVertexInputBindingDescription binding{};
 		binding.binding = 0u;
 		binding.stride = sizeof(VoxelVertex);
@@ -30,10 +35,10 @@ namespace ve::rendering
 			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R8G8B8A8_SNORM, VertexAttributeOffset(offsetof(VoxelVertex, normal_snorm8)) }
 		};
 		VkPipelineVertexInputStateCreateInfo vertex_input{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		vertex_input.vertexBindingDescriptionCount = 1u;
-		vertex_input.pVertexBindingDescriptions = &binding;
-		vertex_input.vertexAttributeDescriptionCount = RenderElementCount(attributes.size());
-		vertex_input.pVertexAttributeDescriptions = attributes.data();
+		vertex_input.vertexBindingDescriptionCount = uses_voxel_vertices ? 1u : 0u;
+		vertex_input.pVertexBindingDescriptions = uses_voxel_vertices ? &binding : nullptr;
+		vertex_input.vertexAttributeDescriptionCount = uses_voxel_vertices ? RenderElementCount(attributes.size()) : 0u;
+		vertex_input.pVertexAttributeDescriptions = uses_voxel_vertices ? attributes.data() : nullptr;
 
 		VkPipelineInputAssemblyStateCreateInfo assembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -53,12 +58,12 @@ namespace ve::rendering
 		VkPipelineMultisampleStateCreateInfo multisample{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkPipelineDepthStencilStateCreateInfo depth{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
-		depth.depthTestEnable = VK_TRUE;
-		depth.depthWriteEnable = VK_TRUE;
-		depth.depthCompareOp = VK_COMPARE_OP_LESS;
+		depth.depthTestEnable = settings.depth_test_enabled ? VK_TRUE : VK_FALSE;
+		depth.depthWriteEnable = settings.depth_write_enabled ? VK_TRUE : VK_FALSE;
+		depth.depthCompareOp = settings.depth_test_enabled ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_ALWAYS;
 
 		VkPipelineColorBlendAttachmentState blend_attachment{};
-		blend_attachment.blendEnable = VK_TRUE;
+		blend_attachment.blendEnable = settings.alpha_blending_enabled ? VK_TRUE : VK_FALSE;
 		blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
@@ -83,6 +88,6 @@ namespace ve::rendering
 		pipeline_info.pDynamicState = &dynamic_state;
 		pipeline_info.layout = pipeline_layout_;
 		pipeline_info.renderPass = render_pass_;
-		return vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1u, &pipeline_info, nullptr, &pipeline_) == VK_SUCCESS;
+		return vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1u, &pipeline_info, nullptr, &output_pipeline) == VK_SUCCESS;
 	}
 }

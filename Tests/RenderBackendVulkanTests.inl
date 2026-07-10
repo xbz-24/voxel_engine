@@ -61,6 +61,28 @@ TEST_CASE("vulkan voxel vertex packs color and normal attributes")
 	CHECK((up & 0x0000ff00U) == 0x00007f00U);
 }
 
+TEST_CASE("vulkan voxel push constants preserve the portable shader contract")
+{
+	ve::rendering::VoxelRenderStyle style{};
+	style.sun_direction = { 1.0e30f, 0.0f, 0.0f };
+	style.sun_intensity = 1.4f;
+	style.exposure = 1.2f;
+	style.fog_start_distance = 90.0f;
+	style.fog_end_distance = 330.0f;
+
+	const ve::rendering::VulkanVoxelEnvironmentPushConstants packed =
+		ve::rendering::PackVulkanVoxelEnvironment(style);
+
+	CHECK(sizeof(ve::rendering::VulkanVoxelEnvironmentPushConstants) == 64U);
+	CHECK(sizeof(ve::rendering::VulkanVoxelPushConstants) == 128U);
+	CHECK(offsetof(ve::rendering::VulkanVoxelPushConstants, environment) == 64U);
+	CHECK(packed.sun_direction_and_intensity.x == doctest::Approx(1.0f));
+	CHECK(packed.sun_direction_and_intensity.w == doctest::Approx(1.4f));
+	CHECK(packed.sun_color_and_exposure.w == doctest::Approx(1.2f));
+	CHECK(packed.sky_horizon_color_and_fog_start.w == doctest::Approx(90.0f));
+	CHECK(packed.sky_zenith_color_and_fog_end.w == doctest::Approx(330.0f));
+}
+
 TEST_CASE("vulkan demo profiles centralize startup and scene defaults")
 {
 	const ve::rendering::VulkanMinecraftDemoProfile crystal =

@@ -50,6 +50,13 @@ TEST_CASE("public run helper is available without exposing internals")
 
 TEST_CASE("public engine config separates startup and runtime tuning views")
 {
+	const voxel::VoxelRenderStyle render_style = voxel::VoxelRenderStyle{}
+		.WithSunDirection({ -0.25f, 0.90f, -0.35f })
+		.WithSunColor({ 1.40f, 1.10f, 0.82f })
+		.WithSunIntensity(1.25f)
+		.WithSkyColors({ 0.60f, 0.72f, 0.80f }, { 0.24f, 0.46f, 0.78f })
+		.WithExposure(1.10f)
+		.WithFogRange(90.0f, 360.0f);
 	const voxel::EngineRuntimeTuning tuning{
 		4,
 		false,
@@ -57,6 +64,7 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 	};
 	const voxel::EngineConfig config = voxel::EngineConfig::Default()
 		.WithWindow("Split Config", 960, 540)
+		.WithVoxelRenderStyle(render_style)
 		.WithRuntimeTuning(tuning);
 
 	const voxel::EngineStartupConfig startup = config.StartupConfig();
@@ -65,6 +73,9 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 	CHECK(startup.window.title == "Split Config");
 	CHECK(startup.window.width == 960);
 	CHECK(startup.graphics_api == voxel::GraphicsApi::Vulkan);
+	CHECK(startup.voxel_render_style.sun_intensity == doctest::Approx(1.25f));
+	CHECK(startup.voxel_render_style.sky_zenith_color.z == doctest::Approx(0.78f));
+	CHECK(startup.voxel_render_style.fog_start_distance == doctest::Approx(90.0f));
 	CHECK(runtime.render_distance_chunks == 4);
 	CHECK(!runtime.show_debug_overlay);
 	CHECK(!runtime.enable_settings_menu);
@@ -160,6 +171,7 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(sponza.window.title == "Voxel Engine - Sponza Atrium Preview");
 	CHECK(legacy_alias.window.title == config.window.title);
 	CHECK(version.major == 0);
+	CHECK(version.minor == 2);
 	CHECK(features.vulkan_by_default);
 	CHECK(features.world_config_serialization);
 	CHECK(features.asset_search_roots);
@@ -169,5 +181,6 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(features.scene_graph_authoring);
 	CHECK(!features.scene_graph_runtime_rendering);
 	CHECK(features.embeddable_frame_loop);
+	CHECK(features.configurable_voxel_render_style);
 	CHECK(!features.directx12_runtime_backend);
 }

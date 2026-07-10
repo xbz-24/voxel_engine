@@ -43,4 +43,13 @@ namespace ve::rendering
 	{
 		return reinterpret_cast<std::uint64_t>(handle);
 	}
+
+	std::uint64_t VulkanPipelineObjectHandle(VkPipeline handle) noexcept
+	{
+#if VK_USE_64_BIT_PTR_DEFINES
+		return reinterpret_cast<std::uint64_t>(handle);
+#else
+		return static_cast<std::uint64_t>(handle);
+#endif
+	}
 }

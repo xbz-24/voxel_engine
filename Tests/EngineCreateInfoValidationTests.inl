@@ -18,6 +18,12 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	invalid.render_backend.preferred_api = ve::tests::InvalidEnumValue<ve::rendering::GraphicsApi>();
 	invalid.render_backend.selection_policy = ve::tests::InvalidEnumValue<ve::rendering::RenderBackendSelectionPolicy>();
 	invalid.vulkan_demo_preset = ve::tests::InvalidEnumValue<ve::rendering::VulkanMinecraftDemoPreset>();
+	invalid.voxel_render_style.sun_direction = {};
+	invalid.voxel_render_style.sun_color.x = -1.0f;
+	invalid.voxel_render_style.sun_intensity = -1.0f;
+	invalid.voxel_render_style.exposure = 0.0f;
+	invalid.voxel_render_style.fog_start_distance = -1.0f;
+	invalid.voxel_render_style.fog_end_distance = -2.0f;
 	invalid.world_size_chunks = 0;
 	invalid.render_distance_chunks = -1;
 	invalid.has_custom_camera = true;
@@ -43,6 +49,12 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	CHECK(contains_issue("render_backend.preferred_api is not a known graphics api"));
 	CHECK(contains_issue("render_backend.selection_policy is not a known selection policy"));
 	CHECK(contains_issue("vulkan_demo_preset is not a known demo preset"));
+	CHECK(contains_issue("voxel_render_style.sun_direction must be finite and non-zero"));
+	CHECK(contains_issue("voxel_render_style colors must contain finite non-negative values"));
+	CHECK(contains_issue("voxel_render_style.sun_intensity must be finite and non-negative"));
+	CHECK(contains_issue("voxel_render_style.exposure must be finite and greater than zero"));
+	CHECK(contains_issue("voxel_render_style.fog_start_distance must be finite and non-negative"));
+	CHECK(contains_issue("voxel_render_style.fog_end_distance must be finite and greater than fog_start_distance"));
 	CHECK(contains_issue("world_size_chunks must be greater than zero"));
 	CHECK(contains_issue("render_distance_chunks must be zero or greater"));
 	CHECK(contains_issue("camera_position must contain finite values"));

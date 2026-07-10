@@ -1,5 +1,6 @@
 #include "EngineRuntimeBridge.h"
 
+#include <algorithm>
 #include <concepts>
 #include <cmath>
 #include <filesystem>

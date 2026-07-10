@@ -81,6 +81,21 @@
 			return { value.x, value.y, value.z };
 		}
 
+		[[nodiscard]] ve::rendering::VoxelRenderStyle ToInternalVoxelRenderStyle(
+			const VoxelRenderStyle& style) noexcept
+		{
+			return ve::rendering::VoxelRenderStyle{
+				ToInternalVec3(style.sun_direction),
+				ToInternalVec3(style.sun_color),
+				ToInternalVec3(style.sky_horizon_color),
+				ToInternalVec3(style.sky_zenith_color),
+				style.sun_intensity,
+				style.exposure,
+				style.fog_start_distance,
+				style.fog_end_distance
+			};
+		}
+
 		[[nodiscard]] BlockPosition ToPublicBlockPosition(glm::ivec3 position) noexcept
 		{
 			return { position.x, position.y, position.z };

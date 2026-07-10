@@ -53,6 +53,9 @@ int PublicApiHeadersOnlySmokeCompileAnchor()
 		.WithMaterials(std::move(materials))
 		.WithSceneGraph(std::move(scene_graph))
 		.WithCamera({ 0.0f, 70.0f, 4.0f }, { 0.0f, 64.0f, 0.0f })
+		.WithVoxelRenderStyle(voxel::VoxelRenderStyle{}
+			.WithSunIntensity(1.1f)
+			.WithFogRange(80.0f, 300.0f))
 		.UseVulkan()
 		.HideDebugOverlay();
 	return config.window.width;

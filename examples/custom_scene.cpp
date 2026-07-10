@@ -19,5 +19,11 @@ int main()
 		.WithWindow("Voxel API - Custom Scene", 1280, 720)
 		.WithScene(scene)
 		.WithCamera({ 18.0f, 74.0f, 22.0f }, { 0.0f, 64.0f, 0.0f })
+		.WithVoxelRenderStyle(voxel::VoxelRenderStyle{}
+			.WithSunDirection({ -0.30f, 0.82f, -0.48f })
+			.WithSunColor({ 1.30f, 1.08f, 0.82f })
+			.WithSkyColors({ 0.66f, 0.72f, 0.78f }, { 0.28f, 0.52f, 0.86f })
+			.WithExposure(1.05f)
+			.WithFogRange(110.0f, 380.0f))
 		.HideDebugOverlay());
 }

@@ -173,6 +173,32 @@ TEST_CASE("public engine config validation reports missing asset and material re
 		"scene entity 'crate' references missing material: missing-material") != issues.end());
 }
 
+TEST_CASE("public engine config validation rejects invalid voxel render styles")
+{
+	voxel::VoxelRenderStyle invalid_style{};
+	invalid_style.sun_direction = {};
+	invalid_style.sun_color.x = -1.0f;
+	invalid_style.sky_horizon_color.y = -1.0f;
+	invalid_style.sky_zenith_color.z = -1.0f;
+	invalid_style.sun_intensity = -0.1f;
+	invalid_style.exposure = 0.0f;
+	invalid_style.fog_start_distance = -1.0f;
+	invalid_style.fog_end_distance = -2.0f;
+
+	const std::vector<std::string> issues = voxel::EngineConfig::Default()
+		.WithVoxelRenderStyle(invalid_style)
+		.Validate();
+
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.sun_direction must be finite and non-zero") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.sun_color must contain finite non-negative values") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.exposure must be finite and greater than zero") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.fog_end_distance must be finite and greater than fog_start_distance") != issues.end());
+}
+
 TEST_CASE("public world serialization roundtrips config edits")
 {
 	const auto uniquePathSuffix = std::chrono::steady_clock::now().time_since_epoch().count();

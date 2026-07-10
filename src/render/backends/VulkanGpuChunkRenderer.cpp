@@ -8,13 +8,15 @@ namespace ve::rendering
 	bool VulkanGpuChunkRenderer::Initialize(VulkanBackend& backend,
 		VkCommandPool command_pool,
 		const std::filesystem::path& block_texture_directory,
-		const std::filesystem::path& shader_directory)
+		const std::filesystem::path& shader_directory,
+		const VoxelRenderStyle& render_style)
 	{
 		Release();
 		backend_ = &backend;
 		device_ = backend.Device().Handle();
 		physical_device_ = backend.PhysicalDevice().Handle();
 		command_pool_ = command_pool;
+		shader_environment_ = PackVulkanVoxelEnvironment(render_style);
 		if (device_ == VK_NULL_HANDLE || physical_device_ == VK_NULL_HANDLE || command_pool_ == VK_NULL_HANDLE) return false;
 		(void)block_texture_directory;
 		if (!CreateRenderPass() || !CreatePipeline(shader_directory) || !CreateSwapchainResources())
@@ -22,6 +24,14 @@ namespace ve::rendering
 			Release();
 			return false;
 		}
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(voxel_pipeline_),
+			"voxel_engine.pipeline.voxels");
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(sky_pipeline_),
+			"voxel_engine.pipeline.sky");
 		initialized_ = true;
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan GPU chunk renderer initialized");
 		return true;

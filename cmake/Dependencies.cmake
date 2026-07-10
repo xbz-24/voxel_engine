@@ -21,6 +21,14 @@ find_program(VE_GLSLC_EXECUTABLE glslc
 if (NOT VE_GLSLC_EXECUTABLE)
     message(FATAL_ERROR "glslc was not found; install the Vulkan SDK or add glslc to PATH.")
 endif()
+find_program(VE_SPIRV_VAL_EXECUTABLE spirv-val
+    HINTS
+        "$ENV{VULKAN_SDK}/Bin"
+        "C:/VulkanSDK/1.4.350.0/Bin"
+)
+if (NOT VE_SPIRV_VAL_EXECUTABLE)
+    message(FATAL_ERROR "spirv-val was not found; install SPIR-V Tools or add spirv-val to PATH.")
+endif()
 find_package(Stb QUIET)
 if (NOT Stb_FOUND)
     find_path(Stb_INCLUDE_DIR stb_image.h PATHS ${PROJECT_SOURCE_DIR} REQUIRED)

@@ -10,6 +10,7 @@
 
 #include "EngineCameraWindow.inl"
 #include "EngineConfigFluent.inl"
+#include "EngineConfigRenderStyle.inl"
 #include "EngineConfigRuntimeOptions.inl"
 #include "EngineInstance.inl"
 #include "EngineRunShortcuts.inl"

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "voxel/Camera.h"
+
 #include <string>
 
 namespace voxel
@@ -8,7 +10,7 @@ namespace voxel
 	struct SdkVersion
 	{
 		int major = 0;
-		int minor = 1;
+		int minor = 2;
 		int patch = 0;
 	};
 
@@ -24,6 +26,7 @@ namespace voxel
 		bool scene_graph_authoring = true;
 		bool scene_graph_runtime_rendering = false;
 		bool embeddable_frame_loop = true;
+		bool configurable_voxel_render_style = true;
 		bool directx12_runtime_backend = false;
 	};
 
@@ -53,6 +56,37 @@ namespace voxel
 		HyperrealDesert,
 		AquaModel,
 		SponzaAtrium
+	};
+
+	/** Backend-neutral lighting, sky, tone-mapping, and fog settings for voxel rendering. */
+	struct VoxelRenderStyle
+	{
+		Vec3 sun_direction{ -0.42f, 0.78f, -0.46f };
+		Vec3 sun_color{ 1.16f, 1.04f, 0.84f };
+		Vec3 sky_horizon_color{ 0.72f, 0.70f, 0.64f };
+		Vec3 sky_zenith_color{ 0.52f, 0.68f, 0.88f };
+		float sun_intensity = 1.0f;
+		float exposure = 1.0f;
+		float fog_start_distance = 165.0f;
+		float fog_end_distance = 455.0f;
+
+		/** Sets the world-space direction toward the sun. */
+		VoxelRenderStyle& WithSunDirection(Vec3 direction) noexcept;
+
+		/** Sets the linear sun color; HDR channel values greater than one are allowed. */
+		VoxelRenderStyle& WithSunColor(Vec3 color) noexcept;
+
+		/** Sets non-negative direct-sun intensity. */
+		VoxelRenderStyle& WithSunIntensity(float intensity) noexcept;
+
+		/** Sets linear horizon and zenith colors used by sky and aerial perspective. */
+		VoxelRenderStyle& WithSkyColors(Vec3 horizon, Vec3 zenith) noexcept;
+
+		/** Sets positive tone-mapping exposure. */
+		VoxelRenderStyle& WithExposure(float value) noexcept;
+
+		/** Sets the distance interval over which atmospheric fog accumulates. */
+		VoxelRenderStyle& WithFogRange(float start_distance, float end_distance) noexcept;
 	};
 
 	/** Minimum severity routed through the engine logger. */

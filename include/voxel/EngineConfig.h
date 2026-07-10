@@ -25,6 +25,7 @@ namespace voxel
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
 		DemoScene demo_scene = DemoScene::HyperrealDesert;
+		VoxelRenderStyle voxel_render_style{};
 	};
 
 	/** Per-frame runtime tuning extracted from EngineConfig after startup validation. */
@@ -47,6 +48,7 @@ namespace voxel
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
 		DemoScene demo_scene = DemoScene::HyperrealDesert;
+		VoxelRenderStyle voxel_render_style{};
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
 		bool enable_settings_menu = true;
@@ -158,6 +160,9 @@ namespace voxel
 
 		/** Selects the built-in demo scene used by demo presets. */
 		EngineConfig& WithDemoScene(DemoScene value) noexcept;
+
+		/** Replaces voxel lighting, sky, exposure, and fog settings. */
+		EngineConfig& WithVoxelRenderStyle(VoxelRenderStyle value) noexcept;
 
 		/** Sets square world size in chunks. */
 		EngineConfig& WithWorldSizeChunks(int value) noexcept;

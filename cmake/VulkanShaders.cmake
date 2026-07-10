@@ -2,6 +2,25 @@ set(VE_VULKAN_SHADER_OUTPUT_DIR "${PROJECT_BINARY_DIR}/generated/shaders/vulkan"
 set(VE_VULKAN_SHADER_SOURCES
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_chunk.vert"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_chunk.frag"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_sky.vert"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_sky.frag"
+)
+set(VE_VULKAN_SHADER_INCLUDE_SOURCES
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_atmosphere.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_emission.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_environment.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_grade.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_lighting.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_materials.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_math.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_reflections.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_shadowing.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_sky.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_specular.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_surface_detail.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_surface_masks.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_tonemap.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_vertex.glsl"
 )
 set(VE_VULKAN_SHADER_OUTPUTS)
 foreach(shader_source IN LISTS VE_VULKAN_SHADER_SOURCES)
@@ -10,8 +29,9 @@ foreach(shader_source IN LISTS VE_VULKAN_SHADER_SOURCES)
     add_custom_command(
         OUTPUT "${shader_output}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${VE_VULKAN_SHADER_OUTPUT_DIR}"
-        COMMAND "${VE_GLSLC_EXECUTABLE}" "${shader_source}" -o "${shader_output}"
-        DEPENDS "${shader_source}"
+        COMMAND "${VE_GLSLC_EXECUTABLE}" -Werror -I "${PROJECT_SOURCE_DIR}/shaders/vulkan" "${shader_source}" -o "${shader_output}"
+        COMMAND "${VE_SPIRV_VAL_EXECUTABLE}" "${shader_output}"
+        DEPENDS "${shader_source}" ${VE_VULKAN_SHADER_INCLUDE_SOURCES}
         COMMENT "Compiling Vulkan shader ${shader_name}"
         VERBATIM
     )

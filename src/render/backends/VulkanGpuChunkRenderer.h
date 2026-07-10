@@ -47,7 +47,11 @@ namespace ve::rendering
 	{
 	public:
 		/** Creates render pass, pipeline, mesh buffers, textures, and swapchain resources. */
-		[[nodiscard]] bool Initialize(VulkanBackend& backend, VkCommandPool command_pool, const std::filesystem::path& block_texture_directory, const std::filesystem::path& shader_directory);
+		[[nodiscard]] bool Initialize(VulkanBackend& backend,
+			VkCommandPool command_pool,
+			const std::filesystem::path& block_texture_directory,
+			const std::filesystem::path& shader_directory,
+			const VoxelRenderStyle& render_style);
 
 		/** @return True when cached world geometry no longer matches the world revision. */
 		[[nodiscard]] bool NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept;
@@ -74,6 +78,20 @@ namespace ve::rendering
 		[[nodiscard]] VkRenderPass RenderPass() const noexcept;
 
 	private:
+		enum class VertexLayout
+		{
+			None,
+			Voxel
+		};
+
+		struct GraphicsPipelineSettings
+		{
+			VertexLayout vertex_layout = VertexLayout::None;
+			bool depth_test_enabled = false;
+			bool depth_write_enabled = false;
+			bool alpha_blending_enabled = false;
+		};
+
 		/** CPU-side mesh cache for a world chunk and its revision. */
 		struct CachedChunkMesh
 		{
@@ -94,7 +112,11 @@ namespace ve::rendering
 		[[nodiscard]] bool CreatePipelineLayout();
 
 		/** Builds the graphics pipeline from compiled vertex and fragment modules. */
-		[[nodiscard]] bool CreateGraphicsPipeline(VkShaderModule vertex_shader, VkShaderModule fragment_shader);
+		[[nodiscard]] bool CreateGraphicsPipeline(
+			VkShaderModule vertex_shader,
+			VkShaderModule fragment_shader,
+			const GraphicsPipelineSettings& settings,
+			VkPipeline& output_pipeline) const;
 
 		/** Recreates views and framebuffers tied to the active swapchain. */
 		[[nodiscard]] bool CreateSwapchainResources();
@@ -177,7 +199,8 @@ namespace ve::rendering
 		VkCommandPool command_pool_ = VK_NULL_HANDLE;
 		VkRenderPass render_pass_ = VK_NULL_HANDLE;
 		VkPipelineLayout pipeline_layout_ = VK_NULL_HANDLE;
-		VkPipeline pipeline_ = VK_NULL_HANDLE;
+		VkPipeline voxel_pipeline_ = VK_NULL_HANDLE;
+		VkPipeline sky_pipeline_ = VK_NULL_HANDLE;
 		VkImage depth_image_ = VK_NULL_HANDLE;
 		VkDeviceMemory depth_memory_ = VK_NULL_HANDLE;
 		VkImageView depth_view_ = VK_NULL_HANDLE;
@@ -197,6 +220,7 @@ namespace ve::rendering
 		std::uint32_t index_count_ = 0;
 		std::uint32_t last_rebuilt_chunk_count_ = 0;
 		VulkanGpuChunkMeshStats mesh_stats_;
+		VulkanVoxelEnvironmentPushConstants shader_environment_{};
 		std::vector<CachedChunkMesh> cached_chunk_meshes_;
 		bool mesh_valid_ = false;
 		bool initialized_ = false;
