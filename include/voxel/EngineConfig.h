@@ -6,7 +6,7 @@
 #include "voxel/Materials.h"
 #include "voxel/Runtime.h"
 #include "voxel/Scene.h"
-#include "voxel/World.h"
+#include "voxel/WorldConfig.h"
 
 #include <string>
 #include <vector>

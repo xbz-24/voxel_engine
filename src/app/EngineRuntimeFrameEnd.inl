@@ -3,7 +3,7 @@
 	{
 		if (view_->Api() == ve::rendering::GraphicsApi::OpenGLCompatibility)
 		{
-			editor_controller_.DrawAndApply(window_, engine_._runtimeSettings);
+			editor_controller_.DrawAndApply(window_, engine_.MutableRuntimeSettings());
 			editor_controller_.Render();
 		}
 		window_.Update();

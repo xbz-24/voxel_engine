@@ -111,9 +111,15 @@ private:
 	/** @return True when raw create info validation succeeded. */
 	[[nodiscard]] bool HasValidCreateInfo() const noexcept;
 
+	/** @return Mutable runtime settings owned by this application facade. */
+	[[nodiscard]] ve::gameplay::RuntimeSettings& MutableRuntimeSettings() noexcept;
+
+	/** @return Runtime settings owned by this application facade. */
+	[[nodiscard]] const ve::gameplay::RuntimeSettings& RuntimeSettings() const noexcept;
+
 	EngineRenderCacheState _render_cache_state;
 	EngineWindowState _window_state;
-	ve::gameplay::RuntimeSettings _runtimeSettings;
+	ve::gameplay::RuntimeSettings runtime_settings_;
 	std::optional<ve::engine::ValidatedEngineCreateInfo> create_info_;
 	std::vector<std::string> create_info_validation_issues_;
 	std::atomic_bool stop_requested_{ false };

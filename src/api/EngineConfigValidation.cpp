@@ -11,6 +11,9 @@
 #include <utility>
 
 #include "EngineConfigValidationHelpers.inl"
+#include "EngineConfigAssetValidation.inl"
+#include "EngineConfigMaterialValidation.inl"
+#include "EngineConfigReferenceValidation.inl"
 #include "EngineConfigValidatorImpl.inl"
 #include "EngineConfigValidationApi.inl"
 #include "EngineConfigValidationDefault.inl"

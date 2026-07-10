@@ -29,7 +29,7 @@ void EngineApplication::Render3DWorld(ve::engine::RenderView& renderView, const 
 	ve::rendering::UseSolidFillMode();
 	ve::rendering::UseBackFaceCulling();
 	renderView.RenderCloudLayer();
-	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, _runtimeSettings.renderer.render_distance_chunks });
+	world.Draw(ve::world::WorldRenderRequest{ blockRegistry, camera.GetPosition(), camera.GetForward(), _render_cache_state.projection_3d * view, runtime_settings_.renderer.render_distance_chunks });
 	renderDebugCoordinateSystemAxes();
 	if (selection.has_target)
 	{

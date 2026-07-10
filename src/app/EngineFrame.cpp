@@ -17,10 +17,10 @@ ve::ui::HudFrameInfo EngineApplication::CreateHudFrame(const ve::engine::Window&
 		selection.has_target,
 		block_registry,
 		selected_placement_block,
-		_runtimeSettings.renderer.show_debug_overlay,
-		_runtimeSettings.player.is_flying,
-		_runtimeSettings.renderer.render_distance_chunks,
+		runtime_settings_.renderer.show_debug_overlay,
+		runtime_settings_.player.is_flying,
+		runtime_settings_.renderer.render_distance_chunks,
 		world.PendingEventCount(),
-		ve::gameplay::ToSettingsMenuState(_runtimeSettings)
+		ve::gameplay::ToSettingsMenuState(runtime_settings_)
 	};
 }

@@ -7,5 +7,7 @@
 
 #include "EngineConfigBlockMapping.inl"
 #include "EngineConfigTranslatorHelpers.inl"
+#include "EngineConfigCreateInfoMapping.inl"
+#include "EngineConfigRuntimeCallbackMapping.inl"
 #include "EngineConfigTranslatorImpl.inl"
 #include "EngineConfigTranslatorDefault.inl"

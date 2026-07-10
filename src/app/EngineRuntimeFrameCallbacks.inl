@@ -106,6 +106,6 @@
 			create_info.on_diagnostics(BuildRuntimeDiagnosticsSnapshot(
 				frame_timer_,
 				world_metrics,
-				engine_._runtimeSettings.renderer.render_distance_chunks));
+				engine_.RuntimeSettings().renderer.render_distance_chunks));
 		}
 	}

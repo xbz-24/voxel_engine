@@ -1,7 +1,7 @@
 #pragma once
 
 #include "voxel/Camera.h"
-#include "voxel/World.h"
+#include "voxel/WorldTypes.h"
 
 #include <functional>
 #include <string>

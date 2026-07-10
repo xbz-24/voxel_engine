@@ -40,8 +40,8 @@
 		vulkan_demo_settings_.request_scene_rebuild = true;
 		input_router_.BindMouseLook(
 			model_->MutableCamera(),
-			engine_._runtimeSettings.editor.is_settings_menu_open,
-			engine_._runtimeSettings.player.mouse_look);
+			engine_.RuntimeSettings().editor.is_settings_menu_open,
+			engine_.RuntimeSettings().player.mouse_look);
 		engine_.ConfigureCallbacks(window_, input_router_);
 		if (create_info.has_custom_camera)
 		{
@@ -56,7 +56,7 @@
 		}
 		else if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility)
 		{
-			editor_controller_.Initialize(window_, engine_._runtimeSettings);
+			editor_controller_.Initialize(window_, engine_.MutableRuntimeSettings());
 		}
 		return EngineStartupResult::Success();
 	}

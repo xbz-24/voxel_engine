@@ -3,7 +3,7 @@
 	{
 		ve::blocks::BlockRegistry* block_registry = model_->MutableBlockRegistry();
 		assert(block_registry != nullptr);
-		controller_.Update(window_, *model_, *block_registry, engine_._runtimeSettings, frame_timer_.DeltaSeconds());
+		controller_.Update(window_, *model_, *block_registry, engine_.MutableRuntimeSettings(), frame_timer_.DeltaSeconds());
 	}
 
 	/** Renders the voxel world through the OpenGL compatibility path. */

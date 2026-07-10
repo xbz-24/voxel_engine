@@ -32,14 +32,14 @@ EngineApplication::EngineApplication(ve::engine::EngineCreateInfo create_info)
 		&create_info_validation_issues_);
 	if (create_info_ != std::nullopt)
 	{
-		ApplyRuntimeSettings(_runtimeSettings, create_info_->Value());
+		ApplyRuntimeSettings(runtime_settings_, create_info_->Value());
 	}
 }
 
 EngineApplication::EngineApplication(ve::engine::ValidatedEngineCreateInfo create_info)
 	: create_info_(std::move(create_info))
 {
-	ApplyRuntimeSettings(_runtimeSettings, create_info_->Value());
+	ApplyRuntimeSettings(runtime_settings_, create_info_->Value());
 }
 
 EngineApplication::~EngineApplication()
@@ -56,4 +56,14 @@ const ve::engine::EngineCreateInfo& EngineApplication::CreateInfo() const noexce
 bool EngineApplication::HasValidCreateInfo() const noexcept
 {
 	return create_info_.has_value();
+}
+
+ve::gameplay::RuntimeSettings& EngineApplication::MutableRuntimeSettings() noexcept
+{
+	return runtime_settings_;
+}
+
+const ve::gameplay::RuntimeSettings& EngineApplication::RuntimeSettings() const noexcept
+{
+	return runtime_settings_;
 }

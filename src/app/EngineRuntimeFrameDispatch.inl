@@ -31,11 +31,12 @@ namespace ve::engine
 	{
 		const bool ui_captures_mouse = vulkan_frame_orchestrator_.WantsMouseInput();
 		const bool ui_captures_keyboard = vulkan_frame_orchestrator_.WantsKeyboardInput();
-		engine_._runtimeSettings.editor.is_settings_menu_open = ui_captures_mouse;
+		ve::gameplay::RuntimeSettings& runtime_settings = engine_.MutableRuntimeSettings();
+		runtime_settings.editor.is_settings_menu_open = ui_captures_mouse;
 
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
-		controller_.UpdateVulkanDemo(window_, *model_, *block_registry, engine_._runtimeSettings, vulkan_demo_settings_,
+		controller_.UpdateVulkanDemo(window_, *model_, *block_registry, runtime_settings, vulkan_demo_settings_,
 			frame_timer_.DeltaSeconds(), ui_captures_keyboard);
 		ApplyConfiguredWorldEditsOnce();
 		InvokePublicApiFrameCallbacks();
