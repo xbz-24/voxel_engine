@@ -56,7 +56,13 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 		.WithSunIntensity(1.25f)
 		.WithSkyColors({ 0.60f, 0.72f, 0.80f }, { 0.24f, 0.46f, 0.78f })
 		.WithExposure(1.10f)
-		.WithFogRange(90.0f, 360.0f);
+		.WithFogRange(90.0f, 360.0f)
+		.WithFogStrength(0.58f)
+		.WithClouds(0.36f, 0.68f, 0.024f)
+		.WithSurfaceDetail(1.2f)
+		.WithWaterReflections(1.4f)
+		.WithShadowStrength(0.9f)
+		.WithSpecularStrength(1.3f);
 	const voxel::EngineRuntimeTuning tuning{
 		4,
 		false,
@@ -76,6 +82,11 @@ TEST_CASE("public engine config separates startup and runtime tuning views")
 	CHECK(startup.voxel_render_style.sun_intensity == doctest::Approx(1.25f));
 	CHECK(startup.voxel_render_style.sky_zenith_color.z == doctest::Approx(0.78f));
 	CHECK(startup.voxel_render_style.fog_start_distance == doctest::Approx(90.0f));
+	CHECK(startup.voxel_render_style.fog_strength == doctest::Approx(0.58f));
+	CHECK(startup.voxel_render_style.cloud_coverage == doctest::Approx(0.36f));
+	CHECK(startup.voxel_render_style.cloud_density == doctest::Approx(0.68f));
+	CHECK(startup.voxel_render_style.water_reflection_strength == doctest::Approx(1.4f));
+	CHECK(startup.voxel_render_style.specular_strength == doctest::Approx(1.3f));
 	CHECK(runtime.render_distance_chunks == 4);
 	CHECK(!runtime.show_debug_overlay);
 	CHECK(!runtime.enable_settings_menu);
@@ -171,7 +182,7 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(sponza.window.title == "Voxel Engine - Sponza Atrium Preview");
 	CHECK(legacy_alias.window.title == config.window.title);
 	CHECK(version.major == 0);
-	CHECK(version.minor == 2);
+	CHECK(version.minor == 3);
 	CHECK(features.vulkan_by_default);
 	CHECK(features.world_config_serialization);
 	CHECK(features.asset_search_roots);
@@ -182,5 +193,6 @@ TEST_CASE("public top-level helpers expose the shortest startup path")
 	CHECK(!features.scene_graph_runtime_rendering);
 	CHECK(features.embeddable_frame_loop);
 	CHECK(features.configurable_voxel_render_style);
+	CHECK(features.animated_voxel_atmosphere);
 	CHECK(!features.directx12_runtime_backend);
 }

@@ -89,7 +89,12 @@ namespace ve::rendering
 		[[nodiscard]] bool RecordSoftwareCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index);
 
 		/** Records the GPU chunk renderer and overlay command stream. */
-		[[nodiscard]] bool RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera);
+		[[nodiscard]] bool RecordGpuCommandBuffer(
+			VkCommandBuffer command_buffer,
+			std::uint32_t image_index,
+			std::size_t frame_index,
+			float elapsed_seconds,
+			const Camera& camera);
 		/** Updates GPU chunk meshes, records the GPU path, and presents one frame. */
 		[[nodiscard]] bool DrawGpuFrame(const ve::world::World& world,
 			const ve::blocks::BlockRegistry& block_registry,
@@ -158,6 +163,7 @@ namespace ve::rendering
 		ve::core::DynamicArray<VkImageLayout> image_layouts_;
 		ve::core::DynamicArray<VkFence> images_in_flight_;
 		std::size_t current_frame_ = 0;
+		double shader_elapsed_seconds_ = 0.0;
 		bool imgui_overlay_enabled_ = true;
 		bool logged_first_frame_ = false;
 	};

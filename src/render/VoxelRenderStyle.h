@@ -15,5 +15,13 @@ namespace ve::rendering
 		float exposure = 1.0f;
 		float fog_start_distance = 165.0f;
 		float fog_end_distance = 455.0f;
+		float fog_strength = 0.42f;
+		float cloud_coverage = 0.42f;
+		float cloud_density = 0.62f;
+		float cloud_speed = 0.018f;
+		float surface_detail_strength = 1.0f;
+		float water_reflection_strength = 1.0f;
+		float shadow_strength = 1.0f;
+		float specular_strength = 1.0f;
 	};
 }

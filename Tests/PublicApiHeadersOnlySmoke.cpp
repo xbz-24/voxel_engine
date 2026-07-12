@@ -55,7 +55,9 @@ int PublicApiHeadersOnlySmokeCompileAnchor()
 		.WithCamera({ 0.0f, 70.0f, 4.0f }, { 0.0f, 64.0f, 0.0f })
 		.WithVoxelRenderStyle(voxel::VoxelRenderStyle{}
 			.WithSunIntensity(1.1f)
-			.WithFogRange(80.0f, 300.0f))
+			.WithFogRange(80.0f, 300.0f)
+			.WithClouds(0.35f, 0.60f, 0.02f)
+			.WithSurfaceDetail(1.1f))
 		.UseVulkan()
 		.HideDebugOverlay();
 	return config.window.width;

@@ -36,6 +36,44 @@
 		return *this;
 	}
 
+	VoxelRenderStyle& VoxelRenderStyle::WithFogStrength(float strength) noexcept
+	{
+		fog_strength = strength;
+		return *this;
+	}
+
+	VoxelRenderStyle& VoxelRenderStyle::WithClouds(float coverage, float density, float speed) noexcept
+	{
+		cloud_coverage = coverage;
+		cloud_density = density;
+		cloud_speed = speed;
+		return *this;
+	}
+
+	VoxelRenderStyle& VoxelRenderStyle::WithSurfaceDetail(float strength) noexcept
+	{
+		surface_detail_strength = strength;
+		return *this;
+	}
+
+	VoxelRenderStyle& VoxelRenderStyle::WithWaterReflections(float strength) noexcept
+	{
+		water_reflection_strength = strength;
+		return *this;
+	}
+
+	VoxelRenderStyle& VoxelRenderStyle::WithShadowStrength(float strength) noexcept
+	{
+		shadow_strength = strength;
+		return *this;
+	}
+
+	VoxelRenderStyle& VoxelRenderStyle::WithSpecularStrength(float strength) noexcept
+	{
+		specular_strength = strength;
+		return *this;
+	}
+
 	EngineConfig& EngineConfig::WithVoxelRenderStyle(VoxelRenderStyle value) noexcept
 	{
 		voxel_render_style = value;

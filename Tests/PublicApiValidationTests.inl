@@ -184,6 +184,14 @@ TEST_CASE("public engine config validation rejects invalid voxel render styles")
 	invalid_style.exposure = 0.0f;
 	invalid_style.fog_start_distance = -1.0f;
 	invalid_style.fog_end_distance = -2.0f;
+	invalid_style.fog_strength = 1.1f;
+	invalid_style.cloud_coverage = -0.1f;
+	invalid_style.cloud_density = 1.1f;
+	invalid_style.cloud_speed = -1.0f;
+	invalid_style.surface_detail_strength = 2.1f;
+	invalid_style.water_reflection_strength = -0.1f;
+	invalid_style.shadow_strength = 2.1f;
+	invalid_style.specular_strength = -0.1f;
 
 	const std::vector<std::string> issues = voxel::EngineConfig::Default()
 		.WithVoxelRenderStyle(invalid_style)
@@ -197,6 +205,12 @@ TEST_CASE("public engine config validation rejects invalid voxel render styles")
 		"voxel_render_style.exposure must be finite and greater than zero") != issues.end());
 	CHECK(std::find(issues.begin(), issues.end(),
 		"voxel_render_style.fog_end_distance must be finite and greater than fog_start_distance") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.fog_strength must be finite and between 0 and 1") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.cloud_speed must be finite and non-negative") != issues.end());
+	CHECK(std::find(issues.begin(), issues.end(),
+		"voxel_render_style.surface_detail_strength must be finite and between 0 and 2") != issues.end());
 }
 
 TEST_CASE("public world serialization roundtrips config edits")

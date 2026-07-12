@@ -6,7 +6,12 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameOrchestrator::RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera)
+	bool VulkanFrameOrchestrator::RecordGpuCommandBuffer(
+		VkCommandBuffer command_buffer,
+		std::uint32_t image_index,
+		std::size_t frame_index,
+		float elapsed_seconds,
+		const Camera& camera)
 	{
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -20,7 +25,14 @@ namespace ve::rendering
 		}
 		const VulkanOverlayRecordCallback overlay_callback = imgui_overlay_.IsInitialized() ? RecordImguiOverlay : nullptr;
 		void* overlay_user_data = imgui_overlay_.IsInitialized() ? &imgui_overlay_ : nullptr;
-		if (!gpu_chunk_renderer_.Record(command_buffer, image_index, camera, overlay_callback, overlay_user_data))
+		if (!gpu_chunk_renderer_.Record(
+			command_buffer,
+			image_index,
+			frame_index,
+			elapsed_seconds,
+			camera,
+			overlay_callback,
+			overlay_user_data))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to record Vulkan GPU chunk commands");
 			return false;

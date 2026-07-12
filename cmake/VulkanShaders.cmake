@@ -7,20 +7,27 @@ set(VE_VULKAN_SHADER_SOURCES
 )
 set(VE_VULKAN_SHADER_INCLUDE_SOURCES
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_atmosphere.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_brdf.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_clouds.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_emission.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_environment.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_grade.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_lighting.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_materials.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_math.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_noise.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_normal_detail.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_reflections.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_shadowing.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_sky.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_sky_scattering.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_specular.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_surface_detail.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_surface_masks.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_tonemap.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_transform.glsl"
     "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_vertex.glsl"
+    "${PROJECT_SOURCE_DIR}/shaders/vulkan/voxel_water.glsl"
 )
 set(VE_VULKAN_SHADER_OUTPUTS)
 foreach(shader_source IN LISTS VE_VULKAN_SHADER_SOURCES)

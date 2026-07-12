@@ -92,7 +92,15 @@
 				style.sun_intensity,
 				style.exposure,
 				style.fog_start_distance,
-				style.fog_end_distance
+				style.fog_end_distance,
+				style.fog_strength,
+				style.cloud_coverage,
+				style.cloud_density,
+				style.cloud_speed,
+				style.surface_detail_strength,
+				style.water_reflection_strength,
+				style.shadow_strength,
+				style.specular_strength
 			};
 		}
 

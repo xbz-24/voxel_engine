@@ -9,17 +9,21 @@ namespace ve::rendering
 		VkCommandPool command_pool,
 		const std::filesystem::path& block_texture_directory,
 		const std::filesystem::path& shader_directory,
-		const VoxelRenderStyle& render_style)
+		const VoxelRenderStyle& render_style,
+		std::size_t frame_resource_count)
 	{
 		Release();
 		backend_ = &backend;
 		device_ = backend.Device().Handle();
 		physical_device_ = backend.PhysicalDevice().Handle();
 		command_pool_ = command_pool;
-		shader_environment_ = PackVulkanVoxelEnvironment(render_style);
+		render_style_ = render_style;
 		if (device_ == VK_NULL_HANDLE || physical_device_ == VK_NULL_HANDLE || command_pool_ == VK_NULL_HANDLE) return false;
 		(void)block_texture_directory;
-		if (!CreateRenderPass() || !CreatePipeline(shader_directory) || !CreateSwapchainResources())
+		if (!CreateRenderPass() ||
+			!CreateShaderFrameResources(frame_resource_count) ||
+			!CreatePipeline(shader_directory) ||
+			!CreateSwapchainResources())
 		{
 			Release();
 			return false;

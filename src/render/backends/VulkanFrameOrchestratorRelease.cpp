@@ -41,6 +41,7 @@ namespace ve::rendering
 		device_ = VK_NULL_HANDLE;
 		backend_ = nullptr;
 		current_frame_ = 0;
+		shader_elapsed_seconds_ = 0.0;
 		logged_first_frame_ = false;
 	}
 }

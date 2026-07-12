@@ -8,6 +8,7 @@
 #include "World.h"
 
 #include <chrono>
+#include <cmath>
 #include <string>
 
 namespace ve::rendering
@@ -29,6 +30,10 @@ namespace ve::rendering
 		const VulkanGpuFrameControls& controls)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
+		if (std::isfinite(delta_seconds) && delta_seconds > 0.0)
+		{
+			shader_elapsed_seconds_ = std::fmod(shader_elapsed_seconds_ + delta_seconds, 4096.0);
+		}
 		if (!controls.overlay_enabled)
 		{
 			minecraft_demo_settings.show_controls = false;
@@ -81,7 +86,13 @@ namespace ve::rendering
 			return false;
 		}
 		VkCommandBuffer command_buffer = frames_[current_frame_].command_buffer;
-		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS || !RecordGpuCommandBuffer(command_buffer, image_index, current_frame_, camera))
+		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS ||
+			!RecordGpuCommandBuffer(
+				command_buffer,
+				image_index,
+				current_frame_,
+				ve::core::ToFloat(shader_elapsed_seconds_),
+				camera))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to prepare Vulkan GPU command buffer");
 			return false;

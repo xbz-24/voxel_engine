@@ -24,6 +24,9 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	invalid.voxel_render_style.exposure = 0.0f;
 	invalid.voxel_render_style.fog_start_distance = -1.0f;
 	invalid.voxel_render_style.fog_end_distance = -2.0f;
+	invalid.voxel_render_style.fog_strength = 2.0f;
+	invalid.voxel_render_style.cloud_speed = -1.0f;
+	invalid.voxel_render_style.surface_detail_strength = 3.0f;
 	invalid.world_size_chunks = 0;
 	invalid.render_distance_chunks = -1;
 	invalid.has_custom_camera = true;
@@ -55,6 +58,9 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	CHECK(contains_issue("voxel_render_style.exposure must be finite and greater than zero"));
 	CHECK(contains_issue("voxel_render_style.fog_start_distance must be finite and non-negative"));
 	CHECK(contains_issue("voxel_render_style.fog_end_distance must be finite and greater than fog_start_distance"));
+	CHECK(contains_issue("voxel_render_style atmosphere strengths must be finite and between 0 and 1"));
+	CHECK(contains_issue("voxel_render_style.cloud_speed must be finite and non-negative"));
+	CHECK(contains_issue("voxel_render_style surface strengths must be finite and between 0 and 2"));
 	CHECK(contains_issue("world_size_chunks must be greater than zero"));
 	CHECK(contains_issue("render_distance_chunks must be zero or greater"));
 	CHECK(contains_issue("camera_position must contain finite values"));

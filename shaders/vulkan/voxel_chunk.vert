@@ -2,7 +2,7 @@
 
 #extension GL_GOOGLE_include_directive : require
 
-#include "voxel_environment.glsl"
+#include "voxel_transform.glsl"
 #include "voxel_vertex.glsl"
 
 layout(location = 0) in vec3 in_position;
@@ -18,7 +18,7 @@ layout(location = 4) out vec3 frag_world_position;
 
 void main()
 {
-	vec4 clip_position = voxel_push_constants.transform * vec4(in_position, 1.0);
+	vec4 clip_position = voxel_transform.transform * vec4(in_position, 1.0);
 	gl_Position = clip_position;
 	frag_color = in_color;
 	frag_light = in_light;

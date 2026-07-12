@@ -25,10 +25,11 @@ All project targets compile in the compiler's latest C++ mode. The default
 strict profile enables extended warnings, conforming MSVC behavior, SDL checks,
 parallel compilation, and treats every project warning as an error.
 
-Vulkan is the default runtime backend. The current Vulkan path initializes the
-window, instance, device, swapchain, and a minimal clear/present frame while the
-legacy voxel world renderer continues to live behind the explicit OpenGL
-compatibility backend.
+Vulkan is the default runtime backend. It renders the procedural sky and indexed
+voxel world mesh, owns per-frame shader resources, and records the optional
+overlay before presentation. See [Vulkan Renderer and Shader System](VulkanRenderer.md)
+for the frame flow, shader ABI, and extension checklist. The legacy renderer
+continues to live behind the explicit OpenGL compatibility backend.
 
 ## Visual Studio
 

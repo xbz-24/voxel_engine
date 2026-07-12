@@ -1,6 +1,7 @@
 #ifndef VE_VOXEL_SURFACE_DETAIL_GLSL
 #define VE_VOXEL_SURFACE_DETAIL_GLSL
 
+#include "voxel_environment.glsl"
 #include "voxel_math.glsl"
 #include "voxel_surface_masks.glsl"
 
@@ -51,7 +52,12 @@ float voxel_surface_roughness(vec3 world_position, vec3 normal, VoxelSurfaceMask
 	return saturate(base_roughness + (noise - 0.5) * 0.16 + voxel_edge_mask(world_position, normal) * 0.05);
 }
 
-vec3 apply_voxel_surface_detail(vec3 albedo, vec3 world_position, vec3 normal, VoxelSurfaceMasks masks)
+vec3 apply_voxel_surface_detail(
+	vec3 albedo,
+	vec3 world_position,
+	vec3 normal,
+	VoxelSurfaceMasks masks,
+	VoxelEnvironment environment)
 {
 	float noise = layered_voxel_noise(world_position);
 	float edge = voxel_edge_mask(world_position, normal);
@@ -59,12 +65,13 @@ vec3 apply_voxel_surface_detail(vec3 albedo, vec3 world_position, vec3 normal, V
 	float slope_deposit = masks.vertical * (1.0 - masks.water) * (1.0 - masks.light_source);
 
 	vec3 detailed = albedo;
-	detailed *= mix(0.94, 1.06, noise);
-	detailed = mix(detailed, detailed * vec3(0.72, 0.75, 0.79), edge * masks.stone * 0.24);
-	detailed = mix(detailed, detailed * vec3(0.80, 0.74, 0.64), edge * masks.dryness * 0.20);
-	detailed = mix(detailed, detailed * vec3(0.78, 0.88, 0.74), (1.0 - noise) * masks.greenery * slope_deposit * 0.18);
-	detailed = mix(detailed, detailed * vec3(1.05, 1.08, 1.12), masks.snow * masks.upward * 0.18);
-	detailed += vec3(corner * 0.025 * (masks.snow + masks.light_source));
+	float detail_strength = environment.surface_detail_strength;
+	detailed *= mix(1.0, mix(0.94, 1.06, noise), detail_strength);
+	detailed = mix(detailed, detailed * vec3(0.72, 0.75, 0.79), edge * masks.stone * 0.24 * detail_strength);
+	detailed = mix(detailed, detailed * vec3(0.80, 0.74, 0.64), edge * masks.dryness * 0.20 * detail_strength);
+	detailed = mix(detailed, detailed * vec3(0.78, 0.88, 0.74), (1.0 - noise) * masks.greenery * slope_deposit * 0.18 * detail_strength);
+	detailed = mix(detailed, detailed * vec3(1.05, 1.08, 1.12), masks.snow * masks.upward * 0.18 * detail_strength);
+	detailed += vec3(corner * 0.025 * (masks.snow + masks.light_source) * detail_strength);
 	return max(detailed, vec3(0.0));
 }
 

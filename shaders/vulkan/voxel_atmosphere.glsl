@@ -33,7 +33,8 @@ vec3 apply_voxel_atmosphere(
 	graded = pow(saturate(graded), vec3(0.92));
 	vec3 aerial_tint = mix(vec3(1.0), environment.sky_zenith_color + vec3(0.35), 0.12);
 	graded = mix(graded, graded * aerial_tint, far_blue_shift);
-	return mix(graded, fog_color, (distance_fog * 0.42) + valley_haze);
+	float fog_amount = saturate(distance_fog * environment.fog_strength + valley_haze * environment.fog_strength);
+	return mix(graded, fog_color, fog_amount);
 }
 
 #endif

@@ -7,7 +7,8 @@ vec3 apply_voxel_material_tint(vec3 albedo,
 	vec3 world_position,
 	vec3 normal,
 	float height_blend,
-	VoxelSurfaceMasks masks)
+	VoxelSurfaceMasks masks,
+	VoxelEnvironment environment)
 {
 	float strata = (hash13(floor(world_position * vec3(0.09, 0.23, 0.09))) - 0.5) * masks.vertical;
 	vec3 tinted = albedo;
@@ -16,7 +17,7 @@ vec3 apply_voxel_material_tint(vec3 albedo,
 	tinted *= mix(vec3(1.0), vec3(0.92, 0.98, 1.08), masks.snow * height_blend * 0.18);
 	tinted *= mix(vec3(1.0), vec3(0.82, 0.94, 1.16), masks.water * 0.24);
 	tinted += vec3(strata * 0.035 * (1.0 - masks.water));
-	tinted = apply_voxel_surface_detail(tinted, world_position, normal, masks);
+	tinted = apply_voxel_surface_detail(tinted, world_position, normal, masks, environment);
 	return max(tinted, vec3(0.0));
 }
 

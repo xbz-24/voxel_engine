@@ -61,7 +61,7 @@ TEST_CASE("vulkan voxel vertex packs color and normal attributes")
 	CHECK((up & 0x0000ff00U) == 0x00007f00U);
 }
 
-TEST_CASE("vulkan voxel push constants preserve the portable shader contract")
+TEST_CASE("vulkan voxel frame uniforms preserve the portable shader contract")
 {
 	ve::rendering::VoxelRenderStyle style{};
 	style.sun_direction = { 1.0e30f, 0.0f, 0.0f };
@@ -69,18 +69,35 @@ TEST_CASE("vulkan voxel push constants preserve the portable shader contract")
 	style.exposure = 1.2f;
 	style.fog_start_distance = 90.0f;
 	style.fog_end_distance = 330.0f;
+	style.cloud_coverage = 0.35f;
+	style.cloud_density = 0.72f;
+	style.surface_detail_strength = 1.3f;
+	style.water_reflection_strength = 1.5f;
 
-	const ve::rendering::VulkanVoxelEnvironmentPushConstants packed =
-		ve::rendering::PackVulkanVoxelEnvironment(style);
+	const ve::rendering::VulkanVoxelFrameUniforms packed =
+		ve::rendering::PackVulkanVoxelFrameUniforms(
+			style,
+			{ 4.0f, 5.0f, 6.0f },
+			12.5f,
+			VkExtent2D{ 1920U, 1080U });
 
-	CHECK(sizeof(ve::rendering::VulkanVoxelEnvironmentPushConstants) == 64U);
-	CHECK(sizeof(ve::rendering::VulkanVoxelPushConstants) == 128U);
-	CHECK(offsetof(ve::rendering::VulkanVoxelPushConstants, environment) == 64U);
+	CHECK(sizeof(ve::rendering::VulkanVoxelTransformPushConstants) == 64U);
+	CHECK(sizeof(ve::rendering::VulkanVoxelFrameUniforms) == 128U);
+	CHECK(offsetof(ve::rendering::VulkanVoxelFrameUniforms, atmosphere_parameters) == 96U);
+	CHECK(offsetof(ve::rendering::VulkanVoxelFrameUniforms, surface_parameters) == 112U);
+	CHECK(packed.camera_position_and_time.x == doctest::Approx(4.0f));
+	CHECK(packed.camera_position_and_time.w == doctest::Approx(12.5f));
 	CHECK(packed.sun_direction_and_intensity.x == doctest::Approx(1.0f));
 	CHECK(packed.sun_direction_and_intensity.w == doctest::Approx(1.4f));
 	CHECK(packed.sun_color_and_exposure.w == doctest::Approx(1.2f));
 	CHECK(packed.sky_horizon_color_and_fog_start.w == doctest::Approx(90.0f));
 	CHECK(packed.sky_zenith_color_and_fog_end.w == doctest::Approx(330.0f));
+	CHECK(packed.viewport_size_and_inverse.x == doctest::Approx(1920.0f));
+	CHECK(packed.viewport_size_and_inverse.w == doctest::Approx(1.0f / 1080.0f));
+	CHECK(packed.atmosphere_parameters.y == doctest::Approx(0.35f));
+	CHECK(packed.atmosphere_parameters.z == doctest::Approx(0.72f));
+	CHECK(packed.surface_parameters.x == doctest::Approx(1.3f));
+	CHECK(packed.surface_parameters.y == doctest::Approx(1.5f));
 }
 
 TEST_CASE("vulkan demo profiles centralize startup and scene defaults")

@@ -70,6 +70,11 @@ namespace ve::engine
 			return IsFinite(value) && value.x >= 0.0f && value.y >= 0.0f && value.z >= 0.0f;
 		}
 
+		[[nodiscard]] bool IsFiniteInRange(float value, float minimum, float maximum) noexcept
+		{
+			return std::isfinite(value) && value >= minimum && value <= maximum;
+		}
+
 		void ValidateVoxelRenderStyle(
 			const ve::rendering::VoxelRenderStyle& style,
 			std::vector<std::string>& issues)
@@ -102,6 +107,23 @@ namespace ve::engine
 			if (!std::isfinite(style.fog_end_distance) || style.fog_end_distance <= style.fog_start_distance)
 			{
 				issues.push_back("voxel_render_style.fog_end_distance must be finite and greater than fog_start_distance");
+			}
+			if (!IsFiniteInRange(style.fog_strength, 0.0f, 1.0f) ||
+				!IsFiniteInRange(style.cloud_coverage, 0.0f, 1.0f) ||
+				!IsFiniteInRange(style.cloud_density, 0.0f, 1.0f))
+			{
+				issues.push_back("voxel_render_style atmosphere strengths must be finite and between 0 and 1");
+			}
+			if (!std::isfinite(style.cloud_speed) || style.cloud_speed < 0.0f)
+			{
+				issues.push_back("voxel_render_style.cloud_speed must be finite and non-negative");
+			}
+			if (!IsFiniteInRange(style.surface_detail_strength, 0.0f, 2.0f) ||
+				!IsFiniteInRange(style.water_reflection_strength, 0.0f, 2.0f) ||
+				!IsFiniteInRange(style.shadow_strength, 0.0f, 2.0f) ||
+				!IsFiniteInRange(style.specular_strength, 0.0f, 2.0f))
+			{
+				issues.push_back("voxel_render_style surface strengths must be finite and between 0 and 2");
 			}
 		}
 	}

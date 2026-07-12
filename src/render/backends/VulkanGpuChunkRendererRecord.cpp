@@ -19,10 +19,9 @@ namespace ve::rendering
 		void PushVoxelShaderConstants(
 			VkCommandBuffer command_buffer,
 			VkPipelineLayout pipeline_layout,
-			const glm::mat4& transform,
-			const VulkanVoxelEnvironmentPushConstants& environment)
+			const glm::mat4& transform)
 		{
-			const VulkanVoxelPushConstants push_constants{ transform, environment };
+			const VulkanVoxelTransformPushConstants push_constants{ transform };
 			vkCmdPushConstants(command_buffer,
 				pipeline_layout,
 				VoxelShaderStages,
@@ -33,17 +32,26 @@ namespace ve::rendering
 	}
 	bool VulkanGpuChunkRenderer::Record(VkCommandBuffer command_buffer,
 		std::uint32_t image_index,
+		std::size_t frame_index,
+		float elapsed_seconds,
 		const Camera& camera,
 		VulkanOverlayRecordCallback overlay_callback,
 		void* overlay_user_data)
 	{
 		if (!initialized_ || image_index >= framebuffers_.size() ||
+			frame_index >= shader_frame_resources_.size() ||
 			voxel_pipeline_ == VK_NULL_HANDLE || sky_pipeline_ == VK_NULL_HANDLE) return false;
+		const VulkanVoxelFrameUniforms frame_uniforms = PackVulkanVoxelFrameUniforms(
+			render_style_,
+			camera.GetPosition(),
+			elapsed_seconds,
+			extent_);
+		if (!UpdateShaderFrameUniforms(frame_index, frame_uniforms)) return false;
 		VkClearValue clear_color{};
 		clear_color.color = { {
-			shader_environment_.sky_horizon_color_and_fog_start.x,
-			shader_environment_.sky_horizon_color_and_fog_start.y,
-			shader_environment_.sky_horizon_color_and_fog_start.z,
+			frame_uniforms.sky_horizon_color_and_fog_start.x,
+			frame_uniforms.sky_horizon_color_and_fog_start.y,
+			frame_uniforms.sky_horizon_color_and_fog_start.z,
 			1.0f } };
 		VkClearValue clear_depth{};
 		clear_depth.depthStencil = { 1.0f, 0u };
@@ -66,6 +74,15 @@ namespace ve::rendering
 		scissor.extent = extent_;
 		vkCmdSetViewport(command_buffer, 0u, 1u, &viewport);
 		vkCmdSetScissor(command_buffer, 0u, 1u, &scissor);
+		const VkDescriptorSet frame_descriptor_set = shader_frame_resources_[frame_index].descriptor_set;
+		vkCmdBindDescriptorSets(command_buffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline_layout_,
+			0u,
+			1u,
+			&frame_descriptor_set,
+			0u,
+			nullptr);
 		const float aspect = ExtentFloat(extent_.width) / ExtentFloat(std::max(extent_.height, 1u));
 		glm::mat4 projection = glm::perspective(glm::radians(72.0f), aspect, 0.05f, FarWorldClipDistance);
 		projection[1][1] *= -1.0f;
@@ -74,13 +91,13 @@ namespace ve::rendering
 		const glm::mat4 inverse_sky_view_projection = glm::inverse(projection * sky_view);
 
 		vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, sky_pipeline_);
-		PushVoxelShaderConstants(command_buffer, pipeline_layout_, inverse_sky_view_projection, shader_environment_);
+		PushVoxelShaderConstants(command_buffer, pipeline_layout_, inverse_sky_view_projection);
 		vkCmdDraw(command_buffer, 3u, 1u, 0u, 0u);
 
 		if (index_count_ > 0u)
 		{
 			vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, voxel_pipeline_);
-			PushVoxelShaderConstants(command_buffer, pipeline_layout_, projection * world_to_view, shader_environment_);
+			PushVoxelShaderConstants(command_buffer, pipeline_layout_, projection * world_to_view);
 			const VkDeviceSize offset = 0u;
 			vkCmdBindVertexBuffers(command_buffer, 0u, 1u, &vertex_buffer_, &offset);
 			vkCmdBindIndexBuffer(command_buffer, index_buffer_, 0u, VK_INDEX_TYPE_UINT32);

@@ -36,7 +36,8 @@ namespace ve::rendering
 			command_pool_,
 			block_texture_directory,
 			shader_directory,
-			render_style))
+			render_style,
+			frames_.size()))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan GPU chunk renderer failed; falling back to CPU voxel rasterizer");
 			rasterizer_.LoadBlockTextures(block_texture_directory);

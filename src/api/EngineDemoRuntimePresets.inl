@@ -32,7 +32,11 @@
 					.WithSunIntensity(1.08f)
 					.WithSkyColors({ 0.38f, 0.62f, 0.76f }, { 0.15f, 0.34f, 0.62f })
 					.WithExposure(1.04f)
-					.WithFogRange(120.0f, 390.0f);
+					.WithFogRange(120.0f, 390.0f)
+					.WithFogStrength(0.52f)
+					.WithClouds(0.28f, 0.48f, 0.014f)
+					.WithSurfaceDetail(0.82f)
+					.WithWaterReflections(1.30f);
 			case ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium:
 				return style
 					.WithSunDirection({ -0.55f, 0.62f, -0.56f })
@@ -40,7 +44,10 @@
 					.WithSunIntensity(1.14f)
 					.WithSkyColors({ 0.74f, 0.60f, 0.48f }, { 0.42f, 0.55f, 0.72f })
 					.WithExposure(0.98f)
-					.WithFogRange(140.0f, 430.0f);
+					.WithFogRange(140.0f, 430.0f)
+					.WithFogStrength(0.34f)
+					.WithClouds(0.58f, 0.66f, 0.010f)
+					.WithSpecularStrength(0.88f);
 			case ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert:
 			default:
 				return style;

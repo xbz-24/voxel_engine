@@ -24,6 +24,10 @@ int main()
 			.WithSunColor({ 1.30f, 1.08f, 0.82f })
 			.WithSkyColors({ 0.66f, 0.72f, 0.78f }, { 0.28f, 0.52f, 0.86f })
 			.WithExposure(1.05f)
-			.WithFogRange(110.0f, 380.0f))
+			.WithFogRange(110.0f, 380.0f)
+			.WithFogStrength(0.48f)
+			.WithClouds(0.44f, 0.64f, 0.018f)
+			.WithSurfaceDetail(1.15f)
+			.WithWaterReflections(1.25f))
 		.HideDebugOverlay());
 }

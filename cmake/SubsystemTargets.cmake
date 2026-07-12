@@ -116,6 +116,7 @@ set(VE_RENDER_BACKEND_VULKAN_SOURCES
     "${VE_SOURCE_ROOT}/render/backends/VulkanFrameOrchestratorUpload.cpp"
     "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRenderer.cpp"
     "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRendererBuffer.cpp"
+    "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRendererDescriptors.cpp"
     "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRendererGraphicsPipeline.cpp"
     "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRendererImage.cpp"
     "${VE_SOURCE_ROOT}/render/backends/VulkanGpuChunkRendererMeshBuild.cpp"

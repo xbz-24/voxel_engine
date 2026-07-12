@@ -61,12 +61,13 @@ namespace ve::rendering
 		ReleaseMeshBuffers();
 		ReleaseSwapchainResources();
 		ReleasePipelineResources();
+		ReleaseShaderFrameResources();
 		backend_ = nullptr;
 		device_ = VK_NULL_HANDLE;
 		physical_device_ = VK_NULL_HANDLE;
 		command_pool_ = VK_NULL_HANDLE;
 		color_format_ = VK_FORMAT_UNDEFINED;
-		shader_environment_ = {};
+		render_style_ = {};
 		initialized_ = false;
 	}
 }

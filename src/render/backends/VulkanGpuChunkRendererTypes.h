@@ -22,30 +22,38 @@ namespace ve::rendering
 		std::uint32_t normal_snorm8 = 0x7f000000U;
 	};
 
-	/** std430-compatible environment payload shared by voxel and sky shader stages. */
-	struct alignas(16) VulkanVoxelEnvironmentPushConstants
+	/** Portable matrix-only push-constant contract shared by voxel and sky pipelines. */
+	struct alignas(16) VulkanVoxelTransformPushConstants
 	{
+		glm::mat4 transform{ 1.0f };
+	};
+
+	/** std140-compatible dynamic frame data consumed by fragment shaders. */
+	struct alignas(16) VulkanVoxelFrameUniforms
+	{
+		glm::vec4 camera_position_and_time{};
 		glm::vec4 sun_direction_and_intensity{};
 		glm::vec4 sun_color_and_exposure{};
 		glm::vec4 sky_horizon_color_and_fog_start{};
 		glm::vec4 sky_zenith_color_and_fog_end{};
+		glm::vec4 viewport_size_and_inverse{};
+		glm::vec4 atmosphere_parameters{};
+		glm::vec4 surface_parameters{};
 	};
 
-	/** Portable 128-byte push-constant contract used by both Vulkan graphics pipelines. */
-	struct alignas(16) VulkanVoxelPushConstants
-	{
-		glm::mat4 transform{ 1.0f };
-		VulkanVoxelEnvironmentPushConstants environment{};
-	};
+	static_assert(std::is_standard_layout_v<VulkanVoxelTransformPushConstants>);
+	static_assert(std::is_standard_layout_v<VulkanVoxelFrameUniforms>);
+	static_assert(sizeof(VulkanVoxelTransformPushConstants) == 64U);
+	static_assert(offsetof(VulkanVoxelFrameUniforms, sun_direction_and_intensity) == 16U);
+	static_assert(offsetof(VulkanVoxelFrameUniforms, atmosphere_parameters) == 96U);
+	static_assert(offsetof(VulkanVoxelFrameUniforms, surface_parameters) == 112U);
+	static_assert(sizeof(VulkanVoxelFrameUniforms) == 128U);
 
-	static_assert(std::is_standard_layout_v<VulkanVoxelEnvironmentPushConstants>);
-	static_assert(std::is_standard_layout_v<VulkanVoxelPushConstants>);
-	static_assert(sizeof(VulkanVoxelEnvironmentPushConstants) == 64U);
-	static_assert(offsetof(VulkanVoxelPushConstants, environment) == 64U);
-	static_assert(sizeof(VulkanVoxelPushConstants) == 128U);
-
-	[[nodiscard]] inline VulkanVoxelEnvironmentPushConstants PackVulkanVoxelEnvironment(
-		const VoxelRenderStyle& style) noexcept
+	[[nodiscard]] inline VulkanVoxelFrameUniforms PackVulkanVoxelFrameUniforms(
+		const VoxelRenderStyle& style,
+		glm::vec3 camera_position,
+		float elapsed_seconds,
+		VkExtent2D viewport_extent) noexcept
 	{
 		const auto finite_non_negative = [](float value, float fallback) noexcept
 		{
@@ -74,6 +82,14 @@ namespace ve::rendering
 		const glm::vec3 scaled_direction = sun_direction / largest_direction_component;
 		sun_direction = scaled_direction / std::sqrt(glm::dot(scaled_direction, scaled_direction));
 
+		const auto finite_in_range = [](float value, float fallback, float maximum) noexcept
+		{
+			return std::isfinite(value) ? std::clamp(value, 0.0f, maximum) : fallback;
+		};
+		camera_position.x = std::isfinite(camera_position.x) ? camera_position.x : 0.0f;
+		camera_position.y = std::isfinite(camera_position.y) ? camera_position.y : 0.0f;
+		camera_position.z = std::isfinite(camera_position.z) ? camera_position.z : 0.0f;
+		const float frame_time = finite_non_negative(elapsed_seconds, 0.0f);
 		const float sun_intensity = finite_non_negative(style.sun_intensity, 1.0f);
 		const float exposure = std::max(finite_non_negative(style.exposure, 1.0f), 0.001f);
 		const float fog_start_distance = finite_non_negative(style.fog_start_distance, 165.0f);
@@ -89,11 +105,25 @@ namespace ve::rendering
 		const glm::vec3 sky_zenith_color = finite_non_negative_color(
 			style.sky_zenith_color,
 			{ 0.52f, 0.68f, 0.88f });
-		return VulkanVoxelEnvironmentPushConstants{
+		const float viewport_width = std::max(ve::core::ToFloat(viewport_extent.width), 1.0f);
+		const float viewport_height = std::max(ve::core::ToFloat(viewport_extent.height), 1.0f);
+		return VulkanVoxelFrameUniforms{
+			glm::vec4{ camera_position, frame_time },
 			glm::vec4{ sun_direction, sun_intensity },
 			glm::vec4{ sun_color, exposure },
 			glm::vec4{ sky_horizon_color, fog_start_distance },
-			glm::vec4{ sky_zenith_color, fog_end_distance }
+			glm::vec4{ sky_zenith_color, fog_end_distance },
+			glm::vec4{ viewport_width, viewport_height, 1.0f / viewport_width, 1.0f / viewport_height },
+			glm::vec4{
+				finite_in_range(style.fog_strength, 0.42f, 1.0f),
+				finite_in_range(style.cloud_coverage, 0.42f, 1.0f),
+				finite_in_range(style.cloud_density, 0.62f, 1.0f),
+				finite_non_negative(style.cloud_speed, 0.018f) },
+			glm::vec4{
+				finite_in_range(style.surface_detail_strength, 1.0f, 2.0f),
+				finite_in_range(style.water_reflection_strength, 1.0f, 2.0f),
+				finite_in_range(style.shadow_strength, 1.0f, 2.0f),
+				finite_in_range(style.specular_strength, 1.0f, 2.0f) }
 		};
 	}
 

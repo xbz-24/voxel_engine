@@ -9,6 +9,7 @@
 
 vec3 evaluate_voxel_lighting(vec3 albedo,
 	vec3 normal,
+	vec3 view_direction,
 	float vertex_light,
 	float height_blend,
 	vec3 world_position,
@@ -36,16 +37,22 @@ vec3 evaluate_voxel_lighting(vec3 albedo,
 	float rim = 0.075 * grazing_rim * sky_bounce;
 	float contact = mix(0.94, 1.0, sky_bounce) *
 		voxel_micro_shadow(world_position, normal) *
-		voxel_contact_shadow(world_position, normal, masks) *
+		voxel_contact_shadow(world_position, normal, masks, environment) *
 		voxel_horizon_occlusion(normal, height_blend);
 	float clamped_vertex_light = clamp(vertex_light, 0.0, 1.70);
 	float roughness = voxel_surface_roughness(world_position, normal, masks);
-	float specular = evaluate_voxel_specular(normal, roughness, masks, environment);
+	vec3 specular = evaluate_voxel_specular(
+		albedo,
+		normal,
+		view_direction,
+		roughness,
+		masks,
+		environment);
 
 	vec3 lit = albedo * clamped_vertex_light * (ambient + diffuse + rim) * light_color * contact;
 	lit += vec3(0.015, 0.020, 0.030) * side_fill * (1.0 - direct_light);
-	lit += warm_sun * specular;
-	lit = apply_voxel_reflections(lit, normal, world_position, masks, environment);
+	lit += specular;
+	lit = apply_voxel_reflections(lit, normal, view_direction, masks, environment);
 	lit = apply_voxel_emission(lit, albedo, world_position, masks, environment);
 	return max(lit - vec3(0.014), vec3(0.0));
 }

@@ -10,7 +10,7 @@ namespace voxel
 	struct SdkVersion
 	{
 		int major = 0;
-		int minor = 2;
+		int minor = 3;
 		int patch = 0;
 	};
 
@@ -27,6 +27,7 @@ namespace voxel
 		bool scene_graph_runtime_rendering = false;
 		bool embeddable_frame_loop = true;
 		bool configurable_voxel_render_style = true;
+		bool animated_voxel_atmosphere = true;
 		bool directx12_runtime_backend = false;
 	};
 
@@ -69,6 +70,14 @@ namespace voxel
 		float exposure = 1.0f;
 		float fog_start_distance = 165.0f;
 		float fog_end_distance = 455.0f;
+		float fog_strength = 0.42f;
+		float cloud_coverage = 0.42f;
+		float cloud_density = 0.62f;
+		float cloud_speed = 0.018f;
+		float surface_detail_strength = 1.0f;
+		float water_reflection_strength = 1.0f;
+		float shadow_strength = 1.0f;
+		float specular_strength = 1.0f;
 
 		/** Sets the world-space direction toward the sun. */
 		VoxelRenderStyle& WithSunDirection(Vec3 direction) noexcept;
@@ -87,6 +96,24 @@ namespace voxel
 
 		/** Sets the distance interval over which atmospheric fog accumulates. */
 		VoxelRenderStyle& WithFogRange(float start_distance, float end_distance) noexcept;
+
+		/** Sets normalized distance-fog strength. */
+		VoxelRenderStyle& WithFogStrength(float strength) noexcept;
+
+		/** Sets normalized cloud coverage/density and non-negative animation speed. */
+		VoxelRenderStyle& WithClouds(float coverage, float density, float speed) noexcept;
+
+		/** Sets procedural surface-normal detail strength in the 0..2 authoring range. */
+		VoxelRenderStyle& WithSurfaceDetail(float strength) noexcept;
+
+		/** Sets water reflection strength in the 0..2 authoring range. */
+		VoxelRenderStyle& WithWaterReflections(float strength) noexcept;
+
+		/** Sets procedural contact-shadow strength in the 0..2 authoring range. */
+		VoxelRenderStyle& WithShadowStrength(float strength) noexcept;
+
+		/** Sets direct-light specular strength in the 0..2 authoring range. */
+		VoxelRenderStyle& WithSpecularStrength(float strength) noexcept;
 	};
 
 	/** Minimum severity routed through the engine logger. */

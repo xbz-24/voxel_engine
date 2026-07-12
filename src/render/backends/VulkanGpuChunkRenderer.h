@@ -51,7 +51,8 @@ namespace ve::rendering
 			VkCommandPool command_pool,
 			const std::filesystem::path& block_texture_directory,
 			const std::filesystem::path& shader_directory,
-			const VoxelRenderStyle& render_style);
+			const VoxelRenderStyle& render_style,
+			std::size_t frame_resource_count);
 
 		/** @return True when cached world geometry no longer matches the world revision. */
 		[[nodiscard]] bool NeedsWorldMeshUpdate(const ve::world::World& world) const noexcept;
@@ -60,7 +61,14 @@ namespace ve::rendering
 		[[nodiscard]] bool EnsureWorldMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry);
 
 		/** Records the chunk draw pass and optional overlay commands for one swapchain image. */
-		[[nodiscard]] bool Record(VkCommandBuffer command_buffer, std::uint32_t image_index, const Camera& camera, VulkanOverlayRecordCallback overlay_callback = nullptr, void* overlay_user_data = nullptr);
+		[[nodiscard]] bool Record(
+			VkCommandBuffer command_buffer,
+			std::uint32_t image_index,
+			std::size_t frame_index,
+			float elapsed_seconds,
+			const Camera& camera,
+			VulkanOverlayRecordCallback overlay_callback = nullptr,
+			void* overlay_user_data = nullptr);
 
 		/** Releases all Vulkan resources owned by the renderer. */
 		void Release();
@@ -92,6 +100,14 @@ namespace ve::rendering
 			bool alpha_blending_enabled = false;
 		};
 
+		struct ShaderFrameResources
+		{
+			VkBuffer uniform_buffer = VK_NULL_HANDLE;
+			VkDeviceMemory uniform_memory = VK_NULL_HANDLE;
+			VkDescriptorSet descriptor_set = VK_NULL_HANDLE;
+			void* mapped_uniform_data = nullptr;
+		};
+
 		/** CPU-side mesh cache for a world chunk and its revision. */
 		struct CachedChunkMesh
 		{
@@ -108,8 +124,16 @@ namespace ve::rendering
 		/** Loads shaders and creates the Vulkan pipeline state. */
 		[[nodiscard]] bool CreatePipeline(const std::filesystem::path& shader_directory);
 
-		/** Creates descriptor-free pipeline layout state for push constants. */
+		/** Creates pipeline layout state for transform constants and frame descriptors. */
 		[[nodiscard]] bool CreatePipelineLayout();
+
+		/** Creates one uniform buffer and descriptor set per frame in flight. */
+		[[nodiscard]] bool CreateShaderFrameResources(std::size_t frame_resource_count);
+
+		/** Uploads dynamic camera, time, environment, and viewport data for one frame. */
+		[[nodiscard]] bool UpdateShaderFrameUniforms(
+			std::size_t frame_index,
+			const VulkanVoxelFrameUniforms& frame_uniforms) const;
 
 		/** Builds the graphics pipeline from compiled vertex and fragment modules. */
 		[[nodiscard]] bool CreateGraphicsPipeline(
@@ -169,6 +193,9 @@ namespace ve::rendering
 		/** Releases pipeline, pipeline layout, and render pass resources. */
 		void ReleasePipelineResources();
 
+		/** Releases per-frame shader descriptors and uniform buffers. */
+		void ReleaseShaderFrameResources();
+
 		/** Rebuilds the flattened visible mesh for all cached world chunks. */
 		void RebuildMesh(const ve::world::World& world, const ve::blocks::BlockRegistry& block_registry, std::vector<VoxelVertex>& vertices, std::vector<std::uint32_t>& indices);
 
@@ -198,6 +225,8 @@ namespace ve::rendering
 		VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
 		VkCommandPool command_pool_ = VK_NULL_HANDLE;
 		VkRenderPass render_pass_ = VK_NULL_HANDLE;
+		VkDescriptorSetLayout shader_descriptor_set_layout_ = VK_NULL_HANDLE;
+		VkDescriptorPool shader_descriptor_pool_ = VK_NULL_HANDLE;
 		VkPipelineLayout pipeline_layout_ = VK_NULL_HANDLE;
 		VkPipeline voxel_pipeline_ = VK_NULL_HANDLE;
 		VkPipeline sky_pipeline_ = VK_NULL_HANDLE;
@@ -220,7 +249,8 @@ namespace ve::rendering
 		std::uint32_t index_count_ = 0;
 		std::uint32_t last_rebuilt_chunk_count_ = 0;
 		VulkanGpuChunkMeshStats mesh_stats_;
-		VulkanVoxelEnvironmentPushConstants shader_environment_{};
+		VoxelRenderStyle render_style_{};
+		std::vector<ShaderFrameResources> shader_frame_resources_;
 		std::vector<CachedChunkMesh> cached_chunk_meshes_;
 		bool mesh_valid_ = false;
 		bool initialized_ = false;

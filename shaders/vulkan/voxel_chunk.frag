@@ -8,6 +8,7 @@
 #include "voxel_surface_detail.glsl"
 #include "voxel_shadowing.glsl"
 #include "voxel_materials.glsl"
+#include "voxel_normal_detail.glsl"
 #include "voxel_lighting.glsl"
 #include "voxel_atmosphere.glsl"
 #include "voxel_grade.glsl"
@@ -26,14 +27,34 @@ void main()
 	{
 		discard;
 	}
-	vec3 normal = normalize(frag_normal);
+	vec3 geometric_normal = normalize(frag_normal);
 	float vertex_light = clamp(frag_light, 0.0, 1.70);
 	float height_blend = smoothstep(38.0, 118.0, frag_world_position.y);
-	VoxelSurfaceMasks surface_masks = build_voxel_surface_masks(frag_color, normal, frag_world_position, height_blend);
+	VoxelSurfaceMasks surface_masks = build_voxel_surface_masks(frag_color, geometric_normal, frag_world_position, height_blend);
 	VoxelEnvironment environment = current_voxel_environment();
+	vec3 normal = perturb_voxel_surface_normal(
+		geometric_normal,
+		frag_world_position,
+		surface_masks,
+		environment);
+	vec3 view_direction = normalize(environment.camera_position - frag_world_position);
 
-	vec3 albedo = apply_voxel_material_tint(frag_color.rgb, frag_world_position, normal, height_blend, surface_masks);
-	vec3 lit = evaluate_voxel_lighting(albedo, normal, vertex_light, height_blend, frag_world_position, surface_masks, environment);
+	vec3 albedo = apply_voxel_material_tint(
+		frag_color.rgb,
+		frag_world_position,
+		geometric_normal,
+		height_blend,
+		surface_masks,
+		environment);
+	vec3 lit = evaluate_voxel_lighting(
+		albedo,
+		normal,
+		view_direction,
+		vertex_light,
+		height_blend,
+		frag_world_position,
+		surface_masks,
+		environment);
 	float ordered_grain = (hash13(floor(frag_world_position * 0.73)) - 0.5) * 0.020;
 	float screen_grain = screen_dither(gl_FragCoord.xy) * 0.006;
 	vec3 final_color = apply_voxel_atmosphere(
