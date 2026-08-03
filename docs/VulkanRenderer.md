@@ -1,31 +1,20 @@
 # Vulkan Renderer and Shader System
 
-The Vulkan renderer owns the GPU path used by the voxel demos. It keeps frame
-submission, world-mesh upload, shader data, and overlay recording behind four
-separate responsibilities:
+The Vulkan renderer owns the GPU path used by the voxel demos. It keeps frame submission, world-mesh upload, shader data, and overlay recording behind four separate responsibilities:
 
-- `VulkanFrameOrchestrator` acquires swapchain images, waits on frame fences,
-  records command buffers, submits work, and presents.
-- `VulkanGpuChunkRenderer` owns the render pass, voxel and sky pipelines,
-  framebuffers, world-mesh buffers, and shader resources.
-- `VulkanImGuiOverlay` records optional UI commands after the scene draw and
-  before the render pass ends.
-- `cmake/VulkanShaders.cmake` compiles GLSL with warnings as errors and validates
-  every generated SPIR-V module.
+- `VulkanFrameOrchestrator` acquires swapchain images, waits on frame fences, records command buffers, submits work, and presents.
+- `VulkanGpuChunkRenderer` owns the render pass, voxel and sky pipelines, framebuffers, world-mesh buffers, and shader resources.
+- `VulkanImGuiOverlay` records optional UI commands after the scene draw and before the render pass ends.
+- `cmake/VulkanShaders.cmake` compiles GLSL with warnings as errors and validates every generated SPIR-V module.
 
 ## Frame Flow
 
-Each frame-in-flight has its own `VulkanVoxelFrameUniforms` buffer and descriptor
-set. The orchestrator waits for that frame's fence before the renderer updates
-the buffer, so CPU writes cannot race an earlier GPU submission. A single
-descriptor layout is shared by the sky and voxel pipelines.
+Each frame-in-flight has its own `VulkanVoxelFrameUniforms` buffer and descriptor set. The orchestrator waits for that frame's fence before the renderer updates the buffer, so CPU writes cannot race an earlier GPU submission. A single descriptor layout is shared by the sky and voxel pipelines.
 
 The renderer records the scene in this order:
 
-1. Upload camera, light matrix, elapsed time, viewport, atmosphere, and surface
-   settings to descriptor set 0, binding 0.
-2. Render the indexed world mesh into the current frame's directional shadow
-   depth image.
+1. Upload camera, light matrix, elapsed time, viewport, atmosphere, and surface settings to descriptor set 0, binding 0.
+2. Render the indexed world mesh into the current frame's directional shadow depth image.
 3. Transition that image for PCF sampling through the shadow render pass.
 4. Begin the main render pass and bind the same frame descriptor set.
 5. Draw a full-screen procedural sky and the indexed voxel world mesh.
@@ -36,20 +25,12 @@ The renderer records the scene in this order:
 The CPU and GLSL contracts deliberately use different update paths:
 
 - A 64-byte matrix push constant changes between the sky and world draws.
-- A 224-byte `std140` uniform block changes once per frame and includes the
-  directional light view-projection matrix.
-- The uniform block lives at set 0, binding 0; fragment stages consume the
-  environment and the shadow vertex stage consumes the light matrix.
+- A 224-byte `std140` uniform block changes once per frame and includes the directional light view-projection matrix.
+- The uniform block lives at set 0, binding 0; fragment stages consume the environment and the shadow vertex stage consumes the light matrix.
 
-Binding 1 contains the current frame's 2048x2048 comparison depth image. Each
-frame in flight owns a separate shadow image, view, and framebuffer, so updating
-one frame never races a previous GPU submission. The main fragment shader uses
-a manually weighted 3x3 PCF kernel and receiver bias. The light projection is
-snapped to shadow-map texels to prevent subpixel swimming as the camera moves.
+Binding 1 contains the current frame's 2048x2048 comparison depth image. Each frame in flight owns a separate shadow image, view, and framebuffer, so updating one frame never races a previous GPU submission. The main fragment shader uses a manually weighted 3x3 PCF kernel and receiver bias. The light projection is snapped to shadow-map texels to prevent subpixel swimming as the camera moves.
 
-The CPU builds a second index buffer containing only voxel faces oriented toward
-the configured sun. The overlay reports visual and shadow index counts so the
-depth-pass amplification remains measurable on large worlds.
+The CPU builds a second index buffer containing only voxel faces oriented toward the configured sun. The overlay reports visual and shadow index counts so the depth-pass amplification remains measurable on large worlds.
 
 `VulkanGpuChunkRendererTypes.h` has size and offset assertions for the C++ side.
 `voxel_transform.glsl` and `voxel_environment.glsl` define the GLSL side. Keep

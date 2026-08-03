@@ -1,3 +1,6 @@
+#if !defined(NDEBUG)
+		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
+		{
 			settings.context.enable_validation_layers = true;
 			settings.context.enable_debug_utils = true;
 		}

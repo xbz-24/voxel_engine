@@ -83,6 +83,3 @@
 
 		ve::rendering::VulkanBackend& vulkan_backend = RequiredVulkanBackend();
 		ve::rendering::VulkanBackendSettings settings{};
-#if !defined(NDEBUG)
-		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
-		{
