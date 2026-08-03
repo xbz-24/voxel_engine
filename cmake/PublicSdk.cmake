@@ -20,7 +20,6 @@ set(VE_PUBLIC_SDK_HEADERS
 add_library(voxel_engine_sdk STATIC
     "${VE_SOURCE_ROOT}/api/EngineConfigTranslator.cpp"
     "${VE_SOURCE_ROOT}/api/EngineConfigValidation.cpp"
-    "${VE_SOURCE_ROOT}/api/EngineDemoPresets.cpp"
     "${VE_SOURCE_ROOT}/api/Engine.cpp"
     "${VE_SOURCE_ROOT}/api/EngineRuntimeApi.cpp"
     "${VE_SOURCE_ROOT}/api/EngineRuntimeBridge.cpp"

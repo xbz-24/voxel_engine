@@ -1,8 +1,3 @@
-		[[nodiscard]] static EngineConfig ArcadeInvadersDemo();
-
-		/** Returns the arcade maze demo configuration. */
-		[[nodiscard]] static EngineConfig ArcadeMazeDemo();
-
 		/** Returns human-readable validation issues without mutating the config. */
 		[[nodiscard]] std::vector<std::string> Validate() const;
 
@@ -68,9 +63,6 @@
 
 		/** Requests the DirectX 12 backend when available. */
 		EngineConfig& UseDirectX12() noexcept;
-
-		/** Selects the built-in demo scene used by demo presets. */
-		EngineConfig& WithDemoScene(DemoScene value) noexcept;
 
 		/** Replaces voxel lighting, sky, exposure, and fog settings. */
 		EngineConfig& WithVoxelRenderStyle(VoxelRenderStyle value) noexcept;

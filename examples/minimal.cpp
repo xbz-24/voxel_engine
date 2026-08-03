@@ -2,5 +2,5 @@
 
 int main()
 {
-	return voxel::RunDesertDemo();
+	return voxel::Run();
 }

@@ -57,7 +57,7 @@ namespace ve::engine
 		/** @return Mutable ground/debug plane renderer. */
 		[[nodiscard]] Plane& MutablePlane() noexcept;
 
-		/** @return Model importer library used by demos and tools. */
+		/** @return Model importer library used by applications and tools. */
 		[[nodiscard]] ve::assets::ModelAssetLibrary& MutableModelAssets() noexcept;
 
 		/** @return HUD renderer used for 2D overlays. */

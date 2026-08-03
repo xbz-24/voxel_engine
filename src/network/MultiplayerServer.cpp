@@ -10,7 +10,6 @@ namespace ve::network
 	bool MultiplayerServer::Start(const TcpListenSettings& listenSettings, std::size_t maxConnectedClients)
 	{
 		Stop();
-		if (!_socketLibrary.IsAvailable()) return false;
 		std::optional<TcpSocket> listeningSocket = TcpSocket::Listen(listenSettings);
 		if (!listeningSocket) return false;
 		_maxConnectedClients = maxConnectedClients == 0 ? 1 : maxConnectedClients;

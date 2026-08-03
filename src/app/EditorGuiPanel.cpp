@@ -1,71 +1,29 @@
 #include "EditorGui.h"
 
-#include "CoreTypes.h"
 #include "RenderDistanceSettings.h"
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 
-namespace
-{
-	
-	/**
-	* @brief Renders the dropdown combo box for selecting the active demonstration.
-	*
-	* @note Located within an anonymous namespace to enforce internal linkage,
-	* preventing symbol collision across translation units. The demonstration array
-	* is defined as `static constexpr` to guarantee zero heap allocations during
-	* the per-frame UI traversal.
-	*
-	* @param state Mutable reference to the centralized editor state. Mutated directly
-	* if the user selects a new valid demonstration from the dropdown.
-	*/
-	
-	void DrawDemoSelector(ve::editor::EditorDemoState& state)
-	{
-		static constexpr ve::core::StaticArray<ve::editor::DemoGame, 1> demos{ {
-			ve::editor::DemoGame::HyperrealDesert
-		} };
-		const char* current_name = ve::editor::DemoGameName(state.selected_demo);
-		if (!ImGui::BeginCombo("Demo", current_name)) return;
-		for (const ve::editor::DemoGame demo : demos)
-		{
-			const bool is_selected = demo == state.selected_demo;
-			if (ImGui::Selectable(ve::editor::DemoGameName(demo), is_selected)) state.selected_demo = demo;
-			if (is_selected) ImGui::SetItemDefaultFocus();
-		}
-		ImGui::EndCombo();
-	}
-}
-
 namespace ve::editor
 {
 	/**
-	* @brief Constructs and submits the primary "Engine API Demo" control window.
+	* @brief Constructs and submits the engine developer-settings window.
 	*
 	* @note This function operates entirely in Immediate Mode, mutating the provided
 	* `state` struct in real-time via pointer mapping in ImGui's widget calls. Notice
-	* that the "Rebuild demo" button explicitly raises a deferred event flag rather than
-	* executing the rebuild inline. This guarantees the UI thread remains unblocked and
-	* responsive, offloading the heavy world generation to the main engine update loop.
-	*
 	* @param state Mutable reference to the engine's configuration payload.
 	*/
 
-	void EditorGui::DrawDemoPanel(EditorDemoState& state)
+	void EditorGui::DrawSettingsPanel(EditorSettings& state)
 	{
 		if (!is_initialized_) return;
-		ImGui::Begin("Engine API Demo");
-		DrawDemoSelector(state);
-		ImGui::SliderInt("World size", &state.requested_world_size_chunks, 2, 24);
+		ImGui::Begin("Engine Settings");
 		ImGui::SliderInt("Render distance", &state.render_distance_chunks,
 			ve::gameplay::MinimumRenderDistanceChunks,
 			ve::gameplay::MaximumRenderDistanceChunks);
 		ImGui::Checkbox("VSync", &state.is_vsync_enabled);
-		ImGui::Checkbox("ImGui demo", &state.show_imgui_demo_window);
-		if (ImGui::Button("Rebuild demo")) state.request_demo_rebuild = true;
 		ImGui::End();
-		if (state.show_imgui_demo_window) ImGui::ShowDemoWindow(&state.show_imgui_demo_window);
 	}
 
 	/**

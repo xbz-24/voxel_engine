@@ -52,14 +52,6 @@ namespace voxel
 		DirectX12
 	};
 
-	/** Built-in showcase scene requested by demo helpers. */
-	enum class DemoScene
-	{
-		HyperrealDesert,
-		AquaModel,
-		SponzaAtrium
-	};
-
 	/** Backend-neutral lighting, sky, tone-mapping, and fog settings for voxel rendering. */
 	struct VoxelRenderStyle
 	{

@@ -74,7 +74,7 @@ namespace ve::rendering
 			}
 		}
 		texture_library_.loaded = true;
-		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Loaded Vulkan demo block textures: " + std::to_string(texture_library_.textures.size() - 1u));
+		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Loaded Vulkan block textures: " + std::to_string(texture_library_.textures.size() - 1u));
 	}
 	const VulkanSoftwareVoxelRasterizer::CpuTexture& VulkanSoftwareVoxelRasterizer::TextureFor(ve::blocks::BlockId block, ve::blocks::BlockFace face) const noexcept
 	{

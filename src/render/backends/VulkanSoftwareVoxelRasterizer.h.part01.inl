@@ -1,5 +1,5 @@
 
-#include "VulkanDemoFrameTypes.h"
+#include "VulkanFrameTypes.h"
 #include "VulkanSoftwareVoxelRasterizerData.h"
 
 #include <volk.h>
@@ -33,7 +33,7 @@ namespace ve::rendering
 		~VulkanSoftwareVoxelRasterizer();
 
 		void LoadBlockTextures(const std::filesystem::path& block_texture_directory);
-		[[nodiscard]] bool Resize(VkExtent2D extent, const VulkanDemoSettings& settings);
+		[[nodiscard]] bool Resize(VkExtent2D extent, const VulkanSoftwareRasterizerSettings& settings);
 		void Render(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void Release();
 
@@ -62,7 +62,7 @@ namespace ve::rendering
 		void UpscaleRenderPixels();
 		void ApplyVoxelOutlines(VkFormat format, float strength);
 		void DrawCrosshair(VkFormat format);
-		void DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
+		void DrawDebugOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawTuningPanel(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawText(
 			const char* text,

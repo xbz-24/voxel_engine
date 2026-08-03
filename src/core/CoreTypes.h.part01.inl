@@ -2,8 +2,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
-#include <type_traits>
 #include <vector>
 
 namespace ve::core

@@ -36,37 +36,4 @@
 
 	/** Runs a scene/world config using default engine settings. */
 	[[nodiscard]] int RunScene(WorldConfig scene);
-
-	/** Runs the authored desert demo. */
-	[[nodiscard]] int RunDesertDemo();
-
-	/** Runs the Aqua model demo. */
-	[[nodiscard]] int RunAquaModelDemo();
-
-	/** Runs the Sponza atrium demo. */
-	[[nodiscard]] int RunSponzaAtriumDemo();
-
-	/** Runs the legacy Minecraft-style demo. */
-	[[nodiscard]] int RunMinecraftDemo();
-
-	/** Runs the world-editing callback demo. */
-	[[nodiscard]] int RunWorldEditDemo();
-
-	/** Runs the showcase demo. */
-	[[nodiscard]] int RunShowcaseDemo();
-
-	/** Runs the arcade snake demo. */
-	[[nodiscard]] int RunArcadeSnakeDemo();
-
-	/** Runs the arcade paddle demo. */
-	[[nodiscard]] int RunArcadePaddleDemo();
-
-	/** Runs the arcade blocks demo. */
-	[[nodiscard]] int RunArcadeBlocksDemo();
-
-	/** Runs the arcade invaders demo. */
-	[[nodiscard]] int RunArcadeInvadersDemo();
-
-	/** Runs the arcade maze demo. */
-	[[nodiscard]] int RunArcadeMazeDemo();
 }

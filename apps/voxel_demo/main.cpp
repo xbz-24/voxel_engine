@@ -1,0 +1,38 @@
+#include "DemoCommandLine.h"
+#include "DemoConfig.h"
+
+#include <string_view>
+#include <utility>
+#include <vector>
+
+namespace
+{
+	[[nodiscard]] std::vector<std::string_view> CaptureArguments(int argc, char** argv)
+	{
+		std::vector<std::string_view> arguments;
+		if (argc <= 0 || argv == nullptr) return arguments;
+		arguments.reserve(static_cast<std::size_t>(argc));
+		for (int index = 0; index < argc; ++index)
+		{
+			arguments.emplace_back(argv[index] == nullptr ? std::string_view{} : std::string_view{ argv[index] });
+		}
+		return arguments;
+	}
+}
+
+int main(int argc, char** argv)
+{
+	const std::vector<std::string_view> arguments = CaptureArguments(argc, argv);
+	const voxel_demo::DemoOptions options = voxel_demo::ParseOptions(arguments);
+	if (!options.valid) return 2;
+
+	voxel::EngineConfig config = voxel_demo::CreateDemoConfig();
+	if (options.smoke_frame_limit > 0)
+	{
+		config.HideDebugOverlay().OnUpdate(
+			[frame_limit = options.smoke_frame_limit, frame_count = 0](voxel::FrameContext& frame) mutable {
+				if (++frame_count >= frame_limit) frame.commands.RequestClose();
+			});
+	}
+	return voxel::Run(std::move(config));
+}

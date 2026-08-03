@@ -34,20 +34,6 @@ namespace ve::engine
 			}
 		}
 
-		[[nodiscard]] bool IsKnownVulkanDemoPreset(
-			ve::rendering::VulkanMinecraftDemoPreset preset) noexcept
-		{
-			switch (preset)
-			{
-			case ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert:
-			case ve::rendering::VulkanMinecraftDemoPreset::AquaModel:
-			case ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium:
-				return true;
-			default:
-				return false;
-			}
-		}
-
 		[[nodiscard]] bool IsKnownWorldBlockEditKind(ve::world::WorldBlockEdit::Kind kind) noexcept
 		{
 			switch (kind)

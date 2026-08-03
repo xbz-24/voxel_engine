@@ -13,7 +13,7 @@ namespace ve::rendering
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
-		const VulkanDemoInput& input)
+		const VulkanFrameInput& input)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
 		const VkFence fence = frames_[current_frame_].in_flight;
@@ -23,7 +23,7 @@ namespace ve::rendering
 
 		const VkExtent2D extent = backend_->Swapchain().Extent();
 		if (!EnsureFrameBuffer(extent)) return false;
-		rasterizer_.Render(VulkanSoftwareVoxelRasterizerFrame{ world, camera, extent, backend_->Swapchain().ImageFormat(), displayed_fps, delta_seconds, completed_frame_timing, input, demo_settings_ });
+		rasterizer_.Render(VulkanSoftwareVoxelRasterizerFrame{ world, camera, extent, backend_->Swapchain().ImageFormat(), displayed_fps, delta_seconds, completed_frame_timing, input, software_rasterizer_settings_ });
 		VulkanFrameTiming current_timing = rasterizer_.LastTiming();
 		current_timing.gpu_copy_ms = completed_frame_timing.gpu_copy_ms;
 		current_timing.has_gpu_copy_timing = completed_frame_timing.has_gpu_copy_timing;

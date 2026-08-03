@@ -44,7 +44,7 @@ namespace ve::rendering
 		}
 		else if (imgui_overlay_enabled_ && !imgui_overlay_.Initialize(backend, window, gpu_chunk_renderer_.RenderPass()))
 		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan ImGui overlay failed; continuing without live demo controls");
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Vulkan ImGui overlay failed; continuing without diagnostics");
 			imgui_overlay_enabled_ = false;
 		}
 		image_layouts_.assign(backend.Swapchain().Images().size(), VK_IMAGE_LAYOUT_UNDEFINED);
@@ -56,14 +56,14 @@ namespace ve::rendering
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
-		const VulkanDemoInput& input,
-		VulkanMinecraftDemoSettings& minecraft_demo_settings)
+		const VulkanFrameInput& input,
+		VulkanOverlaySettings& overlay_settings)
 	{
 		const VulkanGpuFrameControls gpu_controls{
 			imgui_overlay_enabled_ && imgui_overlay_.IsInitialized(),
-			input.toggle_tuning_panel
+			input.toggle_debug_overlay
 		};
-		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, block_registry, camera, displayed_fps, delta_seconds, minecraft_demo_settings, gpu_controls);
+		if (gpu_chunk_renderer_.IsInitialized()) return DrawGpuFrame(world, block_registry, camera, displayed_fps, delta_seconds, overlay_settings, gpu_controls);
 		return DrawSoftwareFrame(world, camera, displayed_fps, delta_seconds, input);
 	}
 	bool VulkanFrameOrchestrator::WantsMouseInput() const noexcept

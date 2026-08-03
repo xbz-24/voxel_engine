@@ -58,13 +58,4 @@ namespace ve::network
 		return value;
 	}
 
-	[[nodiscard]] inline const char* SocketSendCursor(std::span<const std::byte> bytes, std::size_t byte_offset) noexcept
-	{
-		return reinterpret_cast<const char*>(bytes.data() + byte_offset);
-	}
-
-	[[nodiscard]] inline char* SocketReceiveCursor(std::span<std::byte> bytes, std::size_t byte_offset) noexcept
-	{
-		return reinterpret_cast<char*>(bytes.data() + byte_offset);
-	}
 }

@@ -19,6 +19,7 @@
 
 #include "NetworkPacketFramingTests.inl"
 #include "NetworkSerializationTests.inl"
+#include "NetworkAsioSocketTests.inl"
 
 TEST_CASE("network sequence tracker rejects duplicate and stale packets")
 {

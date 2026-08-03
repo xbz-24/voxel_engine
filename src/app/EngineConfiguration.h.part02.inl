@@ -43,7 +43,6 @@
 		bool show_debug_overlay = true;
 		bool settings_menu_enabled = true;
 		bool has_custom_camera = false;
-		ve::rendering::VulkanMinecraftDemoPreset vulkan_demo_preset = ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
 		ve::rendering::VoxelRenderStyle voxel_render_style{};
 		int world_size_chunks = 8;
 		ve::world::TerrainGenerationSettings terrain_generation{};

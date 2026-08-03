@@ -9,7 +9,7 @@
 
 namespace ve::rendering
 {
-	void VulkanSoftwareVoxelRasterizer::DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame)
+	void VulkanSoftwareVoxelRasterizer::DrawDebugOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame)
 	{
 		const std::uint32_t accent = PackColor({ 87, 220, 180 }, frame.format);
 		const std::uint32_t shadow = PackColor({ 18, 32, 44 }, frame.format);
@@ -74,7 +74,7 @@ namespace ve::rendering
 			frame.previous_timing.render_extent.height);
 		std::snprintf(sampling_line.data(), sampling_line.size(), "STEP %u TH %u", frame.previous_timing.sample_step, frame.previous_timing.worker_count);
 
-		DrawText("VULKAN VOXEL DEMO", bar_x + 8u, bar_y + 9u, 1u, text);
+		DrawText("VULKAN VOXEL RENDERER", bar_x + 8u, bar_y + 9u, 1u, text);
 		DrawText(fps_line.data(), bar_x + 8u, bar_y + 23u, 1u, text);
 		DrawText(cpu_line.data(), bar_x + 8u, bar_y + 37u, 1u, text);
 		DrawText(vk_line.data(), bar_x + 8u, bar_y + 51u, 1u, text);

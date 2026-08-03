@@ -1,29 +1,27 @@
-#include "NetworkAddressInfo.h"
 #include "NetworkTcpSocket.h"
-#include "NetworkSocketPlatform.h"
 
-#include <WS2tcpip.h>
+#include "NetworkTcpSocketAsio.h"
+
+#include <asio/connect.hpp>
 
 #include <string>
+#include <system_error>
+#include <utility>
 
 namespace ve::network
 {
-	std::optional<TcpSocket> TcpSocket::Connect(const NetworkEndpoint& remoteEndpoint)
+	std::optional<TcpSocket> TcpSocket::Connect(const NetworkEndpoint& remote_endpoint)
 	{
-		const addrinfo addressHints = TcpStreamAddressHints();
-		const std::string portText = std::to_string(remoteEndpoint.port);
-		std::optional<AddressInfoList> resolvedAddresses = ResolveAddressInfo(remoteEndpoint.hostName.c_str(), portText.c_str(), addressHints);
-		if (!resolvedAddresses) return std::nullopt;
-
-		const addrinfo& firstAddress = **resolvedAddresses;
-		SOCKET connectedSocket = socket(firstAddress.ai_family, firstAddress.ai_socktype, firstAddress.ai_protocol);
-		if (connectedSocket != INVALID_SOCKET &&
-			connect(connectedSocket, firstAddress.ai_addr, platform::SocketAddressByteCount(firstAddress.ai_addrlen)) != 0)
-		{
-			closesocket(connectedSocket);
-			connectedSocket = INVALID_SOCKET;
-		}
-		if (connectedSocket == INVALID_SOCKET) return std::nullopt;
-		return TcpSocket(platform::StoreNativeSocket(connectedSocket));
+		TcpSocket connected_socket;
+		asio::ip::tcp::resolver resolver(connected_socket.impl_->io_context);
+		std::error_code error;
+		const auto endpoints = resolver.resolve(
+			remote_endpoint.hostName,
+			std::to_string(remote_endpoint.port),
+			error);
+		if (error) return std::nullopt;
+		asio::connect(connected_socket.impl_->socket, endpoints, error);
+		if (error) return std::nullopt;
+		return std::optional<TcpSocket>{ std::move(connected_socket) };
 	}
 }

@@ -3,6 +3,7 @@
 #include "AssimpModelImporter.h"
 
 #include <sstream>
+#include <utility>
 
 namespace ve::assets
 {
@@ -37,7 +38,7 @@ namespace ve::assets
 	/// Registers a custom importer for proprietary engine/game formats.
 	void ModelAssetLibrary::RegisterImporter(std::unique_ptr<IModelImporter> importer)
 	{
-		importers_.Register(ve::core::Move(importer));
+		importers_.Register(std::move(importer));
 		ClearCache();
 	}
 

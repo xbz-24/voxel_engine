@@ -52,8 +52,8 @@ namespace ve::engine
 		void RunFrame();
 		void RunOpenGLFrame();
 		void RunVulkanFrame();
-		[[nodiscard]] ve::rendering::VulkanDemoInput CaptureVulkanDemoInput();
-		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input);
+		[[nodiscard]] ve::rendering::VulkanFrameInput CaptureVulkanFrameInput();
+		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanFrameInput& input);
 		[[nodiscard]] bool ShouldContinue() const noexcept;
 		void BeginRuntimeFrame();
 		void UpdateGameplay();
@@ -71,8 +71,8 @@ namespace ve::engine
 		std::unique_ptr<ve::rendering::RenderBackend> backend_;
 		std::unique_ptr<RenderView> view_;
 		ve::rendering::VulkanFrameOrchestrator vulkan_frame_orchestrator_;
-		// Temporary demo settings owned by runtime until public scenes drive Vulkan rendering.
-		ve::rendering::VulkanMinecraftDemoSettings vulkan_demo_settings_;
+		// Backend-owned diagnostics visibility; authored scene state belongs to applications.
+		ve::rendering::VulkanOverlaySettings vulkan_overlay_settings_;
 		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;

@@ -77,10 +77,6 @@
 		{
 			issues.push_back("render_backend.selection_policy is not a known selection policy");
 		}
-		if (!IsKnownVulkanDemoPreset(create_info.vulkan_demo_preset))
-		{
-			issues.push_back("vulkan_demo_preset is not a known demo preset");
-		}
 		ValidateVoxelRenderStyle(create_info.voxel_render_style, issues);
 		if (create_info.world_size_chunks <= 0)
 		{

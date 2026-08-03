@@ -1,41 +1,34 @@
 #include "NetworkTcpSocket.h"
 
-#include "NetworkByteCodec.h"
-#include "NetworkSocketPlatform.h"
+#include "NetworkTcpSocketAsio.h"
+
+#include <asio/buffer.hpp>
+#include <asio/read.hpp>
+#include <asio/write.hpp>
+
+#include <system_error>
 
 namespace ve::network
 {
 	bool TcpSocket::SendBytes(std::span<const std::byte> bytes) const
 	{
-		std::size_t bytesAlreadySent = 0;
-		while (bytesAlreadySent < bytes.size())
-		{
-			const char* nextByte = SocketSendCursor(bytes, bytesAlreadySent);
-			const int sentByteCount = send(
-				platform::ToNativeSocket(_nativeSocketHandle),
-				nextByte,
-				platform::SocketTransferByteCount(bytes.size() - bytesAlreadySent),
-				0);
-			if (sentByteCount <= 0) return false;
-			bytesAlreadySent += platform::TransferredByteCount(sentByteCount);
-		}
-		return true;
+		if (!impl_ || !impl_->socket.is_open()) return false;
+		std::error_code error;
+		const std::size_t transferred = asio::write(
+			impl_->socket,
+			asio::buffer(bytes.data(), bytes.size()),
+			error);
+		return !error && transferred == bytes.size();
 	}
 
-	bool TcpSocket::ReceiveBytes(std::span<std::byte> destinationBytes) const
+	bool TcpSocket::ReceiveBytes(std::span<std::byte> destination) const
 	{
-		std::size_t bytesAlreadyReceived = 0;
-		while (bytesAlreadyReceived < destinationBytes.size())
-		{
-			char* nextByte = SocketReceiveCursor(destinationBytes, bytesAlreadyReceived);
-			const int receivedByteCount = recv(
-				platform::ToNativeSocket(_nativeSocketHandle),
-				nextByte,
-				platform::SocketTransferByteCount(destinationBytes.size() - bytesAlreadyReceived),
-				0);
-			if (receivedByteCount <= 0) return false;
-			bytesAlreadyReceived += platform::TransferredByteCount(receivedByteCount);
-		}
-		return true;
+		if (!impl_ || !impl_->socket.is_open()) return false;
+		std::error_code error;
+		const std::size_t transferred = asio::read(
+			impl_->socket,
+			asio::buffer(destination.data(), destination.size()),
+			error);
+		return !error && transferred == destination.size();
 	}
 }

@@ -17,7 +17,6 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	invalid.window.refresh_rate_hertz = -60;
 	invalid.render_backend.preferred_api = ve::tests::InvalidEnumValue<ve::rendering::GraphicsApi>();
 	invalid.render_backend.selection_policy = ve::tests::InvalidEnumValue<ve::rendering::RenderBackendSelectionPolicy>();
-	invalid.vulkan_demo_preset = ve::tests::InvalidEnumValue<ve::rendering::VulkanMinecraftDemoPreset>();
 	invalid.voxel_render_style.sun_direction = {};
 	invalid.voxel_render_style.sun_color.x = -1.0f;
 	invalid.voxel_render_style.sun_intensity = -1.0f;
@@ -53,7 +52,6 @@ TEST_CASE("engine create info validation rejects unchecked runtime configuration
 	CHECK(contains_issue("window.refresh_rate_hertz must be zero or greater"));
 	CHECK(contains_issue("render_backend.preferred_api is not a known graphics api"));
 	CHECK(contains_issue("render_backend.selection_policy is not a known selection policy"));
-	CHECK(contains_issue("vulkan_demo_preset is not a known demo preset"));
 	CHECK(contains_issue("voxel_render_style.sun_direction must be finite and non-zero"));
 	CHECK(contains_issue("voxel_render_style colors must contain finite non-negative values"));
 	CHECK(contains_issue("voxel_render_style.sun_intensity must be finite and non-negative"));

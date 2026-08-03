@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditorDemoState.h"
+#include "EditorSettings.h"
 
 namespace ve::engine { class Window; }
 
@@ -41,7 +41,7 @@ namespace ve::editor
 		 * read from and write directly to this struct based on user interaction.
 		 */
 
-		void DrawDemoPanel(EditorDemoState& state);
+		void DrawSettingsPanel(EditorSettings& state);
 
 		/** 
 		 * @brief Flushes ImGui's internal command buffers to the graphics API.

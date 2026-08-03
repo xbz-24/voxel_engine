@@ -23,7 +23,6 @@ namespace voxel
 		CameraConfig camera{};
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
-		DemoScene demo_scene = DemoScene::HyperrealDesert;
 		VoxelRenderStyle voxel_render_style{};
 	};
 
@@ -46,7 +45,6 @@ namespace voxel
 		CameraConfig camera{};
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
-		DemoScene demo_scene = DemoScene::HyperrealDesert;
 		VoxelRenderStyle voxel_render_style{};
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
@@ -57,32 +55,3 @@ namespace voxel
 
 		/** Returns the default runtime configuration. */
 		[[nodiscard]] static EngineConfig Default();
-
-		/** Returns the authored hyperreal voxel desert demo configuration. */
-		[[nodiscard]] static EngineConfig DesertDemo();
-
-		/** Returns the Aqua model voxelization demo configuration. */
-		[[nodiscard]] static EngineConfig AquaModelDemo();
-
-		/** Returns the Sponza atrium voxelization demo configuration. */
-		[[nodiscard]] static EngineConfig SponzaAtriumDemo();
-
-		/** Returns the legacy Minecraft-style demo configuration. */
-		[[nodiscard]] static EngineConfig MinecraftDemo();
-
-		/** Returns the world-editing callback demo configuration. */
-		[[nodiscard]] static EngineConfig WorldEditDemo();
-
-		/** Returns the general showcase demo configuration. */
-		[[nodiscard]] static EngineConfig ShowcaseDemo();
-
-		/** Returns the arcade snake demo configuration. */
-		[[nodiscard]] static EngineConfig ArcadeSnakeDemo();
-
-		/** Returns the arcade paddle demo configuration. */
-		[[nodiscard]] static EngineConfig ArcadePaddleDemo();
-
-		/** Returns the arcade blocks demo configuration. */
-		[[nodiscard]] static EngineConfig ArcadeBlocksDemo();
-
-		/** Returns the arcade invaders demo configuration. */

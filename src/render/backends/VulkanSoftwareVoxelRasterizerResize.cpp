@@ -9,7 +9,7 @@ namespace ve::rendering
 {
 	namespace
 	{
-		[[nodiscard]] VkExtent2D InternalRenderExtentFor(VkExtent2D output_extent, const VulkanDemoSettings& settings) noexcept
+		[[nodiscard]] VkExtent2D InternalRenderExtentFor(VkExtent2D output_extent, const VulkanSoftwareRasterizerSettings& settings) noexcept
 		{
 			const std::uint32_t max_width = std::clamp(settings.max_internal_width, 320u, 1920u);
 			const std::uint32_t max_height = std::clamp(settings.max_internal_height, 180u, 1080u);
@@ -25,7 +25,7 @@ namespace ve::rendering
 		}
 	}
 
-	bool VulkanSoftwareVoxelRasterizer::Resize(VkExtent2D extent, const VulkanDemoSettings& settings)
+	bool VulkanSoftwareVoxelRasterizer::Resize(VkExtent2D extent, const VulkanSoftwareRasterizerSettings& settings)
 	{
 		if (extent.width == 0 || extent.height == 0) return false;
 

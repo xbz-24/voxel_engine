@@ -4,8 +4,6 @@
 #include "GameModel.h"
 #include "RuntimeSettings.h"
 #include "SettingsMenuController.h"
-#include "VulkanDemoWorldController.h"
-#include "VulkanMinecraftDemoSettings.h"
 
 namespace ve::engine { class Window; }
 
@@ -43,17 +41,16 @@ namespace ve::engine
 		[[nodiscard]] ve::blocks::BlockId SelectedPlacementBlock() const noexcept;
 
 		/**
-		 * Updates the temporary Vulkan demo camera and async world state.
+		 * Updates Vulkan world generation, camera input, and block interaction.
 		 *
 		 * @param window Runtime window used for input.
 		 * @param model Mutable gameplay model.
 		 * @param delta_seconds Time elapsed since the previous frame.
 		 */
-		void UpdateVulkanDemo(Window& window,
+		void UpdateVulkanWorld(Window& window,
 			GameModel& model,
 			const ve::blocks::BlockRegistry& block_registry,
 			ve::gameplay::RuntimeSettings& settings,
-			ve::rendering::VulkanMinecraftDemoSettings& demo_settings,
 			double delta_seconds,
 			bool ui_captures_input);
 

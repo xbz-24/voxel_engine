@@ -50,7 +50,6 @@
 
 		EngineInputState input_state_;
 		ve::gameplay::SettingsMenuController settings_menu_controller_;
-		VulkanDemoWorldController vulkan_demo_world_controller_;
 		ve::blocks::BlockId selected_placement_block_ = ve::blocks::BlockId::Cobblestone;
 	};
 }

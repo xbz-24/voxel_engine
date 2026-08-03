@@ -2,7 +2,7 @@
 		LogSettings& DisableFileOutput() noexcept;
 	};
 
-	/** Window creation settings used by EngineConfig and the command-line demos. */
+	/** Window creation settings used by EngineConfig and host applications. */
 	struct WindowConfig
 	{
 		std::string title = "Voxel Engine";

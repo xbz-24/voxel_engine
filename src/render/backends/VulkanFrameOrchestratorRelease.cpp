@@ -37,7 +37,7 @@ namespace ve::rendering
 		gpu_chunk_renderer_.Release();
 		rasterizer_.Release();
 		previous_frame_timing_ = {};
-		demo_settings_ = {};
+		software_rasterizer_settings_ = {};
 		device_ = VK_NULL_HANDLE;
 		backend_ = nullptr;
 		current_frame_ = 0;

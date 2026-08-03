@@ -12,12 +12,12 @@ namespace ve::rendering
 {
 	namespace
 	{
-		[[nodiscard]] std::uint32_t SampleStepFor(const VulkanDemoSettings& settings) noexcept
+		[[nodiscard]] std::uint32_t SampleStepFor(const VulkanSoftwareRasterizerSettings& settings) noexcept
 		{
 			return std::clamp(settings.pixel_block_size, 1u, 8u);
 		}
 
-		[[nodiscard]] std::uint32_t EffectiveSampleStepFor(const VulkanDemoSettings& settings, const VulkanFrameTiming& previous_timing) noexcept
+		[[nodiscard]] std::uint32_t EffectiveSampleStepFor(const VulkanSoftwareRasterizerSettings& settings, const VulkanFrameTiming& previous_timing) noexcept
 		{
 			const std::uint32_t requested = SampleStepFor(settings);
 			if (!settings.adaptive_quality || previous_timing.render_extent.width == 0u || previous_timing.render_extent.height == 0u)
@@ -60,7 +60,7 @@ namespace ve::rendering
 		RenderSamplesMultithreaded(work);
 		const auto raster_end = std::chrono::steady_clock::now();
 		ApplyVoxelOutlines(frame.format, frame.settings.outline_strength);
-		if (frame.settings.show_debug_overlay) DrawDemoOverlay(frame);
+		if (frame.settings.show_debug_overlay) DrawDebugOverlay(frame);
 		if (frame.settings.show_tuning_panel) DrawTuningPanel(frame);
 		DrawCrosshair(frame.format);
 		const auto overlay_end = std::chrono::steady_clock::now();

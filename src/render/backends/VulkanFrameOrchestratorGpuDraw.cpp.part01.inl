@@ -26,7 +26,7 @@ namespace ve::rendering
 		const Camera& camera,
 		int displayed_fps,
 		double delta_seconds,
-		VulkanMinecraftDemoSettings& minecraft_demo_settings,
+		VulkanOverlaySettings& overlay_settings,
 		const VulkanGpuFrameControls& controls)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
@@ -34,14 +34,10 @@ namespace ve::rendering
 		{
 			shader_elapsed_seconds_ = std::fmod(shader_elapsed_seconds_ + delta_seconds, 4096.0);
 		}
-		if (!controls.overlay_enabled)
+		if (!controls.overlay_enabled) overlay_settings.show_window = false;
+		else if (controls.toggle_overlay)
 		{
-			minecraft_demo_settings.show_controls = false;
-			minecraft_demo_settings.show_imgui_demo_window = false;
-		}
-		else if (controls.toggle_controls)
-		{
-			minecraft_demo_settings.show_controls = !minecraft_demo_settings.show_controls;
+			overlay_settings.show_window = !overlay_settings.show_window;
 		}
 		const VkFence fence = frames_[current_frame_].in_flight;
 		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
@@ -52,7 +48,7 @@ namespace ve::rendering
 		const VulkanGpuChunkMeshStats& mesh_stats = gpu_chunk_renderer_.MeshStats();
 		if (controls.overlay_enabled)
 		{
-			imgui_overlay_.BeginFrame(minecraft_demo_settings, VulkanMinecraftDemoStats{
+			imgui_overlay_.BeginFrame(overlay_settings, VulkanRendererStats{
 				displayed_fps,
 				delta_seconds,
 				completed_frame_timing.gpu_copy_ms,

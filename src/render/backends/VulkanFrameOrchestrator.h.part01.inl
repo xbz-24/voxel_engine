@@ -2,7 +2,7 @@
 #include "CoreTypes.h"
 #include "VulkanGpuChunkRenderer.h"
 #include "VulkanImGuiOverlay.h"
-#include "VulkanMinecraftDemoSettings.h"
+#include "VulkanRendererOverlay.h"
 #include "VulkanSoftwareVoxelRasterizer.h"
 #include "VulkanUploadBuffer.h"
 
@@ -51,8 +51,8 @@ namespace ve::rendering
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
-			const VulkanDemoInput& input,
-			VulkanMinecraftDemoSettings& minecraft_demo_settings);
+			const VulkanFrameInput& input,
+			VulkanOverlaySettings& overlay_settings);
 
 		/** Waits for the device and releases frame resources. */
 		void Release();

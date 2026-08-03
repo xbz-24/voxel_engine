@@ -4,7 +4,6 @@
 #include "Window.h"
 #include "Block.h"
 #include "LogRecord.h"
-#include "VulkanMinecraftDemoSettings.h"
 #include "VoxelRenderStyle.h"
 #include "WorldBlockEdit.h"
 #include "WorldConfiguration.h"

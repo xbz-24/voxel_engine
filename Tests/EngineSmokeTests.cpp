@@ -3,7 +3,6 @@
 
 #include "BackgroundTaskQueue.h"
 #include "BlockRegistry.h"
-#include "CommandLineLauncher.h"
 #include "EcsWorld.h"
 #include "FabrikInverseKinematicsSolver.h"
 #include "Logger.h"
@@ -46,5 +45,4 @@
 #include "LoggerTests.inl"
 #include "BlockRegistryTests.inl"
 #include "EngineSmokeCoreTests.inl"
-#include "EngineSmokeLauncherTests.inl"
 #include "EngineSmokeAssetTests.inl"

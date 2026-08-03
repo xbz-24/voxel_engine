@@ -19,12 +19,6 @@
 		return UseGraphicsApi(GraphicsApi::DirectX12);
 	}
 
-	EngineConfig& EngineConfig::WithDemoScene(DemoScene value) noexcept
-	{
-		demo_scene = value;
-		return *this;
-	}
-
 	EngineConfig& EngineConfig::WithWorldSizeChunks(int value) noexcept
 	{
 		world.size_chunks = value;

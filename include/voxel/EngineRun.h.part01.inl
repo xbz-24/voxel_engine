@@ -7,42 +7,6 @@
 
 namespace voxel
 {
-	/** Builds the authored desert demo config. */
-	[[nodiscard]] EngineConfig DesertDemo();
-
-	/** Builds the Aqua model demo config. */
-	[[nodiscard]] EngineConfig AquaModelDemo();
-
-	/** Builds the Sponza atrium demo config. */
-	[[nodiscard]] EngineConfig SponzaAtriumDemo();
-
-	/** Builds the legacy Minecraft-style demo config. */
-	[[nodiscard]] EngineConfig MinecraftDemo();
-
-	/** Builds the world-editing callback demo config. */
-	[[nodiscard]] EngineConfig WorldEditDemo();
-
-	/** Builds the showcase demo config. */
-	[[nodiscard]] EngineConfig ShowcaseDemo();
-
-	/** Builds the arcade snake demo config. */
-	[[nodiscard]] EngineConfig ArcadeSnakeDemo();
-
-	/** Builds the arcade paddle demo config. */
-	[[nodiscard]] EngineConfig ArcadePaddleDemo();
-
-	/** Builds the arcade blocks demo config. */
-	[[nodiscard]] EngineConfig ArcadeBlocksDemo();
-
-	/** Builds the arcade invaders demo config. */
-	[[nodiscard]] EngineConfig ArcadeInvadersDemo();
-
-	/** Builds the arcade maze demo config. */
-	[[nodiscard]] EngineConfig ArcadeMazeDemo();
-
-	/** Builds the default engine config. */
-	[[nodiscard]] EngineConfig DefaultConfig();
-
 	/** Structured startup failure reason for EngineStartResult. */
 	enum class EngineStartFailure
 	{

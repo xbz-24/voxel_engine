@@ -3,6 +3,8 @@
 #include "NetworkPacketIO.h"
 #include "NetworkSerialization.h"
 
+#include <algorithm>
+
 namespace ve::network
 {
 	namespace
@@ -25,11 +27,12 @@ namespace ve::network
 			const std::uint32_t newConnectionId = _nextConnectionId.fetch_add(1);
 			auto clientSocket = std::make_shared<TcpSocket>(std::move(*acceptedSocket));
 			std::lock_guard<std::mutex> clientsLock(_clientsMutex);
-			std::size_t openClientConnectionCount = 0;
-			for (const ConnectedClient& connectedClient : _connectedClients)
-			{
-				if (connectedClient.socket && connectedClient.socket->IsOpen()) ++openClientConnectionCount;
-			}
+			const std::size_t openClientConnectionCount = static_cast<std::size_t>(std::ranges::count_if(
+				_connectedClients,
+				[](const ConnectedClient& connectedClient)
+				{
+					return connectedClient.socket && connectedClient.socket->IsOpen();
+				}));
 			if (openClientConnectionCount >= _maxConnectedClients)
 			{
 				clientSocket->Close();

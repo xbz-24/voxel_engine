@@ -1,7 +1,6 @@
 if (VE_BUILD_TESTS)
     enable_testing()
     add_executable(engine_tests
-        ${VE_LAUNCHER_SOURCES}
         Tests/AssetPathTests.cpp
         Tests/EngineSmokeTests.cpp
         Tests/FrameGraphTests.cpp

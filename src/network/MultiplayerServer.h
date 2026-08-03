@@ -1,6 +1,5 @@
 #pragma once
 
-#include "NetworkSocketLibrary.h"
 #include "NetworkTcpSocket.h"
 #include "ThreadSafeMessageQueue.h"
 
@@ -75,7 +74,6 @@ namespace ve::network
 		void AcceptClientsUntilStopped(std::stop_token stopToken);
 		void ReceiveClientMessages(std::stop_token stopToken, std::uint32_t connectionId, std::shared_ptr<TcpSocket> clientSocket);
 
-		SocketLibrary _socketLibrary;
 		std::shared_ptr<TcpSocket> _listeningSocket;
 		std::vector<ConnectedClient> _connectedClients;
 		std::vector<std::jthread> _clientThreads;

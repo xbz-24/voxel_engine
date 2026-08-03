@@ -1,5 +1,7 @@
 #include "PhysicsOctree.h"
 
+#include <utility>
+
 namespace ve::physics
 {
 	/// Creates an octree over a fixed world-space root.
@@ -23,7 +25,7 @@ namespace ve::physics
 		OctreeNode node{ bounds };
 		node.children.fill(-1);
 		node.depth = depth;
-		nodes_.push_back(ve::core::Move(node));
+		nodes_.push_back(std::move(node));
 		return node_index;
 	}
 

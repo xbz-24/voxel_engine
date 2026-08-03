@@ -20,4 +20,4 @@
 #include "GameControllerFrame.inl"
 #include "GameControllerMovement.inl"
 #include "GameControllerSelection.inl"
-#include "GameControllerVulkanDemo.inl"
+#include "GameControllerVulkanWorld.inl"

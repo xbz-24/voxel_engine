@@ -18,7 +18,7 @@ namespace ve::engine
 	class Window
 	{
 	public:
-		/** Mouse cursor ownership mode used by interactive demos. */
+		/** Mouse cursor ownership mode used by interactive applications. */
 		enum class CursorMode { Normal, Captured };
 
 		/** Pixel size of the client framebuffer. */
@@ -85,4 +85,3 @@ namespace ve::engine
 
 		/** @return True when the native window requested shutdown. */
 		[[nodiscard]] bool ShouldClose() const;
-

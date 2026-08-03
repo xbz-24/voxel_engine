@@ -21,7 +21,7 @@ namespace ve::rendering
 
 	bool VulkanFrameOrchestrator::EnsureFrameBuffer(VkExtent2D extent)
 	{
-		if (!rasterizer_.Resize(extent, demo_settings_)) return false;
+		if (!rasterizer_.Resize(extent, software_rasterizer_settings_)) return false;
 		const VkExtent2D render_extent = rasterizer_.RenderExtent();
 		const VkDeviceSize byte_size = FramebufferUploadByteCount(render_extent);
 		const bool size_changed = frames_.front().upload_buffer.Size() != byte_size;

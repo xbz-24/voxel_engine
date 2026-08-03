@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VulkanMinecraftDemoSettings.h"
+#include "VulkanRendererOverlay.h"
 
 #include <volk.h>
 
@@ -14,7 +14,7 @@ namespace ve::rendering
 	{
 	public:
 		[[nodiscard]] bool Initialize(VulkanBackend& backend, ve::engine::Window& window, VkRenderPass render_pass);
-		void BeginFrame(VulkanMinecraftDemoSettings& settings, const VulkanMinecraftDemoStats& stats);
+		void BeginFrame(VulkanOverlaySettings& settings, const VulkanRendererStats& stats);
 		void Record(VkCommandBuffer command_buffer);
 		void Release();
 

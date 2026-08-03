@@ -1,6 +1,6 @@
 # Vulkan Renderer and Shader System
 
-The Vulkan renderer owns the GPU path used by the voxel demos. It keeps frame submission, world-mesh upload, shader data, and overlay recording behind four separate responsibilities:
+The Vulkan renderer owns the GPU path used by voxel applications. It keeps frame submission, world-mesh upload, shader data, and overlay recording behind four separate responsibilities:
 
 - `VulkanFrameOrchestrator` acquires swapchain images, waits on frame fences, records command buffers, submits work, and presents.
 - `VulkanGpuChunkRenderer` owns the render pass, voxel and sky pipelines, framebuffers, world-mesh buffers, and shader resources.
@@ -86,11 +86,11 @@ Run the shader compiler before the C++ suite so GLSL failures stay local:
 
 ```powershell
 cmake --build Builds --config Debug --target ve_vulkan_shaders
-cmake --build Builds --config Debug --target voxel_engine engine_tests
+cmake --build Builds --config Debug --target voxel_demo engine_tests
 Builds\Debug\engine_tests.exe
 ctest --test-dir Builds -C Debug --output-on-failure
 $env:VE_VULKAN_VALIDATION='1'
-Builds\Debug\voxel_engine.exe --demo voxeldemo --smoke-frames 2
+Builds\Debug\voxel_demo.exe --smoke-frames 2
 ```
 
 The final smoke is required for descriptor lifetime, pipeline-layout, and

@@ -36,15 +36,17 @@ namespace ve::engine
 
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
-		controller_.UpdateVulkanDemo(window_, *model_, *block_registry, runtime_settings, vulkan_demo_settings_,
+		controller_.UpdateVulkanWorld(window_, *model_, *block_registry, runtime_settings,
 			frame_timer_.DeltaSeconds(), ui_captures_keyboard);
 		ApplyConfiguredWorldEditsOnce();
 		InvokePublicApiFrameCallbacks();
 
-		if (!DrawVulkanFrame(CaptureVulkanDemoInput()))
+		if (!DrawVulkanFrame(CaptureVulkanFrameInput()))
 		{
 			window_.Close();
 		}
 
-		window_.SetCursorMode(vulkan_demo_settings_.show_controls ? Window::CursorMode::Normal : Window::CursorMode::Captured);
+		window_.SetCursorMode(vulkan_frame_orchestrator_.WantsMouseInput()
+			? Window::CursorMode::Normal
+			: Window::CursorMode::Captured);
 	}

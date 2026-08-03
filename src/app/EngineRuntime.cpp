@@ -6,7 +6,6 @@
 #include "RenderBackendFactory.h"
 #include "RenderViewFactory.h"
 #include "VulkanBackend.h"
-#include "VulkanMinecraftDemoProfiles.h"
 
 #include <cassert>
 #include <algorithm>

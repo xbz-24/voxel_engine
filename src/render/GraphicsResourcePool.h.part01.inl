@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <utility>
 
 namespace ve::rendering
 {
@@ -33,7 +34,7 @@ namespace ve::rendering
 		{
 			const std::uint32_t slot_index = AcquireSlot();
 			Slot& slot = slots_[slot_index];
-			slot.resource.emplace(ve::core::Move(resource));
+			slot.resource.emplace(std::move(resource));
 			slot.is_alive = true;
 			live_count_++;
 			return { slot_index, slot.generation };

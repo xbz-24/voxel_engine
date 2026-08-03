@@ -38,7 +38,7 @@ namespace ve::engine
 	/** Returns the mutable ground/debug plane renderer. */
 	Plane& OpenGLRenderView::MutablePlane() noexcept { return plane_; }
 
-	/** Returns the model importer library used by demos and tools. */
+	/** Returns the model importer library used by applications and tools. */
 	ve::assets::ModelAssetLibrary& OpenGLRenderView::MutableModelAssets() noexcept { return model_asset_library_; }
 
 	/** Returns the HUD renderer used for 2D overlays. */

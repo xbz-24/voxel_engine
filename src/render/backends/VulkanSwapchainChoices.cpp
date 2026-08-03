@@ -9,27 +9,24 @@ namespace ve::rendering
 	/** Chooses SRGB BGRA when available, otherwise the first reported format. */
 	VkSurfaceFormatKHR ChooseSwapchainSurfaceFormat(std::span<const VkSurfaceFormatKHR> formats) noexcept
 	{
-		for (const VkSurfaceFormatKHR& format : formats)
+		const auto preferred_format = std::ranges::find_if(formats, [](const VkSurfaceFormatKHR& format)
 		{
-			const bool is_bgra = format.format == VK_FORMAT_B8G8R8A8_SRGB;
-			const bool is_srgb = format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-			if (is_bgra && is_srgb) return format;
-		}
-		return formats.empty() ? VkSurfaceFormatKHR{} : formats.front();
+			return format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+				format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		});
+		return preferred_format == formats.end()
+			? (formats.empty() ? VkSurfaceFormatKHR{} : formats.front())
+			: *preferred_format;
 	}
 
 	/** Chooses FIFO for vsync, otherwise uncapped immediate, low-latency mailbox, then guaranteed FIFO. */
 	VkPresentModeKHR ChooseSwapchainPresentMode(std::span<const VkPresentModeKHR> present_modes, bool is_vsync_enabled) noexcept
 	{
 		if (is_vsync_enabled) return VK_PRESENT_MODE_FIFO_KHR;
-		for (VkPresentModeKHR mode : present_modes)
-		{
-			if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) return mode;
-		}
-		for (VkPresentModeKHR mode : present_modes)
-		{
-			if (mode == VK_PRESENT_MODE_MAILBOX_KHR) return mode;
-		}
+		if (std::ranges::find(present_modes, VK_PRESENT_MODE_IMMEDIATE_KHR) != present_modes.end())
+			return VK_PRESENT_MODE_IMMEDIATE_KHR;
+		if (std::ranges::find(present_modes, VK_PRESENT_MODE_MAILBOX_KHR) != present_modes.end())
+			return VK_PRESENT_MODE_MAILBOX_KHR;
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 

@@ -42,20 +42,6 @@
 			}
 		}
 
-		[[nodiscard]] ve::rendering::VulkanMinecraftDemoPreset ToInternalDemoPreset(DemoScene scene) noexcept
-		{
-			switch (scene)
-			{
-			case DemoScene::AquaModel:
-				return ve::rendering::VulkanMinecraftDemoPreset::AquaModel;
-			case DemoScene::SponzaAtrium:
-				return ve::rendering::VulkanMinecraftDemoPreset::SponzaAtrium;
-			case DemoScene::HyperrealDesert:
-			default:
-				return ve::rendering::VulkanMinecraftDemoPreset::HyperrealDesert;
-			}
-		}
-
 		[[nodiscard]] ve::log::Level ToInternalLogLevel(LogLevel level) noexcept
 		{
 			switch (level)

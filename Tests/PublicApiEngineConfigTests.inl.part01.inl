@@ -1,6 +1,6 @@
 TEST_CASE("public engine api accepts simple cxx configuration")
 {
-	voxel::EngineConfig config = voxel::EngineConfig::MinecraftDemo()
+	voxel::EngineConfig config = voxel::EngineConfig::Default()
 		.WithWindow(voxel::Window("API Smoke", 1024, 576).EnableVSync())
 		.WithWorld(voxel::World()
 			.WithSizeChunks(6)

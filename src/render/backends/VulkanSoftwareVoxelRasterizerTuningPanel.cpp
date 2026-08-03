@@ -22,7 +22,7 @@ namespace ve::rendering
 		DrawFilledRect(panel_x, panel_y + panel_height - 3u, panel_width, 3u, border);
 		DrawFilledRect(panel_x, panel_y, 3u, panel_height, border);
 		DrawFilledRect(panel_x + panel_width - 3u, panel_y, 3u, panel_height, border);
-		DrawText("VULKAN DEMO TUNING", panel_x + 12u, panel_y + 10u, 1u, text);
+		DrawText("VULKAN RENDERER TUNING", panel_x + 12u, panel_y + 10u, 1u, text);
 
 		float res_x = ve::core::ToFloat(frame.settings.max_internal_width);
 		float res_y = ve::core::ToFloat(frame.settings.max_internal_height);

@@ -14,7 +14,6 @@
 			camera,
 			logging,
 			graphics_api,
-			demo_scene,
 			voxel_render_style
 		};
 	}

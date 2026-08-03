@@ -73,7 +73,6 @@ target_link_libraries(ve_world PUBLIC
 
 target_link_libraries(ve_network PUBLIC
     asio::asio
-    ws2_32
 )
 
 target_link_libraries(ve_app PUBLIC

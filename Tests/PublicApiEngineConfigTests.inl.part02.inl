@@ -16,7 +16,7 @@
 	CHECK(!runtime.enable_settings_menu);
 }
 
-TEST_CASE("public config can disable demo settings menu controls")
+TEST_CASE("public config can disable runtime settings controls")
 {
 	const voxel::EngineConfig config = voxel::EngineConfig::Default()
 		.DisableSettingsMenu();
@@ -85,4 +85,3 @@ TEST_CASE("public window config exposes display and startup options")
 	CHECK(config.capture_cursor_on_start);
 	CHECK(config.vsync);
 }
-

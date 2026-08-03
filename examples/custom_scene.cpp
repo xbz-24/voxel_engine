@@ -15,7 +15,7 @@ int main()
 		.AddTree(8, 63, 8, voxel::BirchLog, voxel::BirchLeaves)
 		.AddLamp(0, 68, 0);
 
-	return voxel::Run(voxel::DesertDemo()
+	return voxel::Run(voxel::EngineConfig::Default()
 		.WithWindow("Voxel API - Custom Scene", 1280, 720)
 		.WithScene(scene)
 		.WithCamera({ 18.0f, 74.0f, 22.0f }, { 0.0f, 64.0f, 0.0f })

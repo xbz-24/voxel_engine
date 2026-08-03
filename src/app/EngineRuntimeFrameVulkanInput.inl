@@ -1,4 +1,4 @@
-	ve::rendering::VulkanDemoInput EngineRuntime::CaptureVulkanDemoInput()
+	ve::rendering::VulkanFrameInput EngineRuntime::CaptureVulkanFrameInput()
 	{
 		int window_width = 1;
 		int window_height = 1;
@@ -12,7 +12,7 @@
 		const double scale_y = ve::core::ToDouble(window_.GetHeight()) / ve::core::ToDouble(std::max(window_height, 1));
 
 		runtime_input_actions_.Update(runtime_input_snapshot);
-		return ve::rendering::VulkanDemoInput{
+		return ve::rendering::VulkanFrameInput{
 			runtime_input_snapshot.mouse_x * scale_x,
 			runtime_input_snapshot.mouse_y * scale_y,
 			runtime_input_actions_.IsDown(RuntimeInputAction::PrimaryAction),
@@ -22,7 +22,7 @@
 		};
 	}
 
-	bool EngineRuntime::DrawVulkanFrame(const ve::rendering::VulkanDemoInput& input)
+	bool EngineRuntime::DrawVulkanFrame(const ve::rendering::VulkanFrameInput& input)
 	{
 		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
 		assert(block_registry != nullptr);
@@ -32,5 +32,5 @@
 			frame_timer_.DisplayedFps(),
 			frame_timer_.DeltaSeconds(),
 			input,
-			vulkan_demo_settings_);
+			vulkan_overlay_settings_);
 	}

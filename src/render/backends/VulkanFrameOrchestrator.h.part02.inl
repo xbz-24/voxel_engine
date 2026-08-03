@@ -12,7 +12,7 @@
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
-			VulkanMinecraftDemoSettings& minecraft_demo_settings,
+			VulkanOverlaySettings& overlay_settings,
 			const VulkanGpuFrameControls& controls);
 
 		/** Rasterizes and presents one frame through the CPU voxel path. */
@@ -20,7 +20,7 @@
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
-			const VulkanDemoInput& input);
+			const VulkanFrameInput& input);
 
 		/** Blocks until all tracked frames in flight are idle. */
 		[[nodiscard]] bool WaitForAllInFlightFrames() const;
@@ -40,7 +40,7 @@
 		struct VulkanGpuFrameControls
 		{
 			bool overlay_enabled = false;
-			bool toggle_controls = false;
+			bool toggle_overlay = false;
 		};
 
 		/** Per-frame Vulkan objects reused across the frames-in-flight ring. */
@@ -67,7 +67,7 @@
 		VulkanImGuiOverlay imgui_overlay_;
 		VulkanSoftwareVoxelRasterizer rasterizer_;
 		VulkanFrameTiming previous_frame_timing_{};
-		VulkanDemoSettings demo_settings_{};
+		VulkanSoftwareRasterizerSettings software_rasterizer_settings_{};
 		VkExtent2D intermediate_extent_{};
 		VkFormat intermediate_format_ = VK_FORMAT_UNDEFINED;
 		VkFilter upscale_filter_ = VK_FILTER_NEAREST;

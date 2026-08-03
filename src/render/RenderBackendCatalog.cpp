@@ -1,5 +1,7 @@
 #include "RenderBackendCatalog.h"
 
+#include <algorithm>
+
 namespace ve::rendering
 {
 	namespace
@@ -36,10 +38,7 @@ namespace ve::rendering
 	/** Finds a backend descriptor by API. */
 	const RenderBackendDescriptor& RenderBackendCatalog::Find(GraphicsApi api) noexcept
 	{
-		for (const RenderBackendDescriptor& backend : kBackends)
-		{
-			if (backend.api == api) return backend;
-		}
-		return DefaultBackend();
+		const auto backend = std::ranges::find(kBackends, api, &RenderBackendDescriptor::api);
+		return backend == kBackends.end() ? DefaultBackend() : *backend;
 	}
 }

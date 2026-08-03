@@ -1,5 +1,7 @@
 #include "FrameGraphBuilder.h"
 
+#include <utility>
+
 namespace ve::rendering
 {
 	/// Creates a pass builder over a render graph.
@@ -11,13 +13,13 @@ namespace ve::rendering
 	/// Adds one pass and returns the builder for chaining.
 	FrameGraphBuilder& FrameGraphBuilder::AddPass(std::string name, std::function<void(FrameGraphContext&)> execute)
 	{
-		graph_.AddPass(ve::core::Move(name), ve::core::Move(execute));
+		graph_.AddPass(std::move(name), std::move(execute));
 		return *this;
 	}
 
 	FrameGraphBuilder& FrameGraphBuilder::AddPass(FrameGraphPass pass)
 	{
-		graph_.AddPass(ve::core::Move(pass));
+		graph_.AddPass(std::move(pass));
 		return *this;
 	}
 }

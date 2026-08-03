@@ -17,7 +17,6 @@
 			const EngineConfig& config)
 		{
 			create_info.render_backend.preferred_api = ToInternalApi(config.graphics_api);
-			create_info.vulkan_demo_preset = ToInternalDemoPreset(config.demo_scene);
 			create_info.voxel_render_style = ToInternalVoxelRenderStyle(config.voxel_render_style);
 			create_info.show_debug_overlay = config.show_debug_overlay;
 			create_info.settings_menu_enabled = config.enable_settings_menu;

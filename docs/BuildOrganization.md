@@ -11,7 +11,7 @@ and display the engine as multiple projects instead of one large executable.
 - `ve_world`: blocks, chunks, terrain generation, meshing, and world state.
 - `ve_network`: sockets, sessions, protocol, multiplayer, and replication.
 - `ve_app`: engine lifecycle, editor, input, HUD, settings, and window setup.
-- `voxel_engine`: the small executable that links the subsystem libraries.
+- `voxel_demo`: the single authored application that consumes `VoxelEngine::SDK`.
 - `engine_tests`: tests linked against the same libraries used by the engine.
 
 Changing one implementation file now recompiles its owning library and relinks
