@@ -57,7 +57,12 @@ int PublicApiHeadersOnlySmokeCompileAnchor()
 			.WithSunIntensity(1.1f)
 			.WithFogRange(80.0f, 300.0f)
 			.WithClouds(0.35f, 0.60f, 0.02f)
-			.WithSurfaceDetail(1.1f))
+			.WithSurfaceDetail(1.1f)
+			.WithAmbientOcclusion(1.2f)
+			.WithAerialPerspective(0.9f)
+			.WithSubsurfaceScattering(1.1f)
+			.WithCloudLightAbsorption(1.3f)
+			.WithDirectionalShadows(0.8f, 1.2f, 180.0f))
 		.UseVulkan()
 		.HideDebugOverlay();
 	return config.window.width;

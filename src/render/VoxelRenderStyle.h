@@ -23,5 +23,12 @@ namespace ve::rendering
 		float water_reflection_strength = 1.0f;
 		float shadow_strength = 1.0f;
 		float specular_strength = 1.0f;
+		float ambient_occlusion_strength = 1.0f;
+		float aerial_perspective_strength = 1.0f;
+		float subsurface_scattering_strength = 1.0f;
+		float cloud_light_absorption = 1.0f;
+		float directional_shadow_strength = 0.85f;
+		float directional_shadow_softness = 1.0f;
+		float directional_shadow_distance = 220.0f;
 	};
 }

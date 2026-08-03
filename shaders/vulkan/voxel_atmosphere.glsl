@@ -1,6 +1,7 @@
 #ifndef VE_VOXEL_ATMOSPHERE_GLSL
 #define VE_VOXEL_ATMOSPHERE_GLSL
 
+#include "voxel_aerial_perspective.glsl"
 #include "voxel_environment.glsl"
 #include "voxel_math.glsl"
 #include "voxel_tonemap.glsl"
@@ -18,10 +19,6 @@ vec3 apply_voxel_atmosphere(
 		smoothstep(45.0, 80.0, world_position.y));
 	vec3 high_fog_color = environment.sky_zenith_color;
 	vec3 fog_color = mix(low_fog_color, high_fog_color, height_blend);
-	float distance_fog = smoothstep(
-		environment.fog_start_distance,
-		environment.fog_end_distance,
-		view_depth);
 	float ground_haze = smoothstep(33.0, 52.0, world_position.y) *
 		(1.0 - smoothstep(74.0, 128.0, world_position.y));
 	float valley_haze = ground_haze * (1.0 - height_blend) * 0.08;
@@ -33,8 +30,15 @@ vec3 apply_voxel_atmosphere(
 	graded = pow(saturate(graded), vec3(0.92));
 	vec3 aerial_tint = mix(vec3(1.0), environment.sky_zenith_color + vec3(0.35), 0.12);
 	graded = mix(graded, graded * aerial_tint, far_blue_shift);
-	float fog_amount = saturate(distance_fog * environment.fog_strength + valley_haze * environment.fog_strength);
-	return mix(graded, fog_color, fog_amount);
+	VoxelAerialPerspective aerial = evaluate_voxel_aerial_perspective(
+		view_depth,
+		world_position,
+		height_blend,
+		environment);
+	graded = graded * aerial.transmittance + aerial.inscattering * (1.0 - aerial.transmittance);
+	float valley_haze_amount = saturate(
+		valley_haze * environment.fog_strength * environment.aerial_perspective_strength);
+	return mix(graded, fog_color, valley_haze_amount);
 }
 
 #endif

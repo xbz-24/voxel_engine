@@ -11,6 +11,9 @@ layout(set = 0, binding = 0, std140) uniform VoxelFrameUniforms
 	vec4 viewport_size_and_inverse;
 	vec4 atmosphere_parameters;
 	vec4 surface_parameters;
+	vec4 advanced_lighting_parameters;
+	vec4 directional_shadow_parameters;
+	mat4 light_view_projection;
 } voxel_frame;
 
 struct VoxelEnvironment
@@ -35,6 +38,14 @@ struct VoxelEnvironment
 	float water_reflection_strength;
 	float shadow_strength;
 	float specular_strength;
+	float ambient_occlusion_strength;
+	float aerial_perspective_strength;
+	float subsurface_scattering_strength;
+	float cloud_light_absorption;
+	float directional_shadow_strength;
+	float directional_shadow_softness;
+	float directional_shadow_distance;
+	float directional_shadow_texel_size;
 };
 
 VoxelEnvironment current_voxel_environment()
@@ -67,6 +78,14 @@ VoxelEnvironment current_voxel_environment()
 	environment.water_reflection_strength = clamp(voxel_frame.surface_parameters.y, 0.0, 2.0);
 	environment.shadow_strength = clamp(voxel_frame.surface_parameters.z, 0.0, 2.0);
 	environment.specular_strength = clamp(voxel_frame.surface_parameters.w, 0.0, 2.0);
+	environment.ambient_occlusion_strength = clamp(voxel_frame.advanced_lighting_parameters.x, 0.0, 2.0);
+	environment.aerial_perspective_strength = clamp(voxel_frame.advanced_lighting_parameters.y, 0.0, 2.0);
+	environment.subsurface_scattering_strength = clamp(voxel_frame.advanced_lighting_parameters.z, 0.0, 2.0);
+	environment.cloud_light_absorption = clamp(voxel_frame.advanced_lighting_parameters.w, 0.0, 2.0);
+	environment.directional_shadow_strength = clamp(voxel_frame.directional_shadow_parameters.x, 0.0, 2.0);
+	environment.directional_shadow_softness = clamp(voxel_frame.directional_shadow_parameters.y, 0.0, 2.0);
+	environment.directional_shadow_distance = max(voxel_frame.directional_shadow_parameters.z, 32.0);
+	environment.directional_shadow_texel_size = max(voxel_frame.directional_shadow_parameters.w, 0.000001);
 	return environment;
 }
 

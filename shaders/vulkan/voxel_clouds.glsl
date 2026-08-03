@@ -1,6 +1,7 @@
 #ifndef VE_VOXEL_CLOUDS_GLSL
 #define VE_VOXEL_CLOUDS_GLSL
 
+#include "voxel_cloud_lighting.glsl"
 #include "voxel_environment.glsl"
 #include "voxel_math.glsl"
 #include "voxel_noise.glsl"
@@ -25,11 +26,12 @@ vec4 evaluate_voxel_clouds(vec3 view_direction, VoxelEnvironment environment)
 	cloud_shape *= smoothstep(0.22, 0.72, erosion + cloud_shape * 0.28);
 	float horizon_fade = smoothstep(0.015, 0.16, view_direction.y);
 	float density = saturate(cloud_shape * environment.cloud_density * 1.45) * horizon_fade;
-	float sun_facing = saturate(dot(normalize(vec3(view_direction.x, 0.30, view_direction.z)), environment.sun_direction));
-	vec3 cloud_shadow = mix(environment.sky_horizon_color, vec3(0.48, 0.53, 0.60), 0.55);
-	vec3 cloud_light = mix(vec3(0.88, 0.91, 0.95), environment.sun_color, 0.24);
-	vec3 cloud_color = mix(cloud_shadow, cloud_light, 0.40 + sun_facing * 0.45 + erosion * 0.15);
-	return vec4(max(cloud_color, vec3(0.0)), density);
+	return evaluate_voxel_cloud_lighting(
+		view_direction,
+		cloud_coordinate,
+		density,
+		erosion,
+		environment);
 }
 
 #endif

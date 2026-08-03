@@ -21,18 +21,34 @@ vec2 voxel_face_uv(vec3 world_position, vec3 normal)
 
 float voxel_edge_mask(vec3 world_position, vec3 normal)
 {
-	vec2 local_uv = fract(voxel_face_uv(world_position, normal));
+	vec2 face_uv = voxel_face_uv(world_position, normal);
+	vec2 local_uv = fract(face_uv);
 	vec2 edge_distance = min(local_uv, 1.0 - local_uv);
 	float nearest_edge = min(edge_distance.x, edge_distance.y);
-	return 1.0 - smoothstep(0.025, 0.115, nearest_edge);
+	vec2 coordinate_footprint = fwidth(face_uv);
+	float largest_footprint = max(coordinate_footprint.x, coordinate_footprint.y);
+	float filter_width = clamp(largest_footprint * 0.65, 0.001, 0.075);
+	float detail_visibility = 1.0 - smoothstep(0.16, 0.70, largest_footprint);
+	return (1.0 - smoothstep(
+		max(0.025 - filter_width, 0.0),
+		0.115 + filter_width,
+		nearest_edge)) * detail_visibility;
 }
 
 float voxel_corner_mask(vec3 world_position, vec3 normal)
 {
-	vec2 local_uv = fract(voxel_face_uv(world_position, normal));
+	vec2 face_uv = voxel_face_uv(world_position, normal);
+	vec2 local_uv = fract(face_uv);
 	vec2 edge_distance = min(local_uv, 1.0 - local_uv);
-	return (1.0 - smoothstep(0.020, 0.120, edge_distance.x)) *
-		(1.0 - smoothstep(0.020, 0.120, edge_distance.y));
+	vec2 coordinate_footprint = fwidth(face_uv);
+	float largest_footprint = max(coordinate_footprint.x, coordinate_footprint.y);
+	float filter_width = clamp(largest_footprint * 0.65, 0.001, 0.075);
+	float detail_visibility = 1.0 - smoothstep(0.16, 0.70, largest_footprint);
+	vec2 corner_response = vec2(1.0) - smoothstep(
+		vec2(max(0.020 - filter_width, 0.0)),
+		vec2(0.120 + filter_width),
+		edge_distance);
+	return corner_response.x * corner_response.y * detail_visibility;
 }
 
 float layered_voxel_noise(vec3 world_position)

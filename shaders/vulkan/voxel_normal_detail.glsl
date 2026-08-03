@@ -1,6 +1,7 @@
 #ifndef VE_VOXEL_NORMAL_DETAIL_GLSL
 #define VE_VOXEL_NORMAL_DETAIL_GLSL
 
+#include "voxel_detail_filter.glsl"
 #include "voxel_environment.glsl"
 #include "voxel_noise.glsl"
 #include "voxel_surface_masks.glsl"
@@ -27,8 +28,12 @@ vec3 perturb_voxel_surface_normal(
 	vec3 bitangent;
 	voxel_surface_basis(geometric_normal, tangent, bitangent);
 	vec2 surface_coordinate = vec2(dot(world_position, tangent), dot(world_position, bitangent));
+	float detail_visibility = voxel_procedural_detail_visibility(
+		world_position,
+		surface_coordinate,
+		environment);
 	float solid_material = saturate(masks.stone * 0.70 + masks.dryness * 0.45 + masks.greenery * 0.24);
-	float detail_strength = solid_material * environment.surface_detail_strength * 0.16;
+	float detail_strength = solid_material * environment.surface_detail_strength * detail_visibility * 0.16;
 	vec3 detailed_normal = geometric_normal;
 	if (detail_strength > 0.0001)
 	{
@@ -45,7 +50,8 @@ vec3 perturb_voxel_surface_normal(
 	float wave_time = environment.elapsed_seconds * 1.35;
 	float first_wave = sin(dot(surface_coordinate, vec2(1.73, 1.12)) * 2.1 + wave_time);
 	float second_wave = cos(dot(surface_coordinate, vec2(-1.08, 1.94)) * 2.7 - wave_time * 1.21);
-	vec2 wave_gradient = vec2(first_wave, second_wave) * 0.075 * environment.surface_detail_strength;
+	vec2 wave_gradient = vec2(first_wave, second_wave) * 0.075 *
+		environment.surface_detail_strength * detail_visibility;
 	vec3 water_normal = normalize(
 		geometric_normal + tangent * wave_gradient.x + bitangent * wave_gradient.y);
 	return normalize(mix(detailed_normal, water_normal, masks.water));

@@ -1,0 +1,88 @@
+
+#include "voxel/Assets.h"
+#include "voxel/Camera.h"
+#include "voxel/EngineConfigTypes.h"
+#include "voxel/Materials.h"
+#include "voxel/Runtime.h"
+#include "voxel/Scene.h"
+#include "voxel/WorldConfig.h"
+
+#include <string>
+#include <vector>
+
+namespace voxel
+{
+	/** Startup-only settings extracted from EngineConfig before runtime systems are created. */
+	struct EngineStartupConfig
+	{
+		WindowConfig window{};
+		WorldConfig world{};
+		AssetCatalog assets{};
+		MaterialLibrary materials{};
+		SceneGraph scene_graph{};
+		CameraConfig camera{};
+		LogSettings logging{};
+		GraphicsApi graphics_api = GraphicsApi::Vulkan;
+		DemoScene demo_scene = DemoScene::HyperrealDesert;
+		VoxelRenderStyle voxel_render_style{};
+	};
+
+	/** Per-frame runtime tuning extracted from EngineConfig after startup validation. */
+	struct EngineRuntimeTuning
+	{
+		int render_distance_chunks = 8;
+		bool show_debug_overlay = true;
+		bool enable_settings_menu = true;
+	};
+
+	/** Main fluent configuration object for launching or embedding the engine. */
+	struct EngineConfig
+	{
+		WindowConfig window{};
+		WorldConfig world{};
+		AssetCatalog assets{};
+		MaterialLibrary materials{};
+		SceneGraph scene_graph{};
+		CameraConfig camera{};
+		LogSettings logging{};
+		GraphicsApi graphics_api = GraphicsApi::Vulkan;
+		DemoScene demo_scene = DemoScene::HyperrealDesert;
+		VoxelRenderStyle voxel_render_style{};
+		int render_distance_chunks = 8;
+		bool show_debug_overlay = true;
+		bool enable_settings_menu = true;
+		UpdateCallback on_update{};
+		DiagnosticsCallback on_diagnostics{};
+		LogCallback on_log{};
+
+		/** Returns the default runtime configuration. */
+		[[nodiscard]] static EngineConfig Default();
+
+		/** Returns the authored hyperreal voxel desert demo configuration. */
+		[[nodiscard]] static EngineConfig DesertDemo();
+
+		/** Returns the Aqua model voxelization demo configuration. */
+		[[nodiscard]] static EngineConfig AquaModelDemo();
+
+		/** Returns the Sponza atrium voxelization demo configuration. */
+		[[nodiscard]] static EngineConfig SponzaAtriumDemo();
+
+		/** Returns the legacy Minecraft-style demo configuration. */
+		[[nodiscard]] static EngineConfig MinecraftDemo();
+
+		/** Returns the world-editing callback demo configuration. */
+		[[nodiscard]] static EngineConfig WorldEditDemo();
+
+		/** Returns the general showcase demo configuration. */
+		[[nodiscard]] static EngineConfig ShowcaseDemo();
+
+		/** Returns the arcade snake demo configuration. */
+		[[nodiscard]] static EngineConfig ArcadeSnakeDemo();
+
+		/** Returns the arcade paddle demo configuration. */
+		[[nodiscard]] static EngineConfig ArcadePaddleDemo();
+
+		/** Returns the arcade blocks demo configuration. */
+		[[nodiscard]] static EngineConfig ArcadeBlocksDemo();
+
+		/** Returns the arcade invaders demo configuration. */

@@ -1,11 +1,15 @@
 #ifndef VE_VOXEL_LIGHTING_GLSL
 #define VE_VOXEL_LIGHTING_GLSL
 
+#include "voxel_ambient_occlusion.glsl"
+#include "voxel_diffuse.glsl"
 #include "voxel_emission.glsl"
 #include "voxel_environment.glsl"
 #include "voxel_reflections.glsl"
+#include "voxel_shadow_map.glsl"
 #include "voxel_shadowing.glsl"
 #include "voxel_specular.glsl"
+#include "voxel_subsurface.glsl"
 
 vec3 evaluate_voxel_lighting(vec3 albedo,
 	vec3 normal,
@@ -32,15 +36,26 @@ vec3 evaluate_voxel_lighting(vec3 albedo,
 	light_color = mix(light_color, high_sky, sky_bounce * height_blend * 0.18);
 	light_color = mix(light_color, low_bounce, horizon_light * (1.0 - height_blend) * 0.08);
 
+	float roughness = voxel_surface_roughness(world_position, normal, masks);
+	float rough_diffuse = evaluate_voxel_rough_diffuse(
+		normal,
+		view_direction,
+		environment.sun_direction,
+		roughness);
 	float ambient = mix(0.34, 0.64, sky_bounce);
-	float diffuse = 0.14 + direct_light * 0.62 * environment.sun_intensity;
+	float diffuse = 0.14 + rough_diffuse * 0.62 * environment.sun_intensity;
 	float rim = 0.075 * grazing_rim * sky_bounce;
-	float contact = mix(0.94, 1.0, sky_bounce) *
+	float local_shadow = mix(0.94, 1.0, sky_bounce) *
 		voxel_micro_shadow(world_position, normal) *
 		voxel_contact_shadow(world_position, normal, masks, environment) *
-		voxel_horizon_occlusion(normal, height_blend);
+		voxel_horizon_occlusion(normal, height_blend) *
+		evaluate_voxel_directional_shadow(world_position, normal, environment);
+	float ambient_occlusion = evaluate_voxel_ambient_occlusion(
+		world_position,
+		normal,
+		masks,
+		environment);
 	float clamped_vertex_light = clamp(vertex_light, 0.0, 1.70);
-	float roughness = voxel_surface_roughness(world_position, normal, masks);
 	vec3 specular = evaluate_voxel_specular(
 		albedo,
 		normal,
@@ -49,9 +64,11 @@ vec3 evaluate_voxel_lighting(vec3 albedo,
 		masks,
 		environment);
 
-	vec3 lit = albedo * clamped_vertex_light * (ambient + diffuse + rim) * light_color * contact;
+	float diffuse_response = ambient * ambient_occlusion + (diffuse + rim) * local_shadow;
+	vec3 lit = albedo * clamped_vertex_light * diffuse_response * light_color;
 	lit += vec3(0.015, 0.020, 0.030) * side_fill * (1.0 - direct_light);
 	lit += specular;
+	lit += evaluate_voxel_subsurface(albedo, normal, view_direction, masks, environment);
 	lit = apply_voxel_reflections(lit, normal, view_direction, masks, environment);
 	lit = apply_voxel_emission(lit, albedo, world_position, masks, environment);
 	return max(lit - vec3(0.014), vec3(0.0));

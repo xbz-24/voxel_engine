@@ -22,20 +22,34 @@ descriptor layout is shared by the sky and voxel pipelines.
 
 The renderer records the scene in this order:
 
-1. Upload camera, elapsed time, viewport, atmosphere, and surface settings to
-   descriptor set 0, binding 0.
-2. Begin the render pass and bind the frame descriptor set.
-3. Draw a full-screen procedural sky.
-4. Draw the indexed voxel world mesh.
-5. Record the optional overlay and end the render pass.
+1. Upload camera, light matrix, elapsed time, viewport, atmosphere, and surface
+   settings to descriptor set 0, binding 0.
+2. Render the indexed world mesh into the current frame's directional shadow
+   depth image.
+3. Transition that image for PCF sampling through the shadow render pass.
+4. Begin the main render pass and bind the same frame descriptor set.
+5. Draw a full-screen procedural sky and the indexed voxel world mesh.
+6. Record the optional overlay and end the render pass.
 
 ## Shader ABI
 
 The CPU and GLSL contracts deliberately use different update paths:
 
 - A 64-byte matrix push constant changes between the sky and world draws.
-- A 128-byte `std140` uniform block changes once per frame.
-- The uniform block is fragment-only and lives at set 0, binding 0.
+- A 224-byte `std140` uniform block changes once per frame and includes the
+  directional light view-projection matrix.
+- The uniform block lives at set 0, binding 0; fragment stages consume the
+  environment and the shadow vertex stage consumes the light matrix.
+
+Binding 1 contains the current frame's 2048x2048 comparison depth image. Each
+frame in flight owns a separate shadow image, view, and framebuffer, so updating
+one frame never races a previous GPU submission. The main fragment shader uses
+a manually weighted 3x3 PCF kernel and receiver bias. The light projection is
+snapped to shadow-map texels to prevent subpixel swimming as the camera moves.
+
+The CPU builds a second index buffer containing only voxel faces oriented toward
+the configured sun. The overlay reports visual and shadow index counts so the
+depth-pass amplification remains measurable on large worlds.
 
 `VulkanGpuChunkRendererTypes.h` has size and offset assertions for the C++ side.
 `voxel_transform.glsl` and `voxel_environment.glsl` define the GLSL side. Keep
@@ -55,8 +69,16 @@ fragment work into focused layers:
 
 - Environment: frame uniforms, transform ABI, math, noise, and tone mapping.
 - Materials: surface masks, material tint, emission, and procedural detail.
-- Lighting: GGX BRDF, specular response, contact shadowing, and reflections.
-- Atmosphere: fog, sky scattering, animated clouds, and water reflections.
+- Lighting: GGX BRDF, Oren-Nayar rough diffusion, procedural ambient occlusion,
+  directional shadow mapping, subsurface response, contact shadowing, and
+  reflections.
+- Atmosphere: Beer-Lambert aerial perspective, sky scattering, animated clouds
+  with self-shadow absorption, and water reflections.
+
+Procedural normal and edge detail use screen-space derivatives plus camera
+distance to fade frequencies that cannot be sampled reliably. Keep that
+filtering in place when adding higher-frequency noise; unfiltered detail causes
+shimmer and wastes fragment work in the distance.
 
 Include guards make modules composable. New modules must also be listed in
 `VE_VULKAN_SHADER_INCLUDE_SOURCES`; this gives CMake the complete dependency

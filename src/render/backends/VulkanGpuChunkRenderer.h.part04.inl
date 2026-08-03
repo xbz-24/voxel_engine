@@ -1,0 +1,24 @@
+		VkBuffer index_buffer_ = VK_NULL_HANDLE;
+		VkDeviceMemory index_memory_ = VK_NULL_HANDLE;
+		VkDeviceSize index_buffer_capacity_bytes_ = 0;
+		VkBuffer shadow_index_buffer_ = VK_NULL_HANDLE;
+		VkDeviceMemory shadow_index_memory_ = VK_NULL_HANDLE;
+		VkDeviceSize shadow_index_buffer_capacity_bytes_ = 0;
+		ve::core::DynamicArray<VkImageView> swapchain_image_views_;
+		ve::core::DynamicArray<VkFramebuffer> framebuffers_;
+		VkExtent2D extent_{};
+		VkFormat color_format_ = VK_FORMAT_UNDEFINED;
+		VkFormat depth_format_ = VK_FORMAT_D32_SFLOAT;
+		std::uint64_t mesh_revision_ = 0;
+		std::uint64_t cached_chunk_storage_revision_ = 0;
+		std::uint32_t index_count_ = 0;
+		std::uint32_t shadow_index_count_ = 0;
+		std::uint32_t last_rebuilt_chunk_count_ = 0;
+		VulkanGpuChunkMeshStats mesh_stats_;
+		VoxelRenderStyle render_style_{};
+		std::vector<ShaderFrameResources> shader_frame_resources_;
+		std::vector<CachedChunkMesh> cached_chunk_meshes_;
+		bool mesh_valid_ = false;
+		bool initialized_ = false;
+	};
+}

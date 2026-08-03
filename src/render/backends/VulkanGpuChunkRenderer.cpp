@@ -36,6 +36,10 @@ namespace ve::rendering
 			VK_OBJECT_TYPE_PIPELINE,
 			VulkanPipelineObjectHandle(sky_pipeline_),
 			"voxel_engine.pipeline.sky");
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(shadow_pipeline_),
+			"voxel_engine.pipeline.directional_shadow");
 		initialized_ = true;
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan GPU chunk renderer initialized");
 		return true;

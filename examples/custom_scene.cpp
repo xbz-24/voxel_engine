@@ -28,6 +28,11 @@ int main()
 			.WithFogStrength(0.48f)
 			.WithClouds(0.44f, 0.64f, 0.018f)
 			.WithSurfaceDetail(1.15f)
-			.WithWaterReflections(1.25f))
+			.WithWaterReflections(1.25f)
+			.WithAmbientOcclusion(1.05f)
+			.WithAerialPerspective(1.10f)
+			.WithSubsurfaceScattering(1.20f)
+			.WithCloudLightAbsorption(1.08f)
+			.WithDirectionalShadows(0.95f, 1.20f, 210.0f))
 		.HideDebugOverlay());
 }
