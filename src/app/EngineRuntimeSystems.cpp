@@ -1,4 +1,5 @@
 #include "EngineRuntime.h"
+#include "EngineRuntimeEnvironment.h"
 
 #include "CoreTypes.h"
 #include "Logger.h"
@@ -14,6 +15,8 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+namespace ve::engine
+{
 ve::rendering::VulkanBackend* EngineRuntime::ActiveVulkanBackend() noexcept
 	{
 		if (backend_ == nullptr || backend_->Api() != ve::rendering::GraphicsApi::Vulkan) return nullptr;
@@ -98,7 +101,7 @@ ve::rendering::VulkanBackend* EngineRuntime::ActiveVulkanBackend() noexcept
 		ve::rendering::VulkanBackend& vulkan_backend = RequiredVulkanBackend();
 		ve::rendering::VulkanBackendSettings settings{};
 #if !defined(NDEBUG)
-		if (EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
+		if (runtime_detail::EnvironmentFlagEnabled("VE_VULKAN_VALIDATION"))
 		{
 			settings.context.enable_validation_layers = true;
 			settings.context.enable_debug_utils = true;
@@ -127,3 +130,4 @@ ve::rendering::VulkanBackend* EngineRuntime::ActiveVulkanBackend() noexcept
 		}
 		return EngineStartupResult::Success();
 	}
+}

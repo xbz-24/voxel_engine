@@ -1,4 +1,5 @@
 #include "VulkanImGuiOverlay.h"
+#include "VulkanImGuiOverlayDetail.h"
 
 #include "CoreTypes.h"
 #include "Logger.h"
@@ -15,7 +16,9 @@
 #include <cstdint>
 #include <string>
 
-void VulkanImGuiOverlay::BeginFrame(VulkanOverlaySettings& settings, const VulkanRendererStats& stats)
+namespace ve::rendering
+{
+	void VulkanImGuiOverlay::BeginFrame(VulkanOverlaySettings& settings, const VulkanRendererStats& stats)
 	{
 		has_draw_data_ = false;
 		if (!initialized_) return;
@@ -28,7 +31,7 @@ void VulkanImGuiOverlay::BeginFrame(VulkanOverlaySettings& settings, const Vulka
 			ImGui::SetNextWindowSize(ImVec2{ 420.0f, 360.0f }, ImGuiCond_FirstUseEver);
 			if (ImGui::Begin("Vulkan Renderer", &settings.show_window))
 			{
-				if (settings.show_metrics) DrawStats(stats);
+				if (settings.show_metrics) detail::DrawStats(stats);
 				ImGui::Checkbox("Metrics", &settings.show_metrics);
 			}
 			ImGui::End();
@@ -37,3 +40,4 @@ void VulkanImGuiOverlay::BeginFrame(VulkanOverlaySettings& settings, const Vulka
 		const ImDrawData* draw_data = ImGui::GetDrawData();
 		has_draw_data_ = draw_data != nullptr && draw_data->TotalVtxCount > 0;
 	}
+}

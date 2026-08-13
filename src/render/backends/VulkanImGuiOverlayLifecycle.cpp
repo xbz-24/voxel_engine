@@ -15,7 +15,9 @@
 #include <cstdint>
 #include <string>
 
-void VulkanImGuiOverlay::Record(VkCommandBuffer command_buffer)
+namespace ve::rendering
+{
+	void VulkanImGuiOverlay::Record(VkCommandBuffer command_buffer)
 	{
 		if (!initialized_ || !has_draw_data_) return;
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer);

@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -15,7 +16,6 @@ namespace voxel::detail
 {
 	const IEngineConfigValidator& DefaultEngineConfigValidator() noexcept
 	{
-		static const EngineConfigValidator validator{};
-		return validator;
+		return config_validation::ValidatorInstance();
 	}
 }

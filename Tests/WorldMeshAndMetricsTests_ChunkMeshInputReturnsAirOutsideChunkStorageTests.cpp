@@ -12,6 +12,7 @@
 #include "WorldBlockEdit.h"
 #include "WorldCoordinates.h"
 #include "TestTypeHelpers.h"
+#include "WorldMeshTestSupport.h"
 
 #include <cstddef>
 #include <memory>
@@ -32,25 +33,5 @@ TEST_CASE("chunk mesh input returns air outside chunk storage")
 	CHECK(input.GetBlock(16, 0, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 128, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 0, 16) == ve::blocks::BlockId::Air);
-}
-
-namespace
-{
-	std::size_t LocalBlockIndex(int local_block_x, int local_block_y, int local_block_z)
-	{
-		return ve::core::ToIndex(
-			(local_block_x * ve::world::terrain::ChunkHeight + local_block_y) *
-			ve::world::terrain::ChunkDepth + local_block_z);
-	}
-
-	void SetLocalBlock(
-		std::vector<ve::blocks::BlockId>& chunk_blocks,
-		int local_block_x,
-		int local_block_y,
-		int local_block_z,
-		ve::blocks::BlockId block_id)
-	{
-		chunk_blocks[LocalBlockIndex(local_block_x, local_block_y, local_block_z)] = block_id;
-	}
 }
 

@@ -16,6 +16,8 @@
 #include <cmath>
 #include <optional>
 
+namespace ve::engine
+{
 void GameController::UpdateSelection(BlockSelectionFrameContext& frame)
 	{
 		constexpr float maximum_block_reach = 8.0f;
@@ -58,3 +60,4 @@ void GameController::UpdateSelection(BlockSelectionFrameContext& frame)
 			ve::gameplay::PlaceBlock(frame.world, frame.selection.placement_block, selected_placement_block_);
 		}
 	}
+}

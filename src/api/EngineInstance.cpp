@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+namespace voxel
+{
 class Engine::Impl
 	{
 	public:
@@ -164,3 +166,4 @@ class Engine::Impl
 	{
 		return impl_->IsRunning();
 	}
+}

@@ -12,6 +12,7 @@
 #include "WorldBlockEdit.h"
 #include "WorldCoordinates.h"
 #include "TestTypeHelpers.h"
+#include "WorldTerrainTestSupport.h"
 
 #include <cstddef>
 #include <memory>
@@ -32,23 +33,5 @@ TEST_CASE("chunk mesh input returns air outside chunk storage")
 	CHECK(input.GetBlock(16, 0, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 128, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 0, 16) == ve::blocks::BlockId::Air);
-}
-
-namespace
-{
-	int HighestSolidBlockY(
-		const ve::world::terrain::BlockStorage& generatedBlockStorage,
-		int localBlockX,
-		int localBlockZ)
-	{
-		for (int localBlockY = ve::world::terrain::ChunkHeight - 1; localBlockY >= 0; localBlockY--)
-		{
-			if (generatedBlockStorage[localBlockX][localBlockY][localBlockZ] != ve::blocks::BlockId::Air)
-			{
-				return localBlockY;
-			}
-		}
-		return -1;
-	}
 }
 

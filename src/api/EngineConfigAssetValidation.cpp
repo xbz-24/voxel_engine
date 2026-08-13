@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -11,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace voxel
+namespace voxel::detail::config_validation
 {
 	namespace
 	{
@@ -118,7 +119,7 @@ namespace voxel
 
 		template <std::ranges::input_range AssetRange>
 			requires PublicAssetRecord<std::remove_cvref_t<std::ranges::range_reference_t<AssetRange>>>
-		void ValidateAssets(const AssetRange& assets,
+		void ValidateAssetRecords(const AssetRange& assets,
 			std::string_view asset_kind,
 			bool require_existing_files,
 			std::vector<std::string>& issues)
@@ -131,7 +132,33 @@ namespace voxel
 			}
 		}
 
-		void ValidateSearchRoots(std::span<const std::string> search_roots,
+	}
+
+	void ValidateAssets(const std::vector<TextureAsset>& assets,
+		std::string_view asset_kind,
+		bool require_existing_files,
+		std::vector<std::string>& issues)
+	{
+		ValidateAssetRecords(assets, asset_kind, require_existing_files, issues);
+	}
+
+	void ValidateAssets(const std::vector<ModelAsset>& assets,
+		std::string_view asset_kind,
+		bool require_existing_files,
+		std::vector<std::string>& issues)
+	{
+		ValidateAssetRecords(assets, asset_kind, require_existing_files, issues);
+	}
+
+	void ValidateAssets(const std::vector<SoundAsset>& assets,
+		std::string_view asset_kind,
+		bool require_existing_files,
+		std::vector<std::string>& issues)
+	{
+		ValidateAssetRecords(assets, asset_kind, require_existing_files, issues);
+	}
+
+	void ValidateSearchRoots(std::span<const std::string> search_roots,
 			bool require_existing_directories,
 			std::vector<std::string>& issues)
 		{
@@ -147,5 +174,4 @@ namespace voxel
 				}
 			}
 		}
-	}
 }

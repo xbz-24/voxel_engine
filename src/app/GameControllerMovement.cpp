@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerHelpers.h"
 
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
@@ -16,6 +17,8 @@
 #include <cmath>
 #include <optional>
 
+namespace ve::engine
+{
 void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& movement_frame)
 	{
 		const bool was_menu_open = movement_frame.settings.editor.is_settings_menu_open;
@@ -26,13 +29,13 @@ void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& mo
 
 	void GameController::UpdatePlayerMovement(PlayerMovementFrameContext& frame)
 	{
-		ConsumeFlyToggle(frame.input, frame.settings, input_state_.was_fly_toggle_pressed);
-		ConsumeRenderDistanceAdjustment(frame.input,
+		game_controller_detail::ConsumeFlyToggle(frame.input, frame.settings, input_state_.was_fly_toggle_pressed);
+		game_controller_detail::ConsumeRenderDistanceAdjustment(frame.input,
 			frame.settings,
 			ve::gameplay::GameplayAction::RenderDistanceDecrease,
 			-1,
 			input_state_.was_render_distance_decrease_pressed);
-		ConsumeRenderDistanceAdjustment(frame.input,
+		game_controller_detail::ConsumeRenderDistanceAdjustment(frame.input,
 			frame.settings,
 			ve::gameplay::GameplayAction::RenderDistanceIncrease,
 			1,
@@ -85,3 +88,4 @@ void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& mo
 
 		frame.camera.MoveTo(position);
 	}
+}

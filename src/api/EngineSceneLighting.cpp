@@ -1,12 +1,15 @@
 #include "voxel/Engine.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <set>
-#include <string>
-#include <utility>
+#include "SceneValueHelpers.h"
 
-Light Light::Sun(Vec3 direction, float intensity) noexcept
+#include <algorithm>
+
+namespace voxel
+{
+	using detail::ClampColorToNormalizedRange;
+	using detail::ClampToNonNegativeFloat;
+
+	Light Light::Sun(Vec3 direction, float intensity) noexcept
 	{
 		Light light{};
 		light.kind = LightKind::Directional;
@@ -83,3 +86,4 @@ Light Light::Sun(Vec3 direction, float intensity) noexcept
 		time_of_day = std::clamp(hour, 0.0f, 24.0f);
 		return *this;
 	}
+}

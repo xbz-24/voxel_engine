@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+namespace voxel
+{
 EngineConfig EngineConfig::Default()
 	{
 		return {};
@@ -117,3 +119,4 @@ EngineConfig EngineConfig::Default()
 		logging.EnableConsole(enabled);
 		return *this;
 	}
+}

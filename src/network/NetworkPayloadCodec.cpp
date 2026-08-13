@@ -1,62 +1,31 @@
-#include "NetworkSerialization.h"
+#include "NetworkPayloadCodec.h"
 
-#include "CoreTypes.h"
-#include "NetworkByteCodec.h"
-
-#include <algorithm>
 #include <utility>
 
-namespace
+namespace ve::network::detail
 {
-	class PayloadWriter
+	void PayloadWriter::WriteBytes(std::span<const std::byte> sourceBytes)
 	{
-	public:
-		template <typename Value>
-		void Write(const Value& value)
-		{
-			ve::network::AppendSerializedValue(_payloadBytes, value);
-		}
+		_payloadBytes.insert(_payloadBytes.end(), sourceBytes.begin(), sourceBytes.end());
+	}
 
-		void WriteBytes(std::span<const std::byte> sourceBytes)
-		{
-			_payloadBytes.insert(_payloadBytes.end(), sourceBytes.begin(), sourceBytes.end());
-		}
-
-		[[nodiscard]] ve::network::ByteBuffer Finish() &&
-		{
-			return std::move(_payloadBytes);
-		}
-
-	private:
-		ve::network::ByteBuffer _payloadBytes;
-	};
-
-	class PayloadReader
+	ByteBuffer PayloadWriter::Finish() &&
 	{
-	public:
-		explicit PayloadReader(std::span<const std::byte> serializedPayloadBytes) noexcept
-			: _serializedPayloadBytes(serializedPayloadBytes)
-		{
-		}
+		return std::move(_payloadBytes);
+	}
 
-		template <typename Value>
-		bool Read(Value& output)
-		{
-			return ve::network::ReadSerializedValue(_serializedPayloadBytes, _readOffset, output);
-		}
+	PayloadReader::PayloadReader(std::span<const std::byte> serializedPayloadBytes) noexcept
+		: _serializedPayloadBytes(serializedPayloadBytes)
+	{
+	}
 
-		[[nodiscard]] std::optional<std::span<const std::byte>> ReadBytes(std::size_t byteCount)
-		{
-			return ve::network::ReadByteSpan(_serializedPayloadBytes, _readOffset, byteCount);
-		}
+	std::optional<std::span<const std::byte>> PayloadReader::ReadBytes(std::size_t byteCount)
+	{
+		return ReadByteSpan(_serializedPayloadBytes, _readOffset, byteCount);
+	}
 
-		[[nodiscard]] bool IsFinished() const noexcept
-		{
-			return _readOffset == _serializedPayloadBytes.size();
-		}
-
-	private:
-		std::span<const std::byte> _serializedPayloadBytes;
-		std::size_t _readOffset = 0;
-	};
+	bool PayloadReader::IsFinished() const noexcept
+	{
+		return _readOffset == _serializedPayloadBytes.size();
+	}
 }

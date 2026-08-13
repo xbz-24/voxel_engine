@@ -1,10 +1,15 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigTranslatorInternal.h"
 
 #include "CoreTypes.h"
 
 #include <algorithm>
 #include <utility>
 
+namespace voxel::detail::config_translation
+{
+namespace
+{
 class EngineConfigTranslator final : public IEngineConfigTranslator
 		{
 		public:
@@ -24,3 +29,10 @@ class EngineConfigTranslator final : public IEngineConfigTranslator
 			}
 		};
 	}
+
+	const IEngineConfigTranslator& TranslatorInstance() noexcept
+	{
+		static const EngineConfigTranslator translator{};
+		return translator;
+	}
+}

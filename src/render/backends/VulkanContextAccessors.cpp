@@ -10,7 +10,9 @@
 #include <string>
 #include <vector>
 
-void VulkanContext::Release()
+namespace ve::rendering
+{
+	void VulkanContext::Release()
 	{
 		if (debug_messenger_ != VK_NULL_HANDLE)
 		{

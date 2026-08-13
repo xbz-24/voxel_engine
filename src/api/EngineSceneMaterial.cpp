@@ -1,12 +1,17 @@
 #include "voxel/Engine.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <set>
+#include "SceneValueHelpers.h"
+
 #include <string>
 #include <utility>
 
-Material Material::Named(std::string name)
+namespace voxel
+{
+	using detail::ClampColorToNormalizedRange;
+	using detail::ClampToNonNegativeFloat;
+	using detail::ClampToNormalizedFloatRange;
+
+	Material Material::Named(std::string name)
 	{
 		Material material{};
 		material.name = std::move(name);
@@ -78,3 +83,4 @@ Material Material::Named(std::string name)
 		transparent = enabled;
 		return *this;
 	}
+}

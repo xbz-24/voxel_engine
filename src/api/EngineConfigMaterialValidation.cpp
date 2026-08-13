@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -11,10 +12,8 @@
 #include <type_traits>
 #include <utility>
 
-namespace voxel
+namespace voxel::detail::config_validation
 {
-	namespace
-	{
 		void ValidateMaterialNameIsPresentAndUnique(const Material& material,
 			std::set<std::string>& material_names_seen,
 			std::vector<std::string>& issues)
@@ -57,5 +56,4 @@ namespace voxel
 				ValidateMaterialDefinition(material, material_names_seen, issues);
 			}
 		}
-	}
 }

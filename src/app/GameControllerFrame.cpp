@@ -16,6 +16,8 @@
 #include <cmath>
 #include <optional>
 
+namespace ve::engine
+{
 /// Updates player input, targeting, physics, and block edits.
 	void GameController::Update(Window& window,
 		GameModel& model,
@@ -67,3 +69,4 @@
 		ProcessGameplayInput(command_frame);
 		UpdateSelection(selection_frame);
 	}
+}

@@ -59,3 +59,4 @@ namespace ve::engine
 			? Window::CursorMode::Normal
 			: Window::CursorMode::Captured);
 	}
+}

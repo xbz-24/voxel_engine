@@ -1,4 +1,5 @@
 #include "VulkanImGuiOverlay.h"
+#include "VulkanImGuiOverlayDetail.h"
 
 #include "CoreTypes.h"
 #include "Logger.h"
@@ -15,7 +16,9 @@
 #include <cstdint>
 #include <string>
 
-bool VulkanImGuiOverlay::Initialize(VulkanBackend& backend, ve::engine::Window& window, VkRenderPass render_pass)
+namespace ve::rendering
+{
+	bool VulkanImGuiOverlay::Initialize(VulkanBackend& backend, ve::engine::Window& window, VkRenderPass render_pass)
 	{
 		Release();
 		device_ = backend.Device().Handle();
@@ -48,7 +51,7 @@ bool VulkanImGuiOverlay::Initialize(VulkanBackend& backend, ve::engine::Window& 
 		init_info.ImageCount = image_count;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		init_info.DescriptorPoolSize = 64u;
-		init_info.CheckVkResultFn = CheckVkResult;
+		init_info.CheckVkResultFn = detail::CheckVkResult;
 		init_info.MinAllocationSize = 1024u * 1024u;
 		if (!ImGui_ImplVulkan_Init(&init_info))
 		{
@@ -60,3 +63,4 @@ bool VulkanImGuiOverlay::Initialize(VulkanBackend& backend, ve::engine::Window& 
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan ImGui overlay initialized");
 		return true;
 	}
+}

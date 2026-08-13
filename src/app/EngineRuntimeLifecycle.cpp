@@ -70,3 +70,4 @@ namespace ve::engine
 		ve::log::SetCallback(create_info.on_log);
 		engine_.ConfigureRuntimeLogging(asset_paths_);
 	}
+}

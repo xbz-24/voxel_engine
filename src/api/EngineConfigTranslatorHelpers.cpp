@@ -1,10 +1,13 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigTranslatorInternal.h"
 
 #include "CoreTypes.h"
 
 #include <algorithm>
 #include <utility>
 
+namespace voxel::detail::config_translation
+{
 [[nodiscard]] ve::engine::WorldBlockEdit ToInternalWorldEdit(const WorldEdit& edit)
 		{
 			const ve::blocks::BlockId internal_block = ToInternalBlock(edit.block);
@@ -170,3 +173,4 @@
 			result.file_output_path = std::move(logging.file_output_path);
 			return result;
 		}
+}

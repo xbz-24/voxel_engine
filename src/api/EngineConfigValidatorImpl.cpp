@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -11,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace voxel
+namespace voxel::detail::config_validation
 {
 	namespace
 	{
@@ -173,7 +174,7 @@ namespace voxel
 			}
 		}
 
-		class EngineConfigValidator final : public detail::IEngineConfigValidator
+		class EngineConfigValidator final : public IEngineConfigValidator
 		{
 		public:
 			[[nodiscard]] std::vector<std::string> Validate(const EngineConfig& config) const override
@@ -189,3 +190,10 @@ namespace voxel
 			}
 		};
 	}
+
+	const IEngineConfigValidator& ValidatorInstance() noexcept
+	{
+		static const EngineConfigValidator validator{};
+		return validator;
+	}
+}

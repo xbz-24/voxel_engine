@@ -1,10 +1,13 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigTranslatorInternal.h"
 
 #include "CoreTypes.h"
 
 #include <algorithm>
 #include <utility>
 
+namespace voxel::detail::config_translation
+{
 void ApplyWindowConfigurationToCreateInfo(ve::engine::EngineCreateInfo& create_info,
 			const EngineConfig& config)
 		{
@@ -65,3 +68,4 @@ void ApplyWindowConfigurationToCreateInfo(ve::engine::EngineCreateInfo& create_i
 			create_info.terrain_generation = ToInternalTerrainGeneration(config.world);
 			AppendWorldEditsToCreateInfo(create_info, config.world);
 		}
+}

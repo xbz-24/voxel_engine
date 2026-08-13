@@ -1,10 +1,13 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigTranslatorInternal.h"
 
 #include "CoreTypes.h"
 
 #include <algorithm>
 #include <utility>
 
+namespace voxel::detail::config_translation
+{
 [[nodiscard]] FrameContext BuildPublicFrameContextFromRuntimeFrame(
 			const ve::engine::RuntimeFrameContext& runtime_frame)
 		{
@@ -85,3 +88,4 @@
 					callback(BuildPublicDiagnosticsFromRuntimeDiagnostics(runtime_diagnostics));
 				};
 		}
+}

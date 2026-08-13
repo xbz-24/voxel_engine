@@ -12,6 +12,7 @@
 #include "WorldBlockEdit.h"
 #include "WorldCoordinates.h"
 #include "TestTypeHelpers.h"
+#include "ComputeTerrainTestSupport.h"
 
 #include <cstddef>
 #include <memory>
@@ -32,36 +33,5 @@ TEST_CASE("chunk mesh input returns air outside chunk storage")
 	CHECK(input.GetBlock(16, 0, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 128, 0) == ve::blocks::BlockId::Air);
 	CHECK(input.GetBlock(0, 0, 16) == ve::blocks::BlockId::Air);
-}
-
-namespace
-{
-	class RecordingComputeDispatcher final : public ve::rendering::ComputeDispatcher
-	{
-	public:
-		explicit RecordingComputeDispatcher(bool supported) noexcept
-			: supported_(supported)
-		{
-		}
-
-		[[nodiscard]] bool IsSupported() const noexcept override
-		{
-			return supported_;
-		}
-
-		void Dispatch(
-			ve::rendering::ComputeProgramHandle program,
-			ve::rendering::ComputeDispatchSize size) const override
-		{
-			lastProgram = program;
-			lastDispatchSize = size;
-			dispatchCount++;
-		}
-
-		bool supported_ = false;
-		mutable ve::rendering::ComputeProgramHandle lastProgram{};
-		mutable ve::rendering::ComputeDispatchSize lastDispatchSize{};
-		mutable int dispatchCount = 0;
-	};
 }
 

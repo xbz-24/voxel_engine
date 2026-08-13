@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+namespace voxel
+{
 int Run(EngineConfig config)
 	{
 		Engine engine{ std::move(config) };

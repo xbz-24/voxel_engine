@@ -7,6 +7,8 @@
 #include <cassert>
 #include <limits>
 
+namespace ve::engine
+{
 /** Updates gameplay systems that still need the OpenGL block registry. */
 	void EngineRuntime::UpdateGameplay()
 	{
@@ -41,3 +43,4 @@
 		hud->Draw(engine_.CreateHudFrame(window_, model_->GetCamera(), frame_timer_,
 			model_->GetSelection(), *block_registry, model_->GetWorld(), controller_.SelectedPlacementBlock()));
 	}
+}

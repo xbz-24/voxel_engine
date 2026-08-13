@@ -1,4 +1,5 @@
 #include "EngineRuntime.h"
+#include "EngineRuntimeEnvironment.h"
 
 #include "CoreTypes.h"
 #include "Logger.h"
@@ -14,9 +15,8 @@
 #include <memory>
 #include <glm/glm.hpp>
 
-namespace
+namespace ve::engine::runtime_detail
 {
-#if !defined(NDEBUG)
 	bool EnvironmentFlagEnabled(const char* name) noexcept
 	{
 #if defined(_MSC_VER)
@@ -31,5 +31,4 @@ namespace
 		return value != nullptr && std::strcmp(value, "1") == 0;
 #endif
 	}
-#endif
 }

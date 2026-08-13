@@ -14,6 +14,8 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+namespace ve::engine
+{
 /** Runs frames until the window asks to close. */
 	void EngineRuntime::RunMainLoop()
 	{

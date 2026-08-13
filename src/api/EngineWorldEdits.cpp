@@ -7,7 +7,9 @@
 #include <fstream>
 #include <string>
 
-WorldConfig& WorldConfig::SetBlock(BlockPosition position, Block block)
+namespace voxel
+{
+	WorldConfig& WorldConfig::SetBlock(BlockPosition position, Block block)
 	{
 		edits.push_back(WorldEdit{
 			WorldEdit::Kind::SetBlock,
@@ -48,3 +50,4 @@ WorldConfig& WorldConfig::SetBlock(BlockPosition position, Block block)
 	{
 		return FillBox(first_x, first_y, first_z, second_x, second_y, second_z, Air);
 	}
+}

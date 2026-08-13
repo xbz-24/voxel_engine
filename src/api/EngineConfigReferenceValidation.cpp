@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -11,10 +12,8 @@
 #include <type_traits>
 #include <utility>
 
-namespace voxel
+namespace voxel::detail::config_validation
 {
-	namespace
-	{
 		void ValidateMaterialTextureBindingReferences(const Material& material,
 			const std::set<std::string, std::less<>>& texture_names,
 			std::vector<std::string>& issues)
@@ -55,5 +54,4 @@ namespace voxel
 				ValidateOptionalReference(entity.material, material_names, entity_label, "material", issues);
 			}
 		}
-	}
 }

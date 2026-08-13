@@ -7,7 +7,9 @@
 #include <fstream>
 #include <string>
 
-WorldConfig& WorldConfig::AddHouse(int center_x, int base_y, int center_z, int radius, Block walls, Block roof)
+namespace voxel
+{
+	WorldConfig& WorldConfig::AddHouse(int center_x, int base_y, int center_z, int radius, Block walls, Block roof)
 	{
 		const int left = center_x - radius;
 		const int right = center_x + radius;

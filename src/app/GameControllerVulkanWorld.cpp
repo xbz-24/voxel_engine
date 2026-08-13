@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerHelpers.h"
 
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
@@ -16,6 +17,8 @@
 #include <cmath>
 #include <optional>
 
+namespace ve::engine
+{
 /// Updates generic Vulkan gameplay and asynchronous terrain generation.
 	void GameController::UpdateVulkanWorld(Window& window,
 		GameModel& model,
@@ -43,7 +46,8 @@
 			if (hit)
 			{
 				const ve::blocks::BlockId target = model.GetWorld().GetBlock(hit->targetBlock);
-				if (!IsTunnelMaterial(target) || !CarveRoundedHole(model.MutableWorld(), block_registry, hit->targetBlock))
+				if (!game_controller_detail::IsTunnelMaterial(target) ||
+					!game_controller_detail::CarveRoundedHole(model.MutableWorld(), block_registry, hit->targetBlock))
 				{
 					ve::gameplay::BreakBlock(model.MutableWorld(), hit->targetBlock);
 				}

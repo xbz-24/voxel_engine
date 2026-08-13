@@ -12,6 +12,7 @@
 #include "WorldBlockEdit.h"
 #include "WorldCoordinates.h"
 #include "TestTypeHelpers.h"
+#include "WorldMeshTestSupport.h"
 
 #include <cstddef>
 #include <memory>

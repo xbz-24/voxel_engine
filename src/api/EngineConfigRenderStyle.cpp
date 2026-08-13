@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+namespace voxel
+{
 VoxelRenderStyle& VoxelRenderStyle::WithSunDirection(Vec3 direction) noexcept
 	{
 		sun_direction = direction;
@@ -124,3 +126,4 @@ VoxelRenderStyle& VoxelRenderStyle::WithSunDirection(Vec3 direction) noexcept
 		voxel_render_style = value;
 		return *this;
 	}
+}

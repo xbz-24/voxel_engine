@@ -1,13 +1,21 @@
 #include "voxel/Engine.h"
 
 #include "CoreTypes.h"
+#include "WorldSerializationHelpers.h"
 
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
 
-bool SaveWorldConfig(const WorldConfig& world, const std::string& path)
+namespace voxel
+{
+	using detail::FromSerializedBlock;
+	using detail::SaveWorldTerrainConfig;
+	using detail::ToSerializedBlock;
+	using detail::TryLoadWorldTerrainCommand;
+
+	bool SaveWorldConfig(const WorldConfig& world, const std::string& path)
 	{
 		std::ofstream file(path, std::ios::trunc);
 		if (!file) return false;
@@ -96,3 +104,4 @@ bool SaveWorldConfig(const WorldConfig& world, const std::string& path)
 		}
 		return world;
 	}
+}

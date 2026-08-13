@@ -1,7 +1,7 @@
 #include "NetworkSerialization.h"
 
 #include "CoreTypes.h"
-#include "NetworkByteCodec.h"
+#include "NetworkPayloadCodec.h"
 
 #include <algorithm>
 #include <utility>
@@ -15,7 +15,7 @@ namespace ve::network
 
 	ByteBuffer SerializeClientHello(const ClientHelloPayload& clientHello)
 	{
-		PayloadWriter writer;
+		detail::PayloadWriter writer;
 		const std::size_t boundedNameByteCount =
 			std::min(clientHello.playerName.size(), ve::core::ToIndex(MaxPlayerNameByteCount));
 		const std::uint16_t nameByteCount = ve::core::NumericCast<std::uint16_t>(boundedNameByteCount);
@@ -27,7 +27,7 @@ namespace ve::network
 
 	ByteBuffer SerializePlayerSnapshot(const PlayerSnapshotPayload& playerSnapshot)
 	{
-		PayloadWriter writer;
+		detail::PayloadWriter writer;
 		writer.Write(playerSnapshot.playerId);
 		writer.Write(playerSnapshot.simulationTickId);
 		writer.Write(playerSnapshot.positionX);
@@ -43,7 +43,7 @@ namespace ve::network
 
 	ByteBuffer SerializeBlockMutation(const BlockMutationPayload& blockMutation)
 	{
-		PayloadWriter writer;
+		detail::PayloadWriter writer;
 		writer.Write(blockMutation.mutationId);
 		writer.Write(blockMutation.authorPlayerId);
 		writer.Write(blockMutation.blockX);
@@ -52,3 +52,4 @@ namespace ve::network
 		writer.Write(blockMutation.blockId);
 		return std::move(writer).Finish();
 	}
+}

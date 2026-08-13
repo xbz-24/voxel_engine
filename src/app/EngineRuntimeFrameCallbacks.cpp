@@ -7,7 +7,9 @@
 #include <cassert>
 #include <limits>
 
-namespace
+namespace ve::engine
+{
+	namespace
 	{
 		[[nodiscard]] int ToDiagnosticCounter(std::size_t value) noexcept
 		{
@@ -118,3 +120,4 @@ namespace
 				engine_.RuntimeSettings().renderer.render_distance_chunks));
 		}
 	}
+}

@@ -7,7 +7,9 @@
 #include <fstream>
 #include <string>
 
-WorldConfig& WorldConfig::AddFloor(int block_y, int radius, Block block)
+namespace voxel
+{
+	WorldConfig& WorldConfig::AddFloor(int block_y, int radius, Block block)
 	{
 		return AddFloor(0, block_y, 0, radius, block);
 	}
@@ -91,3 +93,4 @@ WorldConfig& WorldConfig::AddFloor(int block_y, int radius, Block block)
 			.FillBox(west_rail_x, block_y + 1, start_z, west_rail_x, block_y + 1, end_z, rail)
 			.FillBox(east_rail_x, block_y + 1, start_z, east_rail_x, block_y + 1, end_z, rail);
 	}
+}

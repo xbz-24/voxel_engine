@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+namespace voxel
+{
 EngineConfig& EngineConfig::UseGraphicsApi(GraphicsApi value) noexcept
 	{
 		graphics_api = value;
@@ -88,3 +90,4 @@ EngineConfig& EngineConfig::UseGraphicsApi(GraphicsApi value) noexcept
 		on_log = std::move(callback);
 		return *this;
 	}
+}

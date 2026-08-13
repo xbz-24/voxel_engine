@@ -7,6 +7,8 @@
 #include <cassert>
 #include <limits>
 
+namespace ve::engine
+{
 ve::rendering::VulkanFrameInput EngineRuntime::CaptureVulkanFrameInput()
 	{
 		int window_width = 1;
@@ -43,3 +45,4 @@ ve::rendering::VulkanFrameInput EngineRuntime::CaptureVulkanFrameInput()
 			input,
 			vulkan_overlay_settings_);
 	}
+}

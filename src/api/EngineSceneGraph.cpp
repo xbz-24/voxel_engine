@@ -6,7 +6,9 @@
 #include <string>
 #include <utility>
 
-namespace
+namespace voxel
+{
+	namespace
 	{
 		[[nodiscard]] std::string SceneEntityLabel(const Entity& entity)
 		{

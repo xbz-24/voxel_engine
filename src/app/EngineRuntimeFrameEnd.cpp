@@ -7,6 +7,8 @@
 #include <cassert>
 #include <limits>
 
+namespace ve::engine
+{
 /** Renders editor panels and presents the native window. */
 	void EngineRuntime::EndRuntimeFrame()
 	{

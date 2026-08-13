@@ -1,14 +1,13 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigTranslatorInternal.h"
 
 #include "CoreTypes.h"
 
 #include <algorithm>
 #include <utility>
 
-namespace voxel::detail
+namespace voxel::detail::config_translation
 {
-	namespace
-	{
 		[[nodiscard]] ve::blocks::BlockId ToInternalBlock(Block block) noexcept
 		{
 			switch (block)
@@ -80,3 +79,4 @@ namespace voxel::detail
 			}
 			return ve::core::NumericCast<Block>(value);
 		}
+}

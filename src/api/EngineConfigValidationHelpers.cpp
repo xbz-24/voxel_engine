@@ -1,4 +1,5 @@
 #include "EngineRuntimeBridge.h"
+#include "EngineConfigValidationInternal.h"
 
 #include <algorithm>
 #include <concepts>
@@ -11,10 +12,8 @@
 #include <type_traits>
 #include <utility>
 
-namespace voxel
+namespace voxel::detail::config_validation
 {
-	namespace
-	{
 		[[nodiscard]] std::string MaterialLabel(const Material& material)
 		{
 			return material.name.empty() ? "material" : "material '" + material.name + "'";
@@ -61,7 +60,7 @@ namespace voxel
 		}
 
 		template <std::ranges::input_range NamedRange>
-		[[nodiscard]] std::set<std::string, std::less<>> CollectNonEmptyNamesFrom(const NamedRange& named_values)
+		[[nodiscard]] std::set<std::string, std::less<>> CollectNonEmptyNames(const NamedRange& named_values)
 		{
 			std::set<std::string, std::less<>> non_empty_names;
 			for (const auto& named_value : named_values)
@@ -88,5 +87,21 @@ namespace voxel
 				std::string{ reference });
 		}
 
+	std::set<std::string, std::less<>> CollectNonEmptyNamesFrom(
+		const std::vector<TextureAsset>& named_values)
+	{
+		return CollectNonEmptyNames(named_values);
+	}
+
+	std::set<std::string, std::less<>> CollectNonEmptyNamesFrom(
+		const std::vector<ModelAsset>& named_values)
+	{
+		return CollectNonEmptyNames(named_values);
+	}
+
+	std::set<std::string, std::less<>> CollectNonEmptyNamesFrom(
+		const std::vector<Material>& named_values)
+	{
+		return CollectNonEmptyNames(named_values);
 	}
 }

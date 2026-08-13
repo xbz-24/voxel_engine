@@ -14,6 +14,8 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+namespace ve::engine
+{
 void EngineRuntime::ApplyConfiguredWorldEditsOnce()
 	{
 		if (configured_world_edits_applied_ || model_ == nullptr) return;
@@ -40,3 +42,4 @@ void EngineRuntime::ApplyConfiguredWorldEditsOnce()
 			(void)ve::world::ApplyWorldBlockEdit(world, edit);
 		}
 	}
+}

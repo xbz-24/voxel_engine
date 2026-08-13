@@ -1,28 +1,28 @@
 #include "voxel/Engine.h"
 
 #include "CoreTypes.h"
+#include "WorldSerializationHelpers.h"
 
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <string>
 
-namespace
+namespace voxel::detail
 {
-	[[nodiscard]] int ToSerializedBlock(voxel::Block block) noexcept
+	int ToSerializedBlock(Block block) noexcept
 	{
 		return ve::core::ToInt(ve::core::ToU8(block));
 	}
 
-	[[nodiscard]] voxel::Block FromSerializedBlock(int value) noexcept
+	Block FromSerializedBlock(int value) noexcept
 	{
-		if (value < ToSerializedBlock(voxel::Block::Air) || value > ToSerializedBlock(voxel::Block::DeadBush))
+		if (value < ToSerializedBlock(Block::Air) || value > ToSerializedBlock(Block::DeadBush))
 		{
-			return voxel::Block::Air;
+			return Block::Air;
 		}
-		return ve::core::NumericCast<voxel::Block>(ve::core::ToU8(value));
+		return ve::core::NumericCast<Block>(ve::core::ToU8(value));
 	}
-
 }
 
 namespace voxel
@@ -100,3 +100,4 @@ namespace voxel
 	{
 		return World();
 	}
+}

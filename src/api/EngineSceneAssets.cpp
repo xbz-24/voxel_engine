@@ -1,8 +1,6 @@
 #include "voxel/Engine.h"
 
-#include <algorithm>
 #include <cstdint>
-#include <set>
 #include <string>
 #include <utility>
 
@@ -13,26 +11,6 @@ namespace voxel
 		[[nodiscard]] std::string LegacyAssetPathFromSource(const AssetSource& source)
 		{
 			return source.location;
-		}
-
-		[[nodiscard]] float ClampToNormalizedFloatRange(float value) noexcept
-		{
-			return std::clamp(value, NormalizedFloatRange.minimum, NormalizedFloatRange.maximum);
-		}
-
-		[[nodiscard]] float ClampToNonNegativeFloat(float value) noexcept
-		{
-			return std::max(0.0f, value);
-		}
-
-		[[nodiscard]] Color ClampColorToNormalizedRange(Color value) noexcept
-		{
-			return {
-				ClampToNormalizedFloatRange(value.r),
-				ClampToNormalizedFloatRange(value.g),
-				ClampToNormalizedFloatRange(value.b),
-				ClampToNormalizedFloatRange(value.a)
-			};
 		}
 	}
 
@@ -105,3 +83,4 @@ namespace voxel
 		sounds.push_back(SoundAsset{ std::move(name), LegacyAssetPathFromSource(source), std::move(source) });
 		return *this;
 	}
+}

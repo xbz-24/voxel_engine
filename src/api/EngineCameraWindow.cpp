@@ -114,3 +114,4 @@ namespace voxel
 	{
 		return WindowConfig::Fullscreen(std::move(title));
 	}
+}

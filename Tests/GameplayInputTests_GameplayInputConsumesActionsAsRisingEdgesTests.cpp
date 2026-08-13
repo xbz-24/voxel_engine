@@ -17,6 +17,7 @@
 #include "PhysicsBvh.h"
 #include "RuntimeInputRouter.h"
 #include "TestTypeHelpers.h"
+#include "GameplayInputTestSupport.h"
 
 #include <glm/geometric.hpp>
 
@@ -33,24 +34,6 @@
 #include <string_view>
 #include <thread>
 #include <vector>
-
-namespace
-{
-	void PressKey(ve::input::InputSnapshot& input, ve::input::Key key) noexcept
-	{
-		input.keys[ve::input::ToKeyIndex(key)] = true;
-	}
-
-	void ReleaseKey(ve::input::InputSnapshot& input, ve::input::Key key) noexcept
-	{
-		input.keys[ve::input::ToKeyIndex(key)] = false;
-	}
-
-	void PressMouseButton(ve::input::InputSnapshot& input, ve::input::MouseButton button) noexcept
-	{
-		input.mouse_buttons[ve::input::ToMouseButtonIndex(button)] = true;
-	}
-}
 
 TEST_CASE("gameplay input consumes actions as rising edges")
 {

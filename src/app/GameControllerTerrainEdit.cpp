@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerHelpers.h"
 
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
@@ -16,10 +17,8 @@
 #include <cmath>
 #include <optional>
 
-namespace ve::engine
+namespace ve::engine::game_controller_detail
 {
-	namespace
-	{
 		[[nodiscard]] bool IsTunnelMaterial(ve::blocks::BlockId block) noexcept
 		{
 			using enum ve::blocks::BlockId;

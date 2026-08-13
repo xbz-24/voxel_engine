@@ -1,12 +1,11 @@
 #include "NetworkSerialization.h"
 
-#include "CoreTypes.h"
 #include "NetworkByteCodec.h"
+#include "NetworkPayloadCodec.h"
 
-#include <algorithm>
-#include <utility>
-
-std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> payloadBytes)
+namespace ve::network
+{
+	std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> payloadBytes)
 	{
 		const std::optional<ClientHelloPayload> decodedClientHello = TryDeserializeClientHelloPayload(payloadBytes);
 		if (!decodedClientHello) return std::nullopt;
@@ -15,7 +14,7 @@ std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> 
 
 	std::optional<ClientHelloPayload> TryDeserializeClientHelloPayload(std::span<const std::byte> payloadBytes)
 	{
-		PayloadReader reader(payloadBytes);
+		detail::PayloadReader reader(payloadBytes);
 		std::uint16_t nameByteCount = 0;
 		if (!reader.Read(nameByteCount)) return std::nullopt;
 		if (nameByteCount == 0 || nameByteCount > MaxPlayerNameByteCount) return std::nullopt;
@@ -31,7 +30,7 @@ std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> 
 
 	std::optional<PlayerSnapshotPayload> TryDeserializePlayerSnapshot(std::span<const std::byte> payloadBytes)
 	{
-		PayloadReader reader(payloadBytes);
+		detail::PayloadReader reader(payloadBytes);
 		PlayerSnapshotPayload playerSnapshot{};
 		if (!reader.Read(playerSnapshot.playerId)) return std::nullopt;
 		if (!reader.Read(playerSnapshot.simulationTickId)) return std::nullopt;
@@ -49,7 +48,7 @@ std::optional<std::string> TryDeserializeClientHello(std::span<const std::byte> 
 
 	std::optional<BlockMutationPayload> TryDeserializeBlockMutation(std::span<const std::byte> payloadBytes)
 	{
-		PayloadReader reader(payloadBytes);
+		detail::PayloadReader reader(payloadBytes);
 		BlockMutationPayload blockMutation{};
 		if (!reader.Read(blockMutation.mutationId)) return std::nullopt;
 		if (!reader.Read(blockMutation.authorPlayerId)) return std::nullopt;
