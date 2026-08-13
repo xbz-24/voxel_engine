@@ -1,6 +1,8 @@
 #include "Engine.h"
 
 #include "EngineRuntime.h"
+#include "VoxelSandboxModule.h"
+#include "VoxelSandboxRuntimeConfiguration.h"
 
 bool EngineApplication::Start()
 {
@@ -22,8 +24,10 @@ ve::engine::EngineStartupResult EngineApplication::StartDetailed()
 	{
 		return ve::engine::EngineStartupResult::Success();
 	}
-	stop_requested_.store(false, std::memory_order_relaxed);
-	auto runtime = std::make_unique<ve::engine::EngineRuntime>(*this);
+	auto module = std::make_unique<ve::engine::VoxelSandboxModule>(*this);
+	auto runtime = std::make_unique<ve::engine::EngineRuntime>(
+		ve::engine::CreateRuntimeHostConfiguration(CreateInfo()),
+		std::move(module));
 	const ve::engine::EngineStartupResult startup_result = runtime->Start();
 	if (!startup_result)
 	{
@@ -70,12 +74,7 @@ int EngineApplication::Run()
 
 void EngineApplication::RequestStop() noexcept
 {
-	stop_requested_.store(true, std::memory_order_relaxed);
-}
-
-bool EngineApplication::IsStopRequested() const noexcept
-{
-	return stop_requested_.load(std::memory_order_relaxed);
+	if (runtime_ != nullptr) runtime_->RequestStop();
 }
 
 bool EngineApplication::IsRunning() const noexcept

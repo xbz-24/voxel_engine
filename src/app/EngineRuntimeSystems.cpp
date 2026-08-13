@@ -1,39 +1,30 @@
 #include "EngineRuntime.h"
 
-#include "RuntimeRenderFrame.h"
+#include "Logger.h"
 
-#include <glm/glm.hpp>
-
-#include <memory>
+#include <filesystem>
+#include <optional>
 
 namespace ve::engine
 {
-	EngineStartupResult EngineRuntime::CreateRuntimeSystems()
+	void EngineRuntime::PrepareAssetsAndLogging()
 	{
-		const EngineCreateInfo& create_info = engine_.CreateInfo();
-		const EngineStartupResult backend_result = CreateRenderDriver();
-		if (!backend_result) return backend_result;
-
-		model_ = std::make_unique<GameModel>(
-			create_info.world_size_chunks,
-			&asset_paths_,
-			render_driver_->TextureLoading(),
-			create_info.terrain_generation,
-			&render_driver_->Backend());
-		input_router_.BindMouseLook(
-			model_->MutableCamera(),
-			engine_.RuntimeSettings().editor.is_settings_menu_open,
-			engine_.RuntimeSettings().player.mouse_look);
-		engine_.ConfigureCallbacks(window_, input_router_);
-
-		if (create_info.has_custom_camera)
+		ve::assets::AssetPathResolveOptions options;
+		options.search_roots = configuration_.asset_search_roots;
+		asset_paths_ = ve::assets::Resolve(options);
+		ve::log::SetCallback(configuration_.on_log);
+		std::optional<std::filesystem::path> file_output_path;
+		if (configuration_.logging.file_output_enabled)
 		{
-			model_->MutableCamera().MoveTo(create_info.camera_position);
-			model_->MutableCamera().TurnTo(create_info.camera_look_at);
+			file_output_path = configuration_.logging.file_output_path.empty()
+				? asset_paths_.rootDirectory / "logs/engine.log"
+				: configuration_.logging.file_output_path;
 		}
-		RuntimeRenderFrame frame{ window_, *model_, controller_, editor_controller_,
-			runtime_input_actions_, engine_.MutableRuntimeSettings(), frame_timer_ };
-		render_driver_->ConfigureModel(frame, create_info);
-		return EngineStartupResult::Success();
+		ve::log::ApplyConfiguration(ve::log::LoggerConfiguration{
+			configuration_.logging.minimum_level,
+			configuration_.logging.console_enabled,
+			file_output_path
+		});
+		VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime started");
 	}
 }

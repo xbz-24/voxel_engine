@@ -2,6 +2,7 @@
 
 #include "BackgroundTaskQueue.h"
 #include "BlockRegistry.h"
+#include "Camera.h"
 #include "EcsWorld.h"
 #include "FabrikInverseKinematicsSolver.h"
 #include "Logger.h"

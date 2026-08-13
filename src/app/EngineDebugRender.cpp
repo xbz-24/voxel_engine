@@ -1,10 +1,11 @@
-#include "Engine.h"
+#include "VoxelSandboxModule.h"
 
+#include "BlockSelectionCube.h"
 #include "CoreTypes.h"
 
 #include <GL/glew.h>
 
-void EngineApplication::renderDebugCoordinateSystemAxes()
+void ve::engine::VoxelSandboxModule::RenderDebugCoordinateSystemAxes()
 {
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -19,7 +20,8 @@ void EngineApplication::renderDebugCoordinateSystemAxes()
 	glEnd();
 }
 
-void EngineApplication::drawBlockHighlight(glm::ivec3 blockPos, BlockSelectionCube& selectionCube)
+void ve::engine::VoxelSandboxModule::DrawBlockHighlight(
+	glm::ivec3 blockPos, BlockSelectionCube& selectionCube)
 {
 	glPushMatrix();
 	glTranslatef(ve::core::ToFloat(blockPos.x), ve::core::ToFloat(blockPos.y), ve::core::ToFloat(blockPos.z));

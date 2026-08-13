@@ -1,7 +1,10 @@
 #include "EngineRuntimeFrameSnapshots.h"
 
 #include "CoreTypes.h"
-#include "EngineRuntime.h"
+#include "EngineRuntimeCallbacks.h"
+#include "FrameTimer.h"
+#include "GameController.h"
+#include "GameModel.h"
 
 #include <limits>
 

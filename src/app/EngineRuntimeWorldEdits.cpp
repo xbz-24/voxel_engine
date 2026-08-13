@@ -1,11 +1,12 @@
-#include "EngineRuntime.h"
+#include "VoxelSandboxModule.h"
 
-#include "CoreTypes.h"
+#include "Engine.h"
+#include "GameModel.h"
 #include "Logger.h"
 
 namespace ve::engine
 {
-void EngineRuntime::ApplyConfiguredWorldEditsOnce()
+	void VoxelSandboxModule::ApplyConfiguredWorldEditsOnce()
 	{
 		if (configured_world_edits_applied_ || model_ == nullptr) return;
 		const EngineCreateInfo& create_info = engine_.CreateInfo();
@@ -21,7 +22,7 @@ void EngineRuntime::ApplyConfiguredWorldEditsOnce()
 		VE_LOG_CATEGORY_INFO(ve::log::category::World, "Applied configured public API world edits");
 	}
 
-	void EngineRuntime::ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits)
+	void VoxelSandboxModule::ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits)
 	{
 		if (model_ == nullptr) return;
 

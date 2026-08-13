@@ -9,6 +9,7 @@ namespace ve::engine
 	{
 		None,
 		InvalidCreateInfo,
+		RuntimeModuleUnavailable,
 		WindowInitializationFailed,
 		RenderBackendUnavailable,
 		UnsupportedRenderBackend,

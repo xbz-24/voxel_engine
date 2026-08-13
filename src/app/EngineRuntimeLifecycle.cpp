@@ -2,12 +2,15 @@
 
 #include "Logger.h"
 
+#include <utility>
+
 namespace ve::engine
 {
-	/** Stores the engine facade used by runtime systems. */
-	EngineRuntime::EngineRuntime(EngineApplication& engine) noexcept
-		: engine_(engine),
-		  window_(engine.CreateInfo().window)
+	EngineRuntime::EngineRuntime(RuntimeHostConfiguration configuration,
+		std::unique_ptr<IRuntimeModule> module)
+		: configuration_(std::move(configuration)),
+		  module_(std::move(module)),
+		  window_(configuration_.window)
 	{
 	}
 
@@ -42,19 +45,15 @@ namespace ve::engine
 	EngineStartupResult EngineRuntime::Initialize()
 	{
 		PrepareAssetsAndLogging();
-		const EngineStartupResult window_result = engine_.InitializeWindow(window_);
+		const EngineStartupResult window_result = InitializeWindow();
 		if (!window_result) return window_result;
-		return CreateRuntimeSystems();
-	}
-
-	/** Resolves asset paths and configures logger sinks. */
-	void EngineRuntime::PrepareAssetsAndLogging()
-	{
-		ve::assets::AssetPathResolveOptions asset_path_options;
-		const EngineCreateInfo& create_info = engine_.CreateInfo();
-		asset_path_options.search_roots = create_info.asset_search_roots;
-		asset_paths_ = ve::assets::Resolve(asset_path_options);
-		ve::log::SetCallback(create_info.on_log);
-		engine_.ConfigureRuntimeLogging(asset_paths_);
+		if (module_ == nullptr)
+		{
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::RuntimeModuleUnavailable,
+				"Engine runtime content module was not created");
+		}
+		RuntimeModuleContext context{ window_, asset_paths_, frame_timer_ };
+		return module_->Initialize(context);
 	}
 }

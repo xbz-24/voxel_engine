@@ -12,23 +12,22 @@ namespace ve::engine
 
 	bool EngineRuntime::ShouldContinue() const noexcept
 	{
-		return !window_.ShouldClose() && !engine_.IsStopRequested();
+		return !window_.ShouldClose() && !IsStopRequested();
 	}
 
 	/** Releases runtime resources and reports shutdown. */
 	void EngineRuntime::Shutdown()
 	{
-		editor_controller_.Shutdown();
-		model_.reset();
-		if (!render_driver_)
-		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Engine, "No runtime render driver to release");
-			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
-			return;
-		}
-		render_driver_->Shutdown();
-		render_driver_.reset();
-		VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
+		if (module_ != nullptr) module_->Shutdown();
 	}
 
+	void EngineRuntime::RequestStop() noexcept
+	{
+		stop_requested_.store(true, std::memory_order_relaxed);
+	}
+
+	bool EngineRuntime::IsStopRequested() const noexcept
+	{
+		return stop_requested_.load(std::memory_order_relaxed);
+	}
 }

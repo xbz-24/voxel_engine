@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "VoxelSandboxModule.h"
 
 #include "RuntimeInputRouter.h"
 #include "Window.h"
@@ -6,9 +6,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-void EngineApplication::ConfigureCallbacks(ve::engine::Window& window, ve::engine::RuntimeInputRouter& input_router)
+void ve::engine::VoxelSandboxModule::ConfigureInputCallbacks()
 {
-	window.SetCallbackUserData(&input_router);
-	glfwSetCursorPosCallback(window.GetNativeWindow(), ve::engine::RuntimeInputRouter::CursorPositionCallback);
-	window.SetCursorMode(ve::engine::Window::CursorMode::Captured);
+	window_->SetCallbackUserData(&input_router_);
+	glfwSetCursorPosCallback(window_->GetNativeWindow(), RuntimeInputRouter::CursorPositionCallback);
+	window_->SetCursorMode(Window::CursorMode::Captured);
 }
