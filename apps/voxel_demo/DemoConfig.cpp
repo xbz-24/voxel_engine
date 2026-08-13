@@ -53,9 +53,10 @@ namespace voxel_demo
 		}
 	}
 
-	voxel::EngineConfig CreateDemoConfig()
+	voxel::EngineConfig CreateDemoConfig(voxel::GraphicsApi graphics_api)
 	{
 		return voxel::EngineConfig::Default()
+			.UseGraphicsApi(graphics_api)
 			.WithWindow("Voxel Sandbox", 1600, 900)
 			.WithWorld(CreateSandboxWorld())
 			.WithCamera({ 32.0f, 78.0f, 38.0f }, { 0.0f, 56.0f, 0.0f })

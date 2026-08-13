@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 	const voxel_demo::DemoOptions options = voxel_demo::ParseOptions(arguments);
 	if (!options.valid) return 2;
 
-	voxel::EngineConfig config = voxel_demo::CreateDemoConfig();
+	voxel::EngineConfig config = voxel_demo::CreateDemoConfig(options.graphics_api);
 	if (options.smoke_frame_limit > 0)
 	{
 		config.HideDebugOverlay().OnUpdate(

@@ -31,6 +31,11 @@ overlay before presentation. See [Vulkan Renderer and Shader System](VulkanRende
 for the frame flow, shader ABI, and extension checklist. The legacy renderer
 continues to live behind the explicit OpenGL compatibility backend.
 
+The demo selects its backend with `--graphics-api vulkan|opengl`; omitting the
+option keeps Vulkan as the default. Automated runtime coverage currently
+registers only the green Vulkan smoke. OpenGL remains available for manual
+diagnosis while its known runtime crash is tracked in the architecture roadmap.
+
 ## Visual Studio
 
 Generate the Visual Studio solution with:

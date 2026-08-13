@@ -7,6 +7,7 @@ if (VE_BUILD_TESTS)
     target_link_libraries(engine_tests PRIVATE
         ve_project_options
         doctest::doctest
+        voxel_demo_support
         voxel_engine_sdk
         ve_app
         ve_core

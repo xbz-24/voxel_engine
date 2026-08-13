@@ -90,7 +90,7 @@ cmake --build Builds --config Debug --target voxel_demo engine_tests
 Builds\Debug\engine_tests.exe
 ctest --test-dir Builds -C Debug --output-on-failure
 $env:VE_VULKAN_VALIDATION='1'
-Builds\Debug\voxel_demo.exe --smoke-frames 2
+Builds\Debug\voxel_demo.exe --graphics-api vulkan --smoke-frames 2
 ```
 
 The final smoke is required for descriptor lifetime, pipeline-layout, and

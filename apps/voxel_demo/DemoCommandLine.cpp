@@ -16,6 +16,23 @@ namespace voxel_demo
 			value = parsed_value;
 			return true;
 		}
+
+		[[nodiscard]] bool TryParseGraphicsApi(
+			std::string_view text,
+			voxel::GraphicsApi& graphics_api) noexcept
+		{
+			if (text == "vulkan")
+			{
+				graphics_api = voxel::GraphicsApi::Vulkan;
+				return true;
+			}
+			if (text == "opengl")
+			{
+				graphics_api = voxel::GraphicsApi::OpenGLCompatibility;
+				return true;
+			}
+			return false;
+		}
 	}
 
 	DemoOptions ParseOptions(std::span<const std::string_view> arguments) noexcept
@@ -23,8 +40,17 @@ namespace voxel_demo
 		DemoOptions options{};
 		for (std::size_t index = 1; index < arguments.size(); ++index)
 		{
-			if (arguments[index] != "--smoke-frames" || index + 1 >= arguments.size() ||
-				!TryParsePositiveInteger(arguments[++index], options.smoke_frame_limit))
+			if (index + 1 >= arguments.size())
+			{
+				options.valid = false;
+				return options;
+			}
+			const std::string_view option = arguments[index];
+			const std::string_view value = arguments[++index];
+			const bool parsed = option == "--smoke-frames"
+				? TryParsePositiveInteger(value, options.smoke_frame_limit)
+				: option == "--graphics-api" && TryParseGraphicsApi(value, options.graphics_api);
+			if (!parsed)
 			{
 				options.valid = false;
 				return options;
