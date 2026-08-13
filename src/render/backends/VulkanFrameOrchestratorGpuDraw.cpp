@@ -1,14 +1,11 @@
 #include "VulkanFrameOrchestrator.h"
 
-#include "Camera.h"
 #include "CoreTypes.h"
 #include "Logger.h"
 #include "VulkanBackend.h"
 #include "VulkanFrameOrchestratorPresentation.h"
-#include "World.h"
 
 #include <chrono>
-#include <cmath>
 #include <string>
 
 namespace ve::rendering
@@ -30,40 +27,18 @@ namespace ve::rendering
 		const VulkanGpuFrameControls& controls)
 	{
 		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
-		if (std::isfinite(delta_seconds) && delta_seconds > 0.0)
-		{
-			shader_elapsed_seconds_ = std::fmod(shader_elapsed_seconds_ + delta_seconds, 4096.0);
-		}
-		if (!controls.overlay_enabled) overlay_settings.show_window = false;
-		else if (controls.toggle_overlay)
-		{
-			overlay_settings.show_window = !overlay_settings.show_window;
-		}
+		ApplyGpuFrameControls(delta_seconds, overlay_settings, controls);
 		const VkFence fence = frames_[current_frame_].in_flight;
 		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
 		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
 		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
-		if (gpu_chunk_renderer_.NeedsWorldMeshUpdate(world) && !WaitForAllInFlightFrames()) return false;
-		if (!gpu_chunk_renderer_.EnsureWorldMesh(world, block_registry)) return false;
-		const VulkanGpuChunkMeshStats& mesh_stats = gpu_chunk_renderer_.MeshStats();
-		if (controls.overlay_enabled)
-		{
-			imgui_overlay_.BeginFrame(overlay_settings, VulkanRendererStats{
-				displayed_fps,
-				delta_seconds,
-				completed_frame_timing.gpu_copy_ms,
-				completed_frame_timing.present_cpu_ms,
-				mesh_stats.last_rebuild_cpu_ms,
-				mesh_stats.last_upload_cpu_ms,
-				gpu_chunk_renderer_.IndexCount(),
-				mesh_stats.last_shadow_index_count,
-				mesh_stats.last_rebuilt_chunk_count,
-				mesh_stats.cached_chunk_count,
-				world.Revision(),
-				completed_frame_timing.has_gpu_copy_timing,
-				true
-			});
-		}
+		if (!PrepareGpuScene(world,
+			block_registry,
+			displayed_fps,
+			delta_seconds,
+			overlay_settings,
+			controls,
+			completed_frame_timing)) return false;
 		std::uint32_t image_index = 0;
 		const auto present_start = std::chrono::steady_clock::now();
 		const VkResult acquire_result = AcquireSwapchainImage(device_, *backend_, frames_[current_frame_].image_available, image_index);
@@ -112,21 +87,8 @@ namespace ve::rendering
 		const VkResult present_result = PresentSwapchainImage(*backend_, render_finished, image_index);
 		const auto present_end = std::chrono::steady_clock::now();
 
-		VulkanFrameTiming current_timing{};
-		current_timing.gpu_copy_ms = completed_frame_timing.gpu_copy_ms;
-		current_timing.has_gpu_copy_timing = completed_frame_timing.has_gpu_copy_timing;
-		current_timing.present_cpu_ms = std::chrono::duration<double, std::milli>(present_end - present_start).count();
-		current_timing.render_extent = backend_->Swapchain().Extent();
-		current_timing.sample_step = 1u;
-		current_timing.worker_count = 0u;
-		if (timestamp_query_pool_ != VK_NULL_HANDLE) frames_[current_frame_].timestamp_query_valid = true;
-		previous_frame_timing_ = current_timing;
-		current_frame_ = (current_frame_ + 1u) % kFramesInFlight;
-		if (!logged_first_frame_)
-		{
-			VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Presented first Vulkan GPU chunk frame");
-			logged_first_frame_ = true;
-		}
-		return present_result == VK_SUCCESS || present_result == VK_SUBOPTIMAL_KHR;
+		const double present_cpu_ms =
+			std::chrono::duration<double, std::milli>(present_end - present_start).count();
+		return CompleteGpuFrame(completed_frame_timing, present_cpu_ms, present_result);
 	}
 }

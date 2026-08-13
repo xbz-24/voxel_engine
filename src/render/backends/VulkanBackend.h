@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "RenderBackend.h"
+#include "VulkanBackendInitialization.h"
 #include "VulkanBackendSettings.h"
 #include "VulkanContext.h"
 #include "VulkanDebugLabels.h"
@@ -11,47 +11,10 @@
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
 
-#include <string>
-#include <utility>
-
 namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
-	enum class VulkanBackendInitializationFailure
-	{
-		None,
-		ContextCreationFailed,
-		SurfaceCreationFailed,
-		PhysicalDeviceSelectionFailed,
-		LogicalDeviceCreationFailed,
-		AllocatorCreationFailed,
-		SwapchainCreationFailed
-	};
-
-	struct VulkanBackendInitializationResult
-	{
-		VulkanBackendInitializationFailure failure = VulkanBackendInitializationFailure::None;
-		std::string message;
-
-		[[nodiscard]] static VulkanBackendInitializationResult Success()
-		{
-			return {};
-		}
-
-		[[nodiscard]] static VulkanBackendInitializationResult Failure(
-			VulkanBackendInitializationFailure failure,
-			std::string message)
-		{
-			return VulkanBackendInitializationResult{ failure, std::move(message) };
-		}
-
-		[[nodiscard]] explicit operator bool() const noexcept
-		{
-			return failure == VulkanBackendInitializationFailure::None;
-		}
-	};
-
 	/** High-level object that owns Vulkan startup state for the renderer. */
 	class VulkanBackend final : public RenderBackend
 	{
