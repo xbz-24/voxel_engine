@@ -7,6 +7,7 @@ if (VE_BUILD_RUNTIME_SMOKE_TESTS)
     )
     set_tests_properties(voxel_demo_vulkan_runtime_smoke PROPERTIES
         LABELS "runtime;smoke;vulkan"
+        TIMEOUT 60
     )
     add_test(NAME voxel_demo_opengl_runtime_smoke
         COMMAND $<TARGET_FILE:voxel_demo>
@@ -15,5 +16,6 @@ if (VE_BUILD_RUNTIME_SMOKE_TESTS)
     )
     set_tests_properties(voxel_demo_opengl_runtime_smoke PROPERTIES
         LABELS "runtime;smoke;opengl"
+        TIMEOUT 60
     )
 endif()

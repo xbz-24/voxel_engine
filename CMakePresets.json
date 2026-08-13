@@ -7,7 +7,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "C:/Users/renat/Developer/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_BUILD_TYPE": "Debug", "CMAKE_EXPORT_COMPILE_COMMANDS": true
       }
     },
@@ -21,20 +21,27 @@
     },
     {
       "name": "windows-visual-studio", "displayName": "Visual Studio solution",
-      "generator": "Visual Studio 18 2026", "architecture": "x64",
-      "binaryDir": "${sourceDir}/out/build/${presetName}-manifest",
+      "generator": "Visual Studio 17 2022", "architecture": "x64",
+      "binaryDir": "${sourceDir}/out/build/windows-visual-studio-2022-manifest",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "C:/Users/renat/Developer/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_MANIFEST_MODE": true,
-        "VCPKG_INSTALLED_DIR": "${sourceDir}/out/build/${presetName}-manifest/vcpkg_installed",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/out/vcpkg_installed/${presetName}",
         "VE_BUILD_API_DOCS": false, "VE_ENABLE_STRICT_WARNINGS": true,
         "VE_WARNINGS_AS_ERRORS": true, "VE_USE_LATEST_CXX": true
       }
     },
     {
+      "name": "windows-visual-studio-2026", "displayName": "Visual Studio 2026 solution",
+      "inherits": "windows-visual-studio", "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/out/build/${presetName}-manifest"
+    },
+    {
       "name": "windows-visual-studio-asan", "displayName": "Visual Studio ASan",
       "inherits": "windows-visual-studio", "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "cacheVariables": { "VE_ENABLE_ASAN": true, "VE_BUILD_TESTS": true }
+      "cacheVariables": {
+        "VE_ENABLE_ASAN": true, "VE_BUILD_TESTS": true, "VE_BUILD_RUNTIME_SMOKE_TESTS": true
+      }
     },
     {
       "name": "windows-clangcl", "displayName": "Windows ClangCL Debug",
@@ -47,6 +54,7 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
       "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_BUILD_TYPE": "Debug", "CMAKE_CXX_COMPILER": "g++", "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "VE_BUILD_API_DOCS": false, "VE_BUILD_TESTS": true, "VE_ENABLE_STRICT_WARNINGS": true,
         "VE_WARNINGS_AS_ERRORS": true, "VE_USE_LATEST_CXX": true
@@ -56,17 +64,26 @@
   "buildPresets": [
     { "name": "windows-vcpkg-build", "displayName": "Build voxel demo", "configurePreset": "windows-vcpkg", "configuration": "Debug", "targets": ["voxel_demo"] },
     { "name": "windows-vcpkg-fast-dev-build", "displayName": "Fast dev build voxel demo", "configurePreset": "windows-vcpkg-fast-dev", "configuration": "Debug", "targets": ["voxel_demo"] },
-    { "name": "windows-vcpkg-test-build", "displayName": "Build voxel engine tests", "configurePreset": "windows-vcpkg", "configuration": "Debug", "targets": ["engine_tests"] },
+    { "name": "windows-vcpkg-test-build", "displayName": "Build voxel engine tests", "configurePreset": "windows-vcpkg", "configuration": "Debug", "targets": ["engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] },
     { "name": "windows-visual-studio-build", "displayName": "Build Visual Studio solution", "configurePreset": "windows-visual-studio", "configuration": "Debug", "targets": ["voxel_demo"] },
-    { "name": "windows-visual-studio-strict", "displayName": "Strict Debug: latest C++ and warnings as errors", "configurePreset": "windows-visual-studio", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests"] },
-    { "name": "windows-visual-studio-asan", "displayName": "Build with AddressSanitizer", "configurePreset": "windows-visual-studio-asan", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests"] },
-    { "name": "windows-clangcl-strict", "displayName": "Build with ClangCL", "configurePreset": "windows-clangcl", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests", "public_api_header_smoke"] },
-    { "name": "linux-gcc-strict", "displayName": "Build with Linux GCC", "configurePreset": "linux-gcc", "targets": ["voxel_demo", "engine_tests", "public_api_header_smoke"] }
+    { "name": "windows-visual-studio-strict", "displayName": "Strict Debug: latest C++ and warnings as errors", "configurePreset": "windows-visual-studio", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] },
+    { "name": "windows-visual-studio-2026-strict", "displayName": "Visual Studio 2026 strict Debug", "configurePreset": "windows-visual-studio-2026", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] },
+    { "name": "windows-visual-studio-asan", "displayName": "Build with AddressSanitizer", "configurePreset": "windows-visual-studio-asan", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] },
+    { "name": "windows-clangcl-strict", "displayName": "Build with ClangCL", "configurePreset": "windows-clangcl", "configuration": "Debug", "targets": ["voxel_demo", "engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] },
+    { "name": "linux-gcc-strict", "displayName": "Build with Linux GCC", "configurePreset": "linux-gcc", "targets": ["voxel_demo", "engine_tests", "runtime_host_tests", "public_api_header_smoke", "public_authoring_link_smoke"] }
   ],
   "testPresets": [
     {
       "name": "windows-vcpkg-tests", "displayName": "Run voxel engine tests",
       "configurePreset": "windows-vcpkg", "configuration": "Debug", "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "windows-visual-studio-tests", "displayName": "Run voxel engine tests with Visual Studio 2022",
+      "configurePreset": "windows-visual-studio", "configuration": "Debug", "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "windows-visual-studio-2026-tests", "displayName": "Run voxel engine tests with Visual Studio 2026",
+      "configurePreset": "windows-visual-studio-2026", "configuration": "Debug", "output": { "outputOnFailure": true }
     },
     {
       "name": "windows-visual-studio-asan-tests", "displayName": "Run voxel engine tests with AddressSanitizer",
