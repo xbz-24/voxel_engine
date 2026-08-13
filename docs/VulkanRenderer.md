@@ -35,7 +35,7 @@ The CPU builds a second index buffer containing only voxel faces oriented toward
 `VulkanGpuChunkRendererTypes.h` has size and offset assertions for the C++ side.
 `voxel_transform.glsl` and `voxel_environment.glsl` define the GLSL side. Keep
 both definitions synchronized whenever the ABI changes, then update
-`Tests/RenderBackendVulkanTests.inl` with the expected offsets.
+`Tests/RenderBackendTests.cpp` with the expected offsets.
 
 The public `voxel::VoxelRenderStyle` is backend-neutral. Its values are
 validated before translation into the internal style. The Vulkan path currently

@@ -3,7 +3,7 @@ set(VE_PUBLIC_INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include")
 
 function(ve_collect_subsystem directory prefix)
     file(GLOB subsystem_sources CONFIGURE_DEPENDS "${directory}/*.cpp")
-    file(GLOB subsystem_headers CONFIGURE_DEPENDS "${directory}/*.h" "${directory}/*.inl")
+    file(GLOB subsystem_headers CONFIGURE_DEPENDS "${directory}/*.h")
     list(SORT subsystem_sources)
     list(SORT subsystem_headers)
     set(${prefix}_SOURCES ${subsystem_sources} PARENT_SCOPE)
@@ -14,7 +14,6 @@ ve_collect_subsystem("${VE_SOURCE_ROOT}/core" VE_CORE)
 ve_collect_subsystem("${VE_SOURCE_ROOT}/render" VE_RENDER)
 file(GLOB VE_RENDER_BACKENDS_HEADERS CONFIGURE_DEPENDS
     "${VE_SOURCE_ROOT}/render/backends/*.h"
-    "${VE_SOURCE_ROOT}/render/backends/*.inl"
 )
 list(SORT VE_RENDER_BACKENDS_HEADERS)
 ve_collect_subsystem("${VE_SOURCE_ROOT}/world" VE_WORLD)

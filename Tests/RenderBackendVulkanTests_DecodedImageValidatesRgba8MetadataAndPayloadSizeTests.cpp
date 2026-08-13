@@ -1,0 +1,52 @@
+#include <doctest/doctest.h>
+
+#include "DirectX12Backend.h"
+#include "OpenGLCompatibilityBackend.h"
+#include "RenderBackendCatalog.h"
+#include "RenderBackendFactory.h"
+#include "RenderBackendSelector.h"
+#include "TextureLoader.h"
+#include "VulkanBackendSettings.h"
+#include "VulkanChunkMeshTranslator.h"
+#include "VulkanDebugLabels.h"
+#include "VulkanGpuChunkRendererTypes.h"
+#include "VulkanRenderView.h"
+#include "VulkanSoftwareRasterizerColor.h"
+#include "VulkanSoftwareVoxelRasterizerData.h"
+#include "VulkanSwapchainChoices.h"
+
+#include <array>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+TEST_CASE("decoded image validates rgba8 metadata and payload size")
+{
+	ve::rendering::DecodedImage image;
+	image.width = 2;
+	image.height = 1;
+	image.source_channel_count = 3;
+	image.rgba = {
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 },
+		std::uint8_t{ 0 },
+		std::uint8_t{ 255 }
+	};
+
+	CHECK(image.pixel_format == ve::rendering::ImagePixelFormat::Rgba8);
+	CHECK(image.color_space == ve::rendering::TextureColorSpace::Srgb);
+	CHECK(image.mip_level_count == 1);
+	CHECK(image.IsValid());
+
+	ve::rendering::DirectX12Backend backend;
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
+
+	image.rgba.pop_back();
+	CHECK(!image.IsValid());
+	CHECK(ve::rendering::UploadTexture(backend, image) == nullptr);
+}
+

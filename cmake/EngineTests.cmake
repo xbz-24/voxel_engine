@@ -1,17 +1,8 @@
 if (VE_BUILD_TESTS)
     enable_testing()
-    add_executable(engine_tests
-        Tests/AssetPathTests.cpp
-        Tests/EngineSmokeTests.cpp
-        Tests/FrameGraphTests.cpp
-        Tests/GraphicsCommandTests.cpp
-        Tests/GraphicsGeometryTests.cpp
-        Tests/NetworkProtocolTests.cpp
-        Tests/PublicApiCompileTests.cpp
-        Tests/RenderBackendTests.cpp
-        Tests/WindowTests.cpp
-        Tests/WorldCoordinateTests.cpp
-    )
+    file(GLOB VE_ENGINE_TEST_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Tests/*Tests.cpp")
+    list(SORT VE_ENGINE_TEST_SOURCES)
+    add_executable(engine_tests ${VE_ENGINE_TEST_SOURCES})
     target_include_directories(engine_tests PRIVATE "${VE_SOURCE_ROOT}/api")
     target_link_libraries(engine_tests PRIVATE
         ve_project_options
