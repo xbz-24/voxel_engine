@@ -1,6 +1,7 @@
 #include "OpenGLRuntimeRenderDriver.h"
 
 #include "EditorRuntimeController.h"
+#include "OpenGLFunctionLoader.h"
 #include "RenderBackendFactory.h"
 #include "RenderState.h"
 #include "RenderView.h"
@@ -17,6 +18,9 @@ namespace ve::engine
 		const ve::assets::AssetPaths& assets,
 		const EngineCreateInfo&)
 	{
+		if (!ve::rendering::InitializeOpenGLFunctionLoader()) return EngineStartupResult::Failure(
+			EngineStartupFailure::RenderBackendInitializationFailed,
+			"OpenGL function loader initialization failed");
 		backend_ = ve::rendering::RenderBackendFactory::Create(
 			ve::rendering::GraphicsApi::OpenGLCompatibility);
 		if (!backend_) return EngineStartupResult::Failure(

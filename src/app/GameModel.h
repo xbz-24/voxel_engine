@@ -56,9 +56,10 @@ namespace ve::engine
 	private:
 		Camera camera_;
 		ve::world::World world_;
+		// Async mesh tasks borrow this registry, so it must outlive both pipelines.
+		std::unique_ptr<ve::blocks::BlockRegistry> block_registry_;
 		ve::world::generation::AsyncWorldGenerator world_generator_;
 		ve::world::mesh::ChunkMeshPipeline mesh_pipeline_;
 		ve::gameplay::BlockSelection block_selection_;
-		std::unique_ptr<ve::blocks::BlockRegistry> block_registry_;
 	};
 }

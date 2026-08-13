@@ -10,6 +10,7 @@ set(VE_RENDER_BACKEND_WINDOW_SOURCES
 
 set(VE_RENDER_BACKEND_OPENGL_SOURCES
     "${VE_SOURCE_ROOT}/render/backends/OpenGLCompatibilityBackend.cpp"
+    "${VE_SOURCE_ROOT}/render/backends/OpenGLFunctionLoader.cpp"
     "${VE_SOURCE_ROOT}/render/backends/OpenGLRenderCommandExecutor.cpp"
 )
 
