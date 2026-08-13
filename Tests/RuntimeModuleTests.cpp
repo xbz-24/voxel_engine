@@ -1,3 +1,6 @@
+#if defined(VE_RUNTIME_HOST_TEST_MAIN)
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#endif
 #include <doctest/doctest.h>
 
 #include "AssetPaths.h"

@@ -1,7 +1,8 @@
 target_link_libraries(ve_render PUBLIC ve_core)
 target_link_libraries(ve_world PUBLIC ve_core ve_render)
 target_link_libraries(ve_network PUBLIC ve_core ve_world)
-target_link_libraries(ve_app PUBLIC ve_core ve_render ve_render_backends ve_world ve_network)
+target_link_libraries(ve_runtime PUBLIC ve_core ve_render ve_render_backend_window)
+target_link_libraries(ve_voxel_sandbox PUBLIC ve_runtime ve_core ve_render ve_render_backends ve_world)
 
 target_link_libraries(ve_core PUBLIC
     glm::glm
@@ -75,7 +76,7 @@ target_link_libraries(ve_network PUBLIC
     asio::asio
 )
 
-target_link_libraries(ve_app PUBLIC
+target_link_libraries(ve_voxel_sandbox PUBLIC
     GLEW::GLEW
     glfw
     glm::glm

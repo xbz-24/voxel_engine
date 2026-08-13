@@ -9,7 +9,7 @@ if (VE_BUILD_TESTS)
         doctest::doctest
         voxel_demo_support
         voxel_engine_sdk
-        ve_app
+        ve_voxel_sandbox
         ve_core
         ve_network
         ve_render
@@ -23,6 +23,18 @@ if (VE_BUILD_TESTS)
     set_target_properties(engine_tests PROPERTIES FOLDER "Tests")
     ve_copy_msvc_asan_runtime(engine_tests)
     add_test(NAME engine_tests COMMAND engine_tests)
+
+    add_executable(runtime_host_tests Tests/RuntimeModuleTests.cpp)
+    target_compile_definitions(runtime_host_tests PRIVATE VE_RUNTIME_HOST_TEST_MAIN)
+    target_link_libraries(runtime_host_tests PRIVATE
+        ve_project_options
+        doctest::doctest
+        ve_runtime
+    )
+    ve_enable_common_pch(runtime_host_tests)
+    set_target_properties(runtime_host_tests PROPERTIES FOLDER "Tests")
+    ve_copy_msvc_asan_runtime(runtime_host_tests)
+    add_test(NAME runtime_host_tests COMMAND runtime_host_tests)
 
     add_executable(public_api_header_smoke Tests/PublicApiHeaderSmoke.cpp)
     target_link_libraries(public_api_header_smoke PRIVATE

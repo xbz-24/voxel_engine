@@ -18,7 +18,8 @@ file(GLOB VE_RENDER_BACKENDS_HEADERS CONFIGURE_DEPENDS
 list(SORT VE_RENDER_BACKENDS_HEADERS)
 ve_collect_subsystem("${VE_SOURCE_ROOT}/world" VE_WORLD)
 ve_collect_subsystem("${VE_SOURCE_ROOT}/network" VE_NETWORK)
-ve_collect_subsystem("${VE_SOURCE_ROOT}/app" VE_APP)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/runtime" VE_RUNTIME)
+ve_collect_subsystem("${VE_SOURCE_ROOT}/app" VE_VOXEL_SANDBOX)
 
 function(ve_add_subsystem target folder directory)
     cmake_parse_arguments(SUBSYSTEM "" "" "SOURCES;HEADERS" ${ARGN})
@@ -73,4 +74,13 @@ ve_add_subsystem(ve_core Core "${VE_SOURCE_ROOT}/core" SOURCES ${VE_CORE_SOURCES
 ve_add_subsystem(ve_render Render "${VE_SOURCE_ROOT}/render" SOURCES ${VE_RENDER_SOURCES} HEADERS ${VE_RENDER_HEADERS})
 ve_add_subsystem(ve_world World "${VE_SOURCE_ROOT}/world" SOURCES ${VE_WORLD_SOURCES} HEADERS ${VE_WORLD_HEADERS})
 ve_add_subsystem(ve_network Network "${VE_SOURCE_ROOT}/network" SOURCES ${VE_NETWORK_SOURCES} HEADERS ${VE_NETWORK_HEADERS})
-ve_add_subsystem(ve_app App "${VE_SOURCE_ROOT}/app" SOURCES ${VE_APP_SOURCES} HEADERS ${VE_APP_HEADERS})
+ve_add_subsystem(ve_runtime Runtime "${VE_SOURCE_ROOT}/runtime" SOURCES ${VE_RUNTIME_SOURCES} HEADERS ${VE_RUNTIME_HEADERS})
+ve_add_subsystem(ve_voxel_sandbox VoxelSandbox "${VE_SOURCE_ROOT}/app"
+    SOURCES ${VE_VOXEL_SANDBOX_SOURCES}
+    HEADERS ${VE_VOXEL_SANDBOX_HEADERS}
+)
+add_library(ve_app ALIAS ve_voxel_sandbox)
+get_target_property(VE_APP_ALIAS_TARGET ve_app ALIASED_TARGET)
+if (NOT VE_APP_ALIAS_TARGET STREQUAL "ve_voxel_sandbox")
+    message(FATAL_ERROR "ve_app compatibility alias must resolve to ve_voxel_sandbox")
+endif()

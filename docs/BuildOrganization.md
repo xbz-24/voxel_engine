@@ -10,7 +10,10 @@ and display the engine as multiple projects instead of one large executable.
 - `ve_render_backends`: OpenGL compatibility, Vulkan, and DirectX 12 backends.
 - `ve_world`: blocks, chunks, terrain generation, meshing, and world state.
 - `ve_network`: sockets, sessions, protocol, multiplayer, and replication.
-- `ve_app`: engine lifecycle, editor, input, HUD, settings, and window setup.
+- `ve_runtime`: generic window, assets, timing, logging, and content-module host.
+- `ve_voxel_sandbox`: voxel gameplay, editor, input, HUD, and render drivers.
+- `ve_app`: compatibility link alias for `ve_voxel_sandbox`; build the real
+  target with `--target ve_voxel_sandbox`.
 - `voxel_demo`: the single authored application that consumes `VoxelEngine::SDK`.
 - `engine_tests`: tests linked against the same libraries used by the engine.
 
@@ -18,8 +21,10 @@ Changing one implementation file now recompiles its owning library and relinks
 the affected executable. It does not compile every engine implementation again.
 
 Source files live under `src/core`, `src/render`, `src/render/backends`,
-`src/world`, `src/network`, and `src/app`. Those physical directories are also
-the CMake and Visual Studio project boundaries.
+`src/world`, `src/network`, `src/runtime`, and `src/app`. Those physical
+directories are also the CMake and Visual Studio project boundaries. The
+`runtime_target_graph_policy` gate keeps `ve_runtime` independent from world,
+network, and concrete render-backend aggregation.
 
 All project targets compile in the compiler's latest C++ mode. The default
 strict profile enables extended warnings, conforming MSVC behavior, SDL checks,
