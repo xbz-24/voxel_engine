@@ -6,4 +6,5 @@ TODO: Add short public examples for `AssetCatalog`, `SceneGraph`, `RuntimeComman
 
 TODO: Add a network protocol note with packet flow diagrams, version negotiation expectations, and snapshot/live mutation ordering.
 
-TODO: Add a generated-docs target once the CMake layout has a stable Doxygen dependency story.
+The optional `engine_api_docs` CMake target generates public SDK documentation
+when configured with `VE_BUILD_API_DOCS=ON` and Doxygen is available.

@@ -1,0 +1,52 @@
+name: Windows CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      VULKAN_SDK_VERSION: 1.4.350.0
+      VULKAN_SDK_SHA256: 855b27ba05d2d8119c5114c5d4ff870ca38f2c632b11e1bb9923b9b7e6ecfe7b
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install Vulkan SDK
+        shell: pwsh
+        run: |
+          $installer = "$env:RUNNER_TEMP\vulkan-sdk.exe"
+          $uri = "https://sdk.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/vulkan_sdk.exe"
+          Invoke-WebRequest -Uri $uri -OutFile $installer
+          $actualHash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:VULKAN_SDK_SHA256) {
+            throw "Unexpected Vulkan SDK checksum: $actualHash"
+          }
+          $installation = Start-Process $installer `
+            -ArgumentList '--accept-licenses --default-answer --confirm-command install' `
+            -Wait -NoNewWindow -PassThru
+          if ($installation.ExitCode -ne 0) {
+            throw "Vulkan SDK installer failed with exit code $($installation.ExitCode)"
+          }
+          $sdk = Get-Item "C:\VulkanSDK\$env:VULKAN_SDK_VERSION"
+          "VULKAN_SDK=$($sdk.FullName)" | Out-File $env:GITHUB_ENV -Append
+          "$($sdk.FullName)\Bin" | Out-File $env:GITHUB_PATH -Append
+
+      - name: Configure
+        shell: pwsh
+        run: >-
+          cmake -S . -B out/ci -G "Visual Studio 17 2022" -A x64
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVE_BUILD_TESTS=ON -DVE_BUILD_EXAMPLES=ON
+          -DVE_BUILD_RUNTIME_SMOKE_TESTS=OFF
+
+      - name: Build
+        run: cmake --build out/ci --config Debug --target ALL_BUILD -- /m:1
+
+      - name: Test
+        run: ctest --test-dir out/ci -C Debug --output-on-failure
