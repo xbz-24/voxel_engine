@@ -6,7 +6,7 @@ namespace ve::engine
 {
 	struct WindowCreateInfo
 	{
-		std::string title = "Voxel Engine v1.0.0";
+		std::string title = "Voxel Engine";
 		int width = 1280;
 		int height = 720;
 		int display_index = 0;

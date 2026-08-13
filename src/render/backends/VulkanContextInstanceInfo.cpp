@@ -56,9 +56,10 @@ namespace ve::rendering::detail
 	{
 		VkApplicationInfo info{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		info.pApplicationName = name;
-		info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		info.applicationVersion = VK_MAKE_VERSION(
+			VE_PROJECT_VERSION_MAJOR, VE_PROJECT_VERSION_MINOR, VE_PROJECT_VERSION_PATCH);
 		info.pEngineName = "VoxelEngine";
-		info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		info.engineVersion = info.applicationVersion;
 		info.apiVersion = VK_API_VERSION_1_3;
 		return info;
 	}
