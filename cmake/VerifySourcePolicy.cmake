@@ -15,6 +15,7 @@ set(policy_roots
     Tests
     apps
     examples
+    packaging
 )
 set(cpp_extensions
     .cc .cpp .cppm .cxx

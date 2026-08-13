@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(VoxelEngine LANGUAGES CXX)
+project(VoxelEngine VERSION 0.5.0 LANGUAGES CXX)
 
-# Public SDK packaging is tracked in docs/ArchitectureRoadmap.md while the SDK
-# still bridges into private runtime/application targets.
+# The independent authoring SDK is installable; the full SDK still bridges
+# into private runtime/application targets and remains build-tree only.
 # Keep the CMake feature model on C++23 until every supported generator knows
 # C++26. VE_USE_LATEST_CXX opts compilers into /std:c++latest or -std=c++2c.
 set(CMAKE_CXX_STANDARD 23)
@@ -15,6 +15,7 @@ include("${PROJECT_SOURCE_DIR}/cmake/ProjectOptions.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/SubsystemTargets.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/PublicSdk.cmake")
+include("${PROJECT_SOURCE_DIR}/cmake/Packaging.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/VulkanShaders.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/TargetLinks.cmake")
 include("${PROJECT_SOURCE_DIR}/cmake/Applications.cmake")

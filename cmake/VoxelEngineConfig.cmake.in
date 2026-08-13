@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+set(VoxelEngine_Authoring_FOUND TRUE)
+include("${CMAKE_CURRENT_LIST_DIR}/VoxelEngineAuthoringTargets.cmake")
+check_required_components(VoxelEngine)
