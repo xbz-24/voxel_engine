@@ -1,4 +1,5 @@
 #include "VulkanGpuChunkRenderer.h"
+#include "VulkanGpuChunkRendererVertexInput.h"
 
 #include <array>
 #include <cstddef>
@@ -6,10 +7,10 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateGraphicsPipeline(
+	bool VulkanGpuChunkRendererResourceOperations::CreateGraphicsPipeline(
 		VkShaderModule vertex_shader,
 		VkShaderModule fragment_shader,
-		const GraphicsPipelineSettings& settings,
+		const VulkanGpuGraphicsPipelineSettings& settings,
 		VkPipeline& output_pipeline) const
 	{
 		if (vertex_shader == VK_NULL_HANDLE || settings.render_pass == VK_NULL_HANDLE) return false;
@@ -25,25 +26,8 @@ namespace ve::rendering
 		shader_stages[1].pName = "main";
 		const bool has_fragment_shader = fragment_shader != VK_NULL_HANDLE;
 
-		const bool uses_voxel_vertices = settings.vertex_layout != VertexLayout::None;
-		const bool uses_position_only = settings.vertex_layout == VertexLayout::VoxelPosition;
-		VkVertexInputBindingDescription binding{};
-		binding.binding = 0u;
-		binding.stride = sizeof(VoxelVertex);
-		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		std::array attributes{
-			VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, VertexAttributeOffset(offsetof(VoxelVertex, position)) },
-			VkVertexInputAttributeDescription{ 1u, 0u, VK_FORMAT_R8G8B8A8_UNORM, VertexAttributeOffset(offsetof(VoxelVertex, color_rgba8)) },
-			VkVertexInputAttributeDescription{ 2u, 0u, VK_FORMAT_R32_SFLOAT, VertexAttributeOffset(offsetof(VoxelVertex, light)) },
-			VkVertexInputAttributeDescription{ 3u, 0u, VK_FORMAT_R8G8B8A8_SNORM, VertexAttributeOffset(offsetof(VoxelVertex, normal_snorm8)) }
-		};
-		VkPipelineVertexInputStateCreateInfo vertex_input{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-		vertex_input.vertexBindingDescriptionCount = uses_voxel_vertices ? 1u : 0u;
-		vertex_input.pVertexBindingDescriptions = uses_voxel_vertices ? &binding : nullptr;
-		vertex_input.vertexAttributeDescriptionCount = uses_voxel_vertices
-			? (uses_position_only ? 1u : RenderElementCount(attributes.size()))
-			: 0u;
-		vertex_input.pVertexAttributeDescriptions = uses_voxel_vertices ? attributes.data() : nullptr;
+		detail::VulkanGpuVertexInputDescriptions vertex_input;
+		vertex_input.Configure(settings.vertex_layout);
 
 		VkPipelineInputAssemblyStateCreateInfo assembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -86,7 +70,7 @@ namespace ve::rendering
 		VkGraphicsPipelineCreateInfo pipeline_info{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 		pipeline_info.stageCount = has_fragment_shader ? RenderElementCount(shader_stages.size()) : 1u;
 		pipeline_info.pStages = shader_stages.data();
-		pipeline_info.pVertexInputState = &vertex_input;
+		pipeline_info.pVertexInputState = &vertex_input.create_info;
 		pipeline_info.pInputAssemblyState = &assembly;
 		pipeline_info.pViewportState = &viewport_state;
 		pipeline_info.pRasterizationState = &rasterization;

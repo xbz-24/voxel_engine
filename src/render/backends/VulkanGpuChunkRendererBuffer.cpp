@@ -4,7 +4,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateBuffer(VkDeviceSize byte_size,
+	bool VulkanGpuChunkRendererResourceOperations::CreateBuffer(VkDeviceSize byte_size,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags properties,
 		VkBuffer& buffer,
@@ -47,7 +47,7 @@ namespace ve::rendering
 		}
 		return true;
 	}
-	bool VulkanGpuChunkRenderer::CreateHostBuffer(VkDeviceSize byte_size, VkBufferUsageFlags usage, VkBuffer& buffer, VkDeviceMemory& memory) const
+	bool VulkanGpuChunkRendererResourceOperations::CreateHostBuffer(VkDeviceSize byte_size, VkBufferUsageFlags usage, VkBuffer& buffer, VkDeviceMemory& memory) const
 	{
 		return CreateBuffer(byte_size,
 			usage,
@@ -55,7 +55,7 @@ namespace ve::rendering
 			buffer,
 			memory);
 	}
-	bool VulkanGpuChunkRenderer::CopyToDeviceBuffer(VkDeviceMemory memory, const void* source, VkDeviceSize byte_size) const
+	bool VulkanGpuChunkRendererResourceOperations::CopyToDeviceBuffer(VkDeviceMemory memory, const void* source, VkDeviceSize byte_size) const
 	{
 		void* mapped = nullptr;
 		if (vkMapMemory(device_, memory, 0, byte_size, 0, &mapped) != VK_SUCCESS) return false;

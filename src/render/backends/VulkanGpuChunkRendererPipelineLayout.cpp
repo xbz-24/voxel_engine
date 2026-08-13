@@ -2,7 +2,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreatePipelineLayout()
+	bool VulkanGpuChunkRendererResourceOperations::CreatePipelineLayout()
 	{
 		if (shader_descriptor_set_layout_ == VK_NULL_HANDLE) return false;
 		VkPushConstantRange push_constants{};

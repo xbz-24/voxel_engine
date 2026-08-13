@@ -4,7 +4,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreatePipeline(const std::filesystem::path& shader_directory)
+	bool VulkanGpuChunkRendererResourceOperations::CreatePipeline(const std::filesystem::path& shader_directory)
 	{
 		constexpr std::array<const char*, 5> shader_file_names{{
 			"voxel_chunk.vert.spv",
@@ -21,19 +21,19 @@ namespace ve::rendering
 			loaded_all_shaders = loaded_all_shaders && shader_modules[index] != VK_NULL_HANDLE;
 		}
 
-		const GraphicsPipelineSettings voxel_settings{
+		const VulkanGpuGraphicsPipelineSettings voxel_settings{
 			.render_pass = render_pass_,
-			.vertex_layout = VertexLayout::Voxel,
+			.vertex_layout = VulkanGpuVertexLayout::Voxel,
 			.depth_test_enabled = true,
 			.depth_write_enabled = true,
 			.alpha_blending_enabled = true
 		};
-		const GraphicsPipelineSettings sky_settings{
+		const VulkanGpuGraphicsPipelineSettings sky_settings{
 			.render_pass = render_pass_
 		};
-		const GraphicsPipelineSettings shadow_settings{
+		const VulkanGpuGraphicsPipelineSettings shadow_settings{
 			.render_pass = shadow_render_pass_,
-			.vertex_layout = VertexLayout::VoxelPosition,
+			.vertex_layout = VulkanGpuVertexLayout::VoxelPosition,
 			.depth_test_enabled = true,
 			.depth_write_enabled = true,
 			.alpha_blending_enabled = false,

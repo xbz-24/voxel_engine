@@ -6,7 +6,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateRenderPass()
+	bool VulkanGpuChunkRendererResourceOperations::CreateRenderPass()
 	{
 		color_format_ = backend_->Swapchain().ImageFormat();
 		VkAttachmentDescription color_attachment{};

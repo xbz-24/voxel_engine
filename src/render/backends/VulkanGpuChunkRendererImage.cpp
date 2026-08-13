@@ -2,7 +2,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateDeviceImage(VkImageCreateInfo image_info, VkDeviceMemory& memory, VkImage& image) const
+	bool VulkanGpuChunkRendererResourceOperations::CreateDeviceImage(VkImageCreateInfo image_info, VkDeviceMemory& memory, VkImage& image) const
 	{
 		memory = VK_NULL_HANDLE;
 		image = VK_NULL_HANDLE;
