@@ -2,17 +2,6 @@
 
 #include "CoreTypes.h"
 #include "Logger.h"
-#include "OpenGLRenderView.h"
-#include "RenderBackendFactory.h"
-#include "RenderViewFactory.h"
-#include "VulkanBackend.h"
-
-#include <cassert>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <glm/glm.hpp>
 
 namespace ve::engine
 {

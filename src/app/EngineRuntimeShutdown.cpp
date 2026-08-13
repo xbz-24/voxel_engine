@@ -1,18 +1,6 @@
 #include "EngineRuntime.h"
 
-#include "CoreTypes.h"
 #include "Logger.h"
-#include "OpenGLRenderView.h"
-#include "RenderBackendFactory.h"
-#include "RenderViewFactory.h"
-#include "VulkanBackend.h"
-
-#include <cassert>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <glm/glm.hpp>
 
 namespace ve::engine
 {
@@ -31,22 +19,15 @@ namespace ve::engine
 	void EngineRuntime::Shutdown()
 	{
 		editor_controller_.Shutdown();
-		if (view_ != nullptr) view_->ReleaseCachedResources();
-		view_.reset();
-		vulkan_frame_orchestrator_.Release();
-		if (backend_ == nullptr)
+		model_.reset();
+		if (!render_driver_)
 		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Engine, "No render backend to release");
-			model_.reset();
+			VE_LOG_CATEGORY_WARNING(ve::log::category::Engine, "No runtime render driver to release");
 			VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
 			return;
 		}
-		if (ve::rendering::VulkanBackend* vulkan_backend = ActiveVulkanBackend())
-		{
-			vulkan_backend->Release();
-		}
-		backend_.reset();
-		model_.reset();
+		render_driver_->Shutdown();
+		render_driver_.reset();
 		VE_LOG_CATEGORY_INFO(ve::log::category::Engine, "Engine runtime stopped");
 	}
 

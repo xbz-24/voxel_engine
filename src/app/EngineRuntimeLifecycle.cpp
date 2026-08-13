@@ -1,18 +1,6 @@
 #include "EngineRuntime.h"
 
-#include "CoreTypes.h"
 #include "Logger.h"
-#include "OpenGLRenderView.h"
-#include "RenderBackendFactory.h"
-#include "RenderViewFactory.h"
-#include "VulkanBackend.h"
-
-#include <cassert>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <glm/glm.hpp>
 
 namespace ve::engine
 {
@@ -56,7 +44,6 @@ namespace ve::engine
 		PrepareAssetsAndLogging();
 		const EngineStartupResult window_result = engine_.InitializeWindow(window_);
 		if (!window_result) return window_result;
-		if (window_.GraphicsApi() == ve::rendering::GraphicsApi::OpenGLCompatibility) engine_.ConfigureOpenGLState();
 		return CreateRuntimeSystems();
 	}
 

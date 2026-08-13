@@ -1,11 +1,6 @@
 #include "EngineRuntime.h"
 
-#include "CoreTypes.h"
-#include "OpenGLRenderView.h"
-
-#include <algorithm>
-#include <cassert>
-#include <limits>
+#include "RuntimeRenderFrame.h"
 
 namespace ve::engine
 {
@@ -13,50 +8,14 @@ namespace ve::engine
 	void EngineRuntime::RunFrame()
 	{
 		BeginRuntimeFrame();
-		if (view_->Api() == ve::rendering::GraphicsApi::Vulkan)
-		{
-			RunVulkanFrame();
-		}
-		else
-		{
-			RunOpenGLFrame();
-		}
+		RuntimeRenderFrame frame{ window_, *model_, controller_, editor_controller_,
+			runtime_input_actions_, engine_.MutableRuntimeSettings(), frame_timer_ };
+		render_driver_->BeginFrame(frame, *this);
+		render_driver_->UpdateGameplay(frame);
+		ApplyConfiguredWorldEditsOnce();
+		InvokePublicApiFrameCallbacks();
+		if (!render_driver_->DrawFrame(frame, *this)) window_.Close();
+		render_driver_->EndFrame(frame);
 		EndRuntimeFrame();
-	}
-
-	/** Runs gameplay, world, and HUD rendering through the OpenGL compatibility view. */
-	void EngineRuntime::RunOpenGLFrame()
-	{
-		RenderView& render_view = *view_;
-		UpdateGameplay();
-		ApplyConfiguredWorldEditsOnce();
-		InvokePublicApiFrameCallbacks();
-		RenderWorld(render_view);
-		RenderHud(render_view);
-	}
-
-	/** Presents the Vulkan migration frame. */
-	void EngineRuntime::RunVulkanFrame()
-	{
-		const bool ui_captures_mouse = vulkan_frame_orchestrator_.WantsMouseInput();
-		const bool ui_captures_keyboard = vulkan_frame_orchestrator_.WantsKeyboardInput();
-		ve::gameplay::RuntimeSettings& runtime_settings = engine_.MutableRuntimeSettings();
-		runtime_settings.editor.is_settings_menu_open = ui_captures_mouse;
-
-		const ve::blocks::BlockRegistry* block_registry = model_->GetBlockRegistry();
-		assert(block_registry != nullptr);
-		controller_.UpdateVulkanWorld(window_, *model_, *block_registry, runtime_settings,
-			frame_timer_.DeltaSeconds(), ui_captures_keyboard);
-		ApplyConfiguredWorldEditsOnce();
-		InvokePublicApiFrameCallbacks();
-
-		if (!DrawVulkanFrame(CaptureVulkanFrameInput()))
-		{
-			window_.Close();
-		}
-
-		window_.SetCursorMode(vulkan_frame_orchestrator_.WantsMouseInput()
-			? Window::CursorMode::Normal
-			: Window::CursorMode::Captured);
 	}
 }

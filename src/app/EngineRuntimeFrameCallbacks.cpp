@@ -7,11 +7,6 @@ namespace ve::engine
 	{
 		frame_timer_.Tick();
 		elapsed_seconds_ += frame_timer_.DeltaSeconds();
-		if (view_->Api() == ve::rendering::GraphicsApi::OpenGLCompatibility)
-		{
-			engine_.UpdateProjectionIfWindowChanged(window_);
-			editor_controller_.BeginFrame();
-		}
 	}
 
 	void EngineRuntime::InvokePublicApiFrameCallbacks()

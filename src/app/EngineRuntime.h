@@ -6,23 +6,17 @@
 #include "FrameTimer.h"
 #include "GameController.h"
 #include "GameModel.h"
-#include "RenderBackend.h"
-#include "RenderView.h"
 #include "RuntimeInput.h"
 #include "RuntimeInputRouter.h"
-#include "VulkanFrameOrchestrator.h"
+#include "RuntimeRenderDriver.h"
+#include "RuntimeRenderHost.h"
 
 #include <memory>
-
-namespace ve::rendering
-{
-	class VulkanBackend;
-}
 
 namespace ve::engine
 {
 	/** Owns the active runtime systems created by EngineApplication::Run. */
-	class EngineRuntime
+	class EngineRuntime : private RuntimeRenderHost
 	{
 	public:
 		/** Keeps a reference to the engine facade that owns shared settings and callbacks. */
@@ -44,21 +38,15 @@ namespace ve::engine
 		[[nodiscard]] EngineStartupResult Initialize();
 		void PrepareAssetsAndLogging();
 		[[nodiscard]] EngineStartupResult CreateRuntimeSystems();
-		[[nodiscard]] EngineStartupResult CreateRenderBackend();
-		[[nodiscard]] ve::rendering::VulkanBackend* ActiveVulkanBackend() noexcept;
-		[[nodiscard]] ve::rendering::VulkanBackend& RequiredVulkanBackend() noexcept;
+		[[nodiscard]] EngineStartupResult CreateRenderDriver();
 
 		void RunMainLoop();
 		void RunFrame();
-		void RunOpenGLFrame();
-		void RunVulkanFrame();
-		[[nodiscard]] ve::rendering::VulkanFrameInput CaptureVulkanFrameInput();
-		[[nodiscard]] bool DrawVulkanFrame(const ve::rendering::VulkanFrameInput& input);
 		[[nodiscard]] bool ShouldContinue() const noexcept;
 		void BeginRuntimeFrame();
-		void UpdateGameplay();
-		void RenderWorld(RenderView& renderView);
-		void RenderHud(RenderView& renderView);
+		void UpdateViewportProjection() override;
+		void RenderWorld(RenderView& renderView) override;
+		void RenderHud(RenderView& renderView) override;
 		void EndRuntimeFrame();
 		void ApplyConfiguredWorldEditsOnce();
 		void ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits);
@@ -68,11 +56,7 @@ namespace ve::engine
 		RuntimeInputRouter input_router_;
 		ve::assets::AssetPaths asset_paths_;
 		std::unique_ptr<GameModel> model_;
-		std::unique_ptr<ve::rendering::RenderBackend> backend_;
-		std::unique_ptr<RenderView> view_;
-		ve::rendering::VulkanFrameOrchestrator vulkan_frame_orchestrator_;
-		// Backend-owned diagnostics visibility; authored scene state belongs to applications.
-		ve::rendering::VulkanOverlaySettings vulkan_overlay_settings_;
+		std::unique_ptr<RuntimeRenderDriver> render_driver_;
 		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;

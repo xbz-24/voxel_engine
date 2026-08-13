@@ -50,8 +50,6 @@ private:
 
 	void ConfigureCallbacks(ve::engine::Window& window, ve::engine::RuntimeInputRouter& input_router);
 
-	void ConfigureOpenGLState();
-
 	[[nodiscard]] ve::engine::EngineStartupResult InitializeWindow(ve::engine::Window& window);
 
 	void ConfigureRuntimeLogging(const ve::assets::AssetPaths& assetPaths);

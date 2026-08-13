@@ -13,12 +13,6 @@ namespace
 	constexpr float FarWorldClipDistance = 1024.0f;
 }
 
-/// Configures persistent OpenGL state used by the engine renderer.
-void EngineApplication::ConfigureOpenGLState()
-{
-	ve::rendering::ConfigureWorldDefaults();
-}
-
 /// Renders the visible 3D world and selection highlight.
 void EngineApplication::Render3DWorld(ve::engine::RenderView& renderView, const ve::engine::Window&, Camera& camera, SkyBox&, Plane&, BlockSelectionCube& selectionCube, const ve::blocks::BlockRegistry& blockRegistry, ve::world::World& world, const ve::gameplay::BlockSelection& selection)
 {
