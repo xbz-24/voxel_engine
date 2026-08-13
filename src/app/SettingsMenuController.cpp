@@ -1,6 +1,5 @@
 #include "SettingsMenuController.h"
 
-#include "CoreTypes.h"
 #include "Input.h"
 
 namespace ve::gameplay
@@ -40,22 +39,6 @@ namespace ve::gameplay
 		if (ve::input::WasPressed(window, ve::input::Key::Left, was_left_pressed_)) ApplyAdjustment(window, settings, -1);
 		if (ve::input::WasPressed(window, ve::input::Key::Right, was_right_pressed_)) ApplyAdjustment(window, settings, 1);
 		if (ve::input::WasPressed(window, ve::input::Key::Enter, was_confirm_pressed_)) Activate(window, settings);
-	}
-
-	/// Opens or closes the settings menu and updates cursor mode.
-	void SettingsMenuController::SetOpen(ve::engine::Window& window, RuntimeSettings& settings, bool isOpen)
-	{
-		settings.editor.is_settings_menu_open = isOpen;
-		window.SetCursorMode(isOpen ? ve::engine::Window::CursorMode::Normal : ve::engine::Window::CursorMode::Captured);
-	}
-
-	/// Moves the selected menu row.
-	void SettingsMenuController::MoveSelection(RuntimeSettings& settings, int direction)
-	{
-		const int count = ve::core::ToInt(ve::ui::SettingsMenuOption::Count);
-		const int selected = ve::core::ToInt(settings.editor.selected_settings_menu_option);
-		settings.editor.selected_settings_menu_option = ve::core::NumericCast<ve::ui::SettingsMenuOption>(
-			(selected + direction + count) % count);
 	}
 
 	/// Applies left/right changes to configurable rows.

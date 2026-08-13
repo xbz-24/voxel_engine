@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EngineConfiguration.h"
+#include "EngineRuntimeCallbacks.h"
 
 #include <bitset>
 #include <cstddef>

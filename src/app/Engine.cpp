@@ -37,8 +37,8 @@ EngineApplication::EngineApplication(ve::engine::EngineCreateInfo create_info)
 }
 
 EngineApplication::EngineApplication(ve::engine::ValidatedEngineCreateInfo create_info)
-	: create_info_(std::move(create_info))
 {
+	create_info_ = std::move(create_info);
 	ApplyRuntimeSettings(runtime_settings_, create_info_->Value());
 }
 

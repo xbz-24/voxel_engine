@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerFrameContexts.h"
 
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
@@ -18,6 +19,7 @@
 
 namespace ve::engine
 {
+	using namespace game_controller_detail;
 /// Updates player input, targeting, physics, and block edits.
 	void GameController::Update(Window& window,
 		GameModel& model,

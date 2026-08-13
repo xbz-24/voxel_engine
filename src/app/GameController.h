@@ -21,6 +21,13 @@ namespace ve::input
 
 namespace ve::engine
 {
+	namespace game_controller_detail
+	{
+		struct BlockSelectionFrameContext;
+		struct GameplayCommandFrameContext;
+		struct PlayerMovementFrameContext;
+	}
+
 	class GameController
 	{
 	public:
@@ -57,69 +64,6 @@ namespace ve::engine
 			bool ui_captures_input);
 
 	private:
-		struct PlayerMovementFrameContext
-		{
-			PlayerMovementFrameContext(const ve::input::InputSnapshot& input,
-				ve::world::World& world,
-				const ve::blocks::BlockRegistry& block_registry,
-				Camera& camera,
-				ve::gameplay::RuntimeSettings& settings,
-				double delta_seconds) noexcept
-				: input(input),
-				  world(world),
-				  block_registry(block_registry),
-				  camera(camera),
-				  settings(settings),
-				  delta_seconds(delta_seconds)
-			{
-			}
-
-			const ve::input::InputSnapshot& input;
-			ve::world::World& world;
-			const ve::blocks::BlockRegistry& block_registry;
-			Camera& camera;
-			ve::gameplay::RuntimeSettings& settings;
-			double delta_seconds;
-		};
-
-		struct BlockSelectionFrameContext
-		{
-			BlockSelectionFrameContext(ve::world::World& world,
-				const ve::blocks::BlockRegistry& block_registry,
-				Camera& camera,
-				ve::gameplay::BlockSelection& selection) noexcept
-				: world(world),
-				  block_registry(block_registry),
-				  camera(camera),
-				  selection(selection)
-			{
-			}
-
-			ve::world::World& world;
-			const ve::blocks::BlockRegistry& block_registry;
-			Camera& camera;
-			ve::gameplay::BlockSelection& selection;
-		};
-
-		struct GameplayCommandFrameContext
-		{
-			GameplayCommandFrameContext(const ve::input::InputSnapshot& input,
-				ve::world::World& world,
-				ve::gameplay::BlockSelection& selection,
-				ve::gameplay::RuntimeSettings& settings) noexcept
-				: input(input),
-				  world(world),
-				  selection(selection),
-				  settings(settings)
-			{
-			}
-
-			const ve::input::InputSnapshot& input;
-			ve::world::World& world;
-			ve::gameplay::BlockSelection& selection;
-			ve::gameplay::RuntimeSettings& settings;
-		};
-
 		void UpdateFrameGameplay(
 			Window& window,
 			const ve::input::InputSnapshot& input,
@@ -129,11 +73,11 @@ namespace ve::engine
 			ve::gameplay::BlockSelection& selection,
 			ve::gameplay::RuntimeSettings& settings,
 			double delta_seconds);
-		void ProcessInput(Window& window, PlayerMovementFrameContext& movement_frame);
-		void UpdatePlayerMovement(PlayerMovementFrameContext& frame);
-		void ApplyPlayerPhysics(PlayerMovementFrameContext& frame);
-		void UpdateSelection(BlockSelectionFrameContext& frame);
-		void ProcessGameplayInput(GameplayCommandFrameContext& frame);
+		void ProcessInput(Window& window, game_controller_detail::PlayerMovementFrameContext& frame);
+		void UpdatePlayerMovement(game_controller_detail::PlayerMovementFrameContext& frame);
+		void ApplyPlayerPhysics(game_controller_detail::PlayerMovementFrameContext& frame);
+		void UpdateSelection(game_controller_detail::BlockSelectionFrameContext& frame);
+		void ProcessGameplayInput(game_controller_detail::GameplayCommandFrameContext& frame);
 
 		EngineInputState input_state_;
 		ve::gameplay::SettingsMenuController settings_menu_controller_;

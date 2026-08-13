@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerFrameContexts.h"
 
 #include "BlockInteraction.h"
 #include "BlockRegistry.h"
@@ -18,7 +19,7 @@
 
 namespace ve::engine
 {
-void GameController::UpdateSelection(BlockSelectionFrameContext& frame)
+	void GameController::UpdateSelection(game_controller_detail::BlockSelectionFrameContext& frame)
 	{
 		constexpr float maximum_block_reach = 8.0f;
 		const std::optional<ve::gameplay::BlockRaycastHit> raycast_hit =
@@ -36,7 +37,7 @@ void GameController::UpdateSelection(BlockSelectionFrameContext& frame)
 		}
 	}
 
-	void GameController::ProcessGameplayInput(GameplayCommandFrameContext& frame)
+	void GameController::ProcessGameplayInput(game_controller_detail::GameplayCommandFrameContext& frame)
 	{
 		if (frame.settings.editor.is_settings_menu_open) return;
 

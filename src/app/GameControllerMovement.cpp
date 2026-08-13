@@ -1,4 +1,5 @@
 #include "GameController.h"
+#include "GameControllerFrameContexts.h"
 #include "GameControllerHelpers.h"
 
 #include "BlockInteraction.h"
@@ -19,7 +20,9 @@
 
 namespace ve::engine
 {
-void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& movement_frame)
+	void GameController::ProcessInput(
+		Window& window,
+		game_controller_detail::PlayerMovementFrameContext& movement_frame)
 	{
 		const bool was_menu_open = movement_frame.settings.editor.is_settings_menu_open;
 		settings_menu_controller_.ProcessInput(window, movement_frame.settings);
@@ -27,7 +30,7 @@ void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& mo
 		UpdatePlayerMovement(movement_frame);
 	}
 
-	void GameController::UpdatePlayerMovement(PlayerMovementFrameContext& frame)
+	void GameController::UpdatePlayerMovement(game_controller_detail::PlayerMovementFrameContext& frame)
 	{
 		game_controller_detail::ConsumeFlyToggle(frame.input, frame.settings, input_state_.was_fly_toggle_pressed);
 		game_controller_detail::ConsumeRenderDistanceAdjustment(frame.input,
@@ -55,7 +58,7 @@ void GameController::ProcessInput(Window& window, PlayerMovementFrameContext& mo
 		ApplyPlayerPhysics(frame);
 	}
 
-	void GameController::ApplyPlayerPhysics(PlayerMovementFrameContext& frame)
+	void GameController::ApplyPlayerPhysics(game_controller_detail::PlayerMovementFrameContext& frame)
 	{
 		if (frame.settings.player.is_flying)
 		{
