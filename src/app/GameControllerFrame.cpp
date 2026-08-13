@@ -28,7 +28,7 @@ namespace ve::engine
 		double delta_seconds)
 	{
 		(void)model.PumpAsyncWorldGeneration();
-		model.PumpAsyncChunkMeshing(block_registry, settings.renderer.render_distance_chunks);
+		model.PumpAsyncChunkMeshing(settings.renderer.render_distance_chunks);
 		const ve::input::InputSnapshot input = ve::input::CaptureInputSnapshot(window);
 		UpdateFrameGameplay(
 			window,
