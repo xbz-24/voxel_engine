@@ -1,47 +1,9 @@
 #pragma once
 
-
-#include "Block.h"
-
-#include <cstddef>
-#include <string_view>
+#include "BlockDefinitionTypes.h"
 
 namespace ve::blocks
 {
-	struct FaceTextureFiles
-	{
-		const char* top;
-		const char* bottom;
-		const char* front;
-		const char* back;
-		const char* left;
-		const char* right;
-	};
-
-	struct BlockDefinition
-	{
-		BlockId id;
-		std::string_view name;
-		bool isSolid;
-		FaceTextureFiles textures;
-	};
-
-	/**
-	 * Uses one texture for every cube face.
-	 */
-	constexpr FaceTextureFiles Same(const char* texture)
-	{
-		return { texture, texture, texture, texture, texture, texture };
-	}
-
-	/**
-	 * Uses one top, one bottom, and one side texture.
-	 */
-	constexpr FaceTextureFiles TopBottomSide(const char* top, const char* bottom, const char* side)
-	{
-		return { top, bottom, side, side, side, side };
-	}
-
 	static constexpr BlockDefinition BuiltInBlockDefinitions[] = {
 		{ BlockId::Air, "Air", false, Same(nullptr) },
 		{ BlockId::Grass, "Grass", true, { "grass_block_top.png", "dirt.png", "grass_block_side.png", "grass_block_side.png", "grass_block_side.png", "grass_block_side.png" } },
