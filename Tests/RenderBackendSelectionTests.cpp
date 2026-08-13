@@ -67,12 +67,16 @@ TEST_CASE("render backend selector supports best available and headless policies
 TEST_CASE("render backend catalog exposes vulkan as the default api")
 {
 	const ve::rendering::RenderBackendDescriptor& backend = ve::rendering::RenderBackendCatalog::DefaultBackend();
+	const auto& opengl = ve::rendering::RenderBackendCatalog::Find(
+		ve::rendering::GraphicsApi::OpenGLCompatibility);
 
 	CHECK(backend.api == ve::rendering::GraphicsApi::Vulkan);
 	CHECK(backend.is_default);
 	CHECK(backend.is_implemented);
 	CHECK(backend.migration.has_backend_neutral_world_renderer);
 	CHECK(!backend.migration.has_backend_neutral_hud);
+	CHECK(backend.migration.has_runtime_smoke_test);
+	CHECK(!opengl.migration.has_runtime_smoke_test);
 }
 
 TEST_CASE("render backend factory creates every declared backend object")

@@ -62,8 +62,9 @@ TEST_CASE("directx backend is declared but unavailable until implemented")
 	const ve::rendering::RenderBackendCapabilities capabilities = backend.Capabilities();
 
 	CHECK(backend.Api() == ve::rendering::GraphicsApi::DirectX12);
-	CHECK(capabilities.compute.supported);
-	CHECK(capabilities.ray_tracing.supported);
+	CHECK(!capabilities.compute.supported);
+	CHECK(!capabilities.indirect_draw.supported);
+	CHECK(!capabilities.ray_tracing.supported);
 	CHECK(!capabilities.is_available);
 	CHECK(std::string{ backend.Name() } == "DirectX12");
 }
