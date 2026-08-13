@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "CoreTypes.h"
+#include "GraphicsResourceHandle.h"
 
 #include <cstdint>
 #include <optional>
@@ -9,18 +9,6 @@
 
 namespace ve::rendering
 {
-	struct GraphicsResourceHandle
-	{
-		std::uint32_t index = UINT32_MAX;
-		std::uint32_t generation = 0;
-
-		/** @return True when the handle points at a possible slot. */
-		[[nodiscard]] bool IsValid() const noexcept { return index != UINT32_MAX; }
-
-		/** @param other Handle to compare. @return True when both refer to the same generation. */
-		[[nodiscard]] bool operator==(const GraphicsResourceHandle& other) const noexcept = default;
-	};
-
 	template <typename Resource>
 	class GraphicsResourcePool
 	{

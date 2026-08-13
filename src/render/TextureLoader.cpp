@@ -43,21 +43,6 @@ namespace ve::rendering
 		return image;
 	}
 
-	TextureHandle UploadOpenGLTexture(const DecodedImage& image)
-	{
-		if (!image.IsValid()) return kInvalidTextureHandle;
-
-		GLuint texture = 0;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.rgba.data());
-		return TextureHandle{ texture };
-	}
-
 	RenderTexturePtr UploadTexture(RenderBackend& backend, const DecodedImage& image)
 	{
 		if (!image.IsValid())
@@ -75,31 +60,4 @@ namespace ve::rendering
 		return backend.CreateTextureResource(RenderTextureUpload{ descriptor, image.rgba });
 	}
 
-	GLuint NativeOpenGLTexture(TextureHandle handle) noexcept
-	{
-		return ve::core::NumericCast<GLuint>(handle.value);
-	}
-
-	float PackedRgbUnitChannel(int hexColor, int bit_shift) noexcept
-	{
-		return ve::core::ToFloat((hexColor >> bit_shift) & 0xFF) / 255.0f;
-	}
-
-	TextureHandle LoadTexture(const char* path)
-	{
-		return UploadOpenGLTexture(DecodeImageFile(path));
-	}
-
-	/**
-	 * Sets the current immediate-mode OpenGL color from a packed RGB value.
-	 *
-	 * @param hexColor RGB color encoded as 0xRRGGBB.
-	 */
-	void SetColorFromHex(int hexColor)
-	{
-		const float red = PackedRgbUnitChannel(hexColor, 16);
-		const float green = PackedRgbUnitChannel(hexColor, 8);
-		const float blue = PackedRgbUnitChannel(hexColor, 0);
-		glColor3f(red, green, blue);
-	}
 }
