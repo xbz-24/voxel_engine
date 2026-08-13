@@ -1,41 +1,58 @@
 # Architecture Roadmap
 
-## Direction
+## Current Baseline
 
-The engine has moved from one flat `Builds/` folder into feature folders:
+- `ve_runtime` owns the generic window, asset paths, timing, logging, and the
+  content-module lifecycle. A target-graph gate keeps it independent from
+  world, network, and concrete renderer aggregation.
+- `ve_voxel_sandbox` owns voxel gameplay, input, editor UI, HUD, world edits,
+  and backend-specific runtime drivers. `ve_app` remains only as a compatibility
+  alias.
+- `VoxelEngine::Authoring` is independent from the private runtime;
+  `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox.
+- `voxel_demo` is the only authored application. Examples consume the public
+  SDK instead of defining alternate launchers.
+- Vulkan is the default runtime path. OpenGL remains an explicit compatibility
+  choice, and both backends have bounded runtime smoke coverage.
 
-- `engine/app`: engine runtime, screens, main loop.
-- `engine/mvc`: `GameModel`, `GameView`, `GameController`.
-- `engine/render`: render state, 2D primitives, 3D primitives, GPU resources.
-- `engine/world`: world, chunks, terrain, block storage.
-- `engine/network`: sockets, protocol, sessions, replication.
-- `engine/log`: logger, categories, formatting, sinks.
-- `gameplay`: input mapping, hotbar, block interaction, player movement.
+The codebase already has `GameModel`/`GameController`, a screen stack,
+`NetworkSession`, GLFW-backed window ownership, and both Vulkan and OpenGL
+ImGui integrations. Those are established components, not pending patterns.
 
-## Patterns To Apply Now
+## Next Release Boundary
 
-- MVC for game state, rendering, and input orchestration.
-- Facade for `NetworkSession`, hiding sockets from gameplay.
-- Command/request objects for rendering, meshing, networking, and world edits.
-- Screen stack for menu, loading, gameplay, and editor screens.
-- Adapter for the current GLFW window so an ImGui tools layer can be added cleanly.
+- Install and export the runtime-backed `VoxelEngine::SDK` only after its
+  runtime assets and private target closure have a relocatable contract. Keep
+  the installed `VoxelEngine::Authoring` package as the smaller supported
+  boundary in the meantime.
+- Maintain the canonical project/SDK/package version. Configure-time gates now
+  keep the vcpkg manifest, CMake package metadata, and public
+  `voxel::Version()` synchronized; graphics API metadata should continue to
+  follow the same release version.
+- Pin the vcpkg dependency baseline once the repository has a release branch
+  and an intentional dependency-update procedure.
+- Select and add a repository license before describing source distribution as
+  an open-source release.
 
-## Immediate Refactors
+## Runtime and Rendering Work
 
-- Move remaining frame gameplay code from `Engine` into `GameController`.
-- Move 3D/HUD draw orchestration from `Engine` into `GameView`.
-- Rename old member fields gradually to Google-style trailing underscore.
-- Introduce `WindowBackend` before considering any non-GLFW window implementation.
-- Add ImGui through GLFW/OpenGL first; do not mix WinForms into the game render loop.
+- Feed `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` into runtime systems.
+  Until then, configured authored assets and entities must continue to produce
+  explicit validation issues instead of silently being ignored.
+- Keep the Vulkan and OpenGL bounded runtime smokes green as backend ownership
+  and shutdown ordering evolve.
+- Continue moving backend-owned resources and draw orchestration out of the
+  compatibility renderer; retain migration-status metadata until direct tests
+  prove each backend contract.
+- Add stable public entity identifiers to frame callbacks only after entity
+  ownership and event lifetime are defined as runtime contracts.
 
-## Long-Lived Architecture Work
+## World and Network Work
 
-- Public SDK packaging: the independent `VoxelEngine::Authoring` target and the
-  runtime-backed `VoxelEngine::SDK` adapter are now separate. The remaining
-  work is install/export metadata, semantic package versioning, and an
-  installed-tree consumer smoke project.
-- Public scene/runtime bridge: feed `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` into runtime systems before exposing custom importer registration or data-driven authored scenes.
-- World runtime shape: split chunk storage, generation, meshing, and event publication so tools/tests can use `World` headlessly; extend the current grow-on-demand chunk storage with explicit non-square streaming bounds and vertical world bounds.
-- Backend-neutral rendering: replace compatibility OpenGL volume/raymarch/HUD paths with backend-owned resources and command-list driven passes; keep `RenderBackendMigrationStatus` until tests cover the migrated contracts directly.
-- OpenGL runtime recovery: `voxel_demo --graphics-api opengl` remains available for manual diagnosis, but the compatibility path currently reproduces an access violation after generated world edits. Keep it out of CTest until that crash is fixed and a three-frame OpenGL smoke passes reliably.
-- Runtime entity systems: add stable public entity ids to frame callbacks only after entity ownership and event lifetime are part of the runtime contract.
+- Separate chunk storage, generation, meshing, and event publication far enough
+  that tools can use world data without a graphics runtime.
+- Replace grow-only chunk assumptions with explicit horizontal streaming bounds
+  and vertical world bounds.
+- Document packet flow, protocol-version negotiation, snapshot ordering, and
+  live world-mutation ordering before exposing multiplayer through the public
+  SDK.

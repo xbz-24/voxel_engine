@@ -42,16 +42,19 @@ for the frame flow, shader ABI, and extension checklist. The legacy renderer
 continues to live behind the explicit OpenGL compatibility backend.
 
 The demo selects its backend with `--graphics-api vulkan|opengl`; omitting the
-option keeps Vulkan as the default. Automated runtime coverage currently
-registers only the green Vulkan smoke. OpenGL remains available for manual
-diagnosis while its known runtime crash is tracked in the architecture roadmap.
+option keeps Vulkan as the default. Optional automated runtime coverage
+registers bounded smokes for both Vulkan and OpenGL.
 
 ## Visual Studio
 
 Generate the Visual Studio solution with:
 
 ```powershell
+$env:VCPKG_ROOT = "C:\path\to\vcpkg"
 cmake --preset windows-visual-studio
 ```
 
-Then open `out/build/windows-visual-studio/VoxelEngine.slnx`.
+Visual Studio 2022 generates
+`out/build/windows-visual-studio-2022-manifest/VoxelEngine.sln`; the optional
+`windows-visual-studio-2026` preset generates a `.slnx` in its corresponding
+`-manifest` directory.

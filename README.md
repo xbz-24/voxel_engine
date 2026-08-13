@@ -12,7 +12,8 @@ The project currently targets Windows first. The supported application is
 
 - Visual Studio 2022 or newer with the Desktop C++ workload.
 - CMake 3.25 or newer.
-- vcpkg in manifest mode.
+- vcpkg in manifest mode. Set `VCPKG_ROOT` to the vcpkg checkout when using
+  the checked-in CMake presets.
 - Vulkan SDK tools `glslc` and `spirv-val` on `PATH`.
 
 ## Configure and build
@@ -23,6 +24,15 @@ cmake -S . -B Builds -A x64 `
 cmake --build Builds --config Debug --target ALL_BUILD -- /m:1
 ```
 
+The Windows preset path is also available without a user-specific toolchain
+location:
+
+```powershell
+$env:VCPKG_ROOT = "C:\path\to\vcpkg"
+cmake --preset windows-visual-studio
+cmake --build --preset windows-visual-studio-strict
+```
+
 Run the single demo with Vulkan explicitly:
 
 ```powershell
@@ -30,8 +40,8 @@ Builds\Debug\voxel_demo.exe --graphics-api vulkan
 ```
 
 Use `--smoke-frames 3` for a bounded runtime check. The CLI also accepts
-`--graphics-api opengl`, but that compatibility path currently has a known
-runtime crash and is not part of automated smoke coverage.
+`--graphics-api opengl`. When runtime smoke tests are enabled, CTest exercises
+both explicit graphics selections with the same bounded frame count.
 
 ## Validation
 
@@ -42,7 +52,7 @@ cmake --build Builds --config Debug --target verify_source_policy
 ```
 
 The source policy checks authored C++ in `include/voxel`, `src`, `Tests`,
-`apps`, and `examples`: every `.h/.cpp` family file must stay below 100
+`apps`, `examples`, and `packaging`: every `.h/.cpp` family file must stay below 100
 physical lines, and `.inl` files are forbidden. Public headers are also
 compiled individually to enforce self-containment.
 
@@ -56,9 +66,35 @@ compiled individually to enforce self-containment.
   assets/materials/scene authoring, and an embeddable frame loop.
 - Runtime asset-catalog loading, material binding, and scene-graph rendering
   remain deliberately disabled and report validation errors.
-- The SDK is build-tree consumable but not yet an installed, relocatable CMake
-  package. See [Architecture Roadmap](docs/ArchitectureRoadmap.md).
-- OpenGL is available for diagnosis but Vulkan is the tested runtime path.
+- `VoxelEngine::Authoring` is installed as a relocatable CMake package and is
+  verified through an installed-tree consumer smoke. The runtime-backed
+  `VoxelEngine::SDK` remains build-tree-only until its assets and private target
+  closure have an install contract. See the
+  [Architecture Roadmap](docs/ArchitectureRoadmap.md).
+- Vulkan remains the default; Vulkan and OpenGL both have bounded runtime smoke
+  coverage.
+
+## Installed authoring package
+
+Install the runtime-independent authoring component into a chosen prefix:
+
+```powershell
+cmake --build Builds --config Release --target voxel_engine_authoring
+cmake --install Builds --config Release `
+  --prefix C:/path/to/voxel-engine `
+  --component Authoring
+```
+
+A consuming CMake project can then use:
+
+```cmake
+find_package(VoxelEngine 0.5.0 CONFIG REQUIRED COMPONENTS Authoring)
+target_link_libraries(my_tool PRIVATE VoxelEngine::Authoring)
+```
+
+This installed component intentionally omits `Engine.h`, `EngineRun.h`, and the
+`Voxel.h` runtime umbrella. Those headers and `VoxelEngine::SDK` remain
+build-tree-only until the runtime package is relocatable.
 
 ## Documentation
 
