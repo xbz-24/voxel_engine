@@ -1,30 +1,6 @@
 #include "voxel/Engine.h"
 
-#include "CoreTypes.h"
-#include "WorldSerializationHelpers.h"
-
 #include <algorithm>
-#include <cstdint>
-#include <fstream>
-#include <string>
-
-namespace voxel::detail
-{
-	int ToSerializedBlock(Block block) noexcept
-	{
-		return ve::core::ToInt(ve::core::ToU8(block));
-	}
-
-	Block FromSerializedBlock(int value) noexcept
-	{
-		if (value < ToSerializedBlock(Block::Air) || value > ToSerializedBlock(Block::DeadBush))
-		{
-			return Block::Air;
-		}
-		return ve::core::NumericCast<Block>(ve::core::ToU8(value));
-	}
-}
-
 namespace voxel
 {
 	BlockBox BlockBox::Between(BlockPosition first, BlockPosition second) noexcept

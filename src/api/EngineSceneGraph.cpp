@@ -1,170 +1,14 @@
 #include "voxel/Engine.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <set>
-#include <string>
+#include "EngineSceneGraphHelpers.h"
+
 #include <utility>
 
 namespace voxel
 {
-	namespace
-	{
-		[[nodiscard]] std::string SceneEntityLabel(const Entity& entity)
-		{
-			if (entity.name.empty())
-			{
-				return "scene entity";
-			}
-			return "scene entity '" + entity.name + "'";
-		}
-
-		[[nodiscard]] bool ContainsEntityId(const std::vector<Entity>& entities,
-			EntityId requested_entity_id) noexcept
-		{
-			return std::ranges::any_of(entities,
-				[requested_entity_id](const Entity& entity) noexcept {
-					return entity.id == requested_entity_id;
-				});
-		}
-
-		[[nodiscard]] EntityId NextSceneEntityId(const std::vector<Entity>& entities) noexcept
-		{
-			for (std::uint32_t candidate_id = 1; candidate_id != 0; ++candidate_id)
-			{
-				const EntityId candidate_entity_id{ candidate_id };
-				if (!ContainsEntityId(entities, candidate_entity_id))
-				{
-					return candidate_entity_id;
-				}
-			}
-			return InvalidEntityId;
-		}
-
-		template <typename EntityRange>
-		[[nodiscard]] auto FindEntityById(EntityRange& entities, EntityId requested_entity_id) noexcept
-		{
-			return std::ranges::find_if(entities,
-				[requested_entity_id](const Entity& candidate_entity) noexcept {
-					return candidate_entity.id == requested_entity_id;
-				});
-		}
-
-		[[nodiscard]] std::set<std::uint32_t> CollectValidEntityIds(
-			const std::vector<Entity>& entities,
-			std::vector<std::string>& issues)
-		{
-			std::set<std::uint32_t> entity_ids;
-			for (const Entity& entity : entities)
-			{
-				if (!entity.id.IsValid())
-				{
-					issues.push_back(SceneEntityLabel(entity) + " must have a stable id");
-					continue;
-				}
-				if (!entity_ids.insert(entity.id.value).second)
-				{
-					issues.push_back(SceneEntityLabel(entity) + " has a duplicated id");
-				}
-			}
-			return entity_ids;
-		}
-
-		void ValidateEntityParents(
-			const std::vector<Entity>& entities,
-			const std::set<std::uint32_t>& entity_ids,
-			std::vector<std::string>& issues)
-		{
-			for (const Entity& entity : entities)
-			{
-				if (!entity.id.IsValid() || !entity.parent.IsValid())
-				{
-					continue;
-				}
-				if (entity.parent == entity.id)
-				{
-					issues.push_back(SceneEntityLabel(entity) + " cannot be parented to itself");
-					continue;
-				}
-				if (!entity_ids.contains(entity.parent.value))
-				{
-					issues.push_back(SceneEntityLabel(entity) + " references a missing parent id");
-				}
-			}
-		}
-	}
-
 	MaterialLibrary& MaterialLibrary::Add(Material material)
 	{
 		materials.push_back(std::move(material));
-		return *this;
-	}
-
-	Transform Transform::At(Vec3 position) noexcept
-	{
-		Transform transform{};
-		transform.position = position;
-		return transform;
-	}
-
-	Entity Entity::Named(std::string name)
-	{
-		Entity entity{};
-		entity.name = std::move(name);
-		return entity;
-	}
-
-	Entity& Entity::At(Vec3 position) noexcept
-	{
-		transform.position = position;
-		return *this;
-	}
-
-	Entity& Entity::Rotate(Vec3 euler_degrees) noexcept
-	{
-		transform.rotation = euler_degrees;
-		return *this;
-	}
-
-	Entity& Entity::Scale(Vec3 value) noexcept
-	{
-		transform.scale = value;
-		return *this;
-	}
-
-	Entity& Entity::Model(std::string asset_name)
-	{
-		model = std::move(asset_name);
-		return *this;
-	}
-
-	Entity& Entity::Material(std::string material_name)
-	{
-		material = std::move(material_name);
-		return *this;
-	}
-
-	Entity& Entity::Visible(bool enabled) noexcept
-	{
-		visible = enabled;
-		return *this;
-	}
-
-	Entity& Entity::WithId(EntityId entity_id) noexcept
-	{
-		id = entity_id;
-		return *this;
-	}
-
-	Entity& Entity::ChildOf(EntityId parent_id) noexcept
-	{
-		parent = parent_id;
-		return *this;
-	}
-
-	Entity& Entity::AsRoot() noexcept
-	{
-		parent = InvalidEntityId;
 		return *this;
 	}
 
@@ -184,7 +28,7 @@ namespace voxel
 	{
 		if (!entity.id.IsValid())
 		{
-			entity.id = NextSceneEntityId(entities);
+			entity.id = detail::NextSceneEntityId(entities);
 		}
 
 		const EntityId entity_id = entity.id;
@@ -204,8 +48,7 @@ namespace voxel
 		{
 			return nullptr;
 		}
-		const auto entity_iterator = FindEntityById(entities, entity_id);
-		return entity_iterator == entities.end() ? nullptr : &*entity_iterator;
+		return detail::FindSceneEntity(entities, entity_id);
 	}
 
 	const Entity* SceneGraph::FindEntity(EntityId entity_id) const noexcept
@@ -214,8 +57,7 @@ namespace voxel
 		{
 			return nullptr;
 		}
-		const auto entity_iterator = FindEntityById(entities, entity_id);
-		return entity_iterator == entities.end() ? nullptr : &*entity_iterator;
+		return detail::FindSceneEntity(entities, entity_id);
 	}
 
 	SceneGraph& SceneGraph::Add(Light light)
@@ -232,9 +74,6 @@ namespace voxel
 
 	std::vector<std::string> SceneGraph::Validate() const
 	{
-		std::vector<std::string> issues;
-		const std::set<std::uint32_t> entity_ids = CollectValidEntityIds(entities, issues);
-		ValidateEntityParents(entities, entity_ids, issues);
-		return issues;
+		return detail::ValidateSceneEntities(entities);
 	}
 }

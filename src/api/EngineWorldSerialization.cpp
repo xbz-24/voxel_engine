@@ -1,19 +1,14 @@
 #include "voxel/Engine.h"
 
-#include "CoreTypes.h"
 #include "WorldSerializationHelpers.h"
 
-#include <algorithm>
-#include <cstdint>
 #include <fstream>
 #include <string>
 
 namespace voxel
 {
-	using detail::FromSerializedBlock;
 	using detail::SaveWorldTerrainConfig;
 	using detail::ToSerializedBlock;
-	using detail::TryLoadWorldTerrainCommand;
 
 	bool SaveWorldConfig(const WorldConfig& world, const std::string& path)
 	{
@@ -42,66 +37,4 @@ namespace voxel
 		return file.good();
 	}
 
-	WorldConfig LoadWorldConfig(const std::string& path)
-	{
-		std::ifstream file(path);
-		if (!file) return {};
-
-		std::string header;
-		int version = 0;
-		file >> header >> version;
-		if (header != "voxel-world-config" || version != 1) return {};
-
-		WorldConfig world{};
-		std::string command;
-		while (file >> command)
-		{
-			if (command == "size")
-			{
-				int size_chunks = world.size_chunks;
-				file >> size_chunks;
-				world.WithSizeChunks(size_chunks);
-			}
-			else if (TryLoadWorldTerrainCommand(world, command, file))
-			{
-				continue;
-			}
-			else if (command == "set")
-			{
-				int block_x = 0;
-				int block_y = 0;
-				int block_z = 0;
-				int serialized_block = 0;
-				file >> block_x >> block_y >> block_z >> serialized_block;
-				world.SetBlock(block_x, block_y, block_z, FromSerializedBlock(serialized_block));
-			}
-			else if (command == "fill")
-			{
-				int first_block_x = 0;
-				int first_block_y = 0;
-				int first_block_z = 0;
-				int second_block_x = 0;
-				int second_block_y = 0;
-				int second_block_z = 0;
-				int serialized_block = 0;
-				file >> first_block_x >> first_block_y >> first_block_z >>
-					second_block_x >> second_block_y >> second_block_z >>
-					serialized_block;
-				world.FillBox(
-					first_block_x,
-					first_block_y,
-					first_block_z,
-					second_block_x,
-					second_block_y,
-					second_block_z,
-					FromSerializedBlock(serialized_block));
-			}
-			else
-			{
-				std::string ignored_line;
-				std::getline(file, ignored_line);
-			}
-		}
-		return world;
-	}
 }

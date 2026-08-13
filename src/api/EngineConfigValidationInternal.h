@@ -67,6 +67,18 @@ namespace voxel::detail::config_validation
 		const AssetCatalog& assets,
 		const MaterialLibrary& materials,
 		std::vector<std::string>& issues);
+	void ValidateWindowAndWorldConfiguration(
+		const EngineConfig& config,
+		std::vector<std::string>& issues);
+	void ValidateGraphicsBackendSupport(
+		const EngineConfig& config,
+		std::vector<std::string>& issues);
+	void ValidateVoxelRenderLightingAndFog(
+		const VoxelRenderStyle& style,
+		std::vector<std::string>& issues);
+	void ValidateVoxelRenderEffects(
+		const VoxelRenderStyle& style,
+		std::vector<std::string>& issues);
 
 	[[nodiscard]] const IEngineConfigValidator& ValidatorInstance() noexcept;
 }

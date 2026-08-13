@@ -1,29 +1,11 @@
-#include "EngineRuntimeBridge.h"
 #include "EngineConfigValidationInternal.h"
-
-#include <algorithm>
-#include <concepts>
 #include <cmath>
-#include <filesystem>
 #include <ranges>
 #include <set>
-#include <span>
 #include <string_view>
-#include <type_traits>
-#include <utility>
 
 namespace voxel::detail::config_validation
 {
-		[[nodiscard]] std::string MaterialLabel(const Material& material)
-		{
-			return material.name.empty() ? "material" : "material '" + material.name + "'";
-		}
-
-		[[nodiscard]] std::string EntityLabel(const Entity& entity)
-		{
-			return entity.name.empty() ? "scene entity" : "scene entity '" + entity.name + "'";
-		}
-
 		void ValidateFiniteRange(float value,
 			std::string label,
 			FloatRange range,
