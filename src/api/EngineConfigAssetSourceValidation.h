@@ -1,8 +1,10 @@
 #pragma once
 
-#include "EngineRuntimeBridge.h"
+#include "voxel/Assets.h"
 
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace voxel::detail::config_validation
 {

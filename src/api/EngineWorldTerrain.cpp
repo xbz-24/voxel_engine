@@ -1,7 +1,5 @@
 #include "voxel/Engine.h"
 
-#include "CoreTypes.h"
-
 #include <algorithm>
 #include <cstdint>
 #include <fstream>

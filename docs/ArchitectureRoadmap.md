@@ -30,7 +30,10 @@ The engine has moved from one flat `Builds/` folder into feature folders:
 
 ## Long-Lived Architecture Work
 
-- Public SDK packaging: split `voxel_engine_sdk` away from private runtime/application targets, then add install/export package targets and an installed-tree consumer smoke project.
+- Public SDK packaging: the independent `VoxelEngine::Authoring` target and the
+  runtime-backed `VoxelEngine::SDK` adapter are now separate. The remaining
+  work is install/export metadata, semantic package versioning, and an
+  installed-tree consumer smoke project.
 - Public scene/runtime bridge: feed `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` into runtime systems before exposing custom importer registration or data-driven authored scenes.
 - World runtime shape: split chunk storage, generation, meshing, and event publication so tools/tests can use `World` headlessly; extend the current grow-on-demand chunk storage with explicit non-square streaming bounds and vertical world bounds.
 - Backend-neutral rendering: replace compatibility OpenGL volume/raymarch/HUD paths with backend-owned resources and command-list driven passes; keep `RenderBackendMigrationStatus` until tests cover the migrated contracts directly.

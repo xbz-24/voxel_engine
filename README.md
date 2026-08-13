@@ -49,6 +49,9 @@ compiled individually to enforce self-containment.
 ## Current architecture status
 
 - `voxel_demo` is the only authored application.
+- `VoxelEngine::Authoring` provides builders, validation, assets, materials,
+  scenes, and world serialization without linking the private runtime.
+- `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox.
 - The public SDK supports world configuration/serialization, callbacks,
   assets/materials/scene authoring, and an embeddable frame loop.
 - Runtime asset-catalog loading, material binding, and scene-graph rendering

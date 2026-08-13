@@ -1,13 +1,12 @@
 #include "voxel/Engine.h"
 
-#include "CoreTypes.h"
 #include "WorldSerializationHelpers.h"
 
 namespace voxel::detail
 {
 	int ToSerializedBlock(Block block) noexcept
 	{
-		return ve::core::ToInt(ve::core::ToU8(block));
+		return static_cast<int>(block);
 	}
 
 	Block FromSerializedBlock(int value) noexcept
@@ -16,6 +15,6 @@ namespace voxel::detail
 		{
 			return Block::Air;
 		}
-		return ve::core::NumericCast<Block>(ve::core::ToU8(value));
+		return static_cast<Block>(value);
 	}
 }

@@ -39,11 +39,29 @@ set(VE_PUBLIC_SDK_HEADERS
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/WorldTypes.h"
 )
 
-file(GLOB VE_PUBLIC_SDK_SOURCES CONFIGURE_DEPENDS "${VE_SOURCE_ROOT}/api/*.cpp")
-list(SORT VE_PUBLIC_SDK_SOURCES)
-add_library(voxel_engine_sdk STATIC ${VE_PUBLIC_SDK_SOURCES} ${VE_PUBLIC_SDK_HEADERS})
+include("${CMAKE_CURRENT_LIST_DIR}/PublicSdkSources.cmake")
+
+add_library(voxel_engine_authoring STATIC
+    ${VE_PUBLIC_AUTHORING_SOURCES}
+    ${VE_PUBLIC_SDK_HEADERS}
+)
+target_include_directories(voxel_engine_authoring PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
+target_include_directories(voxel_engine_authoring PRIVATE "${VE_SOURCE_ROOT}/api")
+target_link_libraries(voxel_engine_authoring PRIVATE ve_project_options)
+ve_enable_common_pch(voxel_engine_authoring)
+set_target_properties(voxel_engine_authoring PROPERTIES FOLDER "Engine/API")
+add_library(VoxelEngine::Authoring ALIAS voxel_engine_authoring)
+include("${CMAKE_CURRENT_LIST_DIR}/PublicAuthoringTargetPolicy.cmake")
+
+add_library(voxel_engine_sdk STATIC ${VE_PUBLIC_RUNTIME_ADAPTER_SOURCES})
 target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
-target_link_libraries(voxel_engine_sdk PRIVATE ve_project_options ve_app)
+target_include_directories(voxel_engine_sdk PRIVATE "${VE_SOURCE_ROOT}/api")
+target_link_libraries(voxel_engine_sdk
+    PUBLIC voxel_engine_authoring
+    PRIVATE ve_project_options ve_voxel_sandbox
+)
 ve_enable_common_pch(voxel_engine_sdk)
 set_target_properties(voxel_engine_sdk PROPERTIES FOLDER "Engine/API")
 add_library(VoxelEngine::SDK ALIAS voxel_engine_sdk)
+
+include("${CMAKE_CURRENT_LIST_DIR}/PublicAuthoringSmoke.cmake")

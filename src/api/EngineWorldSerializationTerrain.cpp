@@ -1,6 +1,5 @@
 #include "voxel/Engine.h"
 
-#include "CoreTypes.h"
 #include "WorldSerializationHelpers.h"
 
 #include <algorithm>

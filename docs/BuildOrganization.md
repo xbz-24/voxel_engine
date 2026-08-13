@@ -14,6 +14,11 @@ and display the engine as multiple projects instead of one large executable.
 - `ve_voxel_sandbox`: voxel gameplay, editor, input, HUD, and render drivers.
 - `ve_app`: compatibility link alias for `ve_voxel_sandbox`; build the real
   target with `--target ve_voxel_sandbox`.
+- `voxel_engine_authoring` / `VoxelEngine::Authoring`: public configuration,
+  validation, assets, materials, scene graph, and world serialization without
+  private runtime dependencies.
+- `voxel_engine_sdk` / `VoxelEngine::SDK`: complete public surface plus the
+  runtime adapter and voxel sandbox.
 - `voxel_demo`: the single authored application that consumes `VoxelEngine::SDK`.
 - `engine_tests`: tests linked against the same libraries used by the engine.
 

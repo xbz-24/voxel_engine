@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EngineConfigValidator.h"
 #include "voxel/Engine.h"
 
 #include "EngineConfiguration.h"
@@ -10,16 +11,6 @@
 
 namespace voxel::detail
 {
-	/** Internal validation strategy used by public Engine wrappers before runtime creation. */
-	class IEngineConfigValidator
-	{
-	public:
-		virtual ~IEngineConfigValidator() = default;
-
-		/** Returns public validation issue strings for config. */
-		[[nodiscard]] virtual std::vector<std::string> Validate(const EngineConfig& config) const = 0;
-	};
-
 	/** Internal translator from public SDK config objects to engine runtime create-info. */
 	class IEngineConfigTranslator
 	{
@@ -83,9 +74,6 @@ namespace voxel::detail
 		const IEngineConfigTranslator& translator;
 		const IEngineRuntimeFactory& runtime_factory;
 	};
-
-	/** Returns the default public config validator singleton. */
-	[[nodiscard]] const IEngineConfigValidator& DefaultEngineConfigValidator() noexcept;
 
 	/** Returns the default public-to-private config translator singleton. */
 	[[nodiscard]] const IEngineConfigTranslator& DefaultEngineConfigTranslator() noexcept;
