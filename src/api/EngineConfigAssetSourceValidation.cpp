@@ -78,8 +78,10 @@ namespace voxel::detail::config_validation
 		case AssetStorage::PackagedArchive:
 			return ValidateArchive(source, asset_location, asset_kind, issues);
 		case AssetStorage::FilePath:
-		default:
 			return ValidateFilePath(asset_location, asset_kind, require_existing_files, issues);
+		default:
+			issues.push_back(std::string{ asset_kind } + " asset storage is not known");
+			return;
 		}
 	}
 }
