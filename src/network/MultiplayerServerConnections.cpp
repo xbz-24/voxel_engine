@@ -1,5 +1,6 @@
 #include "MultiplayerServer.h"
 
+#include "MultiplayerInboxLimits.h"
 #include "NetworkPacketIO.h"
 #include "NetworkSerialization.h"
 
@@ -66,7 +67,9 @@ namespace ve::network
 					{
 						auto message = ReceiveNetworkMessage(*clientWorker.socket);
 						if (!message) break;
-						_incomingMessages.Push({ clientWorker.connectionId, std::move(*message) });
+						if (!_incomingMessages.TryPush(
+							{ clientWorker.connectionId, std::move(*message) },
+							MultiplayerInboxMessageCapacity)) break;
 					}
 				}
 			}

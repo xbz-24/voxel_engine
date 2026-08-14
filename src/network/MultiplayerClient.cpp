@@ -1,5 +1,6 @@
 #include "MultiplayerClient.h"
 
+#include "MultiplayerInboxLimits.h"
 #include "NetworkPacketIO.h"
 
 namespace ve::network
@@ -64,7 +65,8 @@ namespace ve::network
 			{
 				std::optional<NetworkMessage> receivedMessage = ReceiveNetworkMessage(*receiveSocket);
 				if (!receivedMessage) break;
-				_incomingMessages.Push(std::move(*receivedMessage));
+				if (!_incomingMessages.TryPush(
+					std::move(*receivedMessage), MultiplayerInboxMessageCapacity)) break;
 			}
 		}
 		catch (...) {}

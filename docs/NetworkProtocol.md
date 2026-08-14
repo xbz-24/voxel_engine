@@ -244,6 +244,15 @@ it is not a bandwidth scheduler or queued-output budget:
   `TcpSocket::Listen`.
 - Default maximum open clients: 8; zero is converted to 1 by
   `MultiplayerServer::Start`.
+- Client and host receive queues retain at most
+  `MultiplayerInboxMessageCapacity` (`512`) decoded messages. The host limit is
+  aggregate across all connected clients. The message that encounters a full
+  queue is discarded and that producer's stream is shut down; messages already
+  admitted remain in FIFO order.
+- At the maximum 65,536-byte payload, one full inbox retains roughly 32 MiB of
+  queued payload. `Drain` can hand that batch to the pump while receive workers
+  refill the queue, so the transient payload footprint can approach 64 MiB,
+  plus message and vector overhead.
 - One framed write gets 250 ms per recipient. A broadcast can therefore spend
   up to roughly two seconds retiring eight non-reading peers before later
   output-queue work is considered.
@@ -263,6 +272,7 @@ have no retry path.
 | Payload is truncated, has trailing bytes, or fails FNV-1a | Packet parsing returns empty and the receive loop stops. There is no stream resynchronization. |
 | First server-side message is not a valid `ClientHello` | The server closes the accepted socket without a protocol rejection message. |
 | Connection exceeds `maxConnectedClients` | The newly accepted socket is closed without a protocol rejection message. |
+| Client or host receive queue reaches 512 decoded messages | The next message is discarded and that producer's stream is shut down. The host queue is shared by all clients. |
 | Known but unsupported session message arrives | `NetworkSession` increments `messagesIgnored`; it does not close the connection. |
 | Block payload or block ID is invalid | The pump increments `invalidMessagesRejected`. |
 | Mutation is stale/duplicate or exceeds the per-pump count | The pump increments `messagesRejectedBySequence` or `messagesRejectedByRateLimit`. |

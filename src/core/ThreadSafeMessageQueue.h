@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <mutex>
 #include <utility>
 #include <vector>
@@ -19,6 +20,21 @@ namespace ve::network
 		{
 			std::lock_guard<std::mutex> queueLock(_messageMutex);
 			_messages.push_back(std::move(message));
+		}
+
+		/**
+		 * Pushes one message only when the synchronized queue has capacity.
+		 *
+		 * @param message Message moved into the queue when capacity remains.
+		 * @param maximumMessageCount Maximum messages retained by the queue.
+		 * @return True when the message was accepted; false when the queue was full.
+		 */
+		[[nodiscard]] bool TryPush(Message message, std::size_t maximumMessageCount)
+		{
+			std::lock_guard<std::mutex> queueLock(_messageMutex);
+			if (_messages.size() >= maximumMessageCount) return false;
+			_messages.push_back(std::move(message));
+			return true;
 		}
 
 		/**
