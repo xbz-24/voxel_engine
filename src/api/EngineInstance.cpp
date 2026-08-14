@@ -19,36 +19,37 @@ namespace voxel
 
 	int Engine::Run()
 	{
-		return impl_->Run();
+		return impl_ ? impl_->Run() : -1;
 	}
 
 	bool Engine::Start()
 	{
-		return impl_->Start();
+		return impl_ && impl_->Start();
 	}
 
 	EngineStartResult Engine::StartDetailed()
 	{
-		return impl_->StartDetailed();
+		return impl_ ? impl_->StartDetailed() :
+			EngineStartResult::RuntimeUnavailable("Engine instance was moved from");
 	}
 
 	bool Engine::Step()
 	{
-		return impl_->Step();
+		return impl_ && impl_->Step();
 	}
 
 	void Engine::Shutdown() noexcept
 	{
-		impl_->Shutdown();
+		if (impl_) impl_->Shutdown();
 	}
 
 	void Engine::RequestStop() noexcept
 	{
-		impl_->RequestStop();
+		if (impl_) impl_->RequestStop();
 	}
 
 	bool Engine::IsRunning() const noexcept
 	{
-		return impl_->IsRunning();
+		return impl_ && impl_->IsRunning();
 	}
 }

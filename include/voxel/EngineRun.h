@@ -44,8 +44,8 @@ namespace voxel
 	};
 
 	/**
-	 * Owns a host-thread runtime; Shutdown from a callback is safely deferred.
-	 * A callback must not destroy or move the Engine that is invoking it.
+	 * Owns a host-thread runtime; moved-from instances remain safely inert.
+	 * Shutdown from callbacks is deferred; callbacks must not destroy or move this Engine.
 	 */
 	class Engine
 	{
