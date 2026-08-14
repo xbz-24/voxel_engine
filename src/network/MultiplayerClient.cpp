@@ -33,7 +33,9 @@ namespace ve::network
 		_isConnected = false;
 		if (_receiveThread.joinable()) _receiveThread.request_stop();
 		if (_connectedSocket) _connectedSocket->Close();
+		if (_receiveThread.joinable()) _receiveThread.join();
 		_connectedSocket.reset();
+		static_cast<void>(_incomingMessages.Drain());
 	}
 
 	std::vector<NetworkMessage> MultiplayerClient::DrainIncomingMessages()

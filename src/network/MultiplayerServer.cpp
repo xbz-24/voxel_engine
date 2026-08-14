@@ -1,5 +1,7 @@
 #include "MultiplayerServer.h"
 
+#include <utility>
+
 namespace ve::network
 {
 	MultiplayerServer::~MultiplayerServer()
@@ -23,13 +25,21 @@ namespace ve::network
 		if (_acceptThread.joinable()) _acceptThread.request_stop();
 		if (_listeningSocket) _listeningSocket->Close();
 		if (_acceptThread.joinable()) _acceptThread.join();
-		std::lock_guard<std::mutex> clientsLock(_clientsMutex);
-		for (ConnectedClient& connectedClient : _connectedClients)
+		_listeningSocket.reset();
+
+		std::vector<std::jthread> clientThreads;
 		{
-			if (connectedClient.socket) connectedClient.socket->Close();
+			std::lock_guard<std::mutex> clientsLock(_clientsMutex);
+			for (std::jthread& clientThread : _clientThreads) clientThread.request_stop();
+			for (ConnectedClient& connectedClient : _connectedClients)
+			{
+				if (connectedClient.socket) connectedClient.socket->Close();
+			}
+			_connectedClients.clear();
+			clientThreads = std::move(_clientThreads);
 		}
-		_connectedClients.clear();
-		_clientThreads.clear();
+		clientThreads.clear();
+		static_cast<void>(_incomingMessages.Drain());
 	}
 
 	std::vector<MultiplayerInboundMessage> MultiplayerServer::DrainIncomingMessages()
