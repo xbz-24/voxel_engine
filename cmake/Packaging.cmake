@@ -9,6 +9,13 @@ if (NOT VE_VCPKG_VERSION VERSION_EQUAL "${PROJECT_VERSION}")
     message(FATAL_ERROR
         "vcpkg.json version ${VE_VCPKG_VERSION} differs from project ${PROJECT_VERSION}")
 endif()
+string(JSON VE_VCPKG_BASELINE GET "${VE_VCPKG_MANIFEST}" builtin-baseline)
+string(LENGTH "${VE_VCPKG_BASELINE}" VE_VCPKG_BASELINE_LENGTH)
+if (NOT VE_VCPKG_BASELINE_LENGTH EQUAL 40 OR
+        NOT VE_VCPKG_BASELINE MATCHES "^[0-9a-f]+$")
+    message(FATAL_ERROR
+        "vcpkg.json builtin-baseline must be a 40-character lowercase Git commit")
+endif()
 
 file(READ "${VE_PUBLIC_INCLUDE_ROOT}/voxel/SdkInfo.h" VE_SDK_INFO)
 foreach(version_part IN ITEMS major minor patch)

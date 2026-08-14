@@ -29,8 +29,9 @@ ImGui integrations. Those are established components, not pending patterns.
   keep the vcpkg manifest, CMake package metadata, and public
   `voxel::Version()` synchronized; graphics API metadata should continue to
   follow the same release version.
-- Pin the vcpkg dependency baseline once the repository has a release branch
-  and an intentional dependency-update procedure.
+- Keep the pinned vcpkg baseline on an intentional update cadence. Baseline
+  changes must pass a clean manifest restore and the complete CI matrix before
+  they are merged.
 - Select and add a repository license before describing source distribution as
   an open-source release.
 
