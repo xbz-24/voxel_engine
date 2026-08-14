@@ -14,11 +14,17 @@ namespace ve::engine
 	{
 	}
 
+	EngineRuntime::~EngineRuntime() noexcept
+	{
+		ReleaseLoggingSession();
+	}
+
 	EngineStartupResult EngineRuntime::Start()
 	{
 		const EngineStartupResult startup_result = Initialize();
 		if (!startup_result)
 		{
+			if (!owns_logging_session_) return startup_result;
 			VE_LOG_CATEGORY_ERROR(ve::log::category::Engine, startup_result.message);
 			Shutdown();
 		}
@@ -44,7 +50,8 @@ namespace ve::engine
 	/** Creates the window and every runtime system needed by the frame loop. */
 	EngineStartupResult EngineRuntime::Initialize()
 	{
-		PrepareAssetsAndLogging();
+		const EngineStartupResult logging_result = PrepareAssetsAndLogging();
+		if (!logging_result) return logging_result;
 		const EngineStartupResult window_result = InitializeWindow();
 		if (!window_result) return window_result;
 		if (module_ == nullptr)

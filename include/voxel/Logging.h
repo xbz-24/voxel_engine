@@ -21,7 +21,7 @@ namespace voxel
 	{
 		LogLevel minimum_level = LogLevel::Default;
 		bool console_enabled = true;
-		bool file_output_enabled = true;
+		bool file_output_enabled = false;
 		std::string file_output_path;
 
 		LogSettings& WithMinimumLevel(LogLevel level) noexcept;

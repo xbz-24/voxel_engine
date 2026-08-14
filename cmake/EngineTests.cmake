@@ -24,7 +24,10 @@ if (VE_BUILD_TESTS)
     ve_copy_msvc_asan_runtime(engine_tests)
     add_test(NAME engine_tests COMMAND engine_tests)
 
-    add_executable(runtime_host_tests Tests/RuntimeModuleTests.cpp)
+    add_executable(runtime_host_tests
+        Tests/RuntimeModuleTests.cpp
+        Tests/RuntimeLoggingTests.cpp
+    )
     target_compile_definitions(runtime_host_tests PRIVATE VE_RUNTIME_HOST_TEST_MAIN)
     target_link_libraries(runtime_host_tests PRIVATE
         ve_project_options

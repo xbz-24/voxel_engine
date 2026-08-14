@@ -42,5 +42,6 @@ TEST_CASE("engine create info accepts the default internal configuration")
 	REQUIRE(validated.has_value());
 	CHECK(validated->Value().window.width == 1280);
 	CHECK(validated->Value().world_size_chunks == 8);
+	CHECK_FALSE(validated->Value().logging.file_output_enabled);
 }
 

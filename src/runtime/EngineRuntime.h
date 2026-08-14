@@ -17,6 +17,7 @@ namespace ve::engine
 	public:
 		EngineRuntime(RuntimeHostConfiguration configuration,
 			std::unique_ptr<IRuntimeModule> module);
+		~EngineRuntime() noexcept;
 
 		/** Initializes systems, runs the frame loop, shuts down, and returns a process status. */
 		[[nodiscard]] int Execute();
@@ -28,13 +29,15 @@ namespace ve::engine
 		[[nodiscard]] bool Step();
 
 		/** Releases runtime systems and returns the object to an unstarted state. */
-		void Shutdown();
+		void Shutdown() noexcept;
 		void RequestStop() noexcept;
 		[[nodiscard]] bool IsStopRequested() const noexcept;
 
 	private:
 		[[nodiscard]] EngineStartupResult Initialize();
-		void PrepareAssetsAndLogging();
+		[[nodiscard]] EngineStartupResult PrepareAssetsAndLogging();
+		[[nodiscard]] bool TryAcquireLoggingSession() noexcept;
+		void ReleaseLoggingSession() noexcept;
 		[[nodiscard]] EngineStartupResult InitializeWindow();
 		void RunMainLoop();
 		void RunFrame();
@@ -47,5 +50,6 @@ namespace ve::engine
 		ve::assets::AssetPaths asset_paths_;
 		ve::time::FrameTimer frame_timer_;
 		std::atomic_bool stop_requested_{ false };
+		bool owns_logging_session_ = false;
 	};
 }

@@ -13,13 +13,14 @@
 namespace ve::log
 {
 	void SetMinimumLevel(Level level);
-	void ApplyConfiguration(const LoggerConfiguration& configuration);
+	[[nodiscard]] bool ApplyConfiguration(const LoggerConfiguration& configuration);
 	Level MinimumLevel();
 
 	void SetConsoleEnabled(bool isEnabled);
 	bool SetFileOutput(const std::filesystem::path& path);
 	void SetCallback(std::function<void(std::string)> callback);
 	void ClearFileOutput();
+	void ResetRuntimeState();
 
 	void Write(Level level, std::string_view message, SourceLocation source = {});
 	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source = {});

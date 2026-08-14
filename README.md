@@ -141,6 +141,11 @@ when the `Engine` is constructed. On Windows, construct paths from wide strings
 when names contain non-ASCII characters; the demo's narrow CLI flags do not
 claim Unicode conversion. Without `RuntimeLayout`, development builds discover
 assets and compiled shaders from ancestors of the executable.
+File logging is opt-in through `LogSettings::WriteToFile`; the runtime never
+derives a writable log destination from the asset directory. Startup reports a
+structured failure if that explicit file cannot be opened. The current logger
+is process-wide, so only one active engine runtime may own it at a time; shutdown
+releases its callback and file sink before a later runtime starts.
 The installed consumer smoke still does not claim payload deployment or grant
 content rights. In particular, do not copy or redistribute
 Minecraft/Mojang-derived repository assets as part of an SDK installation.

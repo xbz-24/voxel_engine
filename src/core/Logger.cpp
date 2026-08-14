@@ -8,7 +8,8 @@ namespace ve::log
 {
 	void SetMinimumLevel(Level level) { LoggerService::Instance().SetMinimumLevel(level); }
 
-	void ApplyConfiguration(const LoggerConfiguration& configuration) { LoggerService::Instance().ApplyConfiguration(configuration); }
+	bool ApplyConfiguration(const LoggerConfiguration& configuration)
+	{ return LoggerService::Instance().ApplyConfiguration(configuration); }
 
 	Level MinimumLevel() { return LoggerService::Instance().MinimumLevel(); }
 
@@ -19,6 +20,8 @@ namespace ve::log
 	void SetCallback(std::function<void(std::string)> callback) { LoggerService::Instance().SetCallback(std::move(callback)); }
 
 	void ClearFileOutput() { LoggerService::Instance().ClearFileOutput(); }
+
+	void ResetRuntimeState() { LoggerService::Instance().ResetRuntimeState(); }
 
 	void Write(Level level, std::string_view message, SourceLocation source)
 	{

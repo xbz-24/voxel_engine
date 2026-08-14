@@ -16,9 +16,10 @@ namespace ve::engine
 	}
 
 	/** Releases runtime resources and reports shutdown. */
-	void EngineRuntime::Shutdown()
+	void EngineRuntime::Shutdown() noexcept
 	{
 		if (module_ != nullptr) module_->Shutdown();
+		ReleaseLoggingSession();
 	}
 
 	void EngineRuntime::RequestStop() noexcept

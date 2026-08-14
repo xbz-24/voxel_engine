@@ -18,10 +18,10 @@ namespace ve::log
 		backend_.SetMinimumLevel(level);
 	}
 
-	void LoggerService::ApplyConfiguration(const LoggerConfiguration& configuration)
+	bool LoggerService::ApplyConfiguration(const LoggerConfiguration& configuration)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
-		backend_.ApplyConfiguration(configuration);
+		return backend_.ApplyConfiguration(configuration);
 	}
 
 	Level LoggerService::MinimumLevel()
@@ -52,6 +52,13 @@ namespace ve::log
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		backend_.ClearFileOutput();
+	}
+
+	void LoggerService::ResetRuntimeState()
+	{
+		std::lock_guard<std::mutex> lock(mutex_);
+		callback_ = {};
+		backend_.ResetRuntimeState();
 	}
 
 	void LoggerService::Write(Level level, std::string_view category, std::string_view message, SourceLocation source)

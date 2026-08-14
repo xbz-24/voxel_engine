@@ -15,7 +15,7 @@ namespace ve::engine
 			ve::log::Level::Debug;
 #endif
 		bool console_enabled = true;
-		bool file_output_enabled = true;
+		bool file_output_enabled = false;
 		std::filesystem::path file_output_path;
 	};
 }

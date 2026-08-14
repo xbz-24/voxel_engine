@@ -23,8 +23,8 @@ namespace ve::log
 		/** @param level Lowest severity that should be written. */
 		void SetMinimumLevel(Level level);
 
-		/** @param configuration Minimum level plus enabled sinks. */
-		void ApplyConfiguration(const LoggerConfiguration& configuration);
+		/** @param configuration Minimum level plus enabled sinks. @return True when all requested sinks opened. */
+		[[nodiscard]] bool ApplyConfiguration(const LoggerConfiguration& configuration);
 
 		/** @return Lowest severity currently accepted by the logger. */
 		Level MinimumLevel();
@@ -40,6 +40,9 @@ namespace ve::log
 
 		/** Closes the file sink when one is active. */
 		void ClearFileOutput();
+
+		/** Clears runtime callbacks and sinks, then restores process defaults. */
+		void ResetRuntimeState();
 
 		/** @param level Severity. @param category Subsystem. @param message Body. @param source Call site. */
 		void Write(Level level, std::string_view category, std::string_view message, SourceLocation source);

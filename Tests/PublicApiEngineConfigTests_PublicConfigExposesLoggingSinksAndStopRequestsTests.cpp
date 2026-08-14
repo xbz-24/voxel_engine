@@ -10,6 +10,7 @@
 
 TEST_CASE("public config exposes logging sinks and stop requests")
 {
+	CHECK_FALSE(voxel::LogSettings{}.file_output_enabled);
 	const voxel::LogSettings logging = voxel::LogSettings{}
 		.WithMinimumLevel(voxel::LogLevel::Warning)
 		.DisableConsole()
