@@ -70,6 +70,9 @@ namespace voxel::detail::config_validation
 	void ValidateWindowAndWorldConfiguration(
 		const EngineConfig& config,
 		std::vector<std::string>& issues);
+	void ValidateCameraConfiguration(
+		const EngineConfig& config,
+		std::vector<std::string>& issues);
 	void ValidateGraphicsBackendSupport(
 		const EngineConfig& config,
 		std::vector<std::string>& issues);

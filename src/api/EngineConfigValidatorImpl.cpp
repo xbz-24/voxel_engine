@@ -49,6 +49,7 @@ namespace voxel::detail::config_validation
 					static_scene::AnalyzeStaticModelScene(config);
 				ValidateRuntimeLayout(config, issues);
 				ValidateWindowAndWorldConfiguration(config, issues);
+				ValidateCameraConfiguration(config, issues);
 				ValidateGraphicsBackendSupport(config, issues);
 				ValidateVoxelRenderLightingAndFog(config.voxel_render_style, issues);
 				ValidateVoxelRenderEffects(config.voxel_render_style, issues);

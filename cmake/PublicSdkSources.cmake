@@ -5,6 +5,7 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineConfigAssetSourceValidation.cpp
     EngineConfigAssetValidation.cpp
     EngineConfigBasicValidation.cpp
+    EngineConfigCameraValidation.cpp
     EngineConfigFluent.cpp
     EngineConfigLogging.cpp
     EngineConfigMaterialValidation.cpp
