@@ -22,17 +22,20 @@ namespace ve::log
 	void ClearFileOutput();
 	void ResetRuntimeState();
 
-	void Write(Level level, std::string_view message, SourceLocation source = {});
-	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source = {});
-	void Write(Level level, std::string_view message, std::span<const Field> fields, SourceLocation source = {});
-	void Write(Level level, std::string_view category, std::string_view message, std::span<const Field> fields, SourceLocation source = {});
+	void Write(Level level, std::string_view message, SourceLocation source = {}) noexcept;
+	void Write(Level level, std::string_view category, std::string_view message,
+		SourceLocation source = {}) noexcept;
+	void Write(Level level, std::string_view message, std::span<const Field> fields,
+		SourceLocation source = {}) noexcept;
+	void Write(Level level, std::string_view category, std::string_view message,
+		std::span<const Field> fields, SourceLocation source = {}) noexcept;
 
-	void Trace(std::string_view message, SourceLocation source = {});
-	void Debug(std::string_view message, SourceLocation source = {});
-	void Info(std::string_view message, SourceLocation source = {});
-	void Warning(std::string_view message, SourceLocation source = {});
-	void Error(std::string_view message, SourceLocation source = {});
-	void Fatal(std::string_view message, SourceLocation source = {});
+	void Trace(std::string_view message, SourceLocation source = {}) noexcept;
+	void Debug(std::string_view message, SourceLocation source = {}) noexcept;
+	void Info(std::string_view message, SourceLocation source = {}) noexcept;
+	void Warning(std::string_view message, SourceLocation source = {}) noexcept;
+	void Error(std::string_view message, SourceLocation source = {}) noexcept;
+	void Fatal(std::string_view message, SourceLocation source = {}) noexcept;
 }
 
 #include "LogMacros.h"

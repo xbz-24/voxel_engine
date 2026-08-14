@@ -5,6 +5,15 @@
 
 namespace ve::engine
 {
+	void Window::MakeGraphicsContextCurrent() noexcept
+	{
+		if (_window != nullptr &&
+			_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility)
+		{
+			glfwMakeContextCurrent(_window.get());
+		}
+	}
+
 	void Window::SetVSync(bool isEnabled)
 	{
 		_isVSyncEnabled = isEnabled;

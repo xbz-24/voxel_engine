@@ -43,12 +43,17 @@ bool EngineApplication::Step()
 	{
 		return false;
 	}
-	const bool should_request_next_frame = runtime_->Step();
-	if (!should_request_next_frame)
+	try
+	{
+		const bool should_request_next_frame = runtime_->Step();
+		if (!should_request_next_frame) Shutdown();
+		return should_request_next_frame;
+	}
+	catch (...)
 	{
 		Shutdown();
+		throw;
 	}
-	return should_request_next_frame;
 }
 
 void EngineApplication::Shutdown() noexcept

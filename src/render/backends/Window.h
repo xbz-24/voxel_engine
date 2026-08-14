@@ -3,9 +3,9 @@
 #include "RenderApi.h"
 #include "WindowCreateInfo.h"
 #include "WindowEvents.h"
+#include "WindowNativeOwnership.h"
 #include "WindowTypes.h"
 
-#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -36,6 +36,8 @@ namespace ve::engine
 
 		bool Initialize();
 		bool Initialize(ve::rendering::GraphicsApi graphicsApi);
+		void MakeGraphicsContextCurrent() noexcept;
+		void Shutdown() noexcept;
 		void SetVSync(bool isEnabled);
 		[[nodiscard]] bool IsVSyncEnabled() const noexcept;
 		void SetCursorMode(CursorMode mode);
@@ -65,11 +67,6 @@ namespace ve::engine
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept;
 
 	private:
-		struct GlfwWindowDeleter
-		{
-			void operator()(GLFWwindow* window) const noexcept;
-		};
-
 		bool InitializeGlfw();
 		GLFWmonitor* SelectDisplayMonitor();
 		const GLFWvidmode* ReadDisplayMode(GLFWmonitor* display_monitor);
@@ -81,7 +78,8 @@ namespace ve::engine
 		void RecordFramebufferResize(int width, int height);
 		static CallbackContext* GetCallbackContext(GLFWwindow* window);
 
-		std::unique_ptr<GLFWwindow, GlfwWindowDeleter> _window;
+		UniqueGlfwWindow _window;
+		bool _ownsGlfwSession = false;
 		int _width = 0;
 		int _height = 0;
 		int _displayIndex = 0;

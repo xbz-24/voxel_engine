@@ -4,6 +4,7 @@
 #include "SpdlogLoggerBackend.h"
 
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -45,7 +46,8 @@ namespace ve::log
 		void ResetRuntimeState();
 
 		/** @param level Severity. @param category Subsystem. @param message Body. @param source Call site. */
-		void Write(Level level, std::string_view category, std::string_view message, SourceLocation source);
+		void Write(Level level, std::string_view category,
+			std::string_view message, SourceLocation source) noexcept;
 
 		/** @param fields Structured key-value fields attached to the record. */
 		void Write(
@@ -53,13 +55,15 @@ namespace ve::log
 			std::string_view category,
 			std::string_view message,
 			std::span<const Field> fields,
-			SourceLocation source);
+			SourceLocation source) noexcept;
 
 	private:
+		using Callback = std::function<void(std::string)>;
+
 		LoggerService() = default;
 
 		std::mutex mutex_;
 		SpdlogLoggerBackend backend_;
-		std::function<void(std::string)> callback_;
+		std::shared_ptr<Callback> callback_;
 	};
 }

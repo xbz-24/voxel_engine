@@ -5,6 +5,10 @@
 - `ve_runtime` owns the generic window, asset paths, timing, logging, and the
   content-module lifecycle. A target-graph gate keeps it independent from
   world, network, and concrete renderer aggregation.
+- Runtime teardown is an explicit ownership contract: a module that enters
+  initialization receives exactly one shutdown call even after failure or an
+  exception, and is destroyed while window services are still alive. GLFW is
+  terminated only after the last acquired window session is released.
 - `ve_voxel_sandbox` owns voxel gameplay, input, editor UI, HUD, world edits,
   and backend-specific runtime drivers. `ve_app` remains only as a compatibility
   alias.

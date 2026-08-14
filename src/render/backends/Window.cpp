@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include "Window.h"
+#include "WindowGlfwSession.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -8,7 +9,7 @@
 
 namespace ve::engine
 {
-	void Window::GlfwWindowDeleter::operator()(GLFWwindow* window) const noexcept
+	void GlfwWindowDeleter::operator()(GLFWwindow* window) const noexcept
 	{
 		if (window != nullptr)
 		{
@@ -40,7 +41,14 @@ namespace ve::engine
 	}
 	Window::~Window()
 	{
+		Shutdown();
+	}
+
+	void Window::Shutdown() noexcept
+	{
 		_window.reset();
-		glfwTerminate();
+		if (!_ownsGlfwSession) return;
+		detail::ReleaseGlfwSession();
+		_ownsGlfwSession = false;
 	}
 }

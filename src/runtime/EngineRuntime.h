@@ -3,7 +3,7 @@
 #include "AssetPaths.h"
 #include "FrameTimer.h"
 #include "RuntimeHostConfiguration.h"
-#include "RuntimeModule.h"
+#include "RuntimeModuleLifecycle.h"
 #include "Window.h"
 
 #include <atomic>
@@ -28,7 +28,7 @@ namespace ve::engine
 		/** Runs exactly one frame and reports whether another frame should be requested. */
 		[[nodiscard]] bool Step();
 
-		/** Releases runtime systems and returns the object to an unstarted state. */
+		/** Releases acquired runtime systems; repeated calls are safe. */
 		void Shutdown() noexcept;
 		void RequestStop() noexcept;
 		[[nodiscard]] bool IsStopRequested() const noexcept;
@@ -45,10 +45,10 @@ namespace ve::engine
 		void EndRuntimeFrame();
 
 		RuntimeHostConfiguration configuration_;
-		std::unique_ptr<IRuntimeModule> module_;
 		Window window_;
 		ve::assets::AssetPaths asset_paths_;
 		ve::time::FrameTimer frame_timer_;
+		RuntimeModuleLifecycle module_lifecycle_;
 		std::atomic_bool stop_requested_{ false };
 		bool owns_logging_session_ = false;
 	};

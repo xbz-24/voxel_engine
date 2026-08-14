@@ -3,6 +3,7 @@ set(VE_RENDER_BACKEND_WINDOW_SOURCES
     "${VE_SOURCE_ROOT}/render/backends/WindowCallbacks.cpp"
     "${VE_SOURCE_ROOT}/render/backends/WindowCursor.cpp"
     "${VE_SOURCE_ROOT}/render/backends/WindowDisplay.cpp"
+    "${VE_SOURCE_ROOT}/render/backends/WindowGlfwSession.cpp"
     "${VE_SOURCE_ROOT}/render/backends/WindowInitialization.cpp"
     "${VE_SOURCE_ROOT}/render/backends/WindowProperties.cpp"
     "${VE_SOURCE_ROOT}/render/backends/WindowRuntime.cpp"

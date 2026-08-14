@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -27,7 +28,8 @@ namespace
 	}
 
 	voxel::EngineConfig CreateConfig(const std::filesystem::path& assets,
-		const std::filesystem::path& model_path)
+		const std::filesystem::path& model_path,
+		voxel::UpdateCallback on_update)
 	{
 		voxel::AssetCatalog catalog{};
 		catalog.Model("triangle", model_path.string());
@@ -46,9 +48,7 @@ namespace
 			.WithRenderDistanceChunks(2)
 			.DisableSettingsMenu()
 			.HideDebugOverlay()
-			.OnUpdate([frames = 0](voxel::FrameContext& frame) mutable {
-				if (++frames >= 3) frame.commands.RequestClose();
-			});
+			.OnUpdate(std::move(on_update));
 	}
 }
 
@@ -56,7 +56,29 @@ int main(int argc, char** argv)
 {
 	if (argc != 2 || argv == nullptr || argv[1] == nullptr) return 2;
 	const std::filesystem::path model_path = CreateTriangleModel();
-	const int result = voxel::Run(CreateConfig(std::filesystem::path{ argv[1] }, model_path));
+	const std::filesystem::path assets{ argv[1] };
+	int result = voxel::Run(CreateConfig(assets, model_path,
+		[frames = 0](voxel::FrameContext& frame) mutable {
+			if (++frames >= 3) frame.commands.RequestClose();
+		}));
+	if (result == 0)
+	{
+		voxel::Engine engine{ CreateConfig(assets, model_path,
+			[](voxel::FrameContext&) { throw std::runtime_error("frame failure"); }) };
+		try
+		{
+			if (!engine.Start()) result = 3;
+			else static_cast<void>(engine.Step());
+			if (result == 0) result = 4;
+		}
+		catch (const std::runtime_error&)
+		{
+			if (engine.IsRunning()) result = 5;
+			else if (!engine.Start()) result = 6;
+			else engine.Shutdown();
+		}
+		catch (...) { result = 7; }
+	}
 	std::error_code error;
 	std::filesystem::remove_all(model_path.parent_path(), error);
 	return result;

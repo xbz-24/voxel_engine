@@ -25,6 +25,7 @@ if (VE_BUILD_TESTS)
     add_test(NAME engine_tests COMMAND engine_tests)
 
     add_executable(runtime_host_tests
+        Tests/RuntimeModuleLifecycleTests.cpp
         Tests/RuntimeModuleTests.cpp
         Tests/RuntimeLoggingTests.cpp
     )

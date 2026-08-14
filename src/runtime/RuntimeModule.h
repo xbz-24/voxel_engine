@@ -5,7 +5,11 @@
 
 namespace ve::engine
 {
-	/** Content boundary hosted by EngineRuntime without knowledge of game state. */
+	/**
+	 * Content boundary hosted by EngineRuntime without knowledge of game state.
+	 * Once Initialize is entered, the host calls Shutdown exactly once even when
+	 * initialization fails or throws; Shutdown must tolerate partial state.
+	 */
 	class IRuntimeModule
 	{
 	public:

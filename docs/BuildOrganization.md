@@ -35,6 +35,13 @@ directories are also the CMake and Visual Studio project boundaries. The
 `runtime_target_graph_policy` gate keeps `ve_runtime` independent from world,
 network, and concrete render-backend aggregation.
 
+`RuntimeModuleLifecycle` owns the content module inside `ve_runtime`. Once
+module initialization begins, teardown is guaranteed exactly once before the
+window, asset paths, and frame timer are destroyed, including failure and
+exception paths. `EngineRuntime::Shutdown` and `Window::Shutdown` are
+idempotent; GLFW uses a process-session acquisition count so an uninitialized
+or secondary window cannot terminate a session owned by another window.
+
 The installed `Authoring` and additive `SDK` components are relocatable for
 CMake configuration, compilation, and linking. The SDK component does not
 install runtime assets or generated Vulkan `.spv` files, so executable runtime

@@ -12,13 +12,16 @@ namespace ve::engine
 
 	bool EngineRuntime::ShouldContinue() const noexcept
 	{
-		return !window_.ShouldClose() && !IsStopRequested();
+		return module_lifecycle_.IsActive() && window_.GetNativeWindow() != nullptr &&
+			!window_.ShouldClose() && !IsStopRequested();
 	}
 
 	/** Releases runtime resources and reports shutdown. */
 	void EngineRuntime::Shutdown() noexcept
 	{
-		if (module_ != nullptr) module_->Shutdown();
+		window_.MakeGraphicsContextCurrent();
+		module_lifecycle_.Shutdown();
+		window_.Shutdown();
 		ReleaseLoggingSession();
 	}
 

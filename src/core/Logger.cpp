@@ -23,19 +23,24 @@ namespace ve::log
 
 	void ResetRuntimeState() { LoggerService::Instance().ResetRuntimeState(); }
 
-	void Write(Level level, std::string_view message, SourceLocation source)
+	void Write(Level level, std::string_view message, SourceLocation source) noexcept
 	{
-		LoggerService::Instance().Write(level, category::General, message, source);
+		try { LoggerService::Instance().Write(level, category::General, message, source); }
+		catch (...) {}
 	}
 
-	void Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
+	void Write(Level level, std::string_view category,
+		std::string_view message, SourceLocation source) noexcept
 	{
-		LoggerService::Instance().Write(level, category, message, source);
+		try { LoggerService::Instance().Write(level, category, message, source); }
+		catch (...) {}
 	}
 
-	void Write(Level level, std::string_view message, std::span<const Field> fields, SourceLocation source)
+	void Write(Level level, std::string_view message,
+		std::span<const Field> fields, SourceLocation source) noexcept
 	{
-		LoggerService::Instance().Write(level, category::General, message, fields, source);
+		try { LoggerService::Instance().Write(level, category::General, message, fields, source); }
+		catch (...) {}
 	}
 
 	void Write(
@@ -43,15 +48,16 @@ namespace ve::log
 		std::string_view category,
 		std::string_view message,
 		std::span<const Field> fields,
-		SourceLocation source)
+		SourceLocation source) noexcept
 	{
-		LoggerService::Instance().Write(level, category, message, fields, source);
+		try { LoggerService::Instance().Write(level, category, message, fields, source); }
+		catch (...) {}
 	}
 
-	void Trace(std::string_view message, SourceLocation source) { Write(Level::Trace, message, source); }
-	void Debug(std::string_view message, SourceLocation source) { Write(Level::Debug, message, source); }
-	void Info(std::string_view message, SourceLocation source) { Write(Level::Info, message, source); }
-	void Warning(std::string_view message, SourceLocation source) { Write(Level::Warning, message, source); }
-	void Error(std::string_view message, SourceLocation source) { Write(Level::Error, message, source); }
-	void Fatal(std::string_view message, SourceLocation source) { Write(Level::Fatal, message, source); }
+	void Trace(std::string_view message, SourceLocation source) noexcept { Write(Level::Trace, message, source); }
+	void Debug(std::string_view message, SourceLocation source) noexcept { Write(Level::Debug, message, source); }
+	void Info(std::string_view message, SourceLocation source) noexcept { Write(Level::Info, message, source); }
+	void Warning(std::string_view message, SourceLocation source) noexcept { Write(Level::Warning, message, source); }
+	void Error(std::string_view message, SourceLocation source) noexcept { Write(Level::Error, message, source); }
+	void Fatal(std::string_view message, SourceLocation source) noexcept { Write(Level::Fatal, message, source); }
 }

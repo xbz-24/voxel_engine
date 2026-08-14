@@ -20,6 +20,7 @@ namespace
 		ve::engine::EngineStartupResult Initialize(
 			ve::engine::RuntimeModuleContext& context) override
 		{
+			if (initialize_called != nullptr) *initialize_called = true;
 			initialized_window = &context.window;
 			return ve::engine::EngineStartupResult::Success();
 		}
@@ -36,6 +37,7 @@ namespace
 		const ve::assets::AssetPaths* frame_assets = nullptr;
 		int frame_count = 0;
 		bool shutdown_called = false;
+		bool* initialize_called = nullptr;
 	};
 }
 
@@ -73,13 +75,25 @@ TEST_CASE("runtime host rejects headless before window initialization")
 	ve::engine::RuntimeHostConfiguration configuration{};
 	configuration.render_backend.selection_policy =
 		ve::rendering::RenderBackendSelectionPolicy::Headless;
+	bool initialize_called = false;
 	auto module = std::make_unique<RecordingRuntimeModule>();
-	RecordingRuntimeModule* recording = module.get();
+	module->initialize_called = &initialize_called;
 	ve::engine::EngineRuntime runtime(std::move(configuration), std::move(module));
 
 	const ve::engine::EngineStartupResult result = runtime.Start();
 	CHECK_FALSE(result);
 	CHECK(result.failure == ve::engine::EngineStartupFailure::UnsupportedRenderBackend);
 	CHECK(result.message == "Headless runtime hosting is not implemented");
-	CHECK(recording->initialized_window == nullptr);
+	CHECK_FALSE(initialize_called);
+}
+
+TEST_CASE("runtime host step is inert before startup and after shutdown")
+{
+	ve::engine::RuntimeHostConfiguration configuration{};
+	auto module = std::make_unique<RecordingRuntimeModule>();
+	ve::engine::EngineRuntime runtime(std::move(configuration), std::move(module));
+
+	CHECK_FALSE(runtime.Step());
+	runtime.Shutdown();
+	CHECK_FALSE(runtime.Step());
 }

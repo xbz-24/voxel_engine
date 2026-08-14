@@ -154,7 +154,9 @@ File logging is opt-in through `LogSettings::WriteToFile`; the runtime never
 derives a writable log destination from the asset directory. Startup reports a
 structured failure if that explicit file cannot be opened. The current logger
 is process-wide, so only one active engine runtime may own it at a time; shutdown
-releases its callback and file sink before a later runtime starts.
+releases its callback and file sink before a later runtime starts. Log writes
+also contain exceptions from user callbacks and built-in sinks so teardown can
+remain non-throwing.
 The installed consumer smoke still does not claim payload deployment or grant
 content rights. In particular, do not copy or redistribute
 Minecraft/Mojang-derived repository assets as part of an SDK installation.
