@@ -35,6 +35,13 @@ namespace ve::engine
 		options.search_roots = configuration_.asset_search_roots;
 		asset_paths_ = ve::assets::Resolve(options);
 		ve::log::SetCallback(configuration_.on_log);
+		if (configuration_.logging.file_output_enabled &&
+			configuration_.logging.file_output_path.empty())
+		{
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::LoggingInitializationFailed,
+				"File logging is enabled but no output path was configured");
+		}
 		std::optional<std::filesystem::path> file_output_path;
 		if (configuration_.logging.file_output_enabled &&
 			!configuration_.logging.file_output_path.empty())

@@ -67,3 +67,17 @@ TEST_CASE("runtime reports file logging failure and releases global state")
 	std::error_code error;
 	std::filesystem::remove_all(blocking_file.parent_path(), error);
 }
+
+TEST_CASE("runtime rejects enabled file logging without a destination")
+{
+	ve::engine::RuntimeHostConfiguration configuration{};
+	configuration.logging.console_enabled = false;
+	configuration.logging.file_output_enabled = true;
+	auto module = std::make_unique<InactiveRuntimeModule>();
+	ve::engine::EngineRuntime runtime(std::move(configuration), std::move(module));
+
+	const ve::engine::EngineStartupResult result = runtime.Start();
+	CHECK_FALSE(result);
+	CHECK(result.failure == ve::engine::EngineStartupFailure::LoggingInitializationFailed);
+	CHECK(result.message == "File logging is enabled but no output path was configured");
+}

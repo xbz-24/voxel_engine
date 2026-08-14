@@ -49,5 +49,12 @@ namespace ve::engine::configuration_validation
 			issues.push_back("render_backend.preferred_api is not a known graphics api");
 		if (!IsKnownSelectionPolicy(create_info.render_backend.selection_policy))
 			issues.push_back("render_backend.selection_policy is not a known selection policy");
+		else if (create_info.render_backend.selection_policy ==
+			ve::rendering::RenderBackendSelectionPolicy::Headless)
+			issues.push_back(
+				"render_backend.selection_policy Headless is not implemented by the windowed runtime");
+		if (create_info.logging.file_output_enabled && create_info.logging.file_output_path.empty())
+			issues.push_back(
+				"logging.file_output_path must not be empty when file output is enabled");
 	}
 }

@@ -67,3 +67,19 @@ TEST_CASE("runtime host owns stop state without graphics startup")
 	runtime.RequestStop();
 	CHECK(runtime.IsStopRequested());
 }
+
+TEST_CASE("runtime host rejects headless before window initialization")
+{
+	ve::engine::RuntimeHostConfiguration configuration{};
+	configuration.render_backend.selection_policy =
+		ve::rendering::RenderBackendSelectionPolicy::Headless;
+	auto module = std::make_unique<RecordingRuntimeModule>();
+	RecordingRuntimeModule* recording = module.get();
+	ve::engine::EngineRuntime runtime(std::move(configuration), std::move(module));
+
+	const ve::engine::EngineStartupResult result = runtime.Start();
+	CHECK_FALSE(result);
+	CHECK(result.failure == ve::engine::EngineStartupFailure::UnsupportedRenderBackend);
+	CHECK(result.message == "Headless runtime hosting is not implemented");
+	CHECK(recording->initialized_window == nullptr);
+}

@@ -29,6 +29,11 @@ namespace voxel::detail::config_validation
 		{
 			issues.push_back("render_distance_chunks must be zero or greater");
 		}
+		if (config.logging.file_output_enabled && config.logging.file_output_path.empty())
+		{
+			issues.push_back(
+				"logging.file_output_path must not be empty when file output is enabled");
+		}
 	}
 
 	void ValidateGraphicsBackendSupport(const EngineConfig& config,

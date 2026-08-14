@@ -49,6 +49,8 @@ ImGui integrations. Those are established components, not pending patterns.
   explicit validation issues instead of silently being ignored.
 - Keep the Vulkan and OpenGL bounded runtime smokes green as backend ownership
   and shutdown ordering evolve.
+- Keep `Headless` rejected by runtime validation until the host can initialize
+  timing and content modules without constructing GLFW or a render driver.
 - Continue moving backend-owned resources and draw orchestration out of the
   compatibility renderer; retain migration-status metadata until direct tests
   prove each backend contract.

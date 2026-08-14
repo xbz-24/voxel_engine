@@ -31,3 +31,14 @@ TEST_CASE("public config exposes logging sinks and stop requests")
 	CHECK(config.logging.file_output_path.empty());
 }
 
+TEST_CASE("public config rejects enabled file logging without a destination")
+{
+	const voxel::EngineConfig config = voxel::EngineConfig::Default()
+		.WithLogging(voxel::LogSettings{}.WriteToFile(""));
+	const std::vector<std::string> issues = config.Validate();
+
+	CHECK(std::find(issues.begin(), issues.end(),
+		"logging.file_output_path must not be empty when file output is enabled") !=
+		issues.end());
+}
+
