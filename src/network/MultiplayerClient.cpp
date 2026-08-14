@@ -30,11 +30,19 @@ namespace ve::network
 
 	void MultiplayerClient::Disconnect()
 	{
+		std::shared_ptr<TcpSocket> connected_socket = _connectedSocket;
 		_isConnected = false;
 		if (_receiveThread.joinable()) _receiveThread.request_stop();
-		if (_connectedSocket) _connectedSocket->Close();
+		if (connected_socket) connected_socket->Shutdown();
 		if (_receiveThread.joinable()) _receiveThread.join();
-		_connectedSocket.reset();
+		{
+			std::lock_guard<std::mutex> send_lock(_sendMutex);
+			if (_connectedSocket == connected_socket)
+			{
+				if (_connectedSocket) _connectedSocket->Close();
+				_connectedSocket.reset();
+			}
+		}
 		static_cast<void>(_incomingMessages.Drain());
 	}
 
@@ -50,12 +58,17 @@ namespace ve::network
 
 	void MultiplayerClient::ReceiveMessagesUntilDisconnected(std::stop_token stopToken, std::shared_ptr<TcpSocket> receiveSocket)
 	{
-		while (!stopToken.stop_requested() && receiveSocket && receiveSocket->IsOpen())
+		try
 		{
-			std::optional<NetworkMessage> receivedMessage = ReceiveNetworkMessage(*receiveSocket);
-			if (!receivedMessage) break;
-			_incomingMessages.Push(std::move(*receivedMessage));
+			while (!stopToken.stop_requested() && receiveSocket)
+			{
+				std::optional<NetworkMessage> receivedMessage = ReceiveNetworkMessage(*receiveSocket);
+				if (!receivedMessage) break;
+				_incomingMessages.Push(std::move(*receivedMessage));
+			}
 		}
+		catch (...) {}
+		if (receiveSocket) receiveSocket->Shutdown();
 		_isConnected = false;
 	}
 }

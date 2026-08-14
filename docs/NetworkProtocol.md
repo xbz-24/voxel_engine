@@ -13,11 +13,16 @@ replication behavior.
 
 ## Current Transport and Connection Flow
 
-`TcpSocket` is a move-only, synchronous standalone-Asio adapter. The server owns
-one blocking accept thread and one blocking receive thread per accepted client.
-The client owns one blocking receive thread. `SendBytes` and `ReceiveBytes`
-require Asio to transfer the complete requested span; socket errors are reported
-as `false` rather than exceptions or protocol error objects.
+`TcpSocket` is a move-only standalone-Asio adapter with a synchronous exact-span
+API. The server owns one stop-aware asynchronous accept operation and one receive
+thread per accepted client; the client owns one receive thread. Connected
+sockets are non-blocking internally, so `SendBytes` and `ReceiveBytes` retry
+partial transfers without trapping teardown inside a blocking OS call. Shutdown
+signals those loops, workers join, and only then does the owner close the Asio
+object. Socket errors are reported as `false` rather than exceptions or protocol
+error objects. Framed protocol writes have an absolute 250 ms deadline per
+recipient; cancellation, timeout, or a partial-write failure shuts down that
+stream because its framing can no longer be reused safely.
 
 ```mermaid
 sequenceDiagram
@@ -227,7 +232,8 @@ ordering guarantee beyond live mutations.
 
 ## Pump Limits and Admission Limits
 
-The current limits are bounded counts, not time-based bandwidth control:
+The current policy combines bounded counts with one per-frame write deadline;
+it is not a bandwidth scheduler or queued-output budget:
 
 - Host: at most 64 accepted block mutations per connection per call to
   `ApplyIncomingMessages`. Later messages from the same drained batch are
@@ -238,6 +244,9 @@ The current limits are bounded counts, not time-based bandwidth control:
   `TcpSocket::Listen`.
 - Default maximum open clients: 8; zero is converted to 1 by
   `MultiplayerServer::Start`.
+- One framed write gets 250 ms per recipient. A broadcast can therefore spend
+  up to roughly two seconds retiring eight non-reading peers before later
+  output-queue work is considered.
 - Default `simulationTickRateHz`: 20. Hosting rejects zero, but the value does
   not currently schedule pumps or validate snapshot ticks.
 
@@ -258,14 +267,14 @@ have no retry path.
 | Block payload or block ID is invalid | The pump increments `invalidMessagesRejected`. |
 | Mutation is stale/duplicate or exceeds the per-pump count | The pump increments `messagesRejectedBySequence` or `messagesRejectedByRateLimit`. |
 | Valid mutation targets invalid world coordinates/storage | World application returns false and the pump increments `invalidMessagesRejected`. |
-| Host broadcast write fails | The failed recipient is omitted from the returned successful-write count. No acknowledgement is generated. |
+| Client or host framed write fails or exceeds 250 ms | The stream is shut down and cannot carry another frame. A failed host recipient is omitted from the successful-write count. |
 | Host settings use a zero tick rate | `HostGame` reports `InvalidHostTickRate` and emits `HostStartFailed`. |
 | Listen or join setup fails | `HostStartFailed` or `JoinFailed` is exposed through `LastError` and session events. |
 
 An asynchronous client disconnect sets `MultiplayerClient::IsConnected` to
 false, but `NetworkSession::Mode` remains `Joined` until `Stop` is called and no
-session disconnect event is synthesized. Reads have no protocol timeout,
-keepalive, cancellation message, or idle-peer policy.
+session disconnect event is synthesized. Reads have no idle timeout, keepalive,
+cancellation message, or idle-peer policy.
 
 ## Security and Integration Boundaries
 
@@ -283,8 +292,10 @@ keepalive, cancellation message, or idle-peer policy.
 ## Verified Coverage and Remaining Gaps
 
 Current automated coverage verifies exact TCP span transfer over loopback,
-packet length/type/checksum rejection, sequence acceptance, bounded hello
-fields, payload roundtrips, block-edit application, and session error events.
+stop-aware accept and stream shutdown, client/server worker quiescence,
+bounded writes to a non-reading peer, connection churn, packet
+length/type/checksum rejection, sequence acceptance, bounded hello fields,
+payload roundtrips, block-edit application, and session error events.
 The relevant tests are the
 [network framing tests](../Tests/NetworkPacketFramingTests_NetworkPacketParserRejectsTruncatedAndCorruptedPacketsTests.cpp),
 [serialization tests](../Tests/NetworkSerializationTests_NetworkPlayerSnapshotSerializationUsesExplicitWireFieldsTests.cpp),
@@ -304,7 +315,7 @@ still needs:
    wraparound handling.
 6. Canonical byte order and floating-point encoding if heterogeneous peers are
    supported.
-7. Disconnect reasons, timeouts/keepalive, backpressure, and session events for
-   asynchronous connection loss.
+7. Disconnect reasons, read-idle timeouts/keepalive, queued asynchronous output
+   with a global backpressure budget, and session events for asynchronous loss.
 8. Runtime/public-SDK integration and multi-client end-to-end tests covering
    handshake, relay, rejection, reconnect, and snapshot catch-up.

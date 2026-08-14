@@ -22,6 +22,9 @@ namespace ve::network
 		if (error) return std::nullopt;
 		asio::connect(connected_socket.impl_->socket, endpoints, error);
 		if (error) return std::nullopt;
+		connected_socket.impl_->socket.non_blocking(true, error);
+		if (error) return std::nullopt;
+		connected_socket.impl_->open = true;
 		return std::optional<TcpSocket>{ std::move(connected_socket) };
 	}
 }

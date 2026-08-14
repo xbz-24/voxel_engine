@@ -17,8 +17,11 @@ namespace ve::network
 	bool MultiplayerClient::SendMessage(NetworkMessage message)
 	{
 		std::lock_guard<std::mutex> sendLock(_sendMutex);
-		if (!_connectedSocket || !_connectedSocket->IsOpen()) return false;
+		if (!_isConnected || !_connectedSocket) return false;
 		message.sequenceNumber = _nextOutboundSequenceNumber.fetch_add(1, std::memory_order_relaxed);
-		return SendNetworkMessage(*_connectedSocket, message);
+		if (SendNetworkMessage(*_connectedSocket, message)) return true;
+		_connectedSocket->Shutdown();
+		_isConnected = false;
+		return false;
 	}
 }

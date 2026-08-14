@@ -13,9 +13,19 @@ namespace ve::network
 	TcpSocket::TcpSocket(TcpSocket&& other) noexcept = default;
 	TcpSocket& TcpSocket::operator=(TcpSocket&& other) noexcept = default;
 
+	void TcpSocket::Shutdown() const noexcept
+	{
+		if (!impl_) return;
+		impl_->shutdown_requested = true;
+		std::error_code ignored_error;
+		impl_->socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_error);
+	}
+
 	void TcpSocket::Close() noexcept
 	{
 		if (!impl_) return;
+		impl_->open = false;
+		impl_->shutdown_requested = true;
 		std::error_code ignored_error;
 		if (impl_->acceptor.is_open())
 		{
@@ -32,7 +42,7 @@ namespace ve::network
 
 	bool TcpSocket::IsOpen() const noexcept
 	{
-		return impl_ && (impl_->socket.is_open() || impl_->acceptor.is_open());
+		return impl_ && impl_->open;
 	}
 
 	std::optional<NetworkEndpoint> TcpSocket::LocalEndpoint() const

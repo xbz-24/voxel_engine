@@ -3,8 +3,6 @@
 #include "NetworkPacketIO.h"
 #include "NetworkSerialization.h"
 
-#include <algorithm>
-
 namespace ve::network
 {
 	namespace
@@ -20,48 +18,62 @@ namespace ve::network
 
 	void MultiplayerServer::AcceptClientsUntilStopped(std::stop_token stopToken)
 	{
-		while (!stopToken.stop_requested() && _listeningSocket && _listeningSocket->IsOpen())
+		while (!stopToken.stop_requested() && _listeningSocket)
 		{
-			std::optional<TcpSocket> acceptedSocket = _listeningSocket->Accept();
+			std::optional<TcpSocket> acceptedSocket = _listeningSocket->Accept(stopToken);
 			if (!acceptedSocket) break;
+			ReapFinishedClientWorkers();
 			const std::uint32_t newConnectionId = _nextConnectionId.fetch_add(1);
 			auto clientSocket = std::make_shared<TcpSocket>(std::move(*acceptedSocket));
 			std::lock_guard<std::mutex> clientsLock(_clientsMutex);
-			const std::size_t openClientConnectionCount = static_cast<std::size_t>(std::ranges::count_if(
-				_connectedClients,
-				[](const ConnectedClient& connectedClient)
-				{
-					return connectedClient.socket && connectedClient.socket->IsOpen();
-				}));
-			if (openClientConnectionCount >= _maxConnectedClients)
+			if (_clientWorkers.size() >= _maxConnectedClients)
 			{
 				clientSocket->Close();
 				continue;
 			}
-			_connectedClients.push_back(ConnectedClient{ newConnectionId, clientSocket, 1 });
-			_clientThreads.emplace_back([this, newConnectionId, clientSocket](std::stop_token clientStopToken)
+			auto clientWorker = std::make_unique<MultiplayerServerClientWorker>();
+			clientWorker->connectionId = newConnectionId;
+			clientWorker->socket = std::move(clientSocket);
+			MultiplayerServerClientWorker* worker = clientWorker.get();
+			_clientWorkers.push_back(std::move(clientWorker));
+			try
 			{
-				ReceiveClientMessages(clientStopToken, newConnectionId, clientSocket);
-			});
+				worker->thread = std::jthread([this, worker](std::stop_token clientStopToken)
+				{
+					ReceiveClientMessages(clientStopToken, *worker);
+					worker->finished.store(true, std::memory_order_release);
+				});
+			}
+			catch (...)
+			{
+				worker->socket->Close();
+				_clientWorkers.pop_back();
+			}
 		}
 	}
 
-	void MultiplayerServer::ReceiveClientMessages(std::stop_token stopToken, std::uint32_t connectionId, std::shared_ptr<TcpSocket> clientSocket)
+	void MultiplayerServer::ReceiveClientMessages(
+		std::stop_token stopToken, MultiplayerServerClientWorker& clientWorker)
 	{
-		if (stopToken.stop_requested() || !clientSocket || !clientSocket->IsOpen()) return;
-		std::optional<NetworkMessage> clientHelloMessage = ReceiveNetworkMessage(*clientSocket);
-		if (!clientHelloMessage || !IsValidClientHelloMessage(*clientHelloMessage))
+		try
 		{
-			if (clientSocket) clientSocket->Close();
-			return;
+			if (!stopToken.stop_requested() && clientWorker.socket)
+			{
+				std::optional<NetworkMessage> hello = ReceiveNetworkMessage(*clientWorker.socket);
+				if (hello && IsValidClientHelloMessage(*hello))
+				{
+					while (!stopToken.stop_requested())
+					{
+						auto message = ReceiveNetworkMessage(*clientWorker.socket);
+						if (!message) break;
+						_incomingMessages.Push({ clientWorker.connectionId, std::move(*message) });
+					}
+				}
+			}
 		}
-
-		while (!stopToken.stop_requested() && clientSocket && clientSocket->IsOpen())
-		{
-			std::optional<NetworkMessage> receivedMessage = ReceiveNetworkMessage(*clientSocket);
-			if (!receivedMessage) break;
-			_incomingMessages.Push(MultiplayerInboundMessage{ connectionId, std::move(*receivedMessage) });
-		}
-		if (clientSocket) clientSocket->Close();
+		catch (...) {}
+		if (clientWorker.socket) clientWorker.socket->Shutdown();
+		std::lock_guard<std::mutex> clientsLock(_clientsMutex);
+		if (clientWorker.socket) clientWorker.socket->Close();
 	}
 }
