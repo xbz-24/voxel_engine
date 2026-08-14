@@ -7,6 +7,9 @@
 
 namespace voxel
 {
+	/** Maximum supported chunk count on each side of a fixed square world. */
+	inline constexpr int MaximumWorldSizeChunks = 64;
+
 	/** Public world-generation and authored-edit configuration. */
 	struct WorldConfig
 	{

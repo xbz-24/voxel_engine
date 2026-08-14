@@ -8,6 +8,9 @@
 
 namespace voxel::detail::config_translation
 {
+static_assert(voxel::MaximumWorldSizeChunks == ve::world::MaximumWorldSizeChunks,
+	"Public and runtime fixed-world size limits must match");
+
 void ApplyWindowConfigurationToCreateInfo(ve::engine::EngineCreateInfo& create_info,
 			const EngineConfig& config)
 		{

@@ -85,6 +85,9 @@ ImGui integrations. Those are established components, not pending patterns.
 
 ## World and Network Work
 
+- Fixed square worlds support 1 through 64 chunks per side. Public and private
+  validation reject larger requests before runtime allocation; larger spaces
+  require the streaming boundary below rather than a larger eager grid.
 - Fill-box execution is bounded by its intersection with loaded chunks, so an
   extreme coordinate range cannot dictate iteration count. A separate explicit
   batch/frame budget is still needed for many valid or overlapping edits.

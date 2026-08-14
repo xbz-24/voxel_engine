@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
 
 namespace ve::engine::configuration_validation
 {
@@ -48,6 +49,9 @@ namespace ve::engine::configuration_validation
 	{
 		if (create_info.world_size_chunks <= 0)
 			issues.push_back("world_size_chunks must be greater than zero");
+		else if (create_info.world_size_chunks > ve::world::MaximumWorldSizeChunks)
+			issues.push_back("world_size_chunks must be no greater than "
+				+ std::to_string(ve::world::MaximumWorldSizeChunks));
 		if (create_info.render_distance_chunks < 0)
 			issues.push_back("render_distance_chunks must be zero or greater");
 		if (create_info.has_custom_camera)

@@ -7,6 +7,8 @@
 
 namespace ve::world
 {
+	inline constexpr int MaximumWorldSizeChunks = 64;
+
 	enum class TerrainSpawnBiome
 	{
 		Temperate,

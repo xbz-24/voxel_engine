@@ -2,6 +2,8 @@
 #include "EngineConfigEnumChecks.h"
 #include "EngineConfigStartupEnumChecks.h"
 
+#include <string>
+
 namespace voxel::detail::config_validation
 {
 	void ValidateWindowAndWorldConfiguration(const EngineConfig& config,
@@ -26,6 +28,11 @@ namespace voxel::detail::config_validation
 		if (config.world.size_chunks <= 0)
 		{
 			issues.push_back("world.size_chunks must be greater than zero");
+		}
+		else if (config.world.size_chunks > MaximumWorldSizeChunks)
+		{
+			issues.push_back("world.size_chunks must be no greater than "
+				+ std::to_string(MaximumWorldSizeChunks));
 		}
 		if (config.render_distance_chunks < 0)
 		{
