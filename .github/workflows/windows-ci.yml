@@ -48,5 +48,17 @@ jobs:
       - name: Build
         run: cmake --build out/ci --config Debug --target ALL_BUILD -- /m:1
 
-      - name: Test
-        run: ctest --test-dir out/ci -C Debug --output-on-failure
+      - name: Test Debug (excluding installed packages)
+        run: >-
+          ctest --test-dir out/ci -C Debug --output-on-failure
+          --exclude-regex '^installed_(authoring|sdk)_package$'
+
+      - name: Build Release package inputs
+        run: >-
+          cmake --build out/ci --config Release
+          --target voxel_engine_authoring voxel_engine_sdk -- /m:1
+
+      - name: Test Release installed packages
+        run: >-
+          ctest --test-dir out/ci -C Release --output-on-failure
+          --tests-regex '^installed_(authoring|sdk)_package$'

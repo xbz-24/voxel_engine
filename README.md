@@ -56,6 +56,15 @@ ctest --test-dir Builds -C Debug --output-on-failure
 cmake --build Builds --config Debug --target verify_source_policy
 ```
 
+Reproduce the Release install/relocation checks used by Windows CI with:
+
+```powershell
+cmake --build Builds --config Release `
+  --target voxel_engine_authoring voxel_engine_sdk -- /m:1
+ctest --test-dir Builds -C Release --output-on-failure `
+  --tests-regex '^installed_(authoring|sdk)_package$'
+```
+
 The source policy checks authored C++ in `include/voxel`, `src`, `Tests`,
 `apps`, `examples`, and `packaging`: every `.h/.cpp` family file must stay below 100
 physical lines, `.inl` files are forbidden, and binary NUL bytes are rejected.
@@ -87,6 +96,10 @@ Public headers are also compiled individually to enforce self-containment.
   coverage.
 
 ## Installed CMake packages
+
+Use a separate install prefix for each build configuration. The current static
+library filenames have no configuration postfix, so overlaying Debug and
+Release into one prefix would overwrite one configuration with the other.
 
 Install the runtime-independent authoring component into a chosen prefix:
 
