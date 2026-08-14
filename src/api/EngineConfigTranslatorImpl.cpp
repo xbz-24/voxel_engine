@@ -20,6 +20,7 @@ class EngineConfigTranslator final : public IEngineConfigTranslator
 				ApplyStartupRenderingConfigurationToCreateInfo(result, config);
 				ApplyCameraConfigurationToCreateInfo(result, config);
 				ApplyRuntimeLayoutToCreateInfo(result, config);
+				ApplyStaticModelSceneToCreateInfo(result, config);
 				ApplyWorldConfigurationToCreateInfo(result, config);
 				AppendAssetSearchRootsToCreateInfo(result, config.assets);
 				result.logging = ToInternalLogging(config.logging);

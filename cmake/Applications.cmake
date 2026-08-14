@@ -23,3 +23,17 @@ set_target_properties(voxel_demo PROPERTIES FOLDER "Applications")
 source_group(TREE "${VE_DEMO_ROOT}" FILES ${VE_DEMO_SUPPORT_SOURCES} ${VE_DEMO_SOURCES})
 ve_copy_msvc_asan_runtime(voxel_demo)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_demo)
+
+if (VE_BUILD_RUNTIME_SMOKE_TESTS)
+    add_executable(voxel_static_scene_smoke
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/main.cpp"
+    )
+    target_link_libraries(voxel_static_scene_smoke PRIVATE
+        ve_project_options
+        voxel_engine_sdk
+    )
+    ve_enable_common_pch(voxel_static_scene_smoke)
+    set_target_properties(voxel_static_scene_smoke PROPERTIES FOLDER "Tests/Runtime")
+    ve_copy_msvc_asan_runtime(voxel_static_scene_smoke)
+    add_dependencies(voxel_demo voxel_static_scene_smoke)
+endif()

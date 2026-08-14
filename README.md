@@ -45,6 +45,8 @@ backend with `--graphics-api opengl`. To exercise an exact `RuntimeLayout`, pass
 requires both paths, while OpenGL can use an asset directory without a shader
 directory. When runtime smoke tests are enabled, CTest exercises both graphics
 selections and the explicit Vulkan layout with the same bounded frame count.
+It also generates a temporary triangle OBJ and exercises the supported public
+static-scene path through OpenGL without adding another authored asset.
 
 ## Validation
 
@@ -56,8 +58,8 @@ cmake --build Builds --config Debug --target verify_source_policy
 
 The source policy checks authored C++ in `include/voxel`, `src`, `Tests`,
 `apps`, `examples`, and `packaging`: every `.h/.cpp` family file must stay below 100
-physical lines, and `.inl` files are forbidden. Public headers are also
-compiled individually to enforce self-containment.
+physical lines, `.inl` files are forbidden, and binary NUL bytes are rejected.
+Public headers are also compiled individually to enforce self-containment.
 
 ## Current architecture status
 
@@ -67,8 +69,15 @@ compiled individually to enforce self-containment.
 - `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox.
 - The public SDK supports world configuration/serialization, callbacks,
   assets/materials/scene authoring, and an embeddable frame loop.
-- Runtime asset-catalog loading, material binding, and scene-graph rendering
-  remain deliberately disabled and report validation errors.
+- Runtime rendering supports one deliberately narrow authored-scene slice:
+  OpenGL compatibility can load one absolute, existing `.obj` file containing
+  one static mesh and draw it for one visible root entity with an identity
+  transform. The draw uses vertex color (white when the OBJ has none) and does
+  not bind OBJ/MTL or public-library materials. Search roots, hot reload,
+  textures, sounds, lights, non-default environments, hierarchy, multiple
+  assets/entities, and Vulkan authored-scene rendering remain capability-gated
+  with explicit validation errors. The broad asset/material/scene feature flags
+  therefore remain false.
 - `VoxelEngine::Authoring` and the runtime-backed `VoxelEngine::SDK` have
   relocatable CMake compile/link packages, each verified through an installed
   consumer after moving the install prefix. Runtime assets and compiled shaders

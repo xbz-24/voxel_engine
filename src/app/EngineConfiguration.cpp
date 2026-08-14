@@ -10,6 +10,7 @@ namespace ve::engine
 		std::vector<std::string> issues;
 		configuration_validation::ValidateWindowAndBackend(create_info, issues);
 		configuration_validation::ValidateRuntimeLayout(create_info, issues);
+		configuration_validation::ValidateStaticModelScene(create_info, issues);
 		configuration_validation::ValidateVoxelRenderStyle(create_info.voxel_render_style, issues);
 		configuration_validation::ValidateWorldAndCamera(create_info, issues);
 		return issues;

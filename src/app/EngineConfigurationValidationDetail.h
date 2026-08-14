@@ -21,6 +21,9 @@ namespace ve::engine::configuration_validation
 	void ValidateRuntimeLayout(
 		const EngineCreateInfo& create_info,
 		std::vector<std::string>& issues);
+	void ValidateStaticModelScene(
+		const EngineCreateInfo& create_info,
+		std::vector<std::string>& issues);
 	void CaptureRuntimeLayoutPaths(EngineCreateInfo& create_info);
 	void ValidateVoxelRenderStyle(
 		const ve::rendering::VoxelRenderStyle& style,

@@ -8,6 +8,7 @@ namespace ve::engine
 	void VoxelSandboxModule::Shutdown() noexcept
 	{
 		editor_controller_.Shutdown();
+		static_model_scene_.Shutdown();
 		model_.reset();
 		if (!render_driver_)
 		{

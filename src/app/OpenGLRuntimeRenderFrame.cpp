@@ -29,6 +29,7 @@ namespace ve::engine
 	{
 		assert(view_ != nullptr);
 		host.RenderWorld(*view_);
+		host.RenderStaticModelScene();
 		host.RenderHud(*view_);
 		return true;
 	}

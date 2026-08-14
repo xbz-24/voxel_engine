@@ -1,3 +1,9 @@
+list(APPEND VE_RENDER_BACKEND_OPENGL_SOURCES
+    "${VE_SOURCE_ROOT}/render/backends/OpenGLIndexedTriangleMesh.cpp"
+    "${VE_SOURCE_ROOT}/render/backends/OpenGLIndexedTriangleMeshDraw.cpp"
+    "${VE_SOURCE_ROOT}/render/backends/OpenGLIndexedTriangleMeshUpload.cpp"
+)
+
 ve_add_backend_component(ve_render_backend_window Window
     SOURCES ${VE_RENDER_BACKEND_WINDOW_SOURCES}
     HEADERS ${VE_RENDER_BACKENDS_HEADERS}

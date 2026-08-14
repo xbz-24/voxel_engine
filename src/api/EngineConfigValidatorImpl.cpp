@@ -1,4 +1,5 @@
 #include "EngineConfigValidator.h"
+#include "EngineConfigStaticSceneSupport.h"
 #include "EngineConfigValidationInternal.h"
 
 namespace voxel::detail::config_validation
@@ -21,9 +22,10 @@ namespace voxel::detail::config_validation
 		}
 
 		void ValidateRuntimeBindingSupportForConfiguredFeatures(const EngineConfig& config,
+			const static_scene::StaticModelSceneAnalysis& static_scene_analysis,
 			std::vector<std::string>& issues)
 		{
-			if (!config.assets.textures.empty() || !config.assets.models.empty() || !config.assets.sounds.empty())
+			if (static_scene_analysis.has_asset_content && !static_scene_analysis.supported_scene)
 			{
 				issues.push_back("AssetCatalog runtime loading is not implemented");
 			}
@@ -31,7 +33,7 @@ namespace voxel::detail::config_validation
 			{
 				issues.push_back("MaterialLibrary runtime binding is not implemented");
 			}
-			if (!config.scene_graph.entities.empty() || !config.scene_graph.lights.empty())
+			if (static_scene_analysis.has_scene_content && !static_scene_analysis.supported_scene)
 			{
 				issues.push_back("SceneGraph runtime rendering is not implemented");
 			}
@@ -43,13 +45,16 @@ namespace voxel::detail::config_validation
 			[[nodiscard]] std::vector<std::string> Validate(const EngineConfig& config) const override
 			{
 				std::vector<std::string> issues;
+				const static_scene::StaticModelSceneAnalysis static_scene_analysis =
+					static_scene::AnalyzeStaticModelScene(config);
 				ValidateRuntimeLayout(config, issues);
 				ValidateWindowAndWorldConfiguration(config, issues);
 				ValidateGraphicsBackendSupport(config, issues);
 				ValidateVoxelRenderLightingAndFog(config.voxel_render_style, issues);
 				ValidateVoxelRenderEffects(config.voxel_render_style, issues);
 				ValidateConfiguredPublicData(config, issues);
-				ValidateRuntimeBindingSupportForConfiguredFeatures(config, issues);
+				AppendValidationIssues(issues, static_scene_analysis.issues);
+				ValidateRuntimeBindingSupportForConfiguredFeatures(config, static_scene_analysis, issues);
 				return issues;
 			}
 		};

@@ -16,6 +16,7 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineConfigRuntimeLayout.cpp
     EngineConfigRuntimeLayoutValidation.cpp
     EngineConfigRuntimeOptions.cpp
+    EngineConfigStaticSceneSupport.cpp
     EngineConfigValidationApi.cpp
     EngineConfigValidationDefault.cpp
     EngineConfigValidationHelpers.cpp
@@ -49,6 +50,7 @@ set(VE_PUBLIC_RUNTIME_ADAPTER_SOURCE_NAMES
     EngineConfigCreateInfoMapping.cpp
     EngineConfigRuntimeCallbackMapping.cpp
     EngineConfigRuntimeLayoutMapping.cpp
+    EngineConfigStaticSceneMapping.cpp
     EngineConfigTranslatorDefault.cpp
     EngineConfigTranslatorHelpers.cpp
     EngineConfigTranslatorImpl.cpp

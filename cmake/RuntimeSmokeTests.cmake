@@ -29,4 +29,12 @@ if (VE_BUILD_RUNTIME_SMOKE_TESTS)
         LABELS "runtime;smoke;opengl"
         TIMEOUT 60
     )
+    add_test(NAME public_static_scene_opengl_runtime_smoke
+        COMMAND $<TARGET_FILE:voxel_static_scene_smoke>
+            "${PROJECT_SOURCE_DIR}/assets"
+    )
+    set_tests_properties(public_static_scene_opengl_runtime_smoke PROPERTIES
+        LABELS "api;runtime;smoke;opengl;public_scene"
+        TIMEOUT 60
+    )
 endif()

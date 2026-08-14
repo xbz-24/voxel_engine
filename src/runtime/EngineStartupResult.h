@@ -16,7 +16,10 @@ namespace ve::engine
 		UnsupportedRenderBackend,
 		RenderBackendInitializationFailed,
 		RenderFrameRendererInitializationFailed,
-		RenderViewCreationFailed
+		RenderViewCreationFailed,
+		StaticModelImportFailed,
+		StaticModelValidationFailed,
+		StaticModelResourceCreationFailed
 	};
 
 	struct EngineStartupResult

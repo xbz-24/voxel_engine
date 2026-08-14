@@ -11,6 +11,7 @@ namespace ve::engine
 		virtual ~RuntimeRenderHost() = default;
 		virtual void UpdateViewportProjection() = 0;
 		virtual void RenderWorld(RenderView& view) = 0;
+		virtual void RenderStaticModelScene() = 0;
 		virtual void RenderHud(RenderView& view) = 0;
 	};
 }

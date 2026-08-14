@@ -28,12 +28,21 @@ namespace ve::engine
 		return result;
 	}
 
+	EngineStartupResult VoxelSandboxModule::CreateStaticModelScene()
+	{
+		const auto& configuration = engine_.CreateInfo().static_model_scene;
+		if (!configuration) return EngineStartupResult::Success();
+		return static_model_scene_.Initialize(*configuration, render_driver_->Backend());
+	}
+
 	EngineStartupResult VoxelSandboxModule::Initialize(RuntimeModuleContext& context)
 	{
 		window_ = &context.window;
 		frame_timer_ = &context.frame_timer;
 		const EngineStartupResult driver_result = CreateRenderDriver(context);
 		if (!driver_result) return driver_result;
+		const EngineStartupResult static_model_result = CreateStaticModelScene();
+		if (!static_model_result) return static_model_result;
 		const EngineCreateInfo& create_info = engine_.CreateInfo();
 		model_ = std::make_unique<GameModel>(create_info.world_size_chunks,
 			&context.assets, render_driver_->TextureLoading(), create_info.terrain_generation,

@@ -16,6 +16,12 @@
   SDK instead of defining alternate launchers.
 - Vulkan is the default runtime path. OpenGL remains an explicit compatibility
   choice, and both backends have bounded runtime smoke coverage.
+- The first authored-scene walking skeleton is real but intentionally narrow:
+  one root entity can render one single-mesh static OBJ through OpenGL. Public
+  and private validation reject unsupported configuration shapes before window
+  startup; the importer returns structured failures for unsupported OBJ
+  payloads. Rendering is currently untextured vertex color and does not bind
+  OBJ/MTL materials. A generated-OBJ smoke covers the public API through shutdown.
 
 The codebase already has `GameModel`/`GameController`, a screen stack,
 `NetworkSession`, GLFW-backed window ownership, and both Vulkan and OpenGL
@@ -44,9 +50,11 @@ ImGui integrations. Those are established components, not pending patterns.
 
 ## Runtime and Rendering Work
 
-- Feed `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` into runtime systems.
-  Until then, configured authored assets and entities must continue to produce
-  explicit validation issues instead of silently being ignored.
+- Extend the current one-OBJ OpenGL walking skeleton only through explicit
+  capability slices: define material/texture ownership, multiple mesh/entity
+  lifetime, transforms and hierarchy, then a Vulkan frame-resource contract.
+  Unsupported `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` combinations
+  must continue to produce validation issues instead of being ignored.
 - Keep the Vulkan and OpenGL bounded runtime smokes green as backend ownership
   and shutdown ordering evolve.
 - Keep `Headless` rejected by runtime validation until the host can initialize

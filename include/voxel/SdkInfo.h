@@ -25,7 +25,7 @@
  */
 /** @defgroup voxel_sdk_scene_graph Scene graph authoring
  * @ingroup voxel_sdk
- * Compose entities, lights, and environments before runtime rendering exists.
+ * Compose entities, lights, and environments; runtime rendering is capability-gated.
  */
 
 namespace voxel

@@ -59,4 +59,9 @@ namespace ve::engine
 			runtime_settings_.player.is_flying, runtime_settings_.renderer.render_distance_chunks,
 			model_->GetWorld().PendingEventCount(), ve::gameplay::ToSettingsMenuState(runtime_settings_) });
 	}
+
+	void VoxelSandboxModule::RenderStaticModelScene()
+	{
+		static_model_scene_.Draw();
+	}
 }

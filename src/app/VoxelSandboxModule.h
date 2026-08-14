@@ -9,6 +9,7 @@
 #include "RuntimeModule.h"
 #include "RuntimeRenderHost.h"
 #include "RuntimeSettings.h"
+#include "StaticModelSceneRuntime.h"
 
 #include <memory>
 
@@ -32,6 +33,7 @@ namespace ve::engine
 
 	private:
 		[[nodiscard]] EngineStartupResult CreateRenderDriver(RuntimeModuleContext& context);
+		[[nodiscard]] EngineStartupResult CreateStaticModelScene();
 		void InvokePublicApiFrameCallbacks(RuntimeModuleContext& context);
 		void ApplyConfiguredWorldEditsOnce();
 		void ApplyWorldEdits(const std::vector<WorldBlockEdit>& edits);
@@ -43,12 +45,14 @@ namespace ve::engine
 		void DrawBlockHighlight(glm::ivec3 block_position, BlockSelectionCube& selection_cube);
 		void UpdateViewportProjection() override;
 		void RenderWorld(RenderView& view) override;
+		void RenderStaticModelScene() override;
 		void RenderHud(RenderView& view) override;
 
 		EngineApplication& engine_;
 		RuntimeInputRouter input_router_;
 		std::unique_ptr<GameModel> model_;
 		std::unique_ptr<RuntimeRenderDriver> render_driver_;
+		StaticModelSceneRuntime static_model_scene_;
 		RuntimeInputActionTracker runtime_input_actions_;
 		GameController controller_;
 		ve::editor::EditorRuntimeController editor_controller_;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComputeDispatcher.h"
+#include "IndexedTriangleMesh.h"
 #include "RenderApi.h"
 #include "RenderMesh.h"
 #include "RenderResources.h"
@@ -29,6 +30,10 @@ namespace ve::rendering
 
 		/** @return Backend-owned mesh resource, or null when the backend cannot create generic meshes yet. */
 		[[nodiscard]] virtual std::unique_ptr<RenderMesh> CreateMeshResource() const;
+
+		/** @return Uploaded indexed triangle mesh, or null when unsupported or upload fails. */
+		[[nodiscard]] virtual std::unique_ptr<IndexedTriangleMesh> CreateIndexedTriangleMesh(
+			const IndexedTriangleMeshDescription& description) const;
 
 		/** @return Backend-owned texture resource, or null when textures are not supported yet. */
 		[[nodiscard]] virtual RenderTexturePtr CreateTextureResource(const RenderTextureDescriptor& descriptor) const;

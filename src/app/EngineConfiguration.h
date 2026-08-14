@@ -6,6 +6,7 @@
 #include "EngineStartupResult.h"
 #include "RenderApi.h"
 #include "RenderDistanceSettings.h"
+#include "StaticModelSceneConfiguration.h"
 #include "Window.h"
 #include "VoxelRenderStyle.h"
 #include "WorldConfiguration.h"
@@ -37,6 +38,7 @@ namespace ve::engine
 		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;
 		std::optional<std::filesystem::path> asset_directory;
 		std::optional<std::filesystem::path> vulkan_shader_directory;
+		std::optional<StaticModelSceneConfiguration> static_model_scene;
 		std::vector<std::filesystem::path> asset_search_roots;
 		std::vector<WorldBlockEdit> world_edits;
 		std::function<void(RuntimeFrameContext&)> on_update;

@@ -17,6 +17,10 @@ namespace ve::rendering
 		/** @return OpenGL-backed generic mesh resource. */
 		[[nodiscard]] std::unique_ptr<RenderMesh> CreateMeshResource() const override;
 
+		/** @return Ready-to-draw OpenGL indexed triangle mesh, or null on upload failure. */
+		[[nodiscard]] std::unique_ptr<IndexedTriangleMesh> CreateIndexedTriangleMesh(
+			const IndexedTriangleMeshDescription& description) const override;
+
 		/** @return OpenGL compute dispatcher. */
 		[[nodiscard]] const ComputeDispatcher* Compute() const noexcept override;
 

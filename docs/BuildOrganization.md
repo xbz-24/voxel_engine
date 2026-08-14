@@ -22,6 +22,8 @@ and display the engine as multiple projects instead of one large executable.
   static implementation closure needed to link consumers; those subordinate
   targets are package implementation details, not additional public APIs.
 - `voxel_demo`: the single authored application that consumes `VoxelEngine::SDK`.
+- `voxel_static_scene_smoke`: runtime-smoke-only public consumer that generates
+  a temporary triangle OBJ and exercises the narrow OpenGL static-scene slice.
 - `engine_tests`: tests linked against the same libraries used by the engine.
 
 Changing one implementation file now recompiles its owning library and relinks
@@ -53,7 +55,9 @@ continues to live behind the explicit OpenGL compatibility backend.
 
 The demo selects its backend with `--graphics-api vulkan|opengl`; omitting the
 option keeps Vulkan as the default. Optional automated runtime coverage
-registers bounded smokes for both Vulkan and OpenGL.
+registers bounded smokes for both Vulkan and OpenGL, plus the public generated
+OBJ scene path. The smoke target is test infrastructure, not a second authored
+application or bundled content asset.
 
 ## Visual Studio
 
