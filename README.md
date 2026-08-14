@@ -157,6 +157,11 @@ is process-wide, so only one active engine runtime may own it at a time; shutdow
 releases its callback and file sink before a later runtime starts. Log writes
 also contain exceptions from user callbacks and built-in sinks so teardown can
 remain non-throwing.
+Lifecycle entry points are host-thread operations. A callback may call
+`Shutdown()` or `RequestStop()` synchronously: destructive teardown is deferred
+until the active startup or frame call has unwound. `Shutdown()` makes
+`IsRunning()` false immediately, and nested `Step()`/`Run()` calls are rejected.
+Callbacks must not destroy or move the `Engine` object that is invoking them.
 The installed consumer smoke still does not claim payload deployment or grant
 content rights. In particular, do not copy or redistribute
 Minecraft/Mojang-derived repository assets as part of an SDK installation.

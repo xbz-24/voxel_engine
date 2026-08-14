@@ -27,6 +27,11 @@ set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT voxel_demo)
 if (VE_BUILD_RUNTIME_SMOKE_TESTS)
     add_executable(voxel_static_scene_smoke
         "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/main.cpp"
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/StaticSceneSmokeBasicScenarios.cpp"
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/StaticSceneSmokeReentrancy.cpp"
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/StaticSceneSmokeScenarios.h"
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/StaticSceneSmokeSupport.cpp"
+        "${PROJECT_SOURCE_DIR}/apps/static_scene_smoke/StaticSceneSmokeSupport.h"
     )
     target_link_libraries(voxel_static_scene_smoke PRIVATE
         ve_project_options

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "voxel/EngineConfig.h"
 
 #include <memory>
@@ -44,7 +43,10 @@ namespace voxel
 		[[nodiscard]] explicit operator bool() const noexcept;
 	};
 
-	/** Owns an engine runtime instance for either self-driven or host-driven loops. */
+	/**
+	 * Owns a host-thread runtime; Shutdown from a callback is safely deferred.
+	 * A callback must not destroy or move the Engine that is invoking it.
+	 */
 	class Engine
 	{
 	public:

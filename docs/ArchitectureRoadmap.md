@@ -9,6 +9,10 @@
   initialization receives exactly one shutdown call even after failure or an
   exception, and is destroyed while window services are still alive. GLFW is
   terminated only after the last acquired window session is released.
+- Public lifecycle calls are serialized on the host thread. Shutdown requested
+  by a startup, frame, diagnostics, or log callback is coalesced and drained at
+  a safe boundary; nested frame loops are rejected and the same `Engine` can be
+  started again after teardown completes.
 - `ve_voxel_sandbox` owns voxel gameplay, input, editor UI, HUD, world edits,
   and backend-specific runtime drivers. `ve_app` remains only as a compatibility
   alias.

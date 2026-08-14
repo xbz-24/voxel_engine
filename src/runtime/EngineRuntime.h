@@ -32,6 +32,7 @@ namespace ve::engine
 		void Shutdown() noexcept;
 		void RequestStop() noexcept;
 		[[nodiscard]] bool IsStopRequested() const noexcept;
+		[[nodiscard]] bool IsActive() const noexcept;
 
 	private:
 		[[nodiscard]] EngineStartupResult Initialize();

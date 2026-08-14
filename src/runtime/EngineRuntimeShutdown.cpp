@@ -34,4 +34,9 @@ namespace ve::engine
 	{
 		return stop_requested_.load(std::memory_order_relaxed);
 	}
+
+	bool EngineRuntime::IsActive() const noexcept
+	{
+		return module_lifecycle_.IsActive();
+	}
 }

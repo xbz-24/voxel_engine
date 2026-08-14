@@ -11,6 +11,8 @@ namespace ve::engine
 		InvalidCreateInfo,
 		LoggingInitializationFailed,
 		RuntimeModuleUnavailable,
+		RuntimeOperationInProgress,
+		RuntimeStartupCancelled,
 		WindowInitializationFailed,
 		RenderBackendUnavailable,
 		UnsupportedRenderBackend,

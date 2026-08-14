@@ -39,4 +39,6 @@ private:
 	[[nodiscard]] const ve::engine::EngineCreateInfo& CreateInfo() const noexcept;
 
 	[[nodiscard]] bool HasValidCreateInfo() const noexcept;
+	void StopRuntime(std::unique_ptr<ve::engine::EngineRuntime> runtime) noexcept;
+	void StopOwnedRuntime() noexcept;
 };
