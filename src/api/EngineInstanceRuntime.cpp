@@ -66,12 +66,21 @@ namespace voxel
 		return runtime_ != nullptr && runtime_->IsRunning();
 	}
 
-	void Engine::Impl::LogValidationIssues() const
+	void Engine::Impl::LogValidationIssues() noexcept
 	{
-		if (!on_log_) return;
+		if (!on_log_ || reporting_validation_issues_) return;
+		reporting_validation_issues_ = true;
 		for (const std::string& issue : validation_issues_)
 		{
-			on_log_("Invalid EngineConfig: " + issue);
+			try
+			{
+				on_log_("Invalid EngineConfig: " + issue);
+			}
+			catch (...)
+			{
+				// Validation results must survive allocation and user-sink failures.
+			}
 		}
+		reporting_validation_issues_ = false;
 	}
 }

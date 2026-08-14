@@ -23,10 +23,11 @@ namespace voxel
 
 	private:
 		explicit Impl(const EngineConfig& config, detail::EngineServices services);
-		void LogValidationIssues() const;
+		void LogValidationIssues() noexcept;
 
 		std::vector<std::string> validation_issues_;
 		LogCallback on_log_;
 		std::unique_ptr<detail::IEngineRuntime> runtime_;
+		bool reporting_validation_issues_ = false;
 	};
 }
