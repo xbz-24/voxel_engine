@@ -29,7 +29,8 @@ namespace ve::world::generation
 				request.chunkCoordinateZ,
 				request.terrainGeneration,
 				generatedBlockStorage);
-			ChunkGenerationResult generationResult{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
+			ChunkGenerationResult generationResult{
+				request.chunkCoordinateX, request.chunkCoordinateZ, {}, request.chunkStorageRevision };
 			CopyGeneratedStorage(generatedBlockStorage, generationResult);
 			return generationResult;
 		}
@@ -63,11 +64,14 @@ namespace ve::world::generation
 	}
 
 	/// Queues every chunk in a square world for background generation.
-	void AsyncWorldGenerator::RequestGrid(const FlatWorldSpawnSettings& settings)
+	void AsyncWorldGenerator::RequestGrid(
+		const FlatWorldSpawnSettings& settings,
+		std::uint64_t chunkStorageRevision)
 	{
 		for (int chunkX = 0; chunkX < settings.worldSizeChunks; chunkX++)
 			for (int chunkZ = 0; chunkZ < settings.worldSizeChunks; chunkZ++)
-				RequestChunk(ChunkGenerationRequest{ chunkX, chunkZ, settings.terrainGeneration });
+				RequestChunk(ChunkGenerationRequest{
+					chunkX, chunkZ, settings.terrainGeneration, chunkStorageRevision });
 	}
 
 	/// Drains completed generated chunks without blocking the game thread.

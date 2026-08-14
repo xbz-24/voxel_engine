@@ -24,7 +24,7 @@ namespace ve::engine
 		}
 		const ve::world::FlatWorldSpawnSettings settings{ worldSizeChunks, terrainGeneration };
 		world_.SpawnEmptyGrid(settings);
-		world_generator_.RequestGrid(settings);
+		world_generator_.RequestGrid(settings, world_.ChunkStorageRevision());
 	}
 
 	Camera& GameModel::MutableCamera() noexcept { return camera_; }

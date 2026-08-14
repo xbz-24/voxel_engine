@@ -7,6 +7,7 @@
 #include "WorldConfiguration.h"
 
 #include <atomic>
+#include <cstdint>
 
 namespace ve::world::generation
 {
@@ -15,6 +16,7 @@ namespace ve::world::generation
 		int chunkCoordinateX = 0;
 		int chunkCoordinateZ = 0;
 		TerrainGenerationSettings terrainGeneration{};
+		std::uint64_t chunkStorageRevision = 0;
 	};
 
 	struct ChunkGenerationResult
@@ -22,6 +24,7 @@ namespace ve::world::generation
 		int chunkCoordinateX = 0;
 		int chunkCoordinateZ = 0;
 		ve::core::StaticArray<ve::blocks::BlockId, terrain::ChunkBlockCount> blocks{};
+		std::uint64_t chunkStorageRevision = 0;
 	};
 
 	class AsyncWorldGenerator
@@ -33,8 +36,10 @@ namespace ve::world::generation
 		/** @param request Chunk coordinate to generate. @return True when queued. */
 		bool RequestChunk(ChunkGenerationRequest request);
 
-		/** @param settings Square world settings used to queue every chunk. */
-		void RequestGrid(const FlatWorldSpawnSettings& settings);
+		/** Queues a grid associated with one world chunk-storage epoch. */
+		void RequestGrid(
+			const FlatWorldSpawnSettings& settings,
+			std::uint64_t chunkStorageRevision);
 
 		/** @return Completed generated chunks ready for the game thread. */
 		ve::core::DynamicArray<ChunkGenerationResult> DrainCompletedChunks();

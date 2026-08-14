@@ -19,6 +19,7 @@ namespace ve::world
 	/// Applies generated terrain data to a loaded chunk.
 	bool World::ApplyGeneratedChunk(const generation::ChunkGenerationResult& result)
 	{
+		if (result.chunkStorageRevision != _chunkStorageRevision) return false;
 		Chunk* chunk = FindChunk(result.chunkCoordinateX, result.chunkCoordinateZ);
 		if (!chunk || !chunk->ReplaceBlocks(result.blocks)) return false;
 		++_revision;
