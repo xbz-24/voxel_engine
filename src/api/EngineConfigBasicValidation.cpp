@@ -1,4 +1,5 @@
 #include "EngineConfigValidationInternal.h"
+#include "EngineConfigEnumChecks.h"
 
 namespace voxel::detail::config_validation
 {
@@ -33,6 +34,23 @@ namespace voxel::detail::config_validation
 		{
 			issues.push_back(
 				"logging.file_output_path must not be empty when file output is enabled");
+		}
+
+		bool reported_unknown_kind = false;
+		bool reported_unknown_block = false;
+		for (const WorldEdit& edit : config.world.edits)
+		{
+			if (!reported_unknown_kind && !IsKnownPublicWorldEditKind(edit.kind))
+			{
+				issues.push_back("world.edits contains an unknown edit kind");
+				reported_unknown_kind = true;
+			}
+			if (!reported_unknown_block && !IsKnownPublicBlock(edit.block))
+			{
+				issues.push_back("world.edits contains an unknown block");
+				reported_unknown_block = true;
+			}
+			if (reported_unknown_kind && reported_unknown_block) break;
 		}
 	}
 

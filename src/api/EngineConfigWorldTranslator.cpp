@@ -1,12 +1,18 @@
 #include "EngineConfigTranslatorInternal.h"
+#include "EngineConfigEnumChecks.h"
 
 namespace voxel::detail::config_translation
 {
-	ve::engine::WorldBlockEdit ToInternalWorldEdit(const WorldEdit& edit)
+	std::optional<ve::engine::WorldBlockEdit> TryToInternalWorldEdit(const WorldEdit& edit)
 	{
+		if (!config_validation::IsKnownPublicBlock(edit.block)) return std::nullopt;
 		const ve::blocks::BlockId block = ToInternalBlock(edit.block);
-		if (edit.kind == WorldEdit::Kind::FillBox)
+		switch (edit.kind)
 		{
+		case WorldEdit::Kind::SetBlock:
+			return ve::world::MakeSingleBlockEdit(
+				edit.position.x, edit.position.y, edit.position.z, block);
+		case WorldEdit::Kind::FillBox:
 			return ve::world::MakeBlockBoxEdit(
 				edit.box.minimum.x,
 				edit.box.minimum.y,
@@ -15,9 +21,9 @@ namespace voxel::detail::config_translation
 				edit.box.maximum.y,
 				edit.box.maximum.z,
 				block);
+		default:
+			return std::nullopt;
 		}
-		return ve::world::MakeSingleBlockEdit(
-			edit.position.x, edit.position.y, edit.position.z, block);
 	}
 
 	ve::world::TerrainGeneratorKind ToInternalTerrainGenerator(TerrainGenerator generator) noexcept

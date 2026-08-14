@@ -42,7 +42,11 @@ namespace voxel::detail::config_translation
 			runtime_frame.world_edits.reserve(public_frame.commands.world_edits.size());
 			for (const WorldEdit& world_edit : public_frame.commands.world_edits)
 			{
-				runtime_frame.world_edits.push_back(ToInternalWorldEdit(world_edit));
+				if (std::optional<ve::engine::WorldBlockEdit> translated =
+					TryToInternalWorldEdit(world_edit))
+				{
+					runtime_frame.world_edits.push_back(std::move(*translated));
+				}
 			}
 			runtime_frame.request_close = public_frame.commands.request_close;
 		}

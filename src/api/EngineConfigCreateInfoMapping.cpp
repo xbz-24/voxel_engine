@@ -57,7 +57,11 @@ void ApplyWindowConfigurationToCreateInfo(ve::engine::EngineCreateInfo& create_i
 			create_info.world_edits.reserve(world.edits.size());
 			for (const WorldEdit& world_edit : world.edits)
 			{
-				create_info.world_edits.push_back(ToInternalWorldEdit(world_edit));
+				if (std::optional<ve::engine::WorldBlockEdit> translated =
+					TryToInternalWorldEdit(world_edit))
+				{
+					create_info.world_edits.push_back(std::move(*translated));
+				}
 			}
 		}
 

@@ -2,11 +2,14 @@
 
 #include "EngineRuntimeBridge.h"
 
+#include <optional>
+
 namespace voxel::detail::config_translation
 {
 	[[nodiscard]] ve::blocks::BlockId ToInternalBlock(Block block) noexcept;
 	[[nodiscard]] Block ToPublicBlock(ve::blocks::BlockId block) noexcept;
-	[[nodiscard]] ve::engine::WorldBlockEdit ToInternalWorldEdit(const WorldEdit& edit);
+	[[nodiscard]] std::optional<ve::engine::WorldBlockEdit> TryToInternalWorldEdit(
+		const WorldEdit& edit);
 	[[nodiscard]] ve::world::TerrainGeneratorKind ToInternalTerrainGenerator(TerrainGenerator generator) noexcept;
 	[[nodiscard]] ve::world::TerrainSpawnBiome ToInternalTerrainBiome(TerrainBiome biome) noexcept;
 	[[nodiscard]] ve::world::TerrainBlockPalette ToInternalTerrainPalette(TerrainPalette palette) noexcept;
