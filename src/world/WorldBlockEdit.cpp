@@ -3,6 +3,7 @@
 #include "World.h"
 
 #include <algorithm>
+#include <cstdint>
 
 namespace ve::world
 {
@@ -36,20 +37,24 @@ namespace ve::world
 			bool every_block_write_was_accepted = true;
 			const InclusiveBlockEditRange block_edit_range = NormalizeBlockEditRange(world_block_edit);
 
-			for (int edit_block_z = block_edit_range.minimum_block_z;
+			for (std::int64_t edit_block_z = block_edit_range.minimum_block_z;
 				edit_block_z <= block_edit_range.maximum_block_z;
 				++edit_block_z)
 			{
-				for (int edit_block_y = block_edit_range.minimum_block_y;
+				for (std::int64_t edit_block_y = block_edit_range.minimum_block_y;
 					edit_block_y <= block_edit_range.maximum_block_y;
 					++edit_block_y)
 				{
-					for (int edit_block_x = block_edit_range.minimum_block_x;
+					for (std::int64_t edit_block_x = block_edit_range.minimum_block_x;
 						edit_block_x <= block_edit_range.maximum_block_x;
 						++edit_block_x)
 					{
 						every_block_write_was_accepted =
-							world.SetBlock(edit_block_x, edit_block_y, edit_block_z, world_block_edit.block) &&
+							world.SetBlock(
+								static_cast<int>(edit_block_x),
+								static_cast<int>(edit_block_y),
+								static_cast<int>(edit_block_z),
+								world_block_edit.block) &&
 							every_block_write_was_accepted;
 					}
 				}
