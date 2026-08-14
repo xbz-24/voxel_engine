@@ -7,6 +7,7 @@
 #include "ChunkTerrain.h"
 #include "ChunkTypes.h"
 
+#include <bitset>
 #include <cstdint>
 #include <memory>
 #include <span>
@@ -56,13 +57,17 @@ public:
 	int GetChunkZ() const noexcept;
 	ve::blocks::BlockId GetBlock(int local_block_x, int local_block_y, int local_block_z) const;
 	bool SetBlock(int local_block_x, int local_block_y, int local_block_z, ve::blocks::BlockId block_id);
+	void RecordAuthoredBlockOverride(
+		int local_block_x, int local_block_y, int local_block_z) noexcept;
 	void MarkDirty() noexcept;
 	[[nodiscard]] std::uint64_t MeshRevision() const noexcept;
 
 private:
-	bool ContainsLocalBlock(int local_block_x, int local_block_y, int local_block_z) const;
+	bool ContainsLocalBlock(
+		int local_block_x, int local_block_y, int local_block_z) const noexcept;
 
 	ve::world::terrain::BlockStorage blocks_;
+	std::bitset<ve::world::terrain::ChunkBlockCount> authored_block_overrides_;
 	ve::rendering::ChunkGpuMesh mesh_;
 	int chunk_x_;
 	int chunk_z_;

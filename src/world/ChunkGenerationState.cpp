@@ -2,7 +2,7 @@
 
 #include "ChunkTerrain.h"
 
-#include <algorithm>
+#include <cstddef>
 
 using ve::blocks::BlockId;
 
@@ -15,12 +15,13 @@ void Chunk::Generate(const ve::world::TerrainGenerationSettings& terrain_generat
 	is_generated_ = true;
 	has_procedural_terrain_ = true;
 	has_authored_edits_ = false;
+	authored_block_overrides_.reset();
 	is_mesh_build_queued_ = false;
 	MarkDirty();
 }
 
 /**
- * Replaces all local block data with generated terrain.
+ * Applies generated terrain without replacing pre-generation authored overrides.
  *
  * @param generated_blocks Flat block data in chunk-local x/y/z order.
  * @return True when the input size matched this chunk.
@@ -28,10 +29,15 @@ void Chunk::Generate(const ve::world::TerrainGenerationSettings& terrain_generat
 bool Chunk::ReplaceBlocks(std::span<const BlockId> generated_blocks)
 {
 	if (generated_blocks.size() != ve::world::terrain::ChunkBlockCount) return false;
-	std::copy(generated_blocks.begin(), generated_blocks.end(), &blocks_[0][0][0]);
+	BlockId* destination_blocks = &blocks_[0][0][0];
+	for (std::size_t block_index = 0; block_index < generated_blocks.size(); ++block_index)
+	{
+		if (!authored_block_overrides_.test(block_index))
+			destination_blocks[block_index] = generated_blocks[block_index];
+	}
 	is_generated_ = true;
 	has_procedural_terrain_ = true;
-	has_authored_edits_ = false;
+	authored_block_overrides_.reset();
 	is_mesh_build_queued_ = false;
 	MarkDirty();
 	return true;

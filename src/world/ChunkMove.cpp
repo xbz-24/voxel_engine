@@ -4,7 +4,8 @@
 #include <utility>
 
 Chunk::Chunk(Chunk&& other) noexcept
-	: mesh_(std::move(other.mesh_)),
+	: authored_block_overrides_(other.authored_block_overrides_),
+	  mesh_(std::move(other.mesh_)),
 	  chunk_x_(other.chunk_x_),
 	  chunk_z_(other.chunk_z_),
 	  mesh_revision_(other.mesh_revision_),
@@ -25,6 +26,7 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 {
 	if (this == &other) return *this;
 	mesh_ = std::move(other.mesh_);
+	authored_block_overrides_ = other.authored_block_overrides_;
 	chunk_x_ = other.chunk_x_;
 	chunk_z_ = other.chunk_z_;
 	mesh_revision_ = other.mesh_revision_;

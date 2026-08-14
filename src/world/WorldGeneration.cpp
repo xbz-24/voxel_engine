@@ -21,7 +21,7 @@ namespace ve::world
 	{
 		if (result.chunkStorageRevision != _chunkStorageRevision) return false;
 		Chunk* chunk = FindChunk(result.chunkCoordinateX, result.chunkCoordinateZ);
-		if (!chunk || !chunk->ReplaceBlocks(result.blocks)) return false;
+		if (!chunk || chunk->IsGenerated() || !chunk->ReplaceBlocks(result.blocks)) return false;
 		++_revision;
 		MarkGeneratedChunkNeighborhoodDirty(result.chunkCoordinateX, result.chunkCoordinateZ);
 		RecordChunkGenerated(result.chunkCoordinateX, result.chunkCoordinateZ);

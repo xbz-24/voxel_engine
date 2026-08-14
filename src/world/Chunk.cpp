@@ -1,6 +1,7 @@
 #include "Chunk.h"
 
 #include "ChunkTerrain.h"
+#include "WorldGridMath.h"
 
 #include <algorithm>
 #include <utility>
@@ -46,16 +47,25 @@ BlockId Chunk::GetBlock(int local_block_x, int local_block_y, int local_block_z)
 bool Chunk::SetBlock(int local_block_x, int local_block_y, int local_block_z, BlockId block_id)
 {
 	if (!ContainsLocalBlock(local_block_x, local_block_y, local_block_z) ||
-		blocks_[local_block_x][local_block_y][local_block_z] == block_id)
-	{
-		return false;
-	}
+		blocks_[local_block_x][local_block_y][local_block_z] == block_id) return false;
+	RecordAuthoredBlockOverride(local_block_x, local_block_y, local_block_z);
 
 	blocks_[local_block_x][local_block_y][local_block_z] = block_id;
 	has_authored_edits_ = true;
 	MarkDirty();
 	return true;
 }
+
+void Chunk::RecordAuthoredBlockOverride(
+	int local_block_x, int local_block_y, int local_block_z) noexcept
+{
+	if (is_generated_ ||
+		!ContainsLocalBlock(local_block_x, local_block_y, local_block_z)) return;
+	authored_block_overrides_.set(ve::world::grid::FlattenChunkBlockIndex(
+		local_block_x, local_block_y, local_block_z));
+	has_authored_edits_ = true;
+}
+
 void Chunk::MarkDirty() noexcept
 {
 	++mesh_revision_;
@@ -66,7 +76,8 @@ std::uint64_t Chunk::MeshRevision() const noexcept
 {
 	return mesh_revision_;
 }
-bool Chunk::ContainsLocalBlock(int local_block_x, int local_block_y, int local_block_z) const
+bool Chunk::ContainsLocalBlock(
+	int local_block_x, int local_block_y, int local_block_z) const noexcept
 {
 	return local_block_x >= 0 && local_block_x < CHUNK_WIDTH &&
 		local_block_y >= 0 && local_block_y < CHUNK_HEIGHT &&
