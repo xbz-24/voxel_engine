@@ -50,6 +50,7 @@ namespace voxel::detail::config_validation
 				ValidateRuntimeLayout(config, issues);
 				ValidateWindowAndWorldConfiguration(config, issues);
 				ValidateCameraConfiguration(config, issues);
+				ValidateTerrainConfiguration(config, issues);
 				ValidateGraphicsBackendSupport(config, issues);
 				ValidateVoxelRenderLightingAndFog(config.voxel_render_style, issues);
 				ValidateVoxelRenderEffects(config.voxel_render_style, issues);

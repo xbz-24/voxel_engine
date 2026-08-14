@@ -73,6 +73,9 @@ namespace voxel::detail::config_validation
 	void ValidateCameraConfiguration(
 		const EngineConfig& config,
 		std::vector<std::string>& issues);
+	void ValidateTerrainConfiguration(
+		const EngineConfig& config,
+		std::vector<std::string>& issues);
 	void ValidateGraphicsBackendSupport(
 		const EngineConfig& config,
 		std::vector<std::string>& issues);

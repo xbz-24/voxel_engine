@@ -1,5 +1,6 @@
 #include "EngineConfigValidationInternal.h"
 #include "EngineConfigEnumChecks.h"
+#include "EngineConfigStartupEnumChecks.h"
 
 namespace voxel::detail::config_validation
 {
@@ -35,6 +36,10 @@ namespace voxel::detail::config_validation
 			issues.push_back(
 				"logging.file_output_path must not be empty when file output is enabled");
 		}
+		if (!IsKnownPublicLogLevel(config.logging.minimum_level))
+		{
+			issues.push_back("logging.minimum_level is not a known log level");
+		}
 
 		bool reported_unknown_kind = false;
 		bool reported_unknown_block = false;
@@ -57,7 +62,11 @@ namespace voxel::detail::config_validation
 	void ValidateGraphicsBackendSupport(const EngineConfig& config,
 		std::vector<std::string>& issues)
 	{
-		if (config.graphics_api == GraphicsApi::DirectX12)
+		if (!IsKnownPublicGraphicsApi(config.graphics_api))
+		{
+			issues.push_back("graphics_api is not a known graphics api");
+		}
+		else if (config.graphics_api == GraphicsApi::DirectX12)
 		{
 			issues.push_back("DirectX12 backend is declared but not implemented");
 		}

@@ -18,6 +18,8 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineConfigRuntimeLayoutValidation.cpp
     EngineConfigRuntimeOptions.cpp
     EngineConfigStaticSceneSupport.cpp
+    EngineConfigStartupEnumChecks.cpp
+    EngineConfigTerrainValidation.cpp
     EngineConfigValidationApi.cpp
     EngineConfigValidationDefault.cpp
     EngineConfigValidationHelpers.cpp
