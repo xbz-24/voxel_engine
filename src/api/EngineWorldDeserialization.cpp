@@ -2,56 +2,77 @@
 
 #include "WorldSerializationHelpers.h"
 
+#include <cstdint>
 #include <fstream>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 namespace voxel
 {
+	namespace
+	{
+		bool TryLoadWorldCommand(
+			WorldConfig& world,
+			const detail::SerializedWorldLine& tokens)
+		{
+			auto result = detail::TryLoadWorldBasicCommand(world, tokens);
+			if (result == detail::WorldCommandLoadResult::Unknown)
+				result = detail::TryLoadWorldTerrainCommand(world, tokens);
+			if (result == detail::WorldCommandLoadResult::Unknown)
+				result = detail::TryLoadWorldEditCommand(world, tokens);
+			return result == detail::WorldCommandLoadResult::Loaded;
+		}
+
+		bool TryLoadWorldStream(std::ifstream& file, WorldConfig& world)
+		{
+			bool has_header = false;
+			std::uint8_t seen_singletons = 0;
+			std::string line;
+			detail::SerializedWorldLine tokens;
+			while (std::getline(file, line))
+			{
+				if (!detail::TryTokenizeSerializedWorldLine(line, tokens)) return false;
+				if (tokens.empty()) continue;
+				if (!has_header)
+				{
+					if (!detail::IsSerializedWorldHeader(tokens)) return false;
+					has_header = true;
+					continue;
+				}
+				const std::uint8_t singleton_bit =
+					detail::GetSerializedWorldSingletonBit(tokens[0]);
+				if ((seen_singletons & singleton_bit) != 0) return false;
+				if (!TryLoadWorldCommand(world, tokens)) return false;
+				seen_singletons |= singleton_bit;
+			}
+			return has_header && file.eof() && !file.bad() &&
+				detail::HasRequiredSerializedWorldSingletons(seen_singletons);
+		}
+	}
+
+	bool TryLoadWorldConfig(const std::string& path, WorldConfig& destination)
+	{
+		static_assert(std::is_nothrow_move_assignable_v<WorldConfig>);
+		try
+		{
+			std::ifstream file(path, std::ios::binary);
+			if (!file) return false;
+			WorldConfig parsed{};
+			if (!TryLoadWorldStream(file, parsed)) return false;
+			destination = std::move(parsed);
+			return true;
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
+
 	WorldConfig LoadWorldConfig(const std::string& path)
 	{
-		std::ifstream file(path);
-		if (!file) return {};
-
-		std::string header;
-		int version = 0;
-		file >> header >> version;
-		if (header != "voxel-world-config" || version != 1) return {};
-
-		WorldConfig world{};
-		std::string command;
-		while (file >> command)
-		{
-			if (command == "size")
-			{
-				int size_chunks = world.size_chunks;
-				file >> size_chunks;
-				world.WithSizeChunks(size_chunks);
-			}
-			else if (detail::TryLoadWorldTerrainCommand(world, command, file))
-			{
-				continue;
-			}
-			else if (command == "set")
-			{
-				int x = 0, y = 0, z = 0, serialized_block = 0;
-				file >> x >> y >> z >> serialized_block;
-				world.SetBlock(x, y, z, detail::FromSerializedBlock(serialized_block));
-			}
-			else if (command == "fill")
-			{
-				int x1 = 0, y1 = 0, z1 = 0;
-				int x2 = 0, y2 = 0, z2 = 0;
-				int serialized_block = 0;
-				file >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> serialized_block;
-				world.FillBox(x1, y1, z1, x2, y2, z2,
-					detail::FromSerializedBlock(serialized_block));
-			}
-			else
-			{
-				std::string ignored_line;
-				std::getline(file, ignored_line);
-			}
-		}
-		return world;
+		WorldConfig loaded{};
+		if (!TryLoadWorldConfig(path, loaded)) return {};
+		return loaded;
 	}
 }

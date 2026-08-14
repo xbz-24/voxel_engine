@@ -9,12 +9,16 @@ namespace voxel::detail
 		return static_cast<int>(block);
 	}
 
-	Block FromSerializedBlock(int value) noexcept
+	bool TryParseSerializedBlock(std::string_view value, Block& block) noexcept
 	{
-		if (value < ToSerializedBlock(Block::Air) || value > ToSerializedBlock(Block::DeadBush))
+		int parsed = 0;
+		if (!TryParseSerializedInt(value, parsed) ||
+			parsed < ToSerializedBlock(Block::Air) ||
+			parsed > ToSerializedBlock(Block::DeadBush))
 		{
-			return Block::Air;
+			return false;
 		}
-		return static_cast<Block>(value);
+		block = static_cast<Block>(parsed);
+		return true;
 	}
 }

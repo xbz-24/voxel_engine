@@ -2,10 +2,7 @@
 
 #include "WorldSerializationHelpers.h"
 
-#include <algorithm>
-#include <cstdint>
 #include <fstream>
-#include <string>
 
 namespace voxel::detail
 {
@@ -19,10 +16,14 @@ namespace voxel::detail
 		}
 	}
 
-	TerrainGenerator FromSerializedTerrainGenerator(const std::string& value) noexcept
+	bool TryParseSerializedTerrainGenerator(
+		std::string_view value,
+		TerrainGenerator& generator) noexcept
 	{
-		if (value == "flat") return TerrainGenerator::Flat;
-		return TerrainGenerator::Procedural;
+		if (value == "procedural") generator = TerrainGenerator::Procedural;
+		else if (value == "flat") generator = TerrainGenerator::Flat;
+		else return false;
+		return true;
 	}
 
 	const char* ToSerializedTerrainBiome(TerrainBiome biome) noexcept
@@ -36,11 +37,15 @@ namespace voxel::detail
 		}
 	}
 
-	TerrainBiome FromSerializedTerrainBiome(const std::string& value) noexcept
+	bool TryParseSerializedTerrainBiome(
+		std::string_view value,
+		TerrainBiome& biome) noexcept
 	{
-		if (value == "desert") return TerrainBiome::Desert;
-		if (value == "alpine") return TerrainBiome::Alpine;
-		return TerrainBiome::Temperate;
+		if (value == "temperate") biome = TerrainBiome::Temperate;
+		else if (value == "desert") biome = TerrainBiome::Desert;
+		else if (value == "alpine") biome = TerrainBiome::Alpine;
+		else return false;
+		return true;
 	}
 }
 

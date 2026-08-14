@@ -40,9 +40,11 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineWorldBasics.cpp
     EngineWorldBlockSerialization.cpp
     EngineWorldDeserialization.cpp
+    EngineWorldEditDeserialization.cpp
     EngineWorldEdits.cpp
     EngineWorldPaths.cpp
     EngineWorldSerialization.cpp
+    EngineWorldSerializationParsing.cpp
     EngineWorldSerializationTerrain.cpp
     EngineWorldSerializationTerrainLoad.cpp
     EngineWorldSerializationValidation.cpp

@@ -32,6 +32,10 @@
   unsupported OBJ payloads. Rendering is currently untextured vertex color and
   does not bind OBJ/MTL materials. A generated-OBJ smoke covers the public API
   through shutdown.
+- Version-1 world configuration loading now has a strict error channel. It
+  preserves legacy size-and-edits documents and current complete terrain
+  documents while rejecting partial, unknown, truncated, or out-of-range data
+  without publishing a partially parsed configuration.
 
 The codebase already has `GameModel`/`GameController`, a screen stack,
 `NetworkSession`, GLFW-backed window ownership, and both Vulkan and OpenGL
