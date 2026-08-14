@@ -5,10 +5,8 @@
 #include "GameModel.h"
 #include "HudFrameInfo.h"
 #include "HudRenderer.h"
-#include "Plane.h"
 #include "RenderState.h"
 #include "RenderView.h"
-#include "SkyBox.h"
 #include "World.h"
 
 #include <cassert>
@@ -24,11 +22,9 @@ namespace ve::engine
 	{
 		ve::blocks::BlockRegistry* registry = model_->MutableBlockRegistry();
 		assert(registry != nullptr);
-		SkyBox* skybox = render_view.Skybox();
-		Plane* plane = render_view.GroundPlane();
 		BlockSelectionCube* selection = render_view.SelectionCube();
-		assert(skybox != nullptr);
-		assert(plane != nullptr);
+		assert(render_view.Skybox() != nullptr);
+		assert(render_view.GroundPlane() != nullptr);
 		assert(selection != nullptr);
 		ve::rendering::BeginWorldFrame(0.541f, 0.694f, 0.976f);
 		ve::rendering::ApplyProjection(render_cache_state_.projection_3d);
