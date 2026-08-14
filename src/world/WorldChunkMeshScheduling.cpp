@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include "ChunkTerrain.h"
+#include "ChunkMeshFailureRecovery.h"
 #include "CoreTypes.h"
 #include "WorldGridMath.h"
 #include "WorldViewRange.h"
@@ -33,6 +34,7 @@ namespace ve::world
 	void World::UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline)
 	{
 		meshPipeline.CollectCompletedBuilds();
+		if (meshPipeline.ConsumeBuildFailureRecoveryRequest()) ve::world::mesh::CancelPendingChunkMeshReservations(_chunks);
 		std::vector<ve::world::mesh::ChunkMeshBuildOutput> uploadBacklog = meshPipeline.DrainUploadBacklog();
 		for (ve::world::mesh::ChunkMeshBuildOutput& output : uploadBacklog)
 		{

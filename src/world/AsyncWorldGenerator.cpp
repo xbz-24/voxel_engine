@@ -1,5 +1,8 @@
 #include "AsyncWorldGenerator.h"
 
+#include <exception>
+#include <utility>
+
 namespace ve::world::generation
 {
 	namespace
@@ -42,15 +45,21 @@ namespace ve::world::generation
 	bool AsyncWorldGenerator::RequestChunk(ChunkGenerationRequest request)
 	{
 		outstandingRequestCount_.fetch_add(1, std::memory_order_relaxed);
-		if (!backgroundTaskQueue_.Enqueue([this, request]()
+		try
 		{
-			completedChunks_.Push(GenerateChunk(request));
-		}))
-		{
-			outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
-			return false;
+			ve::tasks::BackgroundTaskOptions taskOptions;
+			taskOptions.failureHandler = [this](std::exception_ptr)
+			{
+				outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
+			};
+			if (backgroundTaskQueue_.Enqueue([this, request]()
+			{
+				completedChunks_.Push(GenerateChunk(request));
+			}, std::move(taskOptions))) return true;
 		}
-		return true;
+		catch (...) {}
+		outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
+		return false;
 	}
 
 	/// Queues every chunk in a square world for background generation.

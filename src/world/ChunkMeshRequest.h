@@ -24,6 +24,7 @@ namespace ve::world::mesh
 		int chunkZ;
 		std::uint64_t chunkRevision;
 		ChunkMeshBuildResult mesh;
+		bool buildSucceeded = true;
 	};
 
 	/**

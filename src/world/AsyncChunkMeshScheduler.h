@@ -4,6 +4,7 @@
 #include "ChunkMeshRequest.h"
 #include "ThreadSafeMessageQueue.h"
 
+#include <atomic>
 #include <cstddef>
 #include <vector>
 
@@ -41,9 +42,12 @@ namespace ve::world::mesh
 		 * @return Number of queued background tasks.
 		 */
 		std::size_t PendingTaskCount() const;
+		/** @return True once when exact failure publication could not allocate. */
+		bool ConsumeBuildFailureRecoveryRequest() noexcept;
 
 	private:
 		ve::network::ThreadSafeMessageQueue<ChunkMeshBuildOutput> _completedBuilds;
+		std::atomic_bool _buildFailureRecoveryRequired = false;
 		ve::tasks::BackgroundTaskQueue _backgroundTasks;
 	};
 }

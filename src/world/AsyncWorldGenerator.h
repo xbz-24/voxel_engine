@@ -44,7 +44,7 @@ namespace ve::world::generation
 
 	private:
 		ve::network::ThreadSafeMessageQueue<ChunkGenerationResult> completedChunks_;
-		ve::tasks::BackgroundTaskQueue backgroundTaskQueue_;
 		std::atomic<ve::core::Index> outstandingRequestCount_ = 0;
+		ve::tasks::BackgroundTaskQueue backgroundTaskQueue_;
 	};
 }

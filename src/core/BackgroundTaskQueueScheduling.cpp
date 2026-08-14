@@ -46,7 +46,7 @@ namespace ve::tasks
 			_tasks.push_back(QueuedBackgroundTask{
 				std::move(task),
 				std::chrono::steady_clock::now(),
-				options,
+				std::move(options),
 				_nextEnqueueOrder++
 			});
 			_stats.acceptedTaskCount++;
