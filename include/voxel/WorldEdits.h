@@ -19,7 +19,11 @@ namespace voxel
 
 	[[nodiscard]] BlockBox Box(BlockPosition first, BlockPosition second) noexcept;
 
-	/** Public command payload for deterministic world edits. */
+	/**
+	 * Public command payload for deterministic world edits. Fill boxes affect only
+	 * their intersection with loaded chunks; coordinates outside that storage are
+	 * ignored instead of determining iteration cost.
+	 */
 	struct WorldEdit
 	{
 		enum class Kind

@@ -82,6 +82,9 @@ ImGui integrations. Those are established components, not pending patterns.
 
 ## World and Network Work
 
+- Fill-box execution is bounded by its intersection with loaded chunks, so an
+  extreme coordinate range cannot dictate iteration count. A separate explicit
+  batch/frame budget is still needed for many valid or overlapping edits.
 - Separate chunk storage, generation, meshing, and event publication far enough
   that tools can use world data without a graphics runtime.
 - Replace grow-only chunk assumptions with explicit horizontal streaming bounds
