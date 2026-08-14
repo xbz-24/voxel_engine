@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChunkTerrain.h"
 #include "CoreTypes.h"
 
 #include <cstdint>
@@ -47,6 +48,15 @@ namespace ve::world::terrain::detail
 	[[nodiscard]] constexpr int TerrainHeightOffset(float height_delta) noexcept
 	{
 		return ve::core::ToInt(height_delta);
+	}
+
+	[[nodiscard]] constexpr int BoundedSurfaceHeight(int base_height, int terrain_offset = 0) noexcept
+	{
+		const std::int64_t unbounded_height =
+			static_cast<std::int64_t>(base_height) + static_cast<std::int64_t>(terrain_offset);
+		if (unbounded_height < 1) return 1;
+		if (unbounded_height > ChunkHeight - 2) return ChunkHeight - 2;
+		return static_cast<int>(unbounded_height);
 	}
 
 	[[nodiscard]] constexpr int WorldBlockPatternCoordinate(float world_block_coordinate) noexcept

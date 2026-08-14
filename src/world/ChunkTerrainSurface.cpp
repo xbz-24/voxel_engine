@@ -3,7 +3,6 @@
 #include "ChunkTerrainMath.h"
 #include "ChunkTerrainUnderground.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 
@@ -44,7 +43,7 @@ namespace ve::world::terrain::detail
 	{
 		if (terrain_generation.terrainGenerator == ve::world::TerrainGeneratorKind::Flat)
 		{
-			return std::clamp(terrain_generation.baseSurfaceHeight, 1, ChunkHeight - 2);
+			return BoundedSurfaceHeight(terrain_generation.baseSurfaceHeight);
 		}
 		const float seeded_world_block_x =
 			world_block_x + SeedOffset(terrain_generation.terrainSeed, 1U);
@@ -56,10 +55,9 @@ namespace ve::world::terrain::detail
 			std::sin(seeded_world_block_x * 0.05f + seeded_world_block_z * 0.02f) * 15.0f;
 		const float hills =
 			std::sin(seeded_world_block_x * 0.15f) * std::cos(seeded_world_block_z * 0.15f) * 4.0f;
-		return std::clamp(
-			terrain_generation.baseSurfaceHeight + TerrainHeightOffset(continent + mountains + hills),
-			1,
-			ChunkHeight - 2);
+		return BoundedSurfaceHeight(
+			terrain_generation.baseSurfaceHeight,
+			TerrainHeightOffset(continent + mountains + hills));
 	}
 
 	BlockId BlockForDepth(
