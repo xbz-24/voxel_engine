@@ -9,7 +9,7 @@ using ve::blocks::BlockId;
 /**
  * Fills block data using procedural terrain generation.
  */
-void Chunk::Generate(const ve::world::TerrainGenerationSettings& terrain_generation)
+void Chunk::Generate(const ve::world::TerrainGenerationSettings& terrain_generation) noexcept
 {
 	ve::world::terrain::GenerateChunkTerrain(chunk_x_, chunk_z_, terrain_generation, blocks_);
 	is_generated_ = true;

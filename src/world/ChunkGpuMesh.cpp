@@ -14,7 +14,7 @@ namespace ve::rendering
 	{
 	}
 
-	ChunkGpuMesh::~ChunkGpuMesh()
+	ChunkGpuMesh::~ChunkGpuMesh() noexcept
 	{
 		Release();
 	}
@@ -50,7 +50,7 @@ namespace ve::rendering
 		if (_mesh != nullptr) _mesh->Draw();
 	}
 
-	void ChunkGpuMesh::Release()
+	void ChunkGpuMesh::Release() noexcept
 	{
 		if (_mesh != nullptr) _mesh->Release();
 		cpu_vertices_.clear();

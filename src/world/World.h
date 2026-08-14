@@ -38,6 +38,7 @@ namespace ve::world
 		World& operator=(World&&) = delete;
 
 		void SetRenderBackend(const ve::rendering::RenderBackend* renderBackend) noexcept;
+		// Respawn keeps the previous grid intact when preparation throws.
 		void SpawnFlatGrid(int worldSize);
 		void SpawnFlatGrid(const FlatWorldSpawnSettings& settings);
 		void SpawnEmptyGrid(const FlatWorldSpawnSettings& settings);
@@ -70,7 +71,8 @@ namespace ve::world
 
 	private:
 		static std::size_t EstimateLevelArenaBytes(const WorldCreateInfo& createInfo);
-		void ResetChunkStorageForRespawn(int worldSizeChunks);
+		void SpawnPreparedGrid(const FlatWorldSpawnSettings& settings, ChunkGenerationMode generation_mode);
+		void ResetChunkStorageForRespawn(int worldSizeChunks) noexcept;
 		Chunk* FindChunk(int chunkX, int chunkZ);
 		const Chunk* FindChunk(int chunkX, int chunkZ) const;
 		void MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ);
@@ -82,7 +84,6 @@ namespace ve::world
 			const glm::ivec3& position,
 			ve::blocks::BlockId previousBlockId,
 			ve::blocks::BlockId newBlockId);
-		std::unique_ptr<ve::rendering::RenderMesh> CreateChunkRenderMeshResource() const;
 		void MarkGeneratedChunkNeighborhoodDirty(int chunkX, int chunkZ);
 
 		LevelSpawn _levelSpawn;

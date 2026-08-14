@@ -18,7 +18,7 @@ public:
 	}
 
 	void Draw() const override { ++draw_call_count; }
-	void Release() override { ++release_call_count; }
+	void Release() noexcept override { ++release_call_count; }
 
 	std::size_t uploaded_vertex_count = 0;
 	std::size_t uploaded_batch_count = 0;

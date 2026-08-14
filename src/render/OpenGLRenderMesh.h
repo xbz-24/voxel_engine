@@ -14,14 +14,14 @@ namespace ve::rendering
 	{
 	public:
 		OpenGLRenderMesh() = default;
-		~OpenGLRenderMesh() override;
+		~OpenGLRenderMesh() noexcept override;
 
 		OpenGLRenderMesh(const OpenGLRenderMesh&) = delete;
 		OpenGLRenderMesh& operator=(const OpenGLRenderMesh&) = delete;
 
 		void Upload(const MeshDescription& description) override;
 		void Draw() const override;
-		void Release() override;
+		void Release() noexcept override;
 
 	private:
 		struct IndexedChunkMeshBatch

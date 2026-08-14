@@ -23,7 +23,7 @@ namespace ve::world::terrain
 		int chunk_x,
 		int chunk_z,
 		const ve::world::TerrainGenerationSettings& terrain_generation,
-		BlockStorage& blocks);
+		BlockStorage& blocks) noexcept;
 
 	/**
 	 * Fills chunk block storage with default procedural terrain.
@@ -32,5 +32,5 @@ namespace ve::world::terrain
 	 * @param chunk_z Chunk-grid Z coordinate.
 	 * @param blocks Storage filled with generated block ids.
 	 */
-	void GenerateChunkTerrain(int chunk_x, int chunk_z, BlockStorage& blocks);
+	void GenerateChunkTerrain(int chunk_x, int chunk_z, BlockStorage& blocks) noexcept;
 }

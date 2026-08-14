@@ -11,7 +11,7 @@ Chunk::Chunk(
 	int chunk_coordinate_z,
 	ChunkGenerationMode generation_mode,
 	const ve::world::TerrainGenerationSettings& terrain_generation,
-	std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource)
+	std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource) noexcept
 	: mesh_(std::move(render_mesh_resource)),
 	  chunk_x_(chunk_coordinate_x),
 	  chunk_z_(chunk_coordinate_z),
@@ -25,7 +25,7 @@ Chunk::Chunk(
 	if (generation_mode == ChunkGenerationMode::GenerateNow) Generate(terrain_generation);
 	else std::fill(&blocks_[0][0][0], &blocks_[0][0][0] + (CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH), BlockId::Air);
 }
-Chunk::~Chunk() = default;
+Chunk::~Chunk() noexcept = default;
 
 int Chunk::GetChunkX() const noexcept
 {
@@ -56,7 +56,7 @@ bool Chunk::SetBlock(int local_block_x, int local_block_y, int local_block_z, Bl
 	MarkDirty();
 	return true;
 }
-void Chunk::MarkDirty()
+void Chunk::MarkDirty() noexcept
 {
 	++mesh_revision_;
 	is_mesh_built_ = false;

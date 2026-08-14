@@ -4,12 +4,12 @@
 
 namespace ve::rendering
 {
-	OpenGLRenderMesh::~OpenGLRenderMesh()
+	OpenGLRenderMesh::~OpenGLRenderMesh() noexcept
 	{
 		Release();
 	}
 
-	void OpenGLRenderMesh::Release()
+	void OpenGLRenderMesh::Release() noexcept
 	{
 		if (vertex_buffer_ != 0)
 		{

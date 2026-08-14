@@ -1,7 +1,5 @@
 #include "World.h"
 
-#include "RenderBackend.h"
-
 #include <memory_resource>
 
 namespace ve::world
@@ -83,11 +81,6 @@ namespace ve::world
 	void World::SetRenderBackend(const ve::rendering::RenderBackend* renderBackend) noexcept
 	{
 		active_render_backend_ = renderBackend;
-	}
-
-	std::unique_ptr<ve::rendering::RenderMesh> World::CreateChunkRenderMeshResource() const
-	{
-		return active_render_backend_ != nullptr ? active_render_backend_->CreateMeshResource() : nullptr;
 	}
 
 }

@@ -23,8 +23,8 @@ public:
 		int chunk_coordinate_z,
 		ChunkGenerationMode generation_mode = ChunkGenerationMode::GenerateNow,
 		const ve::world::TerrainGenerationSettings& terrain_generation = {},
-		std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource = nullptr);
-	~Chunk();
+		std::unique_ptr<ve::rendering::RenderMesh> render_mesh_resource = nullptr) noexcept;
+	~Chunk() noexcept;
 
 	Chunk(const Chunk&) = delete;
 	Chunk& operator=(const Chunk&) = delete;
@@ -32,7 +32,7 @@ public:
 	Chunk& operator=(Chunk&& other) noexcept;
 
 	// Terrain content and provenance.
-	void Generate(const ve::world::TerrainGenerationSettings& terrain_generation = {});
+	void Generate(const ve::world::TerrainGenerationSettings& terrain_generation = {}) noexcept;
 	bool ReplaceBlocks(std::span<const ve::blocks::BlockId> generated_blocks);
 	bool IsGenerated() const noexcept;
 	bool HasProceduralTerrain() const noexcept;
@@ -56,7 +56,7 @@ public:
 	int GetChunkZ() const noexcept;
 	ve::blocks::BlockId GetBlock(int local_block_x, int local_block_y, int local_block_z) const;
 	bool SetBlock(int local_block_x, int local_block_y, int local_block_z, ve::blocks::BlockId block_id);
-	void MarkDirty();
+	void MarkDirty() noexcept;
 	[[nodiscard]] std::uint64_t MeshRevision() const noexcept;
 
 private:

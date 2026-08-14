@@ -9,7 +9,7 @@ namespace ve::world::terrain
 		int chunk_coordinate_x,
 		int chunk_coordinate_z,
 		const ve::world::TerrainGenerationSettings& terrain_generation,
-		BlockStorage& blocks)
+		BlockStorage& blocks) noexcept
 	{
 		for (int local_block_x = 0; local_block_x < ChunkWidth; ++local_block_x)
 		{
@@ -35,7 +35,7 @@ namespace ve::world::terrain
 		}
 	}
 
-	void GenerateChunkTerrain(int chunk_coordinate_x, int chunk_coordinate_z, BlockStorage& blocks)
+	void GenerateChunkTerrain(int chunk_coordinate_x, int chunk_coordinate_z, BlockStorage& blocks) noexcept
 	{
 		GenerateChunkTerrain(chunk_coordinate_x, chunk_coordinate_z, ve::world::TerrainGenerationSettings{}, blocks);
 	}
