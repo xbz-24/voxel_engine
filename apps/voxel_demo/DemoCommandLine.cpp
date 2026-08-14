@@ -33,6 +33,15 @@ namespace voxel_demo
 			}
 			return false;
 		}
+
+		[[nodiscard]] bool RuntimeLayoutOptionsAreCompatible(const DemoOptions& options) noexcept
+		{
+			const bool has_assets = !options.asset_directory.empty();
+			const bool has_shaders = !options.vulkan_shader_directory.empty();
+			if (!has_assets && !has_shaders) return true;
+			if (!has_assets) return false;
+			return options.graphics_api != voxel::GraphicsApi::Vulkan || has_shaders;
+		}
 	}
 
 	DemoOptions ParseOptions(std::span<const std::string_view> arguments) noexcept
@@ -47,15 +56,28 @@ namespace voxel_demo
 			}
 			const std::string_view option = arguments[index];
 			const std::string_view value = arguments[++index];
-			const bool parsed = option == "--smoke-frames"
-				? TryParsePositiveInteger(value, options.smoke_frame_limit)
-				: option == "--graphics-api" && TryParseGraphicsApi(value, options.graphics_api);
+			bool parsed = false;
+			if (option == "--smoke-frames")
+				parsed = TryParsePositiveInteger(value, options.smoke_frame_limit);
+			else if (option == "--graphics-api")
+				parsed = TryParseGraphicsApi(value, options.graphics_api);
+			else if (option == "--asset-directory")
+			{
+				options.asset_directory = value;
+				parsed = !value.empty();
+			}
+			else if (option == "--vulkan-shader-directory")
+			{
+				options.vulkan_shader_directory = value;
+				parsed = !value.empty();
+			}
 			if (!parsed)
 			{
 				options.valid = false;
 				return options;
 			}
 		}
+		options.valid = RuntimeLayoutOptionsAreCompatible(options);
 		return options;
 	}
 }

@@ -39,9 +39,12 @@ Run the single demo with Vulkan explicitly:
 Builds\Debug\voxel_demo.exe --graphics-api vulkan
 ```
 
-Use `--smoke-frames 3` for a bounded runtime check. The CLI also accepts
-`--graphics-api opengl`. When runtime smoke tests are enabled, CTest exercises
-both explicit graphics selections with the same bounded frame count.
+Use `--smoke-frames 3` for a bounded runtime check, or select the compatibility
+backend with `--graphics-api opengl`. To exercise an exact `RuntimeLayout`, pass
+`--asset-directory <path>` and `--vulkan-shader-directory <path>`; Vulkan
+requires both paths, while OpenGL can use an asset directory without a shader
+directory. When runtime smoke tests are enabled, CTest exercises both graphics
+selections and the explicit Vulkan layout with the same bounded frame count.
 
 ## Validation
 

@@ -1,6 +1,7 @@
 #include "DemoCommandLine.h"
 #include "DemoConfig.h"
 
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -27,6 +28,14 @@ int main(int argc, char** argv)
 	if (!options.valid) return 2;
 
 	voxel::EngineConfig config = voxel_demo::CreateDemoConfig(options.graphics_api);
+	if (!options.asset_directory.empty())
+	{
+		voxel::RuntimeLayout layout{};
+		layout.AssetsAt(std::string{ options.asset_directory });
+		if (!options.vulkan_shader_directory.empty())
+			layout.VulkanShadersAt(std::string{ options.vulkan_shader_directory });
+		config.WithRuntimeLayout(std::move(layout));
+	}
 	if (options.smoke_frame_limit > 0)
 	{
 		config.HideDebugOverlay().OnUpdate(

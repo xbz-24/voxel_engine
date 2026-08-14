@@ -11,6 +11,8 @@ namespace voxel_demo
 	{
 		int smoke_frame_limit = 0;
 		voxel::GraphicsApi graphics_api = voxel::GraphicsApi::Vulkan;
+		std::string_view asset_directory;
+		std::string_view vulkan_shader_directory;
 		bool valid = true;
 	};
 
