@@ -36,9 +36,14 @@ namespace ve::world::mesh
 			const int chunkX = request.chunk.chunkX;
 			const int chunkZ = request.chunk.chunkZ;
 			const std::uint64_t chunkRevision = request.chunk.revision;
-			taskOptions.failureHandler = [this, chunkX, chunkZ, chunkRevision](std::exception_ptr)
+			const std::uint64_t chunkStorageRevision = request.chunkStorageRevision;
+			taskOptions.failureHandler = [this, chunkX, chunkZ, chunkRevision, chunkStorageRevision](std::exception_ptr)
 			{
-				try { _completedBuilds.Push(ChunkMeshBuildOutput{ chunkX, chunkZ, chunkRevision, {}, false }); }
+				try
+				{
+					_completedBuilds.Push(ChunkMeshBuildOutput{
+						chunkX, chunkZ, chunkRevision, {}, false, chunkStorageRevision });
+				}
 				catch (...) { _buildFailureRecoveryRequired.store(true, std::memory_order_release); }
 			};
 			return _backgroundTasks.Enqueue([this, request = std::move(request), &blockRegistry]() mutable

@@ -5,14 +5,18 @@
 namespace ve::world::mesh
 {
 	/// Captures a snapshot-backed build request from loaded chunks.
-	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(const Chunk& chunk, const NeighborChunks& neighbors)
+	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(
+		const Chunk& chunk,
+		const NeighborChunks& neighbors,
+		std::uint64_t chunkStorageRevision)
 	{
 		return ChunkMeshBuildRequest{
 			CaptureChunkMeshSnapshot(chunk),
 			neighbors.west ? std::optional(CaptureChunkMeshSnapshot(*neighbors.west)) : std::nullopt,
 			neighbors.east ? std::optional(CaptureChunkMeshSnapshot(*neighbors.east)) : std::nullopt,
 			neighbors.north ? std::optional(CaptureChunkMeshSnapshot(*neighbors.north)) : std::nullopt,
-			neighbors.south ? std::optional(CaptureChunkMeshSnapshot(*neighbors.south)) : std::nullopt
+			neighbors.south ? std::optional(CaptureChunkMeshSnapshot(*neighbors.south)) : std::nullopt,
+			chunkStorageRevision
 		};
 	}
 
@@ -34,7 +38,9 @@ namespace ve::world::mesh
 			chunkInput.chunkX,
 			chunkInput.chunkZ,
 			request.chunk.revision,
-			BuildChunkMesh(chunkInput, blockRegistry, neighbors)
+			BuildChunkMesh(chunkInput, blockRegistry, neighbors),
+			true,
+			request.chunkStorageRevision
 		};
 	}
 }

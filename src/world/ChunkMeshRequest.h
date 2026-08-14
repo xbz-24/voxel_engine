@@ -16,6 +16,7 @@ namespace ve::world::mesh
 		std::optional<ChunkMeshSnapshot> east;
 		std::optional<ChunkMeshSnapshot> north;
 		std::optional<ChunkMeshSnapshot> south;
+		std::uint64_t chunkStorageRevision = 0;
 	};
 
 	struct ChunkMeshBuildOutput
@@ -25,6 +26,7 @@ namespace ve::world::mesh
 		std::uint64_t chunkRevision;
 		ChunkMeshBuildResult mesh;
 		bool buildSucceeded = true;
+		std::uint64_t chunkStorageRevision = 0;
 	};
 
 	/**
@@ -41,7 +43,11 @@ namespace ve::world::mesh
 	 *
 	 * @param chunk Center chunk copied into the request.
 	 * @param neighbors Optional loaded neighbors copied for border culling.
+	 * @param chunkStorageRevision Storage epoch used to reject results after a respawn.
 	 * @return Request safe to move into a background mesh worker.
 	 */
-	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(const Chunk& chunk, const NeighborChunks& neighbors);
+	ChunkMeshBuildRequest CaptureChunkMeshBuildRequest(
+		const Chunk& chunk,
+		const NeighborChunks& neighbors,
+		std::uint64_t chunkStorageRevision);
 }
