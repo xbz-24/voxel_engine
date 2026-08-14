@@ -11,7 +11,6 @@ target_link_libraries(ve_core PUBLIC
 )
 
 target_include_directories(ve_render SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
-target_include_directories(ve_render SYSTEM PUBLIC ${GLEW_INCLUDE_DIRS})
 target_link_libraries(ve_render PUBLIC
     GLEW::GLEW
     glm::glm

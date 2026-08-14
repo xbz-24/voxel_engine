@@ -77,14 +77,22 @@ add_library(VoxelEngine::Authoring ALIAS voxel_engine_authoring)
 include("${CMAKE_CURRENT_LIST_DIR}/PublicAuthoringTargetPolicy.cmake")
 
 add_library(voxel_engine_sdk STATIC ${VE_PUBLIC_RUNTIME_ADAPTER_SOURCES})
-target_include_directories(voxel_engine_sdk PUBLIC "${VE_PUBLIC_INCLUDE_ROOT}")
+target_include_directories(voxel_engine_sdk PUBLIC
+    "$<BUILD_INTERFACE:${VE_PUBLIC_INCLUDE_ROOT}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 target_include_directories(voxel_engine_sdk PRIVATE "${VE_SOURCE_ROOT}/api")
 target_link_libraries(voxel_engine_sdk
     PUBLIC voxel_engine_authoring
-    PRIVATE ve_project_options ve_voxel_sandbox
+    PRIVATE "$<BUILD_INTERFACE:ve_project_options>" ve_voxel_sandbox
 )
+target_compile_features(voxel_engine_sdk PUBLIC cxx_std_23)
 ve_enable_common_pch(voxel_engine_sdk)
-set_target_properties(voxel_engine_sdk PROPERTIES FOLDER "Engine/API")
+set_target_properties(voxel_engine_sdk PROPERTIES
+    EXPORT_NAME SDK
+    FOLDER "Engine/API"
+)
 add_library(VoxelEngine::SDK ALIAS voxel_engine_sdk)
 
 include("${CMAKE_CURRENT_LIST_DIR}/PublicAuthoringSmoke.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/PublicSdkTargetPolicy.cmake")

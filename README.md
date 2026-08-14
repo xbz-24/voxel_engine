@@ -66,15 +66,15 @@ compiled individually to enforce self-containment.
   assets/materials/scene authoring, and an embeddable frame loop.
 - Runtime asset-catalog loading, material binding, and scene-graph rendering
   remain deliberately disabled and report validation errors.
-- `VoxelEngine::Authoring` is installed as a relocatable CMake package and is
-  verified through an installed-tree consumer smoke. The runtime-backed
-  `VoxelEngine::SDK` remains build-tree-only until its assets and private target
-  closure have an install contract. See the
+- `VoxelEngine::Authoring` and the runtime-backed `VoxelEngine::SDK` have
+  relocatable CMake compile/link packages, each verified through an installed
+  consumer after moving the install prefix. Runtime assets and compiled shaders
+  are not part of that package contract. See the
   [Architecture Roadmap](docs/ArchitectureRoadmap.md).
 - Vulkan remains the default; Vulkan and OpenGL both have bounded runtime smoke
   coverage.
 
-## Installed authoring package
+## Installed CMake packages
 
 Install the runtime-independent authoring component into a chosen prefix:
 
@@ -92,9 +92,38 @@ find_package(VoxelEngine 0.5.0 CONFIG REQUIRED COMPONENTS Authoring)
 target_link_libraries(my_tool PRIVATE VoxelEngine::Authoring)
 ```
 
-This installed component intentionally omits `Engine.h`, `EngineRun.h`, and the
-`Voxel.h` runtime umbrella. Those headers and `VoxelEngine::SDK` remain
-build-tree-only until the runtime package is relocatable.
+This component intentionally omits `Engine.h`, `EngineRun.h`, and the `Voxel.h`
+runtime umbrella.
+
+The runtime-backed SDK is an additive component. Build it and install both the
+authoring base and SDK payload into the same prefix:
+
+```powershell
+cmake --build Builds --config Release --target voxel_engine_sdk
+cmake --install Builds --config Release `
+  --prefix C:/path/to/voxel-engine `
+  --component Authoring
+cmake --install Builds --config Release `
+  --prefix C:/path/to/voxel-engine `
+  --component SDK
+```
+
+A consumer must make the SDK's external dependencies discoverable, for example
+by configuring with the same vcpkg toolchain, and can then link the public
+target:
+
+```cmake
+find_package(VoxelEngine 0.5.0 CONFIG REQUIRED COMPONENTS SDK)
+target_link_libraries(my_app PRIVATE VoxelEngine::SDK)
+```
+
+This SDK package is relocatable for configuration, compilation, and linking.
+It deliberately installs neither the repository `assets/` tree nor compiled
+Vulkan `.spv` files. Running an installed application therefore still requires
+an explicitly designed and deployed runtime payload; the current installed
+consumer smoke does not claim runtime relocatability. In particular, do not
+copy or redistribute Minecraft/Mojang-derived repository assets as part of an
+SDK installation.
 
 ## Documentation
 

@@ -24,8 +24,13 @@ ve_collect_subsystem("${VE_SOURCE_ROOT}/app" VE_VOXEL_SANDBOX)
 function(ve_add_subsystem target folder directory)
     cmake_parse_arguments(SUBSYSTEM "" "" "SOURCES;HEADERS" ${ARGN})
     add_library(${target} STATIC ${SUBSYSTEM_SOURCES} ${SUBSYSTEM_HEADERS})
-    target_include_directories(${target} PUBLIC ${directory})
-    target_link_libraries(${target} PUBLIC ve_dependencies PRIVATE ve_project_options)
+    target_include_directories(${target} PUBLIC
+        "$<BUILD_INTERFACE:${directory}>"
+    )
+    target_link_libraries(${target}
+        PUBLIC "$<BUILD_INTERFACE:ve_dependencies>"
+        PRIVATE "$<BUILD_INTERFACE:ve_project_options>"
+    )
     ve_enable_common_pch(${target})
     set_target_properties(${target} PROPERTIES FOLDER "Engine/${folder}")
     source_group(TREE ${directory} FILES ${SUBSYSTEM_SOURCES} ${SUBSYSTEM_HEADERS})
@@ -34,13 +39,15 @@ endfunction()
 function(ve_add_backend_component target folder)
     cmake_parse_arguments(COMPONENT "" "" "SOURCES;HEADERS;PUBLIC_LINKS;PRIVATE_LINKS" ${ARGN})
     add_library(${target} STATIC ${COMPONENT_SOURCES} ${COMPONENT_HEADERS})
-    target_include_directories(${target} PUBLIC "${VE_SOURCE_ROOT}/render/backends")
+    target_include_directories(${target} PUBLIC
+        "$<BUILD_INTERFACE:${VE_SOURCE_ROOT}/render/backends>"
+    )
     target_link_libraries(${target}
         PUBLIC
-            ve_dependencies
+            "$<BUILD_INTERFACE:ve_dependencies>"
             ${COMPONENT_PUBLIC_LINKS}
         PRIVATE
-            ve_project_options
+            "$<BUILD_INTERFACE:ve_project_options>"
             ${COMPONENT_PRIVATE_LINKS}
     )
     ve_enable_common_pch(${target})

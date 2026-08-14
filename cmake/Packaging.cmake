@@ -50,6 +50,35 @@ install(EXPORT VoxelEngineAuthoringTargets
     COMPONENT Authoring
 )
 
+set(VE_SDK_IMPLEMENTATION_TARGETS
+    ve_core
+    ve_render
+    ve_render_backend_factory
+    ve_render_backend_opengl
+    ve_render_backend_vulkan
+    ve_render_backend_window
+    ve_render_backends
+    ve_runtime
+    ve_voxel_sandbox
+    ve_world
+)
+install(TARGETS voxel_engine_sdk ${VE_SDK_IMPLEMENTATION_TARGETS}
+    EXPORT VoxelEngineSdkTargets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT SDK
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT SDK
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT SDK
+)
+install(FILES ${VE_PUBLIC_RUNTIME_HEADERS}
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/voxel"
+    COMPONENT SDK
+)
+install(EXPORT VoxelEngineSdkTargets
+    FILE VoxelEngineSdkTargets.cmake
+    NAMESPACE VoxelEngine::
+    DESTINATION "${VE_INSTALL_CMAKEDIR}"
+    COMPONENT SDK
+)
+
 configure_package_config_file(
     "${CMAKE_CURRENT_LIST_DIR}/VoxelEngineConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/VoxelEngineConfig.cmake"
@@ -84,6 +113,29 @@ if (VE_BUILD_TESTS)
     )
     set_tests_properties(installed_authoring_package PROPERTIES
         LABELS "api;authoring;packaging"
+        RUN_SERIAL TRUE
+    )
+
+    add_test(NAME installed_sdk_package
+        COMMAND "${CMAKE_COMMAND}"
+            "-DVE_CMAKE_COMMAND=${CMAKE_COMMAND}"
+            "-DVE_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
+            "-DVE_ENGINE_BINARY_DIR=${CMAKE_BINARY_DIR}"
+            "-DVE_ENGINE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+            "-DVE_CONSUMER_SOURCE_DIR=${PROJECT_SOURCE_DIR}/packaging/sdk-consumer"
+            "-DVE_SMOKE_ROOT=${CMAKE_BINARY_DIR}/installed-sdk-smoke/$<CONFIG>"
+            "-DVE_TEST_CONFIG=$<CONFIG>"
+            "-DVE_GENERATOR=${CMAKE_GENERATOR}"
+            "-DVE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+            "-DVE_GENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}"
+            "-DVE_MULTI_CONFIG=$<BOOL:${CMAKE_CONFIGURATION_TYPES}>"
+            "-DVE_CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+            "-DVE_VCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}"
+            "-DVE_VCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}"
+            -P "${PROJECT_SOURCE_DIR}/cmake/VerifyInstalledSdkPackage.cmake"
+    )
+    set_tests_properties(installed_sdk_package PROPERTIES
+        LABELS "api;packaging;sdk"
         RUN_SERIAL TRUE
     )
 endif()

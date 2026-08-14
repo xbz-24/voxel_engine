@@ -32,7 +32,9 @@ ve_add_backend_component(ve_render_backend_factory Factory
 )
 
 add_library(ve_render_backends INTERFACE)
-target_include_directories(ve_render_backends INTERFACE "${VE_SOURCE_ROOT}/render/backends")
+target_include_directories(ve_render_backends INTERFACE
+    "$<BUILD_INTERFACE:${VE_SOURCE_ROOT}/render/backends>"
+)
 target_link_libraries(ve_render_backends INTERFACE
     ve_render_backend_factory
     ve_render_backend_opengl

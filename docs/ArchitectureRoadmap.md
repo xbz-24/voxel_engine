@@ -9,7 +9,9 @@
   and backend-specific runtime drivers. `ve_app` remains only as a compatibility
   alias.
 - `VoxelEngine::Authoring` is independent from the private runtime;
-  `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox.
+  `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox. Both are
+  installable CMake compile/link packages; the SDK exports its static internal
+  closure as implementation detail targets.
 - `voxel_demo` is the only authored application. Examples consume the public
   SDK instead of defining alternate launchers.
 - Vulkan is the default runtime path. OpenGL remains an explicit compatibility
@@ -21,10 +23,14 @@ ImGui integrations. Those are established components, not pending patterns.
 
 ## Next Release Boundary
 
-- Install and export the runtime-backed `VoxelEngine::SDK` only after its
-  runtime assets and private target closure have a relocatable contract. Keep
-  the installed `VoxelEngine::Authoring` package as the smaller supported
-  boundary in the meantime.
+- Keep the installed SDK's current boundary precise: its headers, libraries,
+  dependency discovery, and CMake targets are relocatable and covered by a
+  moved-prefix consumer smoke. Runtime assets, compiled Vulkan shaders, and an
+  executable runtime-layout contract remain pending.
+- Do not add the repository `assets/` tree or generated `.spv` files to the SDK
+  install as a shortcut. Define the runtime payload layout and settle the
+  redistribution rights of Minecraft/Mojang-derived assets before adding a
+  runtime packaging component.
 - Maintain the canonical project/SDK/package version. Configure-time gates now
   keep the vcpkg manifest, CMake package metadata, and public
   `voxel::Version()` synchronized; graphics API metadata should continue to

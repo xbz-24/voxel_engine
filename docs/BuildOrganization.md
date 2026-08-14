@@ -18,7 +18,9 @@ and display the engine as multiple projects instead of one large executable.
   validation, assets, materials, scene graph, and world serialization without
   private runtime dependencies.
 - `voxel_engine_sdk` / `VoxelEngine::SDK`: complete public surface plus the
-  runtime adapter and voxel sandbox.
+  runtime adapter and voxel sandbox. Its installed SDK component exports the
+  static implementation closure needed to link consumers; those subordinate
+  targets are package implementation details, not additional public APIs.
 - `voxel_demo`: the single authored application that consumes `VoxelEngine::SDK`.
 - `engine_tests`: tests linked against the same libraries used by the engine.
 
@@ -30,6 +32,11 @@ Source files live under `src/core`, `src/render`, `src/render/backends`,
 directories are also the CMake and Visual Studio project boundaries. The
 `runtime_target_graph_policy` gate keeps `ve_runtime` independent from world,
 network, and concrete render-backend aggregation.
+
+The installed `Authoring` and additive `SDK` components are relocatable for
+CMake configuration, compilation, and linking. The SDK component does not
+install runtime assets or generated Vulkan `.spv` files, so executable runtime
+deployment remains a separate, unfinished packaging boundary.
 
 All project targets compile in the compiler's latest C++ mode. The default
 strict profile enables extended warnings, conforming MSVC behavior, SDL checks,
