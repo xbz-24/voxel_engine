@@ -2,6 +2,8 @@
 
 #include "EngineStartupResult.h"
 
+#include <glm/mat4x4.hpp>
+
 #include <memory>
 
 namespace ve::rendering
@@ -31,5 +33,6 @@ namespace ve::engine
 	private:
 		std::unique_ptr<ve::rendering::IndexedTriangleMesh> mesh_;
 		bool visible_ = true;
+		glm::mat4 model_matrix_{ 1.0f };
 	};
 }

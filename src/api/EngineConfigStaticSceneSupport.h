@@ -13,6 +13,7 @@ namespace voxel::detail::static_scene
 	{
 		std::filesystem::path model_path;
 		bool visible = true;
+		Vec3 root_translation{};
 	};
 
 	struct StaticModelSceneAnalysis

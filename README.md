@@ -80,13 +80,14 @@ Public headers are also compiled individually to enforce self-containment.
   assets/materials/scene authoring, and an embeddable frame loop.
 - Runtime rendering supports one deliberately narrow authored-scene slice:
   OpenGL compatibility can load one absolute, existing `.obj` file containing
-  one static mesh and draw it for one visible root entity with an identity
-  transform. The draw uses vertex color (white when the OBJ has none) and does
-  not bind OBJ/MTL or public-library materials. Search roots, hot reload,
-  textures, sounds, lights, non-default environments, hierarchy, multiple
-  assets/entities, and Vulkan authored-scene rendering remain capability-gated
-  with explicit validation errors. The broad asset/material/scene feature flags
-  therefore remain false.
+  one static mesh and draw it for one visible root entity with a finite
+  world-space translation. Imported OBJ nodes must still use identity
+  transforms. The draw uses vertex color (white when the OBJ has none) and does
+  not bind OBJ/MTL or public-library materials. Entity rotation and scale,
+  search roots, hot reload, textures, sounds, lights, non-default environments,
+  hierarchy, multiple assets/entities, and Vulkan authored-scene rendering
+  remain capability-gated with explicit validation errors. The broad
+  asset/material/scene feature flags therefore remain false.
 - `VoxelEngine::Authoring` and the runtime-backed `VoxelEngine::SDK` have
   relocatable CMake compile/link packages, each verified through an installed
   consumer after moving the install prefix. Runtime assets and compiled shaders

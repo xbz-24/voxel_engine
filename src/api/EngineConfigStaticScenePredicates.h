@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <string>
 
@@ -24,13 +25,19 @@ namespace voxel::detail::static_scene::support_detail
 			environment.time_of_day == defaults.time_of_day;
 	}
 
-	[[nodiscard]] inline bool IsIdentity(const Transform& transform) noexcept
+	[[nodiscard]] inline bool IsFinite(Vec3 value) noexcept
 	{
-		return transform.position.x == 0.0f && transform.position.y == 0.0f &&
-			transform.position.z == 0.0f && transform.rotation.x == 0.0f &&
-			transform.rotation.y == 0.0f && transform.rotation.z == 0.0f &&
-			transform.scale.x == 1.0f && transform.scale.y == 1.0f &&
-			transform.scale.z == 1.0f;
+		return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+	}
+
+	[[nodiscard]] inline bool IsZero(Vec3 value) noexcept
+	{
+		return value.x == 0.0f && value.y == 0.0f && value.z == 0.0f;
+	}
+
+	[[nodiscard]] inline bool IsUnitScale(Vec3 value) noexcept
+	{
+		return value.x == 1.0f && value.y == 1.0f && value.z == 1.0f;
 	}
 
 	[[nodiscard]] inline std::filesystem::path EffectivePath(const ModelAsset& model)

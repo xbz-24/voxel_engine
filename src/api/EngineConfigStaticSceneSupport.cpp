@@ -66,14 +66,20 @@ namespace voxel::detail::static_scene
 		AddIssueIf(!entity.id.IsValid(), "Static model scene entity must have a valid id", result.issues);
 		AddIssueIf(entity.parent.IsValid(), "Static model scene entity must be a root", result.issues);
 		AddIssueIf(!entity.material.empty(), "Static model scene entity material must be empty", result.issues);
-		AddIssueIf(!support_detail::IsIdentity(entity.transform),
-			"Static model scene entity transform must be identity", result.issues);
+		AddIssueIf(!support_detail::IsFinite(entity.transform.position),
+			"Static model scene entity position must be finite", result.issues);
+		AddIssueIf(!support_detail::IsZero(entity.transform.rotation),
+			"Static model scenes do not support entity rotation", result.issues);
+		AddIssueIf(!support_detail::IsUnitScale(entity.transform.scale),
+			"Static model scenes do not support entity scale", result.issues);
 		if (result.issues.empty())
-			result.runtime_candidate = StaticModelSceneSelection{ path, entity.visible };
+			result.runtime_candidate = StaticModelSceneSelection{
+				path, entity.visible, entity.transform.position };
 		std::error_code path_error;
 		AddIssueIf(!std::filesystem::is_regular_file(path, path_error),
 			"Static model scene model path must name an existing regular file", result.issues);
-		if (result.issues.empty()) result.supported_scene = StaticModelSceneSelection{ path, entity.visible };
+		if (result.issues.empty()) result.supported_scene = StaticModelSceneSelection{
+			path, entity.visible, entity.transform.position };
 		return result;
 	}
 }

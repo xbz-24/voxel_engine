@@ -13,7 +13,8 @@ namespace voxel::detail::config_translation
 		if (!analysis.runtime_candidate) return;
 		create_info.static_model_scene = ve::engine::StaticModelSceneConfiguration{
 			analysis.runtime_candidate->model_path,
-			analysis.runtime_candidate->visible
+			analysis.runtime_candidate->visible,
+			ToInternalVec3(analysis.runtime_candidate->root_translation)
 		};
 	}
 }

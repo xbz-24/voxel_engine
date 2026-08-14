@@ -48,6 +48,11 @@ TEST_CASE("static model conversion rejects non-static scene metadata")
 		model.source_animation_count = 1;
 		CheckValidationFailure(model, "Static model scene must not contain animations");
 	}
+	SUBCASE("root node transform")
+	{
+		model.root_node.transform[3][0] = 2.0f;
+		CheckValidationFailure(model, "Static model scene nodes must use identity transforms");
+	}
 	SUBCASE("nested node transform")
 	{
 		model.root_node.children.push_back(ve::assets::ImportedNode{});

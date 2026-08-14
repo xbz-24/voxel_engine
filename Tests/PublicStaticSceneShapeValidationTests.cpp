@@ -54,20 +54,15 @@ TEST_CASE("public static OBJ scene rejects unsupported entity data")
 		entity.material = "unsupported";
 		expected = "Static model scene entity material must be empty";
 	}
-	SUBCASE("transform")
-	{
-		entity.transform.position.x = 1.0f;
-		expected = "Static model scene entity transform must be identity";
-	}
 	SUBCASE("rotation")
 	{
 		entity.transform.rotation.y = 30.0f;
-		expected = "Static model scene entity transform must be identity";
+		expected = "Static model scenes do not support entity rotation";
 	}
 	SUBCASE("scale")
 	{
 		entity.transform.scale.z = 2.0f;
-		expected = "Static model scene entity transform must be identity";
+		expected = "Static model scenes do not support entity scale";
 	}
 	SUBCASE("wrong model reference")
 	{

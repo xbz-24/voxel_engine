@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include <system_error>
@@ -21,6 +22,12 @@ namespace ve::engine::configuration_validation
 			});
 			return extension == ".obj";
 		}
+
+		[[nodiscard]] bool IsFinite(glm::vec3 value) noexcept
+		{
+			return std::isfinite(value.x) && std::isfinite(value.y) &&
+				std::isfinite(value.z);
+		}
 	}
 
 	void ValidateStaticModelScene(const EngineCreateInfo& create_info,
@@ -36,6 +43,8 @@ namespace ve::engine::configuration_validation
 		}
 		if (!create_info.asset_search_roots.empty())
 			issues.push_back("static_model_scene does not support asset_search_roots");
+		if (!IsFinite(create_info.static_model_scene->root_translation))
+			issues.push_back("static_model_scene.root_translation must be finite");
 
 		const std::filesystem::path& path = create_info.static_model_scene->model_path;
 		if (path.empty())

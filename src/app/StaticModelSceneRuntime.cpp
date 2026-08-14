@@ -5,7 +5,17 @@
 #include "StaticModelSceneConfiguration.h"
 #include "StaticModelSceneImport.h"
 
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <cmath>
+
+namespace
+{
+	[[nodiscard]] bool IsFinite(glm::vec3 value) noexcept
+	{
+		return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+	}
+}
 
 namespace ve::engine
 {
@@ -21,7 +31,14 @@ namespace ve::engine
 		ve::rendering::RenderBackend& backend)
 	{
 		Shutdown();
+		if (!IsFinite(configuration.root_translation))
+		{
+			return EngineStartupResult::Failure(
+				EngineStartupFailure::StaticModelValidationFailed,
+				"Static model scene root translation must be finite");
+		}
 		visible_ = configuration.visible;
+		model_matrix_ = glm::translate(glm::mat4{ 1.0f }, configuration.root_translation);
 		StaticModelSceneMeshData mesh_data;
 		const EngineStartupResult import_result =
 			ImportStaticModelScene(configuration.model_path, mesh_data);
@@ -41,7 +58,7 @@ namespace ve::engine
 
 	void StaticModelSceneRuntime::Draw() const
 	{
-		if (visible_ && mesh_) mesh_->Draw(glm::mat4{ 1.0f });
+		if (visible_ && mesh_) mesh_->Draw(model_matrix_);
 	}
 
 	void StaticModelSceneRuntime::Shutdown() noexcept

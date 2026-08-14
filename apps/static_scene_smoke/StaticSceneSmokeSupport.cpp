@@ -43,7 +43,9 @@ namespace static_scene_smoke
 		catalog.Model("triangle", model_path.string());
 		voxel::SceneGraph scene{};
 		scene.ComposeAs(voxel::SceneGraphCompositionMode::VoxelWorldAnchored)
-			.Add(voxel::Entity::Named("triangle").Model("triangle"));
+			.Add(voxel::Entity::Named("triangle")
+				.At({ 0.25f, 0.0f, 0.0f })
+				.Model("triangle"));
 		voxel::RuntimeLayout layout{};
 		layout.AssetsAt(assets);
 		return voxel::EngineConfig::Default()

@@ -4,6 +4,8 @@
 
 #include <doctest/doctest.h>
 
+#include <limits>
+
 namespace
 {
 	[[nodiscard]] ve::engine::EngineCreateInfo CreateInfoFor(
@@ -34,6 +36,17 @@ TEST_CASE("engine create info rejects a static OBJ scene for Vulkan")
 
 	CHECK(ve::tests::ContainsIssue(ve::engine::ValidateEngineCreateInfo(create_info),
 		"static_model_scene requires the selected graphics api to be OpenGLCompatibility"));
+}
+
+TEST_CASE("engine create info rejects a non-finite static OBJ root translation")
+{
+	ve::tests::TemporaryStaticSceneObj model{ "internal_translation" };
+	ve::engine::EngineCreateInfo create_info = CreateInfoFor(model.Path());
+	create_info.static_model_scene->root_translation.y =
+		std::numeric_limits<float>::infinity();
+
+	CHECK(ve::tests::ContainsIssue(ve::engine::ValidateEngineCreateInfo(create_info),
+		"static_model_scene.root_translation must be finite"));
 }
 
 TEST_CASE("engine create info rejects search roots for an exact static scene")
