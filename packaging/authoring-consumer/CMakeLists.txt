@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.25)
 
 project(VoxelEngineAuthoringConsumer LANGUAGES CXX)
 
-find_package(VoxelEngine 0.5.0 EXACT CONFIG REQUIRED COMPONENTS Authoring)
-if (TARGET VoxelEngine::SDK)
-    message(FATAL_ERROR "The build-tree-only runtime SDK leaked into the Authoring package")
+find_package(VoxelEngine 0.5.0 EXACT CONFIG REQUIRED
+    COMPONENTS Authoring OPTIONAL_COMPONENTS SDK)
+if (VoxelEngine_SDK_FOUND OR TARGET VoxelEngine::SDK)
+    message(FATAL_ERROR "The optional runtime SDK leaked into the Authoring-only package")
 endif()
 
 add_executable(authoring_consumer main.cpp)
