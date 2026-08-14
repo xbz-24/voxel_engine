@@ -36,18 +36,17 @@ namespace voxel::detail::config_validation
 					" must contain a SPIR-V header and whole 32-bit words");
 		}
 
-		void ValidateShaderDirectory(const std::string& directory,
+		void ValidateShaderDirectory(const std::filesystem::path& directory,
 			std::vector<std::string>& issues)
 		{
 			std::error_code error;
-			const std::filesystem::path path{ directory };
-			if (!std::filesystem::is_directory(path, error))
+			if (!std::filesystem::is_directory(directory, error))
 			{
 				issues.push_back("runtime_layout.vulkan_shader_directory must name an existing directory");
 				return;
 			}
 			for (const std::string_view shader : RequiredVulkanShaders)
-				ValidateShaderFile(path / shader, issues);
+				ValidateShaderFile(directory / shader, issues);
 		}
 	}
 

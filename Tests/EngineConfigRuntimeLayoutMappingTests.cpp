@@ -37,3 +37,24 @@ TEST_CASE("discovered runtime layout leaves internal overrides disengaged")
 	CHECK(!translated.asset_directory.has_value());
 	CHECK(!translated.vulkan_shader_directory.has_value());
 }
+
+TEST_CASE("runtime layout translation preserves native Unicode paths")
+{
+#if defined(_WIN32)
+	const std::filesystem::path native_root{ L"layout with spaces \u00e1\u6f22" };
+#else
+	const std::filesystem::path native_root{ u8"layout with spaces \u00e1\u6f22" };
+#endif
+	const std::filesystem::path assets = native_root / "assets";
+	const std::filesystem::path shaders = native_root / "shaders";
+	const voxel::EngineConfig config = voxel::EngineConfig::Default().WithRuntimeLayout(
+		voxel::RuntimeLayout{}.AssetsAt(assets).VulkanShadersAt(shaders));
+	const ve::engine::EngineCreateInfo translated =
+		voxel::detail::DefaultEngineConfigTranslator().Translate(config);
+
+	REQUIRE(translated.asset_directory.has_value());
+	REQUIRE(translated.vulkan_shader_directory.has_value());
+	CHECK(*translated.asset_directory == std::filesystem::absolute(assets).lexically_normal());
+	CHECK(*translated.vulkan_shader_directory ==
+		std::filesystem::absolute(shaders).lexically_normal());
+}

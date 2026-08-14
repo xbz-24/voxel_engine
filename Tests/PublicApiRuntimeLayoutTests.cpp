@@ -22,13 +22,13 @@ TEST_CASE("public runtime layout is copied into startup configuration")
 	ve::tests::TemporaryRuntimeLayout files{ "public_layout" };
 	files.WriteValidShaderBundle();
 	voxel::EngineConfig config = voxel::EngineConfig::Default().WithRuntimeLayout(
-		voxel::RuntimeLayout{}.AssetsAt(files.Assets().string())
-			.VulkanShadersAt(files.Shaders().string()));
+		voxel::RuntimeLayout{}.AssetsAt(files.Assets())
+			.VulkanShadersAt(files.Shaders()));
 
 	const voxel::EngineStartupConfig startup = config.StartupConfig();
 	REQUIRE(startup.runtime_layout.has_value());
-	CHECK(startup.runtime_layout->asset_directory == files.Assets().string());
-	CHECK(startup.runtime_layout->vulkan_shader_directory == files.Shaders().string());
+	CHECK(startup.runtime_layout->asset_directory == files.Assets());
+	CHECK(startup.runtime_layout->vulkan_shader_directory == files.Shaders());
 	CHECK(config.Validate().empty());
 
 	config.UseDiscoveredRuntimeLayout();
@@ -38,7 +38,7 @@ TEST_CASE("public runtime layout is copied into startup configuration")
 TEST_CASE("public runtime layout applies backend-specific shader requirements")
 {
 	ve::tests::TemporaryRuntimeLayout files{ "public_backend" };
-	const voxel::RuntimeLayout assets_only = voxel::RuntimeLayout{}.AssetsAt(files.Assets().string());
+	const voxel::RuntimeLayout assets_only = voxel::RuntimeLayout{}.AssetsAt(files.Assets());
 	const voxel::EngineConfig vulkan = voxel::EngineConfig::Default().WithRuntimeLayout(assets_only);
 	const voxel::EngineConfig opengl = voxel::EngineConfig::Default()
 		.UseOpenGLCompatibility().WithRuntimeLayout(assets_only);
@@ -55,10 +55,10 @@ TEST_CASE("public runtime layout rejects invalid exact directories and shader fi
 	files.WriteShader("voxel_shadow.vert.spv", 3);
 	const voxel::EngineConfig invalid_shader = voxel::EngineConfig::Default()
 		.UseOpenGLCompatibility().WithRuntimeLayout(voxel::RuntimeLayout{}
-			.AssetsAt(files.Assets().string()).VulkanShadersAt(files.Shaders().string()));
+			.AssetsAt(files.Assets()).VulkanShadersAt(files.Shaders()));
 	const voxel::EngineConfig missing_assets = voxel::EngineConfig::Default()
 		.UseOpenGLCompatibility().WithRuntimeLayout(voxel::RuntimeLayout{}
-			.AssetsAt((files.Assets() / "missing").string()));
+			.AssetsAt(files.Assets() / "missing"));
 
 	CHECK(ContainsIssue(invalid_shader.Validate(),
 		"voxel_shadow.vert.spv must contain a SPIR-V header and whole 32-bit words"));

@@ -7,12 +7,11 @@ namespace voxel::detail::config_translation
 {
 	namespace
 	{
-		[[nodiscard]] std::filesystem::path CapturePath(const std::string& value)
+		[[nodiscard]] std::filesystem::path CapturePath(const std::filesystem::path& value)
 		{
 			std::error_code error;
-			const std::filesystem::path path{ value };
-			const std::filesystem::path absolute = std::filesystem::absolute(path, error);
-			return (error ? path : absolute).lexically_normal();
+			const std::filesystem::path absolute = std::filesystem::absolute(value, error);
+			return (error ? value : absolute).lexically_normal();
 		}
 	}
 

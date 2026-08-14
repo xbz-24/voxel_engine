@@ -135,10 +135,12 @@ auto config = voxel::EngineConfig::Default().WithRuntimeLayout(
 
 `AssetsAt` names the directory equivalent to `assets/`; `VulkanShadersAt`
 names the directory containing the five compiled `.spv` files. Explicit paths
-are validated before a window is created. Relative paths are captured against
-the process working directory when the `Engine` is constructed. Without
-`RuntimeLayout`, development
-builds discover assets and compiled shaders from ancestors of the executable.
+are native `std::filesystem::path` values and are validated before a window is
+created. Relative paths are captured against the process working directory
+when the `Engine` is constructed. On Windows, construct paths from wide strings
+when names contain non-ASCII characters; the demo's narrow CLI flags do not
+claim Unicode conversion. Without `RuntimeLayout`, development builds discover
+assets and compiled shaders from ancestors of the executable.
 The installed consumer smoke still does not claim payload deployment or grant
 content rights. In particular, do not copy or redistribute
 Minecraft/Mojang-derived repository assets as part of an SDK installation.

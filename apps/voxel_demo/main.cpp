@@ -1,6 +1,7 @@
 #include "DemoCommandLine.h"
 #include "DemoConfig.h"
 
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -31,9 +32,10 @@ int main(int argc, char** argv)
 	if (!options.asset_directory.empty())
 	{
 		voxel::RuntimeLayout layout{};
-		layout.AssetsAt(std::string{ options.asset_directory });
+		layout.AssetsAt(std::filesystem::path{ std::string{ options.asset_directory } });
 		if (!options.vulkan_shader_directory.empty())
-			layout.VulkanShadersAt(std::string{ options.vulkan_shader_directory });
+			layout.VulkanShadersAt(
+				std::filesystem::path{ std::string{ options.vulkan_shader_directory } });
 		config.WithRuntimeLayout(std::move(layout));
 	}
 	if (options.smoke_frame_limit > 0)
