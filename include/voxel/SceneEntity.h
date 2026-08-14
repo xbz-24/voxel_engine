@@ -7,6 +7,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_scene_graph
+	 * @{
+	 */
 	/** Stable public identifier for scene graph entities. */
 	struct EntityId
 	{
@@ -48,4 +51,5 @@ namespace voxel
 		Entity& ChildOf(EntityId parent_id) noexcept;
 		Entity& AsRoot() noexcept;
 	};
+	/** @} */
 }

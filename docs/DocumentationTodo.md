@@ -1,8 +1,11 @@
 # Documentation TODOs
 
-TODO: Add Doxygen groups for the public SDK modules: engine startup, world editing, runtime callbacks, assets, materials, and scene graph.
+The public SDK reference is organized into Doxygen groups for engine startup,
+world editing, runtime callbacks, assets, materials, and scene graph authoring.
 
-TODO: Add short public examples for `AssetCatalog`, `SceneGraph`, `RuntimeCommands`, and `EngineConfig` callback wiring so the docstrings point to concrete usage.
+Focused public examples now cover `AssetCatalog`, `SceneGraph`,
+`RuntimeCommands`, and `EngineConfig` callback wiring under `examples/`, with
+matching `voxel_example_*` CMake targets.
 
 The internal network framing, packet flow, version/capability behavior, and
 snapshot/live-mutation ordering are documented in

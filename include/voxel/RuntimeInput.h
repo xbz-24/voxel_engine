@@ -2,6 +2,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_runtime_callbacks
+	 * @{
+	 */
 	/** Keyboard keys exposed to public frame callbacks. */
 	enum class Key
 	{
@@ -48,4 +51,5 @@ namespace voxel
 		[[nodiscard]] bool IsDown(Key key) const noexcept;
 		[[nodiscard]] bool IsActive(InputAction action) const noexcept;
 	};
+	/** @} */
 }

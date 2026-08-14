@@ -6,6 +6,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_materials
+	 * @{
+	 */
 	/** Public material description for authored scenes and asset binding. */
 	struct Material
 	{
@@ -35,4 +38,5 @@ namespace voxel
 		Material& Emissive(float strength) noexcept;
 		Material& Transparent(bool enabled = true) noexcept;
 	};
+	/** @} */
 }

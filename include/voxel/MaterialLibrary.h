@@ -7,6 +7,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_materials
+	 * @{
+	 */
 	/** Collection of named materials referenced by authored scene data. */
 	struct MaterialLibrary
 	{
@@ -15,4 +18,5 @@ namespace voxel
 		MaterialLibrary& Add(Material material);
 		[[nodiscard]] std::vector<std::string> Validate() const;
 	};
+	/** @} */
 }

@@ -7,6 +7,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_runtime_callbacks
+	 * @{
+	 */
 	/** Runtime counters surfaced through the diagnostics callback. */
 	struct Diagnostics
 	{
@@ -21,4 +24,5 @@ namespace voxel
 	using UpdateCallback = std::function<void(FrameContext&)>;
 	using DiagnosticsCallback = std::function<void(const Diagnostics&)>;
 	using LogCallback = std::function<void(const std::string&)>;
+	/** @} */
 }

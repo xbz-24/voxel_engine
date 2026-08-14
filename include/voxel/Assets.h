@@ -6,6 +6,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_assets
+	 * @{
+	 */
 	/** Storage strategy used by an AssetSource. */
 	enum class AssetStorage
 	{
@@ -92,4 +95,5 @@ namespace voxel
 		/** Returns validation messages for duplicate names, invalid sources, and optional file existence checks. */
 		[[nodiscard]] std::vector<std::string> Validate(bool require_existing_files = false) const;
 	};
+	/** @} */
 }

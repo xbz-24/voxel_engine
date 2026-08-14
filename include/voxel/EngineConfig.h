@@ -8,6 +8,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_startup
+	 * @{
+	 */
 	/** Main fluent configuration object for launching or embedding the engine. */
 	struct EngineConfig
 	{
@@ -63,4 +66,5 @@ namespace voxel
 		EngineConfig& OnDiagnostics(DiagnosticsCallback callback) noexcept;
 		EngineConfig& OnLog(LogCallback callback) noexcept;
 	};
+	/** @} */
 }

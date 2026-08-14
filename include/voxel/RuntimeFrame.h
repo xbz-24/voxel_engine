@@ -6,6 +6,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_runtime_callbacks
+	 * @{
+	 */
 	/** Camera state exposed to frame callbacks. */
 	struct RuntimeCameraState
 	{
@@ -34,4 +37,5 @@ namespace voxel
 		BlockHitResult hit_result{};
 		RuntimeCommands commands{};
 	};
+	/** @} */
 }

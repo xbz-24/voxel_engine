@@ -1,5 +1,33 @@
 #pragma once
 
+/** @defgroup voxel_sdk Public C++ SDK
+ * Stable configuration, authoring, and runtime-hosting contracts.
+ */
+/** @defgroup voxel_sdk_startup Engine startup and hosting
+ * @ingroup voxel_sdk
+ * Configure, validate, launch, or externally drive an engine instance.
+ */
+/** @defgroup voxel_sdk_world_editing World editing
+ * @ingroup voxel_sdk
+ * Build deterministic block edits and queue them at frame boundaries.
+ */
+/** @defgroup voxel_sdk_runtime_callbacks Runtime callbacks
+ * @ingroup voxel_sdk
+ * Observe frame input and diagnostics, then return deferred commands.
+ */
+/** @defgroup voxel_sdk_assets Asset authoring
+ * @ingroup voxel_sdk
+ * Describe and validate asset sources; runtime loading is capability-gated.
+ */
+/** @defgroup voxel_sdk_materials Material authoring
+ * @ingroup voxel_sdk
+ * Describe and validate materials; runtime binding is capability-gated.
+ */
+/** @defgroup voxel_sdk_scene_graph Scene graph authoring
+ * @ingroup voxel_sdk
+ * Compose entities, lights, and environments before runtime rendering exists.
+ */
+
 namespace voxel
 {
 	/** Semantic version of the public C++ SDK surface. */

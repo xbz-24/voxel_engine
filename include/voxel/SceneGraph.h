@@ -9,6 +9,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_scene_graph
+	 * @{
+	 */
 	enum class SceneGraphCompositionMode
 	{
 		IndependentOverlay,
@@ -33,4 +36,5 @@ namespace voxel
 		SceneGraph& EnvironmentSettings(Environment value) noexcept;
 		[[nodiscard]] std::vector<std::string> Validate() const;
 	};
+	/** @} */
 }

@@ -6,6 +6,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_world_editing
+	 * @{
+	 */
 	/** Mutating commands queued by a callback and applied after it returns. */
 	struct RuntimeCommands
 	{
@@ -23,4 +26,5 @@ namespace voxel
 			int second_block_x, int second_block_y, int second_block_z);
 		RuntimeCommands& RequestClose() noexcept;
 	};
+	/** @} */
 }

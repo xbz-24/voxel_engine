@@ -5,6 +5,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_world_editing
+	 * @{
+	 */
 	/** Inclusive block-space box used by edit commands and scene helpers. */
 	struct BlockBox
 	{
@@ -30,4 +33,5 @@ namespace voxel
 		BlockBox box{};
 		Block block = Block::Air;
 	};
+	/** @} */
 }

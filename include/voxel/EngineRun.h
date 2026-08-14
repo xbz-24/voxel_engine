@@ -9,6 +9,9 @@
 
 namespace voxel
 {
+	/** @addtogroup voxel_sdk_startup
+	 * @{
+	 */
 	/** Structured startup failure reason for EngineStartResult. */
 	enum class EngineStartFailure
 	{
@@ -90,4 +93,5 @@ namespace voxel
 
 	/** Runs a scene/world config using default engine settings. */
 	[[nodiscard]] int RunScene(WorldConfig scene);
+	/** @} */
 }
