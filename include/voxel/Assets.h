@@ -92,7 +92,7 @@ namespace voxel
 		/** Registers a sound asset by explicit source policy. */
 		AssetCatalog& Sound(std::string name, AssetSource source);
 
-		/** Returns validation messages for duplicate names, invalid sources, and optional file existence checks. */
+		/** Returns validation messages; optional filesystem checks report missing paths and query failures. */
 		[[nodiscard]] std::vector<std::string> Validate(bool require_existing_files = false) const;
 	};
 	/** @} */

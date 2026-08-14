@@ -1,6 +1,6 @@
 #include "EngineConfigAssetSourceValidation.h"
+#include "EngineConfigFilesystemInspection.h"
 
-#include <filesystem>
 #include <string>
 
 namespace voxel::detail::config_validation
@@ -56,9 +56,17 @@ namespace voxel::detail::config_validation
 			{
 				issues.push_back(std::string{ asset_kind } + " asset path must not be empty");
 			}
-			else if (require_existing_files && !std::filesystem::exists(asset_location))
+			else if (require_existing_files)
 			{
-				issues.push_back(std::string{ asset_kind } + " asset path does not exist: " + asset_location);
+				const FilesystemRequirementResult result = CheckPathExists(asset_location);
+				if (result == FilesystemRequirementResult::InspectionFailed)
+				{
+					issues.push_back(std::string{ asset_kind } + " asset path could not be inspected: " + asset_location);
+				}
+				else if (result == FilesystemRequirementResult::NotSatisfied)
+				{
+					issues.push_back(std::string{ asset_kind } + " asset path does not exist: " + asset_location);
+				}
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 #include "EngineConfigValidationInternal.h"
+#include "EngineConfigFilesystemInspection.h"
 
-#include <filesystem>
 #include <span>
 #include <string>
 
@@ -16,9 +16,17 @@ namespace voxel::detail::config_validation
 			{
 				issues.push_back("asset search root must not be empty");
 			}
-			else if (require_existing_directories && !std::filesystem::is_directory(search_root))
+			else if (require_existing_directories)
 			{
-				issues.push_back("asset search root does not exist: " + search_root);
+				const FilesystemRequirementResult result = CheckPathIsDirectory(search_root);
+				if (result == FilesystemRequirementResult::InspectionFailed)
+				{
+					issues.push_back("asset search root could not be inspected: " + search_root);
+				}
+				else if (result == FilesystemRequirementResult::NotSatisfied)
+				{
+					issues.push_back("asset search root does not exist: " + search_root);
+				}
 			}
 		}
 	}
