@@ -29,6 +29,9 @@ namespace voxel::detail::config_translation
 	void ApplyCameraConfigurationToCreateInfo(
 		ve::engine::EngineCreateInfo& create_info,
 		const EngineConfig& config);
+	void ApplyRuntimeLayoutToCreateInfo(
+		ve::engine::EngineCreateInfo& create_info,
+		const EngineConfig& config);
 	void AppendAssetSearchRootsToCreateInfo(
 		ve::engine::EngineCreateInfo& create_info,
 		const AssetCatalog& assets);

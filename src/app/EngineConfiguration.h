@@ -35,6 +35,8 @@ namespace ve::engine
 		int world_size_chunks = 8;
 		ve::world::TerrainGenerationSettings terrain_generation{};
 		int render_distance_chunks = ve::gameplay::DefaultRenderDistanceChunks;
+		std::optional<std::filesystem::path> asset_directory;
+		std::optional<std::filesystem::path> vulkan_shader_directory;
 		std::vector<std::filesystem::path> asset_search_roots;
 		std::vector<WorldBlockEdit> world_edits;
 		std::function<void(RuntimeFrameContext&)> on_update;

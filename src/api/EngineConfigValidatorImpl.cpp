@@ -43,6 +43,7 @@ namespace voxel::detail::config_validation
 			[[nodiscard]] std::vector<std::string> Validate(const EngineConfig& config) const override
 			{
 				std::vector<std::string> issues;
+				ValidateRuntimeLayout(config, issues);
 				ValidateWindowAndWorldConfiguration(config, issues);
 				ValidateGraphicsBackendSupport(config, issues);
 				ValidateVoxelRenderLightingAndFog(config.voxel_render_style, issues);

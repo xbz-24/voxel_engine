@@ -34,6 +34,7 @@ namespace ve::engine
 			EngineStartupFailure::RenderBackendInitializationFailed,
 			"Vulkan backend initialization failed: " + result.message);
 		if (!orchestrator_.Initialize(*backend_, window, assets.blockTexturesDirectory,
+			assets.vulkanShaderDirectory,
 			create_info.voxel_render_style,
 			create_info.show_debug_overlay && create_info.settings_menu_enabled))
 		{

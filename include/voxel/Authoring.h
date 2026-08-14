@@ -8,6 +8,7 @@
 #include "voxel/EngineConfig.h"
 #include "voxel/Materials.h"
 #include "voxel/Runtime.h"
+#include "voxel/RuntimeLayout.h"
 #include "voxel/Scene.h"
 #include "voxel/SdkInfo.h"
 #include "voxel/World.h"

@@ -73,6 +73,9 @@ namespace voxel::detail::config_validation
 	void ValidateGraphicsBackendSupport(
 		const EngineConfig& config,
 		std::vector<std::string>& issues);
+	void ValidateRuntimeLayout(
+		const EngineConfig& config,
+		std::vector<std::string>& issues);
 	void ValidateVoxelRenderLightingAndFog(
 		const VoxelRenderStyle& style,
 		std::vector<std::string>& issues);

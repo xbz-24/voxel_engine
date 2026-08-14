@@ -10,6 +10,7 @@
 #include <voxel/EngineRun.h>
 #include <voxel/Materials.h>
 #include <voxel/Runtime.h>
+#include <voxel/RuntimeLayout.h>
 #include <voxel/Scene.h>
 #include <voxel/Voxel.h>
 #include <voxel/World.h>
@@ -45,6 +46,7 @@ int PublicApiHeadersOnlySmokeCompileAnchor()
 
 	voxel::EngineConfig config{};
 	config.WithWindow(voxel::Window("Headers Only", 320, 200))
+		.UseDiscoveredRuntimeLayout()
 		.WithWorld(voxel::Scene()
 			.WithSizeChunks(voxel::Chunks(2))
 			.SetBlock(origin, voxel::Stone)

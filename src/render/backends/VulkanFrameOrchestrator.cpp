@@ -12,6 +12,7 @@ namespace ve::rendering
 	bool VulkanFrameOrchestrator::Initialize(VulkanBackend& backend,
 		ve::engine::Window& window,
 		const std::filesystem::path& block_texture_directory,
+		const std::filesystem::path& shader_directory,
 		const VoxelRenderStyle& render_style,
 		bool enable_imgui_overlay)
 	{
@@ -25,12 +26,6 @@ namespace ve::rendering
 			Release();
 			return false;
 		}
-		const std::filesystem::path shader_directory =
-#if defined(VE_VULKAN_SHADER_DIR)
-			VE_VULKAN_SHADER_DIR;
-#else
-			{};
-#endif
 		if (!gpu_chunk_renderer_.Initialize(
 			backend,
 			command_pool_,

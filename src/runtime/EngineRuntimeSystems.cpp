@@ -10,6 +10,8 @@ namespace ve::engine
 	void EngineRuntime::PrepareAssetsAndLogging()
 	{
 		ve::assets::AssetPathResolveOptions options;
+		options.explicit_asset_directory = configuration_.asset_directory;
+		options.explicit_vulkan_shader_directory = configuration_.vulkan_shader_directory;
 		options.search_roots = configuration_.asset_search_roots;
 		asset_paths_ = ve::assets::Resolve(options);
 		ve::log::SetCallback(configuration_.on_log);

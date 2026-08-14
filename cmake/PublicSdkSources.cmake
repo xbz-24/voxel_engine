@@ -13,6 +13,8 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineConfigRenderEffectValidation.cpp
     EngineConfigRenderStyle.cpp
     EngineConfigRenderStyleValidation.cpp
+    EngineConfigRuntimeLayout.cpp
+    EngineConfigRuntimeLayoutValidation.cpp
     EngineConfigRuntimeOptions.cpp
     EngineConfigValidationApi.cpp
     EngineConfigValidationDefault.cpp
@@ -22,6 +24,7 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineLogSettings.cpp
     EngineRuntimeApi.cpp
     EngineRuntimeCommands.cpp
+    EngineRuntimeLayout.cpp
     EngineSceneAssets.cpp
     EngineSceneEntity.cpp
     EngineSceneGraph.cpp
@@ -45,6 +48,7 @@ set(VE_PUBLIC_RUNTIME_ADAPTER_SOURCE_NAMES
     EngineConfigBlockMapping.cpp
     EngineConfigCreateInfoMapping.cpp
     EngineConfigRuntimeCallbackMapping.cpp
+    EngineConfigRuntimeLayoutMapping.cpp
     EngineConfigTranslatorDefault.cpp
     EngineConfigTranslatorHelpers.cpp
     EngineConfigTranslatorImpl.cpp

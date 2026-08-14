@@ -120,10 +120,25 @@ target_link_libraries(my_app PRIVATE VoxelEngine::SDK)
 This SDK package is relocatable for configuration, compilation, and linking.
 It deliberately installs neither the repository `assets/` tree nor compiled
 Vulkan `.spv` files. Running an installed application therefore still requires
-an explicitly designed and deployed runtime payload; the current installed
-consumer smoke does not claim runtime relocatability. In particular, do not
-copy or redistribute Minecraft/Mojang-derived repository assets as part of an
-SDK installation.
+an application-owned runtime payload. Applications can provide exact resource
+directories and disable development autodiscovery before startup:
+
+```cpp
+auto config = voxel::EngineConfig::Default().WithRuntimeLayout(
+    voxel::RuntimeLayout{}
+        .AssetsAt("C:/my-app/content/assets")
+        .VulkanShadersAt("C:/my-app/content/shaders/vulkan"));
+```
+
+`AssetsAt` names the directory equivalent to `assets/`; `VulkanShadersAt`
+names the directory containing the five compiled `.spv` files. Explicit paths
+are validated before a window is created. Relative paths are captured against
+the process working directory when the `Engine` is constructed. Without
+`RuntimeLayout`, development
+builds discover assets and compiled shaders from ancestors of the executable.
+The installed consumer smoke still does not claim payload deployment or grant
+content rights. In particular, do not copy or redistribute
+Minecraft/Mojang-derived repository assets as part of an SDK installation.
 
 ## Documentation
 

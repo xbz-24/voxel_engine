@@ -9,6 +9,7 @@ namespace ve::engine
 	{
 		std::vector<std::string> issues;
 		configuration_validation::ValidateWindowAndBackend(create_info, issues);
+		configuration_validation::ValidateRuntimeLayout(create_info, issues);
 		configuration_validation::ValidateVoxelRenderStyle(create_info.voxel_render_style, issues);
 		configuration_validation::ValidateWorldAndCamera(create_info, issues);
 		return issues;
@@ -28,6 +29,7 @@ namespace ve::engine
 		EngineCreateInfo create_info,
 		std::vector<std::string>* issues)
 	{
+		configuration_validation::CaptureRuntimeLayoutPaths(create_info);
 		std::vector<std::string> validation_issues = ValidateEngineCreateInfo(create_info);
 		if (issues != nullptr) *issues = validation_issues;
 		if (!validation_issues.empty()) return std::nullopt;

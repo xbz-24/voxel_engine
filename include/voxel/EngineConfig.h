@@ -3,6 +3,7 @@
 #include "voxel/EngineConfigSlices.h"
 #include "voxel/Runtime.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,7 @@ namespace voxel
 		CameraConfig camera{};
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
+		std::optional<RuntimeLayout> runtime_layout;
 		VoxelRenderStyle voxel_render_style{};
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
@@ -54,6 +56,8 @@ namespace voxel
 		EngineConfig& UseVulkan() noexcept;
 		EngineConfig& UseOpenGLCompatibility() noexcept;
 		EngineConfig& UseDirectX12() noexcept;
+		EngineConfig& WithRuntimeLayout(RuntimeLayout value) noexcept;
+		EngineConfig& UseDiscoveredRuntimeLayout() noexcept;
 		EngineConfig& WithVoxelRenderStyle(VoxelRenderStyle value) noexcept;
 		EngineConfig& WithWorldSizeChunks(int value) noexcept;
 		EngineConfig& WithRenderDistanceChunks(int value) noexcept;

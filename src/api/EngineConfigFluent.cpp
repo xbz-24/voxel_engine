@@ -21,6 +21,7 @@ EngineConfig EngineConfig::Default()
 			camera,
 			logging,
 			graphics_api,
+			runtime_layout,
 			voxel_render_style
 		};
 	}

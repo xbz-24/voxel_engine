@@ -39,5 +39,4 @@ add_library(ve_dependencies INTERFACE)
 target_compile_definitions(ve_dependencies INTERFACE
     _WIN32_WINNT=0x0A00
     NOMINMAX
-    ROOT_DIR="${PROJECT_SOURCE_DIR}"
 )

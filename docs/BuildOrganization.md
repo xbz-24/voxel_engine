@@ -36,7 +36,10 @@ network, and concrete render-backend aggregation.
 The installed `Authoring` and additive `SDK` components are relocatable for
 CMake configuration, compilation, and linking. The SDK component does not
 install runtime assets or generated Vulkan `.spv` files, so executable runtime
-deployment remains a separate, unfinished packaging boundary.
+deployment remains a separate, unfinished packaging boundary. Public
+`RuntimeLayout` paths are exact and validated before window creation; when no
+layout is supplied, development builds discover resources relative to the
+executable without compiled source/build-root macros.
 
 All project targets compile in the compiler's latest C++ mode. The default
 strict profile enables extended warnings, conforming MSVC behavior, SDL checks,

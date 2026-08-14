@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -18,6 +19,8 @@ namespace ve::engine
 		ve::rendering::RenderBackendConfiguration render_backend{};
 		RuntimeLogSettings logging{};
 		bool vsync = false;
+		std::optional<std::filesystem::path> asset_directory;
+		std::optional<std::filesystem::path> vulkan_shader_directory;
 		std::vector<std::filesystem::path> asset_search_roots;
 		std::function<void(const std::string&)> on_log;
 	};

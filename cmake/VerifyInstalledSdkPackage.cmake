@@ -37,7 +37,7 @@ if (rename_result)
     message(FATAL_ERROR "Installed package relocation failed: ${rename_result}")
 endif()
 
-foreach(required_file IN ITEMS Engine.h EngineRun.h Voxel.h)
+foreach(required_file IN ITEMS Engine.h EngineRun.h RuntimeLayout.h Voxel.h)
     if (NOT EXISTS "${relocated_prefix}/include/voxel/${required_file}")
         message(FATAL_ERROR "SDK header was not installed: ${required_file}")
     endif()

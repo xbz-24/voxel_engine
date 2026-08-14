@@ -48,19 +48,15 @@ namespace ve::assets::detail
 			}
 			return {};
 		}
-
-		[[nodiscard]] std::filesystem::path DevelopmentRootDirectory()
-		{
-#if defined(ROOT_DIR)
-			return std::filesystem::path{ ROOT_DIR };
-#else
-			return {};
-#endif
-		}
 	}
 
 	std::filesystem::path ResolveRootDirectory(const AssetPathResolveOptions& options)
 	{
+		if (options.explicit_asset_directory.has_value())
+		{
+			const std::filesystem::path& asset_directory = *options.explicit_asset_directory;
+			return asset_directory.empty() ? std::filesystem::path{} : NormalizePath(asset_directory).parent_path();
+		}
 		for (const std::filesystem::path& search_root : options.search_roots)
 		{
 			if (!search_root.empty()) return NormalizeSearchRoot(search_root);
@@ -69,9 +65,16 @@ namespace ve::assets::detail
 		const std::filesystem::path executable_asset_root = FindAncestorWithAssets(ve::core::ExecutableDirectory());
 		if (!executable_asset_root.empty()) return executable_asset_root;
 
-		const std::filesystem::path development_root = DevelopmentRootDirectory();
-		if (!development_root.empty()) return NormalizePath(development_root);
-
 		return NormalizePath(std::filesystem::current_path());
+	}
+
+	std::filesystem::path ResolveAssetDirectory(const AssetPathResolveOptions& options)
+	{
+		if (options.explicit_asset_directory.has_value())
+		{
+			const std::filesystem::path& asset_directory = *options.explicit_asset_directory;
+			return asset_directory.empty() ? std::filesystem::path{} : NormalizePath(asset_directory);
+		}
+		return ResolveRootDirectory(options) / "assets";
 	}
 }

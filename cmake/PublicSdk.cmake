@@ -23,6 +23,7 @@ set(VE_PUBLIC_AUTHORING_HEADERS
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/RuntimeCommands.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/RuntimeFrame.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/RuntimeInput.h"
+    "${VE_PUBLIC_INCLUDE_ROOT}/voxel/RuntimeLayout.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/Scene.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/SceneEntity.h"
     "${VE_PUBLIC_INCLUDE_ROOT}/voxel/SceneGraph.h"

@@ -20,6 +20,7 @@ namespace ve::rendering
 		[[nodiscard]] bool Initialize(VulkanBackend& backend,
 			ve::engine::Window& window,
 			const std::filesystem::path& block_texture_directory,
+			const std::filesystem::path& shader_directory,
 			const VoxelRenderStyle& render_style,
 			bool enable_imgui_overlay = true);
 

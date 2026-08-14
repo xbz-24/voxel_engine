@@ -5,7 +5,7 @@
  */
 /** @defgroup voxel_sdk_startup Engine startup and hosting
  * @ingroup voxel_sdk
- * Configure, validate, launch, or externally drive an engine instance.
+ * Configure validated runtime layouts, launch, or externally drive an engine instance.
  */
 /** @defgroup voxel_sdk_world_editing World editing
  * @ingroup voxel_sdk

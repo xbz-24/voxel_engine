@@ -25,8 +25,9 @@ ImGui integrations. Those are established components, not pending patterns.
 
 - Keep the installed SDK's current boundary precise: its headers, libraries,
   dependency discovery, and CMake targets are relocatable and covered by a
-  moved-prefix consumer smoke. Runtime assets, compiled Vulkan shaders, and an
-  executable runtime-layout contract remain pending.
+  moved-prefix consumer smoke. `RuntimeLayout` now supplies an explicit,
+  validated application-owned asset/shader contract without embedding source
+  or build roots. Installing a runnable payload remains pending.
 - Do not add the repository `assets/` tree or generated `.spv` files to the SDK
   install as a shortcut. Define the runtime payload layout and settle the
   redistribution rights of Minecraft/Mojang-derived assets before adding a

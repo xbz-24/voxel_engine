@@ -4,8 +4,11 @@
 #include "voxel/Camera.h"
 #include "voxel/EngineConfigTypes.h"
 #include "voxel/Materials.h"
+#include "voxel/RuntimeLayout.h"
 #include "voxel/Scene.h"
 #include "voxel/WorldConfig.h"
+
+#include <optional>
 
 namespace voxel
 {
@@ -20,6 +23,7 @@ namespace voxel
 		CameraConfig camera{};
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
+		std::optional<RuntimeLayout> runtime_layout;
 		VoxelRenderStyle voxel_render_style{};
 	};
 
