@@ -1,67 +1,61 @@
 #include "voxel/Engine.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <fstream>
-#include <string>
+#include "EngineWorldGeometryMath.h"
 
 namespace voxel
 {
-	WorldConfig& WorldConfig::AddHouse(int center_x, int base_y, int center_z, int radius, Block walls, Block roof)
+	WorldConfig& WorldConfig::AddLightPost(
+		int block_x, int base_y, int block_z, int height, Block post, Block light)
 	{
-		const int left = center_x - radius;
-		const int right = center_x + radius;
-		const int front = center_z - radius;
-		const int back = center_z + radius;
-		const int wall_top = base_y + 3;
-		const int roof_y = base_y + 4;
+		if (height <= 0)
+		{
+			return AddLamp(block_x, base_y, block_z, light);
+		}
+		int post_top_y = 0;
+		int light_y = 0;
+		if (!detail::TryBlockCoordinate(
+				detail::WidenBlockCoordinate(base_y) + detail::WidenBlockCoordinate(height) - 1,
+				post_top_y)
+			|| !detail::TryBlockCoordinate(
+				detail::WidenBlockCoordinate(base_y) + detail::WidenBlockCoordinate(height),
+				light_y))
+		{
+			return *this;
+		}
+		return FillBox(block_x, base_y, block_z, block_x, post_top_y, block_z, post)
+			.SetBlock(block_x, light_y, block_z, light);
+	}
 
+	WorldConfig& WorldConfig::AddHouse(
+		int center_x, int base_y, int center_z, int radius, Block walls, Block roof)
+	{
+		int left = 0, right = 0, front = 0, back = 0;
+		int wall_base = 0, door_top = 0, wall_top = 0, roof_y = 0;
+		int roof_left = 0, roof_right = 0, roof_front = 0, roof_back = 0;
+		int door_left = 0, door_right = 0, inner_front = 0, inner_back = 0;
+		if (!detail::TryCenteredBlockSpan(center_x, radius, left, right)
+			|| !detail::TryCenteredBlockSpan(center_z, radius, front, back)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(base_y) + 1, wall_base)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(base_y) + 2, door_top)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(base_y) + 3, wall_top)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(base_y) + 4, roof_y)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(left) - 1, roof_left)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(right) + 1, roof_right)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(front) - 1, roof_front)
+			|| !detail::TryBlockCoordinate(detail::WidenBlockCoordinate(back) + 1, roof_back)
+			|| !detail::TryCenteredBlockSpan(center_x, 1, door_left, door_right)
+			|| !detail::TryCenteredBlockSpan(center_z, 1, inner_front, inner_back))
+		{
+			return *this;
+		}
 		return AddBox(left, base_y, front, right, base_y, back, walls)
-			.AddBox(left, base_y + 1, front, right, wall_top, front, walls)
-			.AddBox(left, base_y + 1, back, right, wall_top, back, walls)
-			.AddBox(left, base_y + 1, front, left, wall_top, back, walls)
-			.AddBox(right, base_y + 1, front, right, wall_top, back, walls)
-			.AddBox(left - 1, roof_y, front - 1, right + 1, roof_y, back + 1, roof)
-			.ClearBox(center_x - 1, base_y + 1, front, center_x + 1, base_y + 2, front)
-			.ClearBox(center_x - 1, base_y + 1, center_z - 1, center_x + 1, wall_top, center_z + 1)
+			.AddBox(left, wall_base, front, right, wall_top, front, walls)
+			.AddBox(left, wall_base, back, right, wall_top, back, walls)
+			.AddBox(left, wall_base, front, left, wall_top, back, walls)
+			.AddBox(right, wall_base, front, right, wall_top, back, walls)
+			.AddBox(roof_left, roof_y, roof_front, roof_right, roof_y, roof_back, roof)
+			.ClearBox(door_left, wall_base, front, door_right, door_top, front)
+			.ClearBox(door_left, wall_base, inner_front, door_right, wall_top, inner_back)
 			.AddLamp(center_x, wall_top, center_z);
-	}
-
-	WorldConfig& WorldConfig::AddPond(int center_x, int block_y, int center_z, int radius, Block water, Block rim)
-	{
-		const int inner_left = center_x - radius + 1;
-		const int inner_right = center_x + radius - 1;
-		const int inner_front = center_z - radius + 1;
-		const int inner_back = center_z + radius - 1;
-
-		return AddFloor(center_x, block_y, center_z, radius, rim)
-			.FillBox(inner_left, block_y, inner_front, inner_right, block_y, inner_back, water)
-			.ClearBox(inner_left, block_y + 1, inner_front, inner_right, block_y + 3, inner_back);
-	}
-
-	WorldConfig& WorldConfig::AddGarden(int center_x, int block_y, int center_z, int half_width, int half_depth, Block soil, Block crop)
-	{
-		const int plot_left = center_x - half_width;
-		const int plot_right = center_x + half_width;
-		const int plot_front = center_z - half_depth;
-		const int plot_back = center_z + half_depth;
-		const int fence_left = plot_left - 1;
-		const int fence_right = plot_right + 1;
-
-		return FillBox(plot_left, block_y, plot_front, plot_right, block_y, plot_back, soil)
-			.FillBox(plot_left, block_y + 1, plot_front, plot_right, block_y + 1, plot_back, crop)
-			.FillBox(fence_left, block_y, plot_front - 1, fence_right, block_y, plot_front - 1, OakLog)
-			.FillBox(fence_left, block_y, plot_back + 1, fence_right, block_y, plot_back + 1, OakLog);
-	}
-
-	WorldConfig& WorldConfig::AddTree(int trunk_x, int base_y, int trunk_z, Block trunk, Block leaves)
-	{
-		const int lower_canopy_y = base_y + 3;
-		const int upper_canopy_y = base_y + 5;
-		const int crown_y = base_y + 6;
-
-		return AddColumn(trunk_x, base_y, trunk_z, 5, trunk)
-			.AddBox(trunk_x - 2, lower_canopy_y, trunk_z - 2, trunk_x + 2, upper_canopy_y, trunk_z + 2, leaves)
-			.AddBox(trunk_x - 1, crown_y, trunk_z - 1, trunk_x + 1, crown_y, trunk_z + 1, leaves);
 	}
 }

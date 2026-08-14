@@ -35,6 +35,10 @@ namespace voxel
 			int second_x, int second_y, int second_z, Block block);
 		WorldConfig& ClearBox(int first_x, int first_y, int first_z,
 			int second_x, int second_y, int second_z);
+		/**
+		 * Compound helpers add nothing when any derived coordinate cannot be
+		 * represented as an int; a rejected helper never leaves partial edits.
+		 */
 		WorldConfig& AddFloor(int block_y, int radius, Block block);
 		WorldConfig& AddFloor(int center_x, int block_y, int center_z, int radius, Block block);
 		WorldConfig& AddPlatform(int block_y, int radius, Block block);

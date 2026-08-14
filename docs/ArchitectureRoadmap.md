@@ -36,6 +36,9 @@
   preserves legacy size-and-edits documents and current complete terrain
   documents while rejecting partial, unknown, truncated, or out-of-range data
   without publishing a partially parsed configuration.
+- Compound world-authoring helpers preflight every derived coordinate in a
+  wider integer domain. An unrepresentable shape is a complete no-op instead
+  of overflowing or leaving a partially-authored structure.
 
 The codebase already has `GameModel`/`GameController`, a screen stack,
 `NetworkSession`, GLFW-backed window ownership, and both Vulkan and OpenGL
