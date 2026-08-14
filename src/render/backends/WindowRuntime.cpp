@@ -39,9 +39,7 @@ namespace ve::engine
 
 	std::vector<WindowEvent> Window::DrainEvents()
 	{
-		std::vector<WindowEvent> events;
-		events.swap(_eventQueue);
-		return events;
+		return _events.Drain();
 	}
 
 	bool Window::ShouldClose() const

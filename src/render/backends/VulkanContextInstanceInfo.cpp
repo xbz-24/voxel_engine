@@ -18,24 +18,35 @@ namespace ve::rendering::detail
 		VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
 			VkDebugUtilsMessageTypeFlagsEXT,
 			const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-			void*)
+			void*) noexcept
 		{
-			const char* message = callback_data && callback_data->pMessage ? callback_data->pMessage : "<no Vulkan message>";
-			const std::string formatted = std::string("Vulkan validation: ") + message;
-			if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
+			try
 			{
-				ve::log::Write(ve::log::Level::Error, ve::log::category::Render, formatted);
+				const char* message = callback_data && callback_data->pMessage ?
+					callback_data->pMessage : "<no Vulkan message>";
+				const std::string formatted = std::string("Vulkan validation: ") + message;
+				if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0)
+				{
+					ve::log::Write(ve::log::Level::Error, ve::log::category::Render, formatted);
+				}
+				else if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0)
+				{
+					ve::log::Write(ve::log::Level::Warning, ve::log::category::Render, formatted);
+				}
+				else
+				{
+					ve::log::Write(ve::log::Level::Debug, ve::log::category::Render, formatted);
+				}
 			}
-			else if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0)
+			catch (...)
 			{
-				ve::log::Write(ve::log::Level::Warning, ve::log::category::Render, formatted);
-			}
-			else
-			{
-				ve::log::Write(ve::log::Level::Debug, ve::log::category::Render, formatted);
+				// Driver callbacks must not observe C++ exceptions from diagnostics.
 			}
 			return VK_FALSE;
 		}
+
+		static_assert(noexcept(DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT{},
+			VkDebugUtilsMessageTypeFlagsEXT{}, nullptr, nullptr)));
 	}
 
 	VkDebugUtilsMessengerCreateInfoEXT CreateDebugMessengerInfo() noexcept

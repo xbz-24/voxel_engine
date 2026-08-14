@@ -55,11 +55,11 @@ namespace ve::engine
 		[[nodiscard]] ve::rendering::GraphicsApi GraphicsApi() const noexcept;
 		[[nodiscard]] std::vector<const char*> RequiredVulkanInstanceExtensions() const;
 
-		void SetCallbackUserData(void* userData);
-		[[nodiscard]] static void* GetCallbackUserData(GLFWwindow* window);
+		void SetCallbackUserData(void* userData) noexcept;
+		[[nodiscard]] static void* GetCallbackUserData(GLFWwindow* window) noexcept;
 
 		template <typename UserData>
-		static UserData* GetCallbackUserDataAs(GLFWwindow* window)
+		static UserData* GetCallbackUserDataAs(GLFWwindow* window) noexcept
 		{
 			return static_cast<UserData*>(GetCallbackUserData(window));
 		}
@@ -75,8 +75,8 @@ namespace ve::engine
 		bool CreateNativeWindow(GLFWmonitor* fullscreen_monitor);
 		void ApplyInitialCursorMode();
 		void ConfigureNativeCallbacks();
-		void RecordFramebufferResize(int width, int height);
-		static CallbackContext* GetCallbackContext(GLFWwindow* window);
+		void RecordFramebufferResize(int width, int height) noexcept;
+		static CallbackContext* GetCallbackContext(GLFWwindow* window) noexcept;
 
 		UniqueGlfwWindow _window;
 		bool _ownsGlfwSession = false;
@@ -92,6 +92,6 @@ namespace ve::engine
 		bool _highDpiFramebuffer = true;
 		bool _captureCursorOnStart = false;
 		CallbackContext _callbackContext{};
-		std::vector<WindowEvent> _eventQueue;
+		WindowEventMailbox _events;
 	};
 }
