@@ -53,6 +53,8 @@ ImGui integrations. Those are established components, not pending patterns.
   that tools can use world data without a graphics runtime.
 - Replace grow-only chunk assumptions with explicit horizontal streaming bounds
   and vertical world bounds.
-- Document packet flow, protocol-version negotiation, snapshot ordering, and
-  live world-mutation ordering before exposing multiplayer through the public
-  SDK.
+- Keep [Network Protocol and Replication](NetworkProtocol.md) synchronized with
+  the internal wire contract. Before exposing multiplayer through the public
+  SDK, implement the documented `ServerWelcome` negotiation, authoritative
+  player snapshots, initial world snapshots, revision barriers, and runtime
+  integration.
