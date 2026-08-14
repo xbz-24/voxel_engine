@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.25)
 
 project(VoxelEngine VERSION 0.5.0 LANGUAGES CXX)
 
-# The independent authoring SDK is installable; the full SDK still bridges
-# into private runtime/application targets and remains build-tree only.
+# The authoring and runtime-backed SDK components are installable CMake
+# compile/link packages; runtime assets and shaders remain a separate payload.
 # Keep the CMake feature model on C++23 until every supported generator knows
 # C++26. VE_USE_LATEST_CXX opts compilers into /std:c++latest or -std=c++2c.
 set(CMAKE_CXX_STANDARD 23)
