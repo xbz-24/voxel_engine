@@ -1,5 +1,6 @@
 #include "voxel/Engine.h"
 
+#include "EngineWorldSerializationValidation.h"
 #include "WorldSerializationHelpers.h"
 
 #include <fstream>
@@ -12,6 +13,8 @@ namespace voxel
 
 	bool SaveWorldConfig(const WorldConfig& world, const std::string& path)
 	{
+		if (!detail::IsWorldConfigSerializable(world)) return false;
+
 		std::ofstream file(path, std::ios::trunc);
 		if (!file) return false;
 

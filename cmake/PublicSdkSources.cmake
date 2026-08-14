@@ -45,6 +45,7 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineWorldSerialization.cpp
     EngineWorldSerializationTerrain.cpp
     EngineWorldSerializationTerrainLoad.cpp
+    EngineWorldSerializationValidation.cpp
     EngineWorldStructures.cpp
     EngineWorldTerrain.cpp
 )
