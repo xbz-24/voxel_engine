@@ -54,6 +54,7 @@ namespace voxel::detail
 				}
 			}
 		}
+
 	}
 
 	std::vector<std::string> ValidateSceneEntities(const std::vector<Entity>& entities)
@@ -61,6 +62,7 @@ namespace voxel::detail
 		std::vector<std::string> issues;
 		const std::set<std::uint32_t> entity_ids = CollectValidEntityIds(entities, issues);
 		ValidateEntityParents(entities, entity_ids, issues);
+		ValidateEntityParentCycles(entities, issues);
 		return issues;
 	}
 }

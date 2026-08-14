@@ -29,6 +29,7 @@ set(VE_PUBLIC_AUTHORING_SOURCE_NAMES
     EngineSceneAssets.cpp
     EngineSceneEntity.cpp
     EngineSceneGraph.cpp
+    EngineSceneGraphCycleValidation.cpp
     EngineSceneGraphLookup.cpp
     EngineSceneGraphValidation.cpp
     EngineSceneLighting.cpp

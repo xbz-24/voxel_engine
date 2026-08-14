@@ -11,6 +11,8 @@ namespace voxel::detail
 	[[nodiscard]] const Entity* FindSceneEntity(
 		const std::vector<Entity>& entities,
 		EntityId requested_entity_id) noexcept;
+	void ValidateEntityParentCycles(const std::vector<Entity>& entities,
+		std::vector<std::string>& issues);
 	[[nodiscard]] std::vector<std::string> ValidateSceneEntities(
 		const std::vector<Entity>& entities);
 }
