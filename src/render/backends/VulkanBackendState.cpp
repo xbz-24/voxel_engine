@@ -6,6 +6,7 @@ namespace ve::rendering
 	{
 		debug_labels_.Release();
 		swapchain_.Release();
+		swapchain_settings_ = {};
 		allocator_.Release();
 		device_.Release();
 		surface_.Release();

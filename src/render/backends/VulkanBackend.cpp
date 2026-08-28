@@ -39,7 +39,7 @@ namespace ve::rendering
 			return true;
 		};
 
-		const VulkanSwapchainSettings swapchain_settings = BuildVulkanSwapchainSettings(settings, window_settings);
+		swapchain_settings_ = BuildVulkanSwapchainSettings(settings, window_settings);
 		const bool is_initialized =
 			initialize_step("Initializing Vulkan context",
 				VulkanBackendInitializationFailure::ContextCreationFailed,
@@ -64,7 +64,7 @@ namespace ve::rendering
 			initialize_step("Creating Vulkan swapchain",
 				VulkanBackendInitializationFailure::SwapchainCreationFailed,
 				"Swapchain creation failed",
-				[&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), swapchain_settings); });
+				[&] { return swapchain_.Create(physical_device_.Handle(), device_.Handle(), surface_.Handle(), swapchain_settings_); });
 
 		if (!is_initialized)
 		{

@@ -2,6 +2,7 @@
 
 #include "Logger.h"
 #include "VulkanBackend.h"
+#include "VulkanFrameOrchestratorPresentation.h"
 #include "World.h"
 
 #include <cmath>
@@ -61,7 +62,7 @@ namespace ve::rendering
 		return true;
 	}
 
-	bool VulkanFrameOrchestrator::CompleteGpuFrame(
+	VulkanFrameResult VulkanFrameOrchestrator::CompleteGpuFrame(
 		const VulkanFrameTiming& completed_timing,
 		double present_cpu_ms,
 		VkResult present_result)
@@ -79,13 +80,15 @@ namespace ve::rendering
 		}
 		previous_frame_timing_ = current_timing;
 		current_frame_ = (current_frame_ + 1u) % kFramesInFlight;
-		if (!logged_first_frame_)
+		const VulkanFrameResult frame_result = ClassifyVulkanPresentationResult(present_result);
+		if (!logged_first_frame_ && frame_result != VulkanFrameResult::Failed &&
+			present_result != VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			VE_LOG_CATEGORY_INFO(
 				ve::log::category::Render,
 				"Presented first Vulkan GPU chunk frame");
 			logged_first_frame_ = true;
 		}
-		return present_result == VK_SUCCESS || present_result == VK_SUBOPTIMAL_KHR;
+		return frame_result;
 	}
 }

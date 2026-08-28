@@ -31,6 +31,16 @@ namespace ve::engine
 		return size;
 	}
 
+	Window::WindowSize Window::FramebufferSize() const noexcept
+	{
+		WindowSize size{ 0, 0 };
+		if (_window != nullptr)
+		{
+			glfwGetFramebufferSize(_window.get(), &size.width, &size.height);
+		}
+		return size;
+	}
+
 	Window::CursorPosition Window::CurrentCursorPosition() const noexcept
 	{
 		CursorPosition position{};

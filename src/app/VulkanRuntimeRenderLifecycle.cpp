@@ -20,6 +20,12 @@ namespace ve::engine
 		const ve::assets::AssetPaths& assets,
 		const EngineCreateInfo& create_info)
 	{
+		configuration_ = VulkanRuntimeRenderConfiguration{
+			assets.blockTexturesDirectory,
+			assets.vulkanShaderDirectory,
+			create_info.voxel_render_style,
+			create_info.show_debug_overlay && create_info.settings_menu_enabled
+		};
 		backend_ = std::make_unique<ve::rendering::VulkanBackend>();
 		ve::rendering::VulkanBackendSettings settings{};
 #if !defined(NDEBUG)
@@ -33,18 +39,15 @@ namespace ve::engine
 		if (!result) return EngineStartupResult::Failure(
 			EngineStartupFailure::RenderBackendInitializationFailed,
 			"Vulkan backend initialization failed: " + result.message);
-		if (!orchestrator_.Initialize(*backend_, window, assets.blockTexturesDirectory,
-			assets.vulkanShaderDirectory,
-			create_info.voxel_render_style,
-			create_info.show_debug_overlay && create_info.settings_menu_enabled))
+		if (!InitializeFrameOrchestrator(window))
 		{
 			return EngineStartupResult::Failure(
 				EngineStartupFailure::RenderFrameRendererInitializationFailed,
 				"Vulkan frame orchestrator initialization failed");
 		}
-		view_ = RenderViewFactory::Create({ backend_->Api(), &assets, backend_.get() });
-		if (!view_) return EngineStartupResult::Failure(
+		if (!CreateRenderView()) return EngineStartupResult::Failure(
 			EngineStartupFailure::RenderViewCreationFailed, "Render view creation failed");
+		presentation_state_.Commit(window.FramebufferSize(), window.IsVSyncEnabled());
 		return EngineStartupResult::Success();
 	}
 

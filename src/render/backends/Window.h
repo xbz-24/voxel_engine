@@ -49,6 +49,7 @@ namespace ve::engine
 		[[nodiscard]] int GetHeight() const;
 		[[nodiscard]] float GetAspectRatio() const;
 		[[nodiscard]] WindowSize ClientWindowSize() const noexcept;
+		[[nodiscard]] WindowSize FramebufferSize() const noexcept;
 		[[nodiscard]] CursorPosition CurrentCursorPosition() const noexcept;
 		[[nodiscard]] NativeWindowHandle NativeHandle() const noexcept;
 		[[nodiscard]] GLFWwindow* GetNativeWindow() const;

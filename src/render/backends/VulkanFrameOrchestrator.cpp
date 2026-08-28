@@ -46,7 +46,7 @@ namespace ve::rendering
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan voxel frame orchestrator initialized");
 		return true;
 	}
-	bool VulkanFrameOrchestrator::DrawFrame(const ve::world::World& world,
+	VulkanFrameResult VulkanFrameOrchestrator::DrawFrame(const ve::world::World& world,
 		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,

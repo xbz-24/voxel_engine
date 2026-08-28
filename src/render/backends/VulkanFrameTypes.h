@@ -13,6 +13,13 @@ namespace ve::world
 
 namespace ve::rendering
 {
+	enum class VulkanFrameResult
+	{
+		Presented,
+		RefreshRequired,
+		Failed
+	};
+
 	struct VulkanFrameTiming
 	{
 		double snapshot_cpu_ms = 0.0;

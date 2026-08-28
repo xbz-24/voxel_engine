@@ -4,6 +4,8 @@
 #include "RuntimeRenderDriver.h"
 #include "VulkanBackend.h"
 #include "VulkanFrameOrchestrator.h"
+#include "VulkanRuntimePresentationState.h"
+#include "VulkanRuntimeRenderConfiguration.h"
 
 #include <memory>
 
@@ -27,10 +29,15 @@ namespace ve::engine
 		void Shutdown() noexcept override;
 
 	private:
+		[[nodiscard]] bool InitializeFrameOrchestrator(Window& window);
+		[[nodiscard]] bool CreateRenderView();
+		[[nodiscard]] bool RebuildPresentation(Window& window, WindowSize framebuffer_size);
 		[[nodiscard]] ve::rendering::VulkanFrameInput CaptureInput(RuntimeRenderFrame& frame);
 		std::unique_ptr<ve::rendering::VulkanBackend> backend_;
 		std::unique_ptr<RenderView> view_;
 		ve::rendering::VulkanFrameOrchestrator orchestrator_;
 		ve::rendering::VulkanOverlaySettings overlay_settings_;
+		VulkanRuntimeRenderConfiguration configuration_;
+		VulkanRuntimePresentationState presentation_state_;
 	};
 }

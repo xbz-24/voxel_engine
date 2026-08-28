@@ -27,10 +27,11 @@ namespace ve::rendering
 
 	VulkanBackendWindowSettings CaptureVulkanWindowSettings(const ve::engine::Window& window)
 	{
+		const ve::engine::Window::WindowSize framebuffer_size = window.FramebufferSize();
 		return VulkanBackendWindowSettings{
 			window.RequiredVulkanInstanceExtensions(),
-			std::max(window.GetWidth(), 1),
-			std::max(window.GetHeight(), 1),
+			std::max(framebuffer_size.width, 1),
+			std::max(framebuffer_size.height, 1),
 			window.IsVSyncEnabled()
 		};
 	}

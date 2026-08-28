@@ -24,7 +24,7 @@ namespace ve::rendering
 			const VoxelRenderStyle& render_style,
 			bool enable_imgui_overlay = true);
 
-		[[nodiscard]] bool DrawFrame(const ve::world::World& world,
+		[[nodiscard]] VulkanFrameResult DrawFrame(const ve::world::World& world,
 			const ve::blocks::BlockRegistry& block_registry,
 			const Camera& camera,
 			int displayed_fps,
@@ -52,14 +52,14 @@ namespace ve::rendering
 			std::size_t frame_index,
 			float elapsed_seconds,
 			const Camera& camera);
-		[[nodiscard]] bool DrawGpuFrame(const ve::world::World& world,
+		[[nodiscard]] VulkanFrameResult DrawGpuFrame(const ve::world::World& world,
 			const ve::blocks::BlockRegistry& block_registry,
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
 			VulkanOverlaySettings& overlay_settings,
 			const VulkanGpuFrameControls& controls);
-		[[nodiscard]] bool DrawSoftwareFrame(const ve::world::World& world,
+		[[nodiscard]] VulkanFrameResult DrawSoftwareFrame(const ve::world::World& world,
 			const Camera& camera,
 			int displayed_fps,
 			double delta_seconds,
@@ -74,7 +74,7 @@ namespace ve::rendering
 			VulkanOverlaySettings& overlay_settings,
 			const VulkanGpuFrameControls& controls,
 			const VulkanFrameTiming& completed_timing);
-		[[nodiscard]] bool CompleteGpuFrame(const VulkanFrameTiming& completed_timing,
+		[[nodiscard]] VulkanFrameResult CompleteGpuFrame(const VulkanFrameTiming& completed_timing,
 			double present_cpu_ms,
 			VkResult present_result);
 		[[nodiscard]] bool WaitForAllInFlightFrames() const;

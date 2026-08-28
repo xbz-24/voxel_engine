@@ -26,11 +26,31 @@ namespace ve::engine
 
 	bool VulkanRuntimeRenderDriver::DrawFrame(RuntimeRenderFrame& frame, RuntimeRenderHost&)
 	{
+		const WindowSize framebuffer_size = frame.window.FramebufferSize();
+		switch (presentation_state_.NextAction(
+			framebuffer_size,
+			frame.window.IsVSyncEnabled()))
+		{
+		case VulkanPresentationAction::Defer:
+			return true;
+		case VulkanPresentationAction::Rebuild:
+			if (!RebuildPresentation(frame.window, framebuffer_size)) return false;
+			break;
+		case VulkanPresentationAction::Draw:
+			break;
+		}
 		const ve::blocks::BlockRegistry* registry = frame.model.GetBlockRegistry();
 		assert(registry != nullptr);
-		return orchestrator_.DrawFrame(frame.model.GetWorld(), *registry,
+		const ve::rendering::VulkanFrameResult result = orchestrator_.DrawFrame(
+			frame.model.GetWorld(), *registry,
 			frame.model.GetCamera(), frame.timer.DisplayedFps(), frame.timer.DeltaSeconds(),
 			CaptureInput(frame), overlay_settings_);
+		if (result == ve::rendering::VulkanFrameResult::RefreshRequired)
+		{
+			presentation_state_.RequireRefresh();
+			return true;
+		}
+		return result == ve::rendering::VulkanFrameResult::Presented;
 	}
 
 	void VulkanRuntimeRenderDriver::EndFrame(RuntimeRenderFrame& frame)

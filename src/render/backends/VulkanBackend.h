@@ -30,6 +30,9 @@ namespace ve::rendering
 			const VulkanBackendSettings& settings,
 			ve::engine::Window& window);
 
+		/** Recreates the swapchain after its external dependent resources are released. */
+		[[nodiscard]] bool RecreateSwapchain(int width, int height, bool enable_vsync);
+
 		/** Releases all Vulkan backend state. */
 		void Release();
 
@@ -70,6 +73,7 @@ namespace ve::rendering
 		VulkanDevice device_;
 		VulkanMemoryAllocator allocator_;
 		VulkanSwapchain swapchain_;
+		VulkanSwapchainSettings swapchain_settings_{};
 		VulkanDebugLabels debug_labels_;
 	};
 }

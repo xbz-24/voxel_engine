@@ -18,7 +18,7 @@ namespace ve::rendering
 		}
 	}
 
-	bool VulkanFrameOrchestrator::DrawGpuFrame(const ve::world::World& world,
+	VulkanFrameResult VulkanFrameOrchestrator::DrawGpuFrame(const ve::world::World& world,
 		const ve::blocks::BlockRegistry& block_registry,
 		const Camera& camera,
 		int displayed_fps,
@@ -26,10 +26,10 @@ namespace ve::rendering
 		VulkanOverlaySettings& overlay_settings,
 		const VulkanGpuFrameControls& controls)
 	{
-		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return false;
+		if (backend_ == nullptr || device_ == VK_NULL_HANDLE) return VulkanFrameResult::Failed;
 		ApplyGpuFrameControls(delta_seconds, overlay_settings, controls);
 		const VkFence fence = frames_[current_frame_].in_flight;
-		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
+		if (vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return VulkanFrameResult::Failed;
 		VulkanFrameTiming completed_frame_timing = previous_frame_timing_;
 		CaptureCompletedGpuTiming(current_frame_, completed_frame_timing);
 		if (!PrepareGpuScene(world,
@@ -38,24 +38,27 @@ namespace ve::rendering
 			delta_seconds,
 			overlay_settings,
 			controls,
-			completed_frame_timing)) return false;
+			completed_frame_timing)) return VulkanFrameResult::Failed;
 		std::uint32_t image_index = 0;
 		const auto present_start = std::chrono::steady_clock::now();
 		const VkResult acquire_result = AcquireSwapchainImage(device_, *backend_, frames_[current_frame_].image_available, image_index);
-		if (acquire_result != VK_SUCCESS && acquire_result != VK_SUBOPTIMAL_KHR)
+		const VulkanFrameResult acquire_frame_result = ClassifyVulkanPresentationResult(acquire_result);
+		if (!VulkanAcquireCanContinue(acquire_result))
 		{
-			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to acquire Vulkan swapchain image: " + std::to_string(VulkanResultCode(acquire_result)));
-			return false;
+			if (acquire_frame_result == VulkanFrameResult::Failed) VE_LOG_CATEGORY_WARNING(
+				ve::log::category::Render,
+				"Failed to acquire Vulkan swapchain image: " + std::to_string(VulkanResultCode(acquire_result)));
+			return acquire_frame_result;
 		}
 		if (!WaitForSwapchainImage(device_, images_in_flight_, image_index))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to wait for Vulkan swapchain image fence");
-			return false;
+			return VulkanFrameResult::Failed;
 		}
 		if (vkResetFences(device_, 1, &fence) != VK_SUCCESS)
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to reset Vulkan frame fence");
-			return false;
+			return VulkanFrameResult::Failed;
 		}
 		VkCommandBuffer command_buffer = frames_[current_frame_].command_buffer;
 		if (vkResetCommandBuffer(command_buffer, 0) != VK_SUCCESS ||
@@ -67,7 +70,7 @@ namespace ve::rendering
 				camera))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to prepare Vulkan GPU command buffer");
-			return false;
+			return VulkanFrameResult::Failed;
 		}
 		const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		const VkSemaphore image_available = frames_[current_frame_].image_available;
@@ -81,7 +84,7 @@ namespace ve::rendering
 		if (submit_result != VK_SUCCESS)
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to submit Vulkan GPU frame: " + std::to_string(VulkanResultCode(submit_result)));
-			return false;
+			return VulkanFrameResult::Failed;
 		}
 		images_in_flight_[image_index] = fence;
 		const VkResult present_result = PresentSwapchainImage(*backend_, render_finished, image_index);
@@ -89,6 +92,7 @@ namespace ve::rendering
 
 		const double present_cpu_ms =
 			std::chrono::duration<double, std::milli>(present_end - present_start).count();
-		return CompleteGpuFrame(completed_frame_timing, present_cpu_ms, present_result);
+		return CombineVulkanFrameResults(acquire_frame_result,
+			CompleteGpuFrame(completed_frame_timing, present_cpu_ms, present_result));
 	}
 }

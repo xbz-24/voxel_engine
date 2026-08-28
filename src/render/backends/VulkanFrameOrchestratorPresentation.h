@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VulkanFrameTypes.h"
+
 #include <volk.h>
 
 #include <cstdint>
@@ -8,6 +10,13 @@
 namespace ve::rendering
 {
 	class VulkanBackend;
+
+	[[nodiscard]] VulkanFrameResult ClassifyVulkanPresentationResult(
+		VkResult result) noexcept;
+	[[nodiscard]] bool VulkanAcquireCanContinue(VkResult result) noexcept;
+	[[nodiscard]] VulkanFrameResult CombineVulkanFrameResults(
+		VulkanFrameResult first,
+		VulkanFrameResult second) noexcept;
 
 	[[nodiscard]] VkResult AcquireSwapchainImage(VkDevice device,
 		VulkanBackend& backend,
