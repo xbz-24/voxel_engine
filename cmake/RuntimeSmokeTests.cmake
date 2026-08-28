@@ -9,6 +9,18 @@ if (VE_BUILD_RUNTIME_SMOKE_TESTS)
         LABELS "runtime;smoke;vulkan"
         TIMEOUT 60
     )
+    if (WIN32)
+        add_test(NAME voxel_demo_vulkan_resize_runtime_smoke
+            COMMAND $<TARGET_FILE:voxel_demo>
+                --graphics-api vulkan
+                --smoke-frames 6
+                --resize-smoke-frame 2
+        )
+        set_tests_properties(voxel_demo_vulkan_resize_runtime_smoke PROPERTIES
+            LABELS "runtime;resize;smoke;vulkan"
+            TIMEOUT 60
+        )
+    endif()
     add_test(NAME voxel_demo_vulkan_explicit_runtime_layout_smoke
         COMMAND $<TARGET_FILE:voxel_demo>
             --graphics-api vulkan

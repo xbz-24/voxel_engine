@@ -42,6 +42,14 @@ namespace voxel_demo
 			if (!has_assets) return false;
 			return options.graphics_api != voxel::GraphicsApi::Vulkan || has_shaders;
 		}
+
+		[[nodiscard]] bool ResizeSmokeOptionsAreCompatible(const DemoOptions& options) noexcept
+		{
+			if (options.resize_smoke_frame == 0) return true;
+			return options.graphics_api == voxel::GraphicsApi::Vulkan &&
+				options.smoke_frame_limit > 0 &&
+				options.resize_smoke_frame < options.smoke_frame_limit;
+		}
 	}
 
 	DemoOptions ParseOptions(std::span<const std::string_view> arguments) noexcept
@@ -59,6 +67,8 @@ namespace voxel_demo
 			bool parsed = false;
 			if (option == "--smoke-frames")
 				parsed = TryParsePositiveInteger(value, options.smoke_frame_limit);
+			else if (option == "--resize-smoke-frame")
+				parsed = TryParsePositiveInteger(value, options.resize_smoke_frame);
 			else if (option == "--graphics-api")
 				parsed = TryParseGraphicsApi(value, options.graphics_api);
 			else if (option == "--asset-directory")
@@ -77,7 +87,8 @@ namespace voxel_demo
 				return options;
 			}
 		}
-		options.valid = RuntimeLayoutOptionsAreCompatible(options);
+		options.valid = RuntimeLayoutOptionsAreCompatible(options) &&
+			ResizeSmokeOptionsAreCompatible(options);
 		return options;
 	}
 }

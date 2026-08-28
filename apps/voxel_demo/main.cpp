@@ -1,5 +1,6 @@
 #include "DemoCommandLine.h"
 #include "DemoConfig.h"
+#include "ResizeSmokeController.h"
 
 #include <filesystem>
 #include <string>
@@ -38,12 +39,21 @@ int main(int argc, char** argv)
 				std::filesystem::path{ std::string{ options.vulkan_shader_directory } });
 		config.WithRuntimeLayout(std::move(layout));
 	}
-	if (options.smoke_frame_limit > 0)
+	voxel_demo::ResizeSmokeController resize_smoke{
+		options.resize_smoke_frame, options.smoke_frame_limit };
+	if (options.resize_smoke_frame > 0)
+	{
+		config.HideDebugOverlay().OnUpdate(
+			[&resize_smoke](voxel::FrameContext& frame) { resize_smoke.OnFrame(frame); });
+	}
+	else if (options.smoke_frame_limit > 0)
 	{
 		config.HideDebugOverlay().OnUpdate(
 			[frame_limit = options.smoke_frame_limit, frame_count = 0](voxel::FrameContext& frame) mutable {
 				if (++frame_count >= frame_limit) frame.commands.RequestClose();
 			});
 	}
-	return voxel::Run(std::move(config));
+	const int runtime_result = voxel::Run(std::move(config));
+	if (runtime_result != 0 || options.resize_smoke_frame == 0) return runtime_result;
+	return resize_smoke.CompletedSuccessfully() ? 0 : 3;
 }

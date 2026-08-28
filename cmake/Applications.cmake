@@ -7,6 +7,8 @@ set(VE_DEMO_SUPPORT_SOURCES
 )
 set(VE_DEMO_SOURCES
     "${VE_DEMO_ROOT}/main.cpp"
+    "${VE_DEMO_ROOT}/ResizeSmokeController.cpp"
+    "${VE_DEMO_ROOT}/ResizeSmokeController.h"
 )
 
 add_library(voxel_demo_support STATIC ${VE_DEMO_SUPPORT_SOURCES})
@@ -18,6 +20,9 @@ set_target_properties(voxel_demo_support PROPERTIES FOLDER "Applications")
 add_executable(voxel_demo ${VE_DEMO_SOURCES} "${VE_SOURCE_ROOT}/app/main.rc")
 target_include_directories(voxel_demo PRIVATE "${VE_DEMO_ROOT}")
 target_link_libraries(voxel_demo PRIVATE ve_project_options voxel_demo_support)
+if (WIN32)
+    target_link_libraries(voxel_demo PRIVATE User32)
+endif()
 ve_enable_common_pch(voxel_demo)
 set_target_properties(voxel_demo PROPERTIES FOLDER "Applications")
 source_group(TREE "${VE_DEMO_ROOT}" FILES ${VE_DEMO_SUPPORT_SOURCES} ${VE_DEMO_SOURCES})
