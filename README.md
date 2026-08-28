@@ -33,6 +33,11 @@ cmake --preset windows-visual-studio
 cmake --build --preset windows-visual-studio-strict
 ```
 
+The first configure downloads the checksum-pinned ImGui 1.91.9 sources for
+the Vulkan backend. This works with vcpkg binary-cache restores and does not
+require vcpkg's temporary buildtrees. The backend still uses Volk; update its
+source pin together with the ImGui version in the vcpkg baseline.
+
 Run the single demo with Vulkan explicitly:
 
 ```powershell
