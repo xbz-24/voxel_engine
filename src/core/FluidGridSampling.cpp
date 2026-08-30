@@ -10,7 +10,7 @@ namespace ve::simulation
 		/** @param value Floating point coordinate. @param maximum Largest valid coordinate. @return Clamped coordinate. */
 		float ClampCoordinate(float value, int maximum) noexcept
 		{
-			return std::clamp(value, 0.0f, static_cast<float>(maximum));
+			return std::clamp(value, 0.0f, ve::core::ToFloat(maximum));
 		}
 	}
 
@@ -19,12 +19,12 @@ namespace ve::simulation
 	{
 		const float sample_x = ClampCoordinate(position.x, width_ - 1);
 		const float sample_y = ClampCoordinate(position.y, height_ - 1);
-		const int left_cell_x = static_cast<int>(sample_x);
-		const int lower_cell_y = static_cast<int>(sample_y);
+		const int left_cell_x = ve::core::ToInt(sample_x);
+		const int lower_cell_y = ve::core::ToInt(sample_y);
 		const int right_cell_x = left_cell_x + 1;
 		const int upper_cell_y = lower_cell_y + 1;
-		const float horizontal_weight = sample_x - static_cast<float>(left_cell_x);
-		const float vertical_weight = sample_y - static_cast<float>(lower_cell_y);
+		const float horizontal_weight = sample_x - ve::core::ToFloat(left_cell_x);
+		const float vertical_weight = sample_y - ve::core::ToFloat(lower_cell_y);
 		const float lower_density = std::lerp(
 			DensityAt(left_cell_x, lower_cell_y),
 			DensityAt(right_cell_x, lower_cell_y),
@@ -41,12 +41,12 @@ namespace ve::simulation
 	{
 		const float sample_x = ClampCoordinate(position.x, width_ - 1);
 		const float sample_y = ClampCoordinate(position.y, height_ - 1);
-		const int left_cell_x = static_cast<int>(sample_x);
-		const int lower_cell_y = static_cast<int>(sample_y);
+		const int left_cell_x = ve::core::ToInt(sample_x);
+		const int lower_cell_y = ve::core::ToInt(sample_y);
 		const int right_cell_x = left_cell_x + 1;
 		const int upper_cell_y = lower_cell_y + 1;
-		const float horizontal_weight = sample_x - static_cast<float>(left_cell_x);
-		const float vertical_weight = sample_y - static_cast<float>(lower_cell_y);
+		const float horizontal_weight = sample_x - ve::core::ToFloat(left_cell_x);
+		const float vertical_weight = sample_y - ve::core::ToFloat(lower_cell_y);
 		const glm::vec2 lower_velocity = glm::mix(
 			VelocityAt(left_cell_x, lower_cell_y),
 			VelocityAt(right_cell_x, lower_cell_y),

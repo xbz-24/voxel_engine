@@ -1,24 +1,14 @@
 #pragma once
 
 #include "CoreTypes.h"
+#include "GraphicsResourceHandle.h"
 
 #include <cstdint>
 #include <optional>
+#include <utility>
 
 namespace ve::rendering
 {
-	struct GraphicsResourceHandle
-	{
-		std::uint32_t index = UINT32_MAX;
-		std::uint32_t generation = 0;
-
-		/** @return True when the handle points at a possible slot. */
-		[[nodiscard]] bool IsValid() const noexcept { return index != UINT32_MAX; }
-
-		/** @param other Handle to compare. @return True when both refer to the same generation. */
-		[[nodiscard]] bool operator==(const GraphicsResourceHandle& other) const noexcept = default;
-	};
-
 	template <typename Resource>
 	class GraphicsResourcePool
 	{
@@ -34,7 +24,7 @@ namespace ve::rendering
 		{
 			const std::uint32_t slot_index = AcquireSlot();
 			Slot& slot = slots_[slot_index];
-			slot.resource.emplace(ve::core::Move(resource));
+			slot.resource.emplace(std::move(resource));
 			slot.is_alive = true;
 			live_count_++;
 			return { slot_index, slot.generation };
@@ -90,7 +80,7 @@ namespace ve::rendering
 			if (free_slots_.empty())
 			{
 				slots_.push_back(Slot{});
-				return static_cast<std::uint32_t>(slots_.size() - 1U);
+				return ve::core::ToU32(slots_.size() - 1U);
 			}
 			const std::uint32_t slot_index = free_slots_.back();
 			free_slots_.pop_back();

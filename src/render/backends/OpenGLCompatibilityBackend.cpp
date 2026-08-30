@@ -1,5 +1,7 @@
 #include "OpenGLCompatibilityBackend.h"
 
+#include "OpenGLIndexedTriangleMesh.h"
+
 #include <GL/glew.h>
 
 namespace ve::rendering
@@ -34,6 +36,14 @@ namespace ve::rendering
 	std::unique_ptr<RenderMesh> OpenGLCompatibilityBackend::CreateMeshResource() const
 	{
 		return CreateOpenGLRenderMesh();
+	}
+
+	std::unique_ptr<IndexedTriangleMesh> OpenGLCompatibilityBackend::CreateIndexedTriangleMesh(
+		const IndexedTriangleMeshDescription& description) const
+	{
+		auto mesh = std::make_unique<OpenGLIndexedTriangleMesh>();
+		if (!mesh->Upload(description)) return nullptr;
+		return mesh;
 	}
 
 	const ComputeDispatcher* OpenGLCompatibilityBackend::Compute() const noexcept

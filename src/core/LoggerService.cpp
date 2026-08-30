@@ -1,7 +1,5 @@
 #include "LoggerService.h"
 
-#include "LogFormatter.h"
-
 #include <utility>
 
 namespace ve::log
@@ -18,10 +16,10 @@ namespace ve::log
 		backend_.SetMinimumLevel(level);
 	}
 
-	void LoggerService::ApplyConfiguration(const LoggerConfiguration& configuration)
+	bool LoggerService::ApplyConfiguration(const LoggerConfiguration& configuration)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
-		backend_.ApplyConfiguration(configuration);
+		return backend_.ApplyConfiguration(configuration);
 	}
 
 	Level LoggerService::MinimumLevel()
@@ -44,8 +42,12 @@ namespace ve::log
 
 	void LoggerService::SetCallback(std::function<void(std::string)> callback)
 	{
-		std::lock_guard<std::mutex> lock(mutex_);
-		callback_ = std::move(callback);
+		std::shared_ptr<Callback> replacement;
+		if (callback) replacement = std::make_shared<Callback>(std::move(callback));
+		{
+			std::lock_guard<std::mutex> lock(mutex_);
+			callback_.swap(replacement);
+		}
 	}
 
 	void LoggerService::ClearFileOutput()
@@ -54,33 +56,14 @@ namespace ve::log
 		backend_.ClearFileOutput();
 	}
 
-	void LoggerService::Write(Level level, std::string_view category, std::string_view message, SourceLocation source)
+	void LoggerService::ResetRuntimeState()
 	{
-		Write(level, category, message, std::span<const Field>{}, source);
-	}
-
-	void LoggerService::Write(
-		Level level,
-		std::string_view category,
-		std::string_view message,
-		std::span<const Field> fields,
-		SourceLocation source)
-	{
-		const Record record{ level, category, message, source, std::chrono::system_clock::now(), std::this_thread::get_id(), fields };
-		std::function<void(std::string)> callback;
-		std::string formatted_record;
+		std::shared_ptr<Callback> detached_callback;
 		{
 			std::lock_guard<std::mutex> lock(mutex_);
-			backend_.Write(record);
-			callback = callback_;
-			if (callback)
-			{
-				formatted_record = FormatRecord(record);
-			}
-		}
-		if (callback)
-		{
-			callback(std::move(formatted_record));
+			detached_callback.swap(callback_);
+			backend_.ResetRuntimeState();
 		}
 	}
+
 }

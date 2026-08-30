@@ -20,24 +20,6 @@ namespace ve::tasks
 	}
 
 	/**
-	 * Runs tasks until the queue is stopped.
-	 *
-	 * @param stopToken Cooperative stop signal owned by the worker thread.
-	 */
-	void BackgroundTaskQueue::RunWorker(std::stop_token stopToken)
-	{
-		while (!stopToken.stop_requested())
-		{
-			QueuedBackgroundTask queuedTask;
-			if (!WaitForTask(stopToken, queuedTask)) return;
-			const std::chrono::steady_clock::time_point taskStartTime = std::chrono::steady_clock::now();
-			RecordTaskStarted(taskStartTime - queuedTask.enqueuedAt);
-			queuedTask.task();
-			RecordTaskCompleted(std::chrono::steady_clock::now() - taskStartTime);
-		}
-	}
-
-	/**
 	 * Waits for one task and moves it out of the queue.
 	 *
 	 * @param stopToken Cooperative stop signal owned by the worker thread.
@@ -73,14 +55,6 @@ namespace ve::tasks
 		_stats.startedTaskCount++;
 		const std::chrono::nanoseconds measuredQueueLatency = std::chrono::duration_cast<std::chrono::nanoseconds>(queueLatency);
 		_stats.longestQueueLatency = std::max(_stats.longestQueueLatency, measuredQueueLatency);
-	}
-
-	void BackgroundTaskQueue::RecordTaskCompleted(std::chrono::steady_clock::duration executionTime)
-	{
-		std::lock_guard<std::mutex> taskLock(_taskMutex);
-		_stats.completedTaskCount++;
-		const std::chrono::nanoseconds measuredExecutionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(executionTime);
-		_stats.longestExecutionTime = std::max(_stats.longestExecutionTime, measuredExecutionTime);
 	}
 
 	void BackgroundTaskQueue::RecordShutdownWait(std::chrono::steady_clock::duration shutdownWait)

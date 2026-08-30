@@ -1,39 +1,91 @@
 #include "NetworkTcpSocket.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include "NetworkTcpSocketAsio.h"
 
+#include <asio/post.hpp>
+
+#include <algorithm>
+#include <memory>
 #include <string>
+#include <system_error>
+#include <utility>
 
 namespace ve::network
 {
-	std::optional<TcpSocket> TcpSocket::Listen(const TcpListenSettings& listenSettings)
+	namespace
 	{
-		addrinfo addressHints{};
-		addressHints.ai_family = AF_INET;
-		addressHints.ai_socktype = SOCK_STREAM;
-		addressHints.ai_protocol = IPPROTO_TCP;
-		addressHints.ai_flags = AI_PASSIVE;
-		addrinfo* resolvedAddresses = nullptr;
-		const std::string portText = std::to_string(listenSettings.endpoint.port);
-		const char* hostName = listenSettings.endpoint.hostName.empty() ? nullptr : listenSettings.endpoint.hostName.c_str();
-		if (getaddrinfo(hostName, portText.c_str(), &addressHints, &resolvedAddresses) != 0) return std::nullopt;
-		SOCKET listenSocket = socket(resolvedAddresses->ai_family, resolvedAddresses->ai_socktype, resolvedAddresses->ai_protocol);
-		const bool bound = listenSocket != INVALID_SOCKET && bind(listenSocket, resolvedAddresses->ai_addr, static_cast<int>(resolvedAddresses->ai_addrlen)) == 0;
-		freeaddrinfo(resolvedAddresses);
-		if (!bound || listen(listenSocket, listenSettings.pendingConnectionBacklog) != 0)
+		struct AcceptOperationState
 		{
-			if (listenSocket != INVALID_SOCKET) closesocket(listenSocket);
-			return std::nullopt;
+			bool active = true;
+			std::error_code error;
+		};
+	}
+
+	std::optional<TcpSocket> TcpSocket::Listen(const TcpListenSettings& settings)
+	{
+		TcpSocket listening_socket;
+		std::error_code error;
+		asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), settings.endpoint.port);
+		if (!settings.endpoint.hostName.empty())
+		{
+			asio::ip::tcp::resolver resolver(listening_socket.impl_->io_context);
+			const auto endpoints = resolver.resolve(
+				settings.endpoint.hostName,
+				std::to_string(settings.endpoint.port),
+				error);
+			if (error || endpoints.empty()) return std::nullopt;
+			endpoint = endpoints.begin()->endpoint();
 		}
-		return TcpSocket(static_cast<std::uintptr_t>(listenSocket));
+
+		auto& acceptor = listening_socket.impl_->acceptor;
+		acceptor.open(endpoint.protocol(), error);
+		if (error) return std::nullopt;
+		acceptor.set_option(asio::socket_base::reuse_address(true), error);
+		if (error) return std::nullopt;
+		acceptor.bind(endpoint, error);
+		if (error) return std::nullopt;
+		acceptor.listen(std::max(settings.pendingConnectionBacklog, 1), error);
+		if (error) return std::nullopt;
+		listening_socket.impl_->open = true;
+		return std::optional<TcpSocket>{ std::move(listening_socket) };
 	}
 
 	std::optional<TcpSocket> TcpSocket::Accept() const
 	{
-		const SOCKET acceptedSocket = accept(static_cast<SOCKET>(_nativeSocketHandle), nullptr, nullptr);
-		if (acceptedSocket == INVALID_SOCKET) return std::nullopt;
-		return TcpSocket(static_cast<std::uintptr_t>(acceptedSocket));
+		return Accept(std::stop_token{});
+	}
+
+	std::optional<TcpSocket> TcpSocket::Accept(std::stop_token stop_token) const
+	{
+		if (!impl_ || !impl_->acceptor.is_open()) return std::nullopt;
+		TcpSocket accepted_socket;
+		auto state = std::make_shared<AcceptOperationState>();
+		impl_->io_context.restart();
+		impl_->acceptor.async_accept(accepted_socket.impl_->socket,
+			[state](const std::error_code& error)
+			{
+				state->error = error;
+				state->active = false;
+			});
+		std::stop_callback cancellation(stop_token, [implementation = impl_.get(), state]() noexcept
+		{
+			try
+			{
+				asio::post(implementation->io_context, [implementation, state]() noexcept
+				{
+					if (!state->active) return;
+					std::error_code ignored_error;
+					implementation->acceptor.cancel(ignored_error);
+				});
+			}
+			catch (...) {}
+		});
+		impl_->io_context.run();
+		if (state->error) return std::nullopt;
+		std::error_code error;
+		accepted_socket.impl_->socket.non_blocking(true, error);
+		if (!error) accepted_socket.impl_->open = true;
+		return error ? std::nullopt :
+			std::optional<TcpSocket>{ std::move(accepted_socket) };
 	}
 }

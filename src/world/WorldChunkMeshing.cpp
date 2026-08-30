@@ -21,7 +21,10 @@ namespace ve::world
 			return std::nullopt;
 		}
 
-		return ve::world::mesh::CaptureChunkMeshBuildRequest(*chunk, FindNeighborChunks(chunkX, chunkZ));
+		return ve::world::mesh::CaptureChunkMeshBuildRequest(
+			*chunk,
+			FindNeighborChunks(chunkX, chunkZ),
+			_chunkStorageRevision);
 	}
 
 	/**
@@ -32,6 +35,11 @@ namespace ve::world
 	 */
 	bool World::TryUploadChunkMeshOutput(ve::world::mesh::ChunkMeshBuildOutput output)
 	{
+		if (output.chunkStorageRevision != _chunkStorageRevision)
+		{
+			return false;
+		}
+
 		Chunk* chunk = FindChunk(output.chunkX, output.chunkZ);
 		if (!chunk)
 		{

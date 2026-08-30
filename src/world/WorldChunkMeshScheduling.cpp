@@ -1,11 +1,12 @@
 #include "World.h"
 
 #include "ChunkTerrain.h"
-#include "WorldCoordinates.h"
+#include "ChunkMeshFailureRecovery.h"
+#include "CoreTypes.h"
+#include "WorldGridMath.h"
 #include "WorldViewRange.h"
 
 #include <algorithm>
-#include <cmath>
 #include <optional>
 #include <vector>
 #include <utility>
@@ -25,7 +26,7 @@ namespace ve::world
 
 		int CameraChunkCoordinate(float coordinate) noexcept
 		{
-			return coordinates::FloorDiv(static_cast<int>(std::floor(coordinate)), terrain::ChunkWidth);
+			return grid::ChunkCoordinateFromWorld(coordinate, terrain::ChunkWidth);
 		}
 	}
 
@@ -33,6 +34,7 @@ namespace ve::world
 	void World::UploadReadyChunkMeshes(ve::world::mesh::ChunkMeshPipeline& meshPipeline)
 	{
 		meshPipeline.CollectCompletedBuilds();
+		if (meshPipeline.ConsumeBuildFailureRecoveryRequest()) ve::world::mesh::CancelPendingChunkMeshReservations(_chunks);
 		std::vector<ve::world::mesh::ChunkMeshBuildOutput> uploadBacklog = meshPipeline.DrainUploadBacklog();
 		for (ve::world::mesh::ChunkMeshBuildOutput& output : uploadBacklog)
 		{
@@ -46,9 +48,9 @@ namespace ve::world
 		const ChunkViewRange range = BuildChunkViewRange(cameraPosition, _worldSize, render_distance_chunks);
 		if (!HasChunks(range)) return;
 		const int cameraChunkCoordinateX = CameraChunkCoordinate(cameraPosition.x);
-		const int cameraChunkCoordinateZ = CameraChunkCoordinate(cameraPosition.z);
+		const int cameraChunkCoordinateZ = grid::ChunkZFromWorld(cameraPosition.z);
 		std::vector<PrioritizedChunk> candidates;
-		candidates.reserve(static_cast<std::size_t>((range.maxChunkX - range.minChunkX + 1) * (range.maxChunkZ - range.minChunkZ + 1)));
+		candidates.reserve(ve::core::ToIndex((range.maxChunkX - range.minChunkX + 1) * (range.maxChunkZ - range.minChunkZ + 1)));
 		for (int chunkX = range.minChunkX; chunkX <= range.maxChunkX; chunkX++)
 		{
 			for (int chunkZ = range.minChunkZ; chunkZ <= range.maxChunkZ; chunkZ++)

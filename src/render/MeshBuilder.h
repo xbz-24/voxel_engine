@@ -1,8 +1,9 @@
 #pragma once
 
+#include "CoreTypes.h"
 #include "GraphicsMesh.h"
+#include "MeshBuilderCube.h"
 
-#include <array>
 #include <concepts>
 #include <glm/geometric.hpp>
 #include <utility>
@@ -15,12 +16,7 @@ namespace ve::rendering
 	public:
 		using Mesh = BasicIndexedMesh<VertexAllocator, IndexAllocator>;
 
-		/**
-		 * Creates a builder with default-constructed vector allocators.
-		 *
-		 * @tparam VertexAllocator Allocator type for vertex storage.
-		 * @tparam IndexAllocator Allocator type for index storage.
-		 */
+		/** Creates a builder with default-constructed vector allocators. */
 		BasicMeshBuilder()
 			requires std::default_initializable<VertexAllocator> && std::default_initializable<IndexAllocator>
 			= default;
@@ -64,8 +60,11 @@ namespace ve::rendering
 			return *this;
 		}
 
-		/** @param center Cube center. @param size Cube size by axis. @param color Vertex color. @return This builder. */
-		BasicMeshBuilder& AddCube(glm::vec3 center, glm::vec3 size, ColorRgba color = {});
+		/** Adds an axis-aligned cube and returns this builder. */
+		BasicMeshBuilder& AddCube(glm::vec3 center, glm::vec3 size, ColorRgba color = {})
+		{
+			return detail::AddCube(*this, center, size, color);
+		}
 
 		/** @return Mesh data moved out of the builder. */
 		[[nodiscard]] Mesh Build() && noexcept { return std::move(mesh_); }
@@ -75,7 +74,7 @@ namespace ve::rendering
 		std::uint32_t AddVertex(glm::vec3 position, glm::vec3 normal, ColorRgba color)
 		{
 			mesh_.vertices.push_back(Vertex3D{ position, normal, glm::vec2{ 0.0f }, color });
-			return static_cast<std::uint32_t>(mesh_.vertices.size() - 1U);
+			return ve::core::ToU32(mesh_.vertices.size() - 1U);
 		}
 
 		/** @param first First index. @param second Second index. @param third Third index. */
@@ -98,5 +97,3 @@ namespace ve::rendering
 
 	using MeshBuilder = BasicMeshBuilder<>;
 }
-
-#include "MeshBuilderCube.inl"

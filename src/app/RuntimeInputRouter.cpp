@@ -57,8 +57,7 @@ namespace ve::engine
 
 	void RuntimeInputRouter::CursorPositionCallback(GLFWwindow* window, double current_cursor_x, double current_cursor_y) noexcept
 	{
-		RuntimeInputRouter* input_router =
-			static_cast<RuntimeInputRouter*>(Window::GetCallbackUserData(window));
+		RuntimeInputRouter* input_router = Window::GetCallbackUserDataAs<RuntimeInputRouter>(window);
 		if (input_router != nullptr)
 		{
 			(void)input_router->HandleCursorPosition(current_cursor_x, current_cursor_y);

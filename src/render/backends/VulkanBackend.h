@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderBackend.h"
+#include "VulkanBackendInitialization.h"
 #include "VulkanBackendSettings.h"
 #include "VulkanContext.h"
 #include "VulkanDebugLabels.h"
@@ -10,47 +11,10 @@
 #include "VulkanSurface.h"
 #include "VulkanSwapchain.h"
 
-#include <string>
-#include <utility>
-
 namespace ve::engine { class Window; }
 
 namespace ve::rendering
 {
-	enum class VulkanBackendInitializationFailure
-	{
-		None,
-		ContextCreationFailed,
-		SurfaceCreationFailed,
-		PhysicalDeviceSelectionFailed,
-		LogicalDeviceCreationFailed,
-		AllocatorCreationFailed,
-		SwapchainCreationFailed
-	};
-
-	struct VulkanBackendInitializationResult
-	{
-		VulkanBackendInitializationFailure failure = VulkanBackendInitializationFailure::None;
-		std::string message;
-
-		[[nodiscard]] static VulkanBackendInitializationResult Success()
-		{
-			return {};
-		}
-
-		[[nodiscard]] static VulkanBackendInitializationResult Failure(
-			VulkanBackendInitializationFailure failure,
-			std::string message)
-		{
-			return VulkanBackendInitializationResult{ failure, std::move(message) };
-		}
-
-		[[nodiscard]] explicit operator bool() const noexcept
-		{
-			return failure == VulkanBackendInitializationFailure::None;
-		}
-	};
-
 	/** High-level object that owns Vulkan startup state for the renderer. */
 	class VulkanBackend final : public RenderBackend
 	{
@@ -65,6 +29,9 @@ namespace ve::rendering
 		[[nodiscard]] VulkanBackendInitializationResult InitializeDetailed(
 			const VulkanBackendSettings& settings,
 			ve::engine::Window& window);
+
+		/** Recreates the swapchain after its external dependent resources are released. */
+		[[nodiscard]] bool RecreateSwapchain(int width, int height, bool enable_vsync);
 
 		/** Releases all Vulkan backend state. */
 		void Release();
@@ -106,6 +73,7 @@ namespace ve::rendering
 		VulkanDevice device_;
 		VulkanMemoryAllocator allocator_;
 		VulkanSwapchain swapchain_;
+		VulkanSwapchainSettings swapchain_settings_{};
 		VulkanDebugLabels debug_labels_;
 	};
 }

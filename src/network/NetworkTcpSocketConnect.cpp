@@ -1,30 +1,30 @@
 #include "NetworkTcpSocket.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include "NetworkTcpSocketAsio.h"
+
+#include <asio/connect.hpp>
 
 #include <string>
+#include <system_error>
+#include <utility>
 
 namespace ve::network
 {
-	std::optional<TcpSocket> TcpSocket::Connect(const NetworkEndpoint& remoteEndpoint)
+	std::optional<TcpSocket> TcpSocket::Connect(const NetworkEndpoint& remote_endpoint)
 	{
-		addrinfo addressHints{};
-		addressHints.ai_family = AF_INET;
-		addressHints.ai_socktype = SOCK_STREAM;
-		addressHints.ai_protocol = IPPROTO_TCP;
-		addrinfo* resolvedAddresses = nullptr;
-		const std::string portText = std::to_string(remoteEndpoint.port);
-		if (getaddrinfo(remoteEndpoint.hostName.c_str(), portText.c_str(), &addressHints, &resolvedAddresses) != 0) return std::nullopt;
-		SOCKET connectedSocket = socket(resolvedAddresses->ai_family, resolvedAddresses->ai_socktype, resolvedAddresses->ai_protocol);
-		if (connectedSocket != INVALID_SOCKET && connect(connectedSocket, resolvedAddresses->ai_addr, static_cast<int>(resolvedAddresses->ai_addrlen)) != 0)
-		{
-			closesocket(connectedSocket);
-			connectedSocket = INVALID_SOCKET;
-		}
-		freeaddrinfo(resolvedAddresses);
-		if (connectedSocket == INVALID_SOCKET) return std::nullopt;
-		return TcpSocket(static_cast<std::uintptr_t>(connectedSocket));
+		TcpSocket connected_socket;
+		asio::ip::tcp::resolver resolver(connected_socket.impl_->io_context);
+		std::error_code error;
+		const auto endpoints = resolver.resolve(
+			remote_endpoint.hostName,
+			std::to_string(remote_endpoint.port),
+			error);
+		if (error) return std::nullopt;
+		asio::connect(connected_socket.impl_->socket, endpoints, error);
+		if (error) return std::nullopt;
+		connected_socket.impl_->socket.non_blocking(true, error);
+		if (error) return std::nullopt;
+		connected_socket.impl_->open = true;
+		return std::optional<TcpSocket>{ std::move(connected_socket) };
 	}
 }

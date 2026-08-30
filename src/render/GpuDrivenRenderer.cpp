@@ -1,5 +1,7 @@
 #include "GpuDrivenRenderer.h"
 
+#include "CoreTypes.h"
+
 namespace ve::rendering
 {
 	/// Uploads commands to the GPU indirect draw buffer.
@@ -15,7 +17,7 @@ namespace ve::rendering
 		if (draw_buffer_.DeviceBuffer() != VK_NULL_HANDLE)
 		{
 			vkCmdDrawIndexedIndirect(command_buffer, draw_buffer_.DeviceBuffer(), 0,
-				static_cast<std::uint32_t>(draw_buffer_.CommandCount()), sizeof(VkDrawIndexedIndirectCommand));
+				ve::core::ToU32(draw_buffer_.CommandCount()), sizeof(VkDrawIndexedIndirectCommand));
 			return;
 		}
 		for (const VkDrawIndexedIndirectCommand& command : draw_buffer_.Commands())

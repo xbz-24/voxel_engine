@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NetworkSerialization.h"
-#include "NetworkSocketLibrary.h"
 #include "NetworkTcpSocket.h"
 #include "ThreadSafeMessageQueue.h"
 
@@ -69,7 +68,6 @@ namespace ve::network
 		bool SendMessage(NetworkMessage message);
 		void ReceiveMessagesUntilDisconnected(std::stop_token stopToken, std::shared_ptr<TcpSocket> receiveSocket);
 
-		SocketLibrary _socketLibrary;
 		std::shared_ptr<TcpSocket> _connectedSocket;
 		std::jthread _receiveThread;
 		std::mutex _sendMutex;

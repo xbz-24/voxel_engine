@@ -5,14 +5,14 @@ namespace ve::physics
 	/// Inserts one proxy into a node or child node.
 	void PhysicsOctree::InsertIntoNode(int node_index, const PhysicsProxy& proxy)
 	{
-		OctreeNode& node = nodes_[static_cast<ve::core::Index>(node_index)];
+		OctreeNode& node = nodes_[ve::core::ToIndex(node_index)];
 		if (node.depth >= max_depth_)
 		{
 			node.proxies.push_back(proxy);
 			return;
 		}
 		const int child_slot = ChildSlotForPoint(node, proxy.bounds.Center());
-		const ve::core::Index child_index = static_cast<ve::core::Index>(child_slot);
+		const ve::core::Index child_index = ve::core::ToIndex(child_slot);
 		if (node.children[child_index] < 0)
 		{
 			node.children[child_index] = CreateNode(ChildBounds(node, child_slot), node.depth + 1);

@@ -1,9 +1,32 @@
 #include "VulkanFrameOrchestratorCommands.h"
 
+#include "CoreTypes.h"
 #include "VulkanImGuiOverlay.h"
 
 namespace ve::rendering
 {
+	namespace
+	{
+		[[nodiscard]] std::int32_t ImageOffsetCoordinate(std::uint32_t coordinate) noexcept
+		{
+			return ve::core::NumericCast<std::int32_t>(coordinate);
+		}
+
+		[[nodiscard]] VkOffset3D ImageOffset(VkExtent2D extent) noexcept
+		{
+			return {
+				ImageOffsetCoordinate(extent.width),
+				ImageOffsetCoordinate(extent.height),
+				1
+			};
+		}
+
+		[[nodiscard]] VulkanImGuiOverlay& ImGuiOverlayFromUserData(void* user_data) noexcept
+		{
+			return *static_cast<VulkanImGuiOverlay*>(user_data);
+		}
+	}
+
 	VkImageSubresourceRange ColorSubresourceRange() noexcept
 	{
 		VkImageSubresourceRange range{};
@@ -36,24 +59,16 @@ namespace ve::rendering
 		VkImageBlit blit{};
 		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		blit.srcSubresource.layerCount = 1;
-		blit.srcOffsets[1] = {
-			static_cast<std::int32_t>(source_extent.width),
-			static_cast<std::int32_t>(source_extent.height),
-			1
-		};
+		blit.srcOffsets[1] = ImageOffset(source_extent);
 		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		blit.dstSubresource.layerCount = 1;
-		blit.dstOffsets[1] = {
-			static_cast<std::int32_t>(destination_extent.width),
-			static_cast<std::int32_t>(destination_extent.height),
-			1
-		};
+		blit.dstOffsets[1] = ImageOffset(destination_extent);
 		return blit;
 	}
 
 	void RecordImguiOverlay(VkCommandBuffer command_buffer, void* user_data)
 	{
 		if (user_data == nullptr) return;
-		static_cast<VulkanImGuiOverlay*>(user_data)->Record(command_buffer);
+		ImGuiOverlayFromUserData(user_data).Record(command_buffer);
 	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BlockSolidColorPalette.h"
+#include "CoreTypes.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -9,13 +10,13 @@ namespace ve::blocks
 {
 	[[nodiscard]] inline float SolidColorHash01(int x, int y, int z) noexcept
 	{
-		std::uint32_t value = static_cast<std::uint32_t>(x) * 0x9E3779B9u;
-		value ^= static_cast<std::uint32_t>(y) * 0x85EBCA6Bu;
-		value ^= static_cast<std::uint32_t>(z) * 0xC2B2AE35u;
+		std::uint32_t value = ve::core::ToU32(x) * 0x9E3779B9u;
+		value ^= ve::core::ToU32(y) * 0x85EBCA6Bu;
+		value ^= ve::core::ToU32(z) * 0xC2B2AE35u;
 		value ^= value >> 16u;
 		value *= 0x7FEB352Du;
 		value ^= value >> 15u;
-		return static_cast<float>(value & 0xFFFFu) / 65535.0f;
+		return ve::core::ToFloat(value & 0xFFFFu) / 65535.0f;
 	}
 
 	[[nodiscard]] inline SolidBlockColor JitteredSolidColor(BlockId block, int x, int y, int z) noexcept

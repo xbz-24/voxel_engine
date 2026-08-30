@@ -1,7 +1,6 @@
 #pragma once
 
-#include "NetworkSocketLibrary.h"
-#include "NetworkTcpSocket.h"
+#include "MultiplayerServerClientWorker.h"
 #include "ThreadSafeMessageQueue.h"
 
 #include <atomic>
@@ -17,6 +16,12 @@ namespace ve::network
 	{
 		std::uint32_t connectionId;
 		NetworkMessage message;
+	};
+
+	struct MultiplayerServerStats
+	{
+		std::size_t activeClientCount = 0;
+		std::size_t retainedClientWorkerCount = 0;
 	};
 
 	class MultiplayerServer
@@ -65,24 +70,22 @@ namespace ve::network
 		 */
 		std::vector<MultiplayerInboundMessage> DrainIncomingMessages();
 
-	private:
-		struct ConnectedClient
-		{
-			std::uint32_t connectionId;
-			std::shared_ptr<TcpSocket> socket;
-			std::uint32_t nextOutboundSequenceNumber = 1;
-		};
-		void AcceptClientsUntilStopped(std::stop_token stopToken);
-		void ReceiveClientMessages(std::stop_token stopToken, std::uint32_t connectionId, std::shared_ptr<TcpSocket> clientSocket);
+		/** @return A synchronized snapshot of active and retained client workers. */
+		[[nodiscard]] MultiplayerServerStats Stats() const;
 
-		SocketLibrary _socketLibrary;
+	private:
+		void AcceptClientsUntilStopped(std::stop_token stopToken);
+		void ReceiveClientMessages(
+			std::stop_token stopToken, MultiplayerServerClientWorker& clientWorker);
+		void ReapFinishedClientWorkers();
+
 		std::shared_ptr<TcpSocket> _listeningSocket;
-		std::vector<ConnectedClient> _connectedClients;
-		std::vector<std::jthread> _clientThreads;
+		std::vector<std::unique_ptr<MultiplayerServerClientWorker>> _clientWorkers;
 		std::jthread _acceptThread;
-		std::mutex _clientsMutex;
+		mutable std::mutex _clientsMutex;
 		std::atomic_uint32_t _nextConnectionId = 1;
 		std::size_t _maxConnectedClients = 8;
+		std::stop_source _lifecycleStopSource;
 		ThreadSafeMessageQueue<MultiplayerInboundMessage> _incomingMessages;
 	};
 }

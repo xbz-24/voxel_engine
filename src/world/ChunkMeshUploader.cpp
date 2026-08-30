@@ -17,6 +17,11 @@ namespace ve::world::mesh
 		{
 			return false;
 		}
+		if (!output.buildSucceeded)
+		{
+			chunk.CancelMeshBuildReservation();
+			return false;
+		}
 
 		chunk.UploadMesh(std::move(output.mesh));
 		return true;

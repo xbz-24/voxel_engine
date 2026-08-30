@@ -1,5 +1,7 @@
 #include "VulkanGpuChunkRenderer.h"
 
+#include "CoreTypes.h"
+
 #include <fstream>
 #include <vector>
 
@@ -13,13 +15,13 @@ namespace ve::rendering
 			if (!file) return {};
 			const std::streamsize size = file.tellg();
 			if (size <= 0) return {};
-			std::vector<char> bytes(static_cast<std::size_t>(size));
+			std::vector<char> bytes(ve::core::ToIndex(size));
 			file.seekg(0);
 			file.read(bytes.data(), size);
 			return bytes;
 		}
 	}
-	VkShaderModule VulkanGpuChunkRenderer::CreateShaderModule(const std::filesystem::path& path) const
+	VkShaderModule VulkanGpuChunkRendererResourceOperations::CreateShaderModule(const std::filesystem::path& path) const
 	{
 		const std::vector<char> code = ReadBinaryFile(path);
 		if (code.empty() || code.size() % sizeof(std::uint32_t) != 0u) return VK_NULL_HANDLE;

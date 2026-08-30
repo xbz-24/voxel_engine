@@ -17,7 +17,7 @@ namespace ve::rendering
 			return false;
 		}
 
-		const std::uint32_t first_query = static_cast<std::uint32_t>(frame_index * 2u);
+		const std::uint32_t first_query = TimestampQueryIndex(frame_index);
 		if (timestamp_query_pool_ != VK_NULL_HANDLE)
 		{
 			vkCmdResetQueryPool(command_buffer, timestamp_query_pool_, first_query, 2u);

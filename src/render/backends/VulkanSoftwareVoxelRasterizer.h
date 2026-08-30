@@ -1,20 +1,14 @@
 #pragma once
 
-#include "VulkanDemoFrameTypes.h"
+#include "VulkanFrameTypes.h"
 #include "VulkanSoftwareVoxelRasterizerData.h"
+#include "VulkanSoftwareVoxelRasterizerState.h"
 
 #include <volk.h>
 
-#include <atomic>
-#include <condition_variable>
 #include <cstdint>
 #include <filesystem>
-#include <mutex>
 #include <span>
-#include <thread>
-#include <vector>
-
-#include <glm/glm.hpp>
 
 class Camera;
 
@@ -26,7 +20,7 @@ namespace ve::world
 namespace ve::rendering
 {
 	/** Temporary Vulkan render strategy that rasterizes voxel visibility on the CPU. */
-	class VulkanSoftwareVoxelRasterizer
+	class VulkanSoftwareVoxelRasterizer : private VulkanSoftwareVoxelRasterizerState
 	{
 	public:
 		using FrameWorldSnapshot = VulkanRasterFrameWorldSnapshot;
@@ -34,7 +28,7 @@ namespace ve::rendering
 		~VulkanSoftwareVoxelRasterizer();
 
 		void LoadBlockTextures(const std::filesystem::path& block_texture_directory);
-		[[nodiscard]] bool Resize(VkExtent2D extent, const VulkanDemoSettings& settings);
+		[[nodiscard]] bool Resize(VkExtent2D extent, const VulkanSoftwareRasterizerSettings& settings);
 		void Render(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void Release();
 
@@ -63,7 +57,7 @@ namespace ve::rendering
 		void UpscaleRenderPixels();
 		void ApplyVoxelOutlines(VkFormat format, float strength);
 		void DrawCrosshair(VkFormat format);
-		void DrawDemoOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
+		void DrawDebugOverlay(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawTuningPanel(const VulkanSoftwareVoxelRasterizerFrame& frame);
 		void DrawText(
 			const char* text,
@@ -85,31 +79,5 @@ namespace ve::rendering
 			std::uint32_t origin_x,
 			std::uint32_t origin_y,
 			std::uint32_t control_width);
-
-		VkExtent2D extent_{};
-		VkExtent2D render_extent_{};
-		std::vector<std::uint32_t> pixels_;
-		std::vector<std::uint32_t> render_pixels_;
-		std::vector<std::uint32_t> outline_pixels_;
-		std::vector<UpscaleRange> upscale_x_ranges_;
-		std::vector<UpscaleRange> upscale_y_ranges_;
-		std::vector<CachedSampleRay> ray_cache_;
-		FrameWorldSnapshot world_snapshot_;
-		glm::vec3 cached_forward_{ 0.0f, 0.0f, -1.0f };
-		glm::vec3 cached_right_{ 1.0f, 0.0f, 0.0f };
-		glm::vec3 cached_up_{ 0.0f, 1.0f, 0.0f };
-		std::uint32_t cached_sample_step_ = 0;
-		bool ray_cache_valid_ = false;
-		VulkanFrameTiming last_timing_{};
-		TextureLibrary texture_library_;
-		std::vector<std::jthread> workers_;
-		std::mutex work_mutex_;
-		std::condition_variable work_available_;
-		std::condition_variable work_complete_;
-		RasterWork current_work_{};
-		std::atomic_size_t next_sample_index_{ 0 };
-		std::uint64_t work_generation_ = 0;
-		std::size_t active_workers_ = 0;
-		bool stop_workers_ = false;
 	};
 }

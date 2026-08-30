@@ -5,7 +5,7 @@
     {
       "type": "default",
       "project": "CMakeLists.txt",
-      "projectTarget": "voxel_engine.exe",
+      "projectTarget": "voxel_demo.exe",
       "name": "Voxel Engine",
       "currentDir": "${workspaceRoot}",
       "debugType": "native"

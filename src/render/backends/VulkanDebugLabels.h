@@ -30,4 +30,7 @@ namespace ve::rendering
 
 	/** @param handle Dispatchable Vulkan handle. @return 64-bit debug-utils object handle. */
 	[[nodiscard]] std::uint64_t VulkanDispatchableObjectHandle(VkDevice handle) noexcept;
+
+	/** @param handle Graphics pipeline handle. @return 64-bit debug-utils object handle. */
+	[[nodiscard]] std::uint64_t VulkanPipelineObjectHandle(VkPipeline handle) noexcept;
 }

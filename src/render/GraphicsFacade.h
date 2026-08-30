@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreTypes.h"
 #include "RenderCommandExecutor.h"
 
 #include <array>
@@ -16,7 +17,7 @@ namespace ve::rendering
 		Count
 	};
 
-	inline constexpr std::size_t kGraphicsCommandLayerCount = static_cast<std::size_t>(GraphicsCommandLayer::Count);
+	inline constexpr std::size_t kGraphicsCommandLayerCount = ve::core::ToIndex(GraphicsCommandLayer::Count);
 
 	enum class GraphicsFacadeRole
 	{
@@ -78,7 +79,7 @@ namespace ve::rendering
 	private:
 		[[nodiscard]] static constexpr std::size_t LayerIndex(GraphicsCommandLayer layer) noexcept
 		{
-			return static_cast<std::size_t>(layer);
+			return ve::core::ToIndex(layer);
 		}
 
 		RenderCommandExecutor& executor_;

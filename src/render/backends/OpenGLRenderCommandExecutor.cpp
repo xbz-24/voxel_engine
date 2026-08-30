@@ -1,5 +1,6 @@
 #include "OpenGLRenderCommandExecutor.h"
 
+#include "OpenGLTypeConversions.h"
 #include "Render2D.h"
 #include "RenderPrimitives3D.h"
 
@@ -60,10 +61,10 @@ namespace ve::rendering
 			}
 			glEnable(GL_SCISSOR_TEST);
 			glScissor(
-				static_cast<GLint>(command.rect.x),
-				static_cast<GLint>(command.rect.y),
-				static_cast<GLsizei>(command.rect.width),
-				static_cast<GLsizei>(command.rect.height));
+				OpenGLInt(command.rect.x),
+				OpenGLInt(command.rect.y),
+				OpenGLCount(command.rect.width),
+				OpenGLCount(command.rect.height));
 		}
 	}
 

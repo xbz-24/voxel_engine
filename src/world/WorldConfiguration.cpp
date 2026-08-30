@@ -1,5 +1,7 @@
 #include "WorldConfiguration.h"
 
+#include "WorldGridMath.h"
+
 namespace ve::world
 {
 	/// Calculates chunk storage needed by a square world.
@@ -9,7 +11,7 @@ namespace ve::world
 		{
 			return 0;
 		}
-		return static_cast<std::size_t>(worldSizeChunks) * static_cast<std::size_t>(worldSizeChunks);
+		return grid::SquareChunkCapacity(worldSizeChunks);
 	}
 
 	/// Builds creation settings sized for a square world.

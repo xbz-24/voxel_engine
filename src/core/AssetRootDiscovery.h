@@ -7,4 +7,5 @@
 namespace ve::assets::detail
 {
 	[[nodiscard]] std::filesystem::path ResolveRootDirectory(const AssetPathResolveOptions& options);
+	[[nodiscard]] std::filesystem::path ResolveAssetDirectory(const AssetPathResolveOptions& options);
 }

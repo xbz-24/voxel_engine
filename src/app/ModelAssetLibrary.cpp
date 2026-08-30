@@ -3,6 +3,7 @@
 #include "AssimpModelImporter.h"
 
 #include <sstream>
+#include <utility>
 
 namespace ve::assets
 {
@@ -37,7 +38,7 @@ namespace ve::assets
 	/// Registers a custom importer for proprietary engine/game formats.
 	void ModelAssetLibrary::RegisterImporter(std::unique_ptr<IModelImporter> importer)
 	{
-		importers_.Register(ve::core::Move(importer));
+		importers_.Register(std::move(importer));
 		ClearCache();
 	}
 
@@ -56,8 +57,8 @@ namespace ve::assets
 			<< "|flip_uvs=" << options.flip_uvs
 			<< "|optimize_meshes=" << options.optimize_meshes
 			<< "|unit_scale=" << options.unit_scale
-			<< "|coordinate_system=" << static_cast<int>(options.coordinate_system)
-			<< "|material_policy=" << static_cast<int>(options.material_policy);
+			<< "|coordinate_system=" << ve::core::ToInt(options.coordinate_system)
+			<< "|material_policy=" << ve::core::ToInt(options.material_policy);
 		return stream.str();
 	}
 }

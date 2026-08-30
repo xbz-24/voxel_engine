@@ -21,8 +21,8 @@ namespace ve::log
 		/** Creates the backend with a console sink enabled by default. */
 		SpdlogLoggerBackend();
 
-		/** @param configuration Minimum level and sink configuration to apply. */
-		void ApplyConfiguration(const LoggerConfiguration& configuration);
+		/** @param configuration Minimum level and sink configuration to apply. @return True when all requested sinks opened. */
+		[[nodiscard]] bool ApplyConfiguration(const LoggerConfiguration& configuration);
 
 		/** @param level Lowest severity accepted by the backend. */
 		void SetMinimumLevel(Level level);
@@ -39,12 +39,15 @@ namespace ve::log
 		/** Removes the active file sink and keeps the other sinks alive. */
 		void ClearFileOutput();
 
+		/** Releases runtime-owned sinks and restores the default console logger. */
+		void ResetRuntimeState() noexcept;
+
 		/** @param record Structured log record to write through spdlog. */
 		void Write(const Record& record);
 
 	private:
-		/** Recreates the spdlog logger after a sink setting changed. */
-		void RebuildLogger();
+		/** Recreates sinks and reports whether a requested file sink opened. */
+		[[nodiscard]] bool RebuildLogger();
 
 		Level minimum_level_ = Level::Info;
 		bool console_enabled_ = true;

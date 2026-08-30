@@ -3,126 +3,52 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <cstdint>
-
-void ve::engine::Window::SetVSync(bool isEnabled)
+namespace ve::engine
 {
-	_isVSyncEnabled = isEnabled;
-	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapInterval(isEnabled ? 1 : 0);
-}
-
-bool ve::engine::Window::IsVSyncEnabled() const noexcept
-{
-	return _isVSyncEnabled;
-}
-
-void ve::engine::Window::Update()
-{
-	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwSwapBuffers(_window);
-	glfwPollEvents();
-}
-
-std::vector<ve::engine::WindowEvent> ve::engine::Window::DrainEvents()
-{
-	std::vector<WindowEvent> events;
-	events.swap(_eventQueue);
-	return events;
-}
-
-bool ve::engine::Window::ShouldClose() const
-{
-	return static_cast<bool>(glfwWindowShouldClose(_window));
-}
-
-void ve::engine::Window::Close()
-{
-	glfwSetWindowShouldClose(_window, GLFW_TRUE);
-}
-
-int ve::engine::Window::GetWidth() const
-{
-	return _width;
-}
-
-int ve::engine::Window::GetHeight() const
-{
-	return _height == 0 ? 1 : _height;
-}
-
-float ve::engine::Window::GetAspectRatio() const
-{
-	return static_cast<float>(_width) / static_cast<float>(GetHeight());
-}
-
-ve::engine::Window::WindowSize ve::engine::Window::ClientWindowSize() const noexcept
-{
-	WindowSize size{};
-	if (_window != nullptr)
+	void Window::MakeGraphicsContextCurrent() noexcept
 	{
-		glfwGetWindowSize(_window, &size.width, &size.height);
+		if (_window != nullptr &&
+			_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility)
+		{
+			glfwMakeContextCurrent(_window.get());
+		}
 	}
-	return size;
-}
 
-ve::engine::Window::CursorPosition ve::engine::Window::CurrentCursorPosition() const noexcept
-{
-	CursorPosition position{};
-	if (_window != nullptr)
+	void Window::SetVSync(bool isEnabled)
 	{
-		glfwGetCursorPos(_window, &position.x, &position.y);
+		_isVSyncEnabled = isEnabled;
+		if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility)
+		{
+			glfwSwapInterval(isEnabled ? 1 : 0);
+		}
 	}
-	return position;
-}
 
-ve::engine::Window::NativeWindowHandle ve::engine::Window::NativeHandle() const noexcept
-{
-	return NativeWindowHandle{ _window };
-}
-
-GLFWwindow* ve::engine::Window::GetNativeWindow() const
-{
-	return _window;
-}
-
-ve::rendering::GraphicsApi ve::engine::Window::GraphicsApi() const noexcept
-{
-	return _graphicsApi;
-}
-
-std::vector<const char*> ve::engine::Window::RequiredVulkanInstanceExtensions() const
-{
-	std::uint32_t extension_count = 0;
-	const char** extensions = glfwGetRequiredInstanceExtensions(&extension_count);
-	if (extensions == nullptr) return {};
-	return { extensions, extensions + extension_count };
-}
-
-void ve::engine::Window::SetCallbackUserData(void* userData)
-{
-	_callbackContext.userData = userData;
-}
-
-void* ve::engine::Window::GetCallbackUserData(GLFWwindow* window)
-{
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
-	return context ? context->userData : nullptr;
-}
-
-void ve::engine::Window::RecordFramebufferResize(int width, int height)
-{
-	_width = width;
-	_height = height;
-	_eventQueue.push_back(WindowEvent{
-		.kind = WindowEvent::Kind::FramebufferResized,
-		.framebuffer_resized = WindowFramebufferResizeEvent{ width, height }
-	});
-}
-
-void ve::engine::Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept
-{
-	CallbackContext* context = static_cast<CallbackContext*>(glfwGetWindowUserPointer(window));
-	if (context && context->window)
+	bool Window::IsVSyncEnabled() const noexcept
 	{
-		context->window->RecordFramebufferResize(width, height);
+		return _isVSyncEnabled;
+	}
+
+	void Window::Update()
+	{
+		if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility)
+		{
+			glfwSwapBuffers(_window.get());
+		}
+		glfwPollEvents();
+	}
+
+	std::vector<WindowEvent> Window::DrainEvents()
+	{
+		return _events.Drain();
+	}
+
+	bool Window::ShouldClose() const
+	{
+		return glfwWindowShouldClose(_window.get()) != 0;
+	}
+
+	void Window::Close()
+	{
+		glfwSetWindowShouldClose(_window.get(), GLFW_TRUE);
 	}
 }

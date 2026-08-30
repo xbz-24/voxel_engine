@@ -41,21 +41,6 @@ namespace ve::gameplay
 		if (ve::input::WasPressed(window, ve::input::Key::Enter, was_confirm_pressed_)) Activate(window, settings);
 	}
 
-	/// Opens or closes the settings menu and updates cursor mode.
-	void SettingsMenuController::SetOpen(ve::engine::Window& window, RuntimeSettings& settings, bool isOpen)
-	{
-		settings.editor.is_settings_menu_open = isOpen;
-		window.SetCursorMode(isOpen ? ve::engine::Window::CursorMode::Normal : ve::engine::Window::CursorMode::Captured);
-	}
-
-	/// Moves the selected menu row.
-	void SettingsMenuController::MoveSelection(RuntimeSettings& settings, int direction)
-	{
-		const int count = static_cast<int>(ve::ui::SettingsMenuOption::Count);
-		const int selected = static_cast<int>(settings.editor.selected_settings_menu_option);
-		settings.editor.selected_settings_menu_option = static_cast<ve::ui::SettingsMenuOption>((selected + direction + count) % count);
-	}
-
 	/// Applies left/right changes to configurable rows.
 	void SettingsMenuController::ApplyAdjustment(ve::engine::Window& window, RuntimeSettings& settings, int direction)
 	{

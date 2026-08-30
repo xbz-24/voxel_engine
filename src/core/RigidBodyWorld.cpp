@@ -15,7 +15,7 @@ namespace ve::physics
 	RigidBodyHandle RigidBodyWorld::CreateBody(const RigidBodyCreateInfo& create_info)
 	{
 		bodies_.emplace_back(create_info);
-		return RigidBodyHandle{ static_cast<std::uint32_t>(bodies_.size() - 1) };
+		return RigidBodyHandle{ ve::core::ToU32(bodies_.size() - 1) };
 	}
 
 	/** Resolves a mutable body handle. */

@@ -1,13 +1,30 @@
 #include "WorldViewRange.h"
 
 #include "Chunk.h"
-#include "WorldCoordinates.h"
+#include "WorldGridMath.h"
 
 #include <algorithm>
-#include <cmath>
+#include <cstdint>
 
 namespace ve::world
 {
+	namespace
+	{
+		[[nodiscard]] int MinimumChunkBoundary(int camera_chunk, std::int64_t radius) noexcept
+		{
+			return static_cast<int>(std::max(
+				std::int64_t{ 0 },
+				static_cast<std::int64_t>(camera_chunk) - radius));
+		}
+
+		[[nodiscard]] int MaximumChunkBoundary(int camera_chunk, std::int64_t radius, int last_chunk) noexcept
+		{
+			return static_cast<int>(std::min(
+				static_cast<std::int64_t>(last_chunk),
+				static_cast<std::int64_t>(camera_chunk) + radius));
+		}
+	}
+
 	/**
 	 * Builds the chunk range around the camera for a square world.
 	 *
@@ -23,14 +40,17 @@ namespace ve::world
 			return { 0, -1, 0, -1 };
 		}
 
-		const int cameraChunkX = coordinates::FloorDiv(static_cast<int>(std::floor(cameraPosition.x)), Chunk::CHUNK_WIDTH);
-		const int cameraChunkZ = coordinates::FloorDiv(static_cast<int>(std::floor(cameraPosition.z)), Chunk::CHUNK_DEPTH);
+		const int cameraChunkX = grid::ChunkXFromWorld(cameraPosition.x);
+		const int cameraChunkZ = grid::ChunkZFromWorld(cameraPosition.z);
 		const int lastChunk = worldSize - 1;
+		const std::int64_t renderDistance = std::max(
+			std::int64_t{ 0 },
+			static_cast<std::int64_t>(render_distance_chunks));
 		return {
-			std::max(0, cameraChunkX - render_distance_chunks),
-			std::min(lastChunk, cameraChunkX + render_distance_chunks),
-			std::max(0, cameraChunkZ - render_distance_chunks),
-			std::min(lastChunk, cameraChunkZ + render_distance_chunks)
+			MinimumChunkBoundary(cameraChunkX, renderDistance),
+			MaximumChunkBoundary(cameraChunkX, renderDistance, lastChunk),
+			MinimumChunkBoundary(cameraChunkZ, renderDistance),
+			MaximumChunkBoundary(cameraChunkZ, renderDistance, lastChunk)
 		};
 	}
 

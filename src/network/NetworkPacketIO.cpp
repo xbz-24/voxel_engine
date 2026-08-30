@@ -1,15 +1,34 @@
 #include "NetworkPacketIO.h"
 
 #include <array>
+#include <chrono>
 #include <cstring>
 
 namespace ve::network
 {
+	namespace
+	{
+		constexpr std::chrono::milliseconds NetworkFrameWriteTimeout{ 250 };
+	}
+
 	bool SendNetworkMessage(const TcpSocket& socket, const NetworkMessage& message)
+	{
+		return SendNetworkMessage(socket, message, std::stop_token{});
+	}
+
+	bool SendNetworkMessage(
+		const TcpSocket& socket, const NetworkMessage& message, std::stop_token stop_token)
 	{
 		const ByteBuffer packetBytes = BuildPacket(message.messageType, message.payloadBytes, message.sequenceNumber);
 		if (packetBytes.empty()) return false;
-		return socket.SendBytes(packetBytes);
+		if (socket.SendBytes(
+			packetBytes, stop_token,
+			std::chrono::steady_clock::now() + NetworkFrameWriteTimeout))
+		{
+			return true;
+		}
+		socket.Shutdown();
+		return false;
 	}
 
 	std::optional<NetworkMessage> ReceiveNetworkMessage(const TcpSocket& socket)

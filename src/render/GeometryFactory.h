@@ -4,7 +4,7 @@
 
 namespace ve::rendering
 {
-	/** Factory object for common procedural meshes used by demos and tools. */
+	/** Factory object for common procedural meshes used by applications and tools. */
 	class GeometryFactory
 	{
 	public:

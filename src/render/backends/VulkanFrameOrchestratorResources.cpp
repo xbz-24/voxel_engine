@@ -22,7 +22,7 @@ namespace ve::rendering
 			return true;
 		}
 
-		const vk::QueryPoolCreateInfo query_info{ {}, vk::QueryType::eTimestamp, static_cast<std::uint32_t>(kFramesInFlight * 2u) };
+		const vk::QueryPoolCreateInfo query_info{ {}, vk::QueryType::eTimestamp, TimestampQueryCount(kFramesInFlight) };
 		vk::QueryPool query_pool{};
 		if (backend_->Device().CppHandle().createQueryPool(&query_info, nullptr, &query_pool) != vk::Result::eSuccess)
 		{
@@ -47,7 +47,7 @@ namespace ve::rendering
 		VkCommandBufferAllocateInfo allocate_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		allocate_info.commandPool = command_pool_;
 		allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocate_info.commandBufferCount = static_cast<std::uint32_t>(frames_.size());
+		allocate_info.commandBufferCount = RenderElementCount(frames_.size());
 		std::array<VkCommandBuffer, kFramesInFlight> command_buffers{};
 		if (vkAllocateCommandBuffers(device_, &allocate_info, command_buffers.data()) != VK_SUCCESS) return false;
 		for (std::size_t index = 0; index < frames_.size(); ++index)

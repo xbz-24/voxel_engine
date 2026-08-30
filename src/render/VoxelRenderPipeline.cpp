@@ -1,5 +1,7 @@
 #include "VoxelRenderPipeline.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 #include <cstdint>
 
@@ -16,8 +18,8 @@ namespace ve::rendering
 	{
 		Release();
 		const RenderTargetDescriptor deferred_target{
-			static_cast<std::uint32_t>(std::max(1, settings.width)),
-			static_cast<std::uint32_t>(std::max(1, settings.height))
+			ve::core::ToU32(std::max(1, settings.width)),
+			ve::core::ToU32(std::max(1, settings.height))
 		};
 		const bool deferred_ok = deferred_.Initialize(deferred_target);
 		const bool ao_ok = ambient_occlusion_.Initialize({ settings.width, settings.height });

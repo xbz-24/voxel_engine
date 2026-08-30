@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include "Window.h"
+#include "WindowGlfwSession.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -8,6 +9,14 @@
 
 namespace ve::engine
 {
+	void GlfwWindowDeleter::operator()(GLFWwindow* window) const noexcept
+	{
+		if (window != nullptr)
+		{
+			glfwDestroyWindow(window);
+		}
+	}
+
 	Window::Window(std::string_view title)
 		: Window(WindowCreateInfo{ .title = std::string{ title }, .fullscreen = true })
 	{
@@ -32,10 +41,14 @@ namespace ve::engine
 	}
 	Window::~Window()
 	{
-		if (_window)
-		{
-			glfwDestroyWindow(_window);
-		}
-		glfwTerminate();
+		Shutdown();
+	}
+
+	void Window::Shutdown() noexcept
+	{
+		_window.reset();
+		if (!_ownsGlfwSession) return;
+		detail::ReleaseGlfwSession();
+		_ownsGlfwSession = false;
 	}
 }

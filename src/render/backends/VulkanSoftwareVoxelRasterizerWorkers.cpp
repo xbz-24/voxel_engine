@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "WorkerPolicy.h"
 
 #include <algorithm>
@@ -13,7 +14,7 @@ namespace ve::rendering
 	void VulkanSoftwareVoxelRasterizer::EnsureWorkers()
 	{
 		if (!workers_.empty()) return;
-		const std::size_t worker_count = static_cast<std::size_t>(ve::tasks::DefaultWorkerCount(1));
+		const std::size_t worker_count = ve::tasks::DefaultWorkerCount(1);
 		std::uint64_t initial_generation = 0;
 		{
 			std::lock_guard lock(work_mutex_);

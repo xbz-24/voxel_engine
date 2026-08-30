@@ -1,5 +1,8 @@
 #include "AsyncWorldGenerator.h"
 
+#include <exception>
+#include <utility>
+
 namespace ve::world::generation
 {
 	namespace
@@ -26,7 +29,8 @@ namespace ve::world::generation
 				request.chunkCoordinateZ,
 				request.terrainGeneration,
 				generatedBlockStorage);
-			ChunkGenerationResult generationResult{ request.chunkCoordinateX, request.chunkCoordinateZ, {} };
+			ChunkGenerationResult generationResult{
+				request.chunkCoordinateX, request.chunkCoordinateZ, {}, request.chunkStorageRevision };
 			CopyGeneratedStorage(generatedBlockStorage, generationResult);
 			return generationResult;
 		}
@@ -42,23 +46,32 @@ namespace ve::world::generation
 	bool AsyncWorldGenerator::RequestChunk(ChunkGenerationRequest request)
 	{
 		outstandingRequestCount_.fetch_add(1, std::memory_order_relaxed);
-		if (!backgroundTaskQueue_.Enqueue([this, request]()
+		try
 		{
-			completedChunks_.Push(GenerateChunk(request));
-		}))
-		{
-			outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
-			return false;
+			ve::tasks::BackgroundTaskOptions taskOptions;
+			taskOptions.failureHandler = [this](std::exception_ptr)
+			{
+				outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
+			};
+			if (backgroundTaskQueue_.Enqueue([this, request]()
+			{
+				completedChunks_.Push(GenerateChunk(request));
+			}, std::move(taskOptions))) return true;
 		}
-		return true;
+		catch (...) {}
+		outstandingRequestCount_.fetch_sub(1, std::memory_order_relaxed);
+		return false;
 	}
 
 	/// Queues every chunk in a square world for background generation.
-	void AsyncWorldGenerator::RequestGrid(const FlatWorldSpawnSettings& settings)
+	void AsyncWorldGenerator::RequestGrid(
+		const FlatWorldSpawnSettings& settings,
+		std::uint64_t chunkStorageRevision)
 	{
 		for (int chunkX = 0; chunkX < settings.worldSizeChunks; chunkX++)
 			for (int chunkZ = 0; chunkZ < settings.worldSizeChunks; chunkZ++)
-				RequestChunk(ChunkGenerationRequest{ chunkX, chunkZ, settings.terrainGeneration });
+				RequestChunk(ChunkGenerationRequest{
+					chunkX, chunkZ, settings.terrainGeneration, chunkStorageRevision });
 	}
 
 	/// Drains completed generated chunks without blocking the game thread.

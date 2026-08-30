@@ -2,38 +2,24 @@
 
 #include "NetworkTypes.h"
 
-#include <cstdint>
+#include <chrono>
+#include <memory>
 #include <optional>
 #include <span>
+#include <stop_token>
 
 namespace ve::network
 {
 	struct TcpListenSettings
 	{
-		/// Endpoint where the socket should listen.
 		NetworkEndpoint endpoint;
-		/// Maximum number of pending connections accepted by the OS backlog.
 		int pendingConnectionBacklog = 8;
 	};
 
+	/** Move-only synchronous TCP adapter backed by standalone Asio. */
 	class TcpSocket
 	{
 	public:
-		/**
-		 * Creates an empty socket wrapper.
-		 */
-		TcpSocket() noexcept;
-
-		/**
-		 * Wraps an existing platform socket handle.
-		 *
-		 * @param nativeSocketHandle Platform socket handle stored as an integer.
-		 */
-		explicit TcpSocket(std::uintptr_t nativeSocketHandle) noexcept;
-
-		/**
-		 * Closes the wrapped socket.
-		 */
 		~TcpSocket();
 
 		TcpSocket(const TcpSocket&) = delete;
@@ -41,58 +27,47 @@ namespace ve::network
 		TcpSocket(TcpSocket&& other) noexcept;
 		TcpSocket& operator=(TcpSocket&& other) noexcept;
 
-		/**
-		 * Connects to a remote TCP endpoint.
-		 *
-		 * @param remoteEndpoint Host and port to connect to.
-		 * @return Connected socket, or empty when connection fails.
-		 */
-		static std::optional<TcpSocket> Connect(const NetworkEndpoint& remoteEndpoint);
+		/** @return Connected socket, or empty when resolution or connection fails. */
+		[[nodiscard]] static std::optional<TcpSocket> Connect(const NetworkEndpoint& remote_endpoint);
 
-		/**
-		 * Opens a TCP listening socket.
-		 *
-		 * @param listenSettings Local endpoint and backlog settings.
-		 * @return Listening socket, or empty when bind/listen fails.
-		 */
-		static std::optional<TcpSocket> Listen(const TcpListenSettings& listenSettings);
+		/** @return Listening socket, or empty when resolution, bind, or listen fails. */
+		[[nodiscard]] static std::optional<TcpSocket> Listen(const TcpListenSettings& settings);
 
-		/**
-		 * Blocks until one client connects.
-		 *
-		 * @return Connected client socket, or empty when accept fails.
-		 */
-		std::optional<TcpSocket> Accept() const;
+		/** @return Connected peer socket, or empty when accept fails. */
+		[[nodiscard]] std::optional<TcpSocket> Accept() const;
 
-		/**
-		 * Sends every byte in a buffer.
-		 *
-		 * @param bytes Bytes to send on the TCP stream.
-		 * @return True when all bytes were written.
-		 */
-		bool SendBytes(std::span<const std::byte> bytes) const;
+		/** @return Connected peer socket, or empty when accept fails or is stopped. */
+		[[nodiscard]] std::optional<TcpSocket> Accept(std::stop_token stop_token) const;
 
-		/**
-		 * Receives exactly the requested byte count.
-		 *
-		 * @param destinationBytes Destination buffer to fill.
-		 * @return True when the full buffer was filled.
-		 */
-		bool ReceiveBytes(std::span<std::byte> destinationBytes) const;
+		/** @return True when Asio wrote every byte. */
+		[[nodiscard]] bool SendBytes(std::span<const std::byte> bytes) const;
+		[[nodiscard]] bool SendBytes(
+			std::span<const std::byte> bytes, std::stop_token stop_token) const;
 
-		/**
-		 * Closes the socket if it is open.
-		 */
+		/** @return True when every byte was written before stop or deadline. */
+		[[nodiscard]] bool SendBytes(
+			std::span<const std::byte> bytes,
+			std::stop_token stop_token,
+			std::chrono::steady_clock::time_point deadline) const;
+
+		/** @return True when Asio read exactly the destination size. */
+		[[nodiscard]] bool ReceiveBytes(std::span<std::byte> destination) const;
+
+		/** Interrupts synchronous stream transfers without closing the native socket. */
+		void Shutdown() const noexcept;
+
+		/** Closes the socket or acceptor after outstanding operations have stopped. */
 		void Close() noexcept;
 
-		/**
-		 * Reports whether this wrapper owns an open socket.
-		 *
-		 * @return True when the socket handle is valid.
-		 */
-		bool IsOpen() const noexcept;
+		/** @return True when this object owns an open socket or acceptor. */
+		[[nodiscard]] bool IsOpen() const noexcept;
+
+		/** @return Bound local endpoint, or empty when unavailable. */
+		[[nodiscard]] std::optional<NetworkEndpoint> LocalEndpoint() const;
 
 	private:
-		std::uintptr_t _nativeSocketHandle;
+		class Impl;
+		TcpSocket();
+		std::unique_ptr<Impl> impl_;
 	};
 }

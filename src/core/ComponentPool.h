@@ -3,6 +3,8 @@
 #include "CoreTypes.h"
 #include "Entity.h"
 
+#include <utility>
+
 namespace ve::ecs
 {
 	template <typename Component>
@@ -23,7 +25,7 @@ namespace ve::ecs
 			Slot& slot = slots_[entity.id];
 			if (!slot.is_occupied) component_count_++;
 			slot.owner = entity;
-			slot.component = ve::core::Move(component);
+			slot.component = std::move(component);
 			slot.is_occupied = true;
 			return slot.component;
 		}
@@ -63,7 +65,7 @@ namespace ve::ecs
 		/** @param id Entity id that must fit in the sparse array. */
 		void EnsureSlot(std::uint32_t id)
 		{
-			if (id >= slots_.size()) slots_.resize(static_cast<ve::core::Index>(id) + 1);
+			if (id >= slots_.size()) slots_.resize(ve::core::ToIndex(id) + 1);
 		}
 
 		ve::core::DynamicArray<Slot> slots_;

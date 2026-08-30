@@ -48,4 +48,9 @@ namespace ve::world::mesh
 			PendingUploadCount()
 		};
 	}
+
+	bool ChunkMeshPipeline::ConsumeBuildFailureRecoveryRequest() noexcept
+	{
+		return _scheduler.ConsumeBuildFailureRecoveryRequest();
+	}
 }

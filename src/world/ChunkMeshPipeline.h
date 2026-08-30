@@ -52,6 +52,8 @@ namespace ve::world::mesh
 
 		/** @return Snapshot of async build and upload backlog counters. */
 		ChunkMeshPipelineStats Stats() const;
+		/** @return True once when all reservations need fail-safe recovery. */
+		bool ConsumeBuildFailureRecoveryRequest() noexcept;
 
 	private:
 		AsyncChunkMeshScheduler _scheduler;

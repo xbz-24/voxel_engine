@@ -24,7 +24,7 @@ namespace ve::engine
 		}
 		const ve::world::FlatWorldSpawnSettings settings{ worldSizeChunks, terrainGeneration };
 		world_.SpawnEmptyGrid(settings);
-		world_generator_.RequestGrid(settings);
+		world_generator_.RequestGrid(settings, world_.ChunkStorageRevision());
 	}
 
 	Camera& GameModel::MutableCamera() noexcept { return camera_; }
@@ -74,9 +74,10 @@ namespace ve::engine
 		return world_generator_.PendingTaskCount();
 	}
 
-	void GameModel::PumpAsyncChunkMeshing(const ve::blocks::BlockRegistry& blockRegistry, int render_distance_chunks)
+	void GameModel::PumpAsyncChunkMeshing(int render_distance_chunks)
 	{
+		if (!block_registry_) return;
 		world_.UploadReadyChunkMeshes(mesh_pipeline_);
-		world_.ScheduleVisibleChunkMeshes(blockRegistry, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
+		world_.ScheduleVisibleChunkMeshes(*block_registry_, mesh_pipeline_, camera_.GetPosition(), render_distance_chunks);
 	}
 }

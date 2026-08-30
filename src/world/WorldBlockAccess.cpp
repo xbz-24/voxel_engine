@@ -41,6 +41,7 @@ namespace ve::world
 		const ve::blocks::BlockId previousBlockId = chunk->GetBlock(localBlockX, globalBlockY, localBlockZ);
 		if (previousBlockId == blockId)
 		{
+			chunk->RecordAuthoredBlockOverride(localBlockX, globalBlockY, localBlockZ);
 			return true;
 		}
 

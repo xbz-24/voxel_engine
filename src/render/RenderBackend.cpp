@@ -21,6 +21,12 @@ namespace ve::rendering
 		return nullptr;
 	}
 
+	std::unique_ptr<IndexedTriangleMesh> RenderBackend::CreateIndexedTriangleMesh(
+		const IndexedTriangleMeshDescription&) const
+	{
+		return nullptr;
+	}
+
 	RenderTexturePtr RenderBackend::CreateTextureResource(const RenderTextureDescriptor&) const
 	{
 		return nullptr;

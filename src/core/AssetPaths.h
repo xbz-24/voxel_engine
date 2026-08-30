@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 namespace ve::assets
@@ -11,6 +12,8 @@ namespace ve::assets
 	struct AssetPaths
 	{
 		std::filesystem::path rootDirectory;
+		std::filesystem::path assetsDirectory;
+		std::filesystem::path vulkanShaderDirectory;
 		std::filesystem::path blockTexturesDirectory;
 		std::filesystem::path environmentTexturesDirectory;
 		std::filesystem::path crosshairTexture;
@@ -29,6 +32,8 @@ namespace ve::assets
 
 	struct AssetPathResolveOptions
 	{
+		std::optional<std::filesystem::path> explicit_asset_directory;
+		std::optional<std::filesystem::path> explicit_vulkan_shader_directory;
 		std::vector<std::filesystem::path> search_roots;
 
 		/** Adds user/catalog search roots to the runtime asset resolver. */

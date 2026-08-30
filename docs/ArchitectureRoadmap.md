@@ -1,37 +1,102 @@
 # Architecture Roadmap
 
-## Direction
+## Current Baseline
 
-The engine has moved from one flat `Builds/` folder into feature folders:
+- `ve_runtime` owns the generic window, asset paths, timing, logging, and the
+  content-module lifecycle. A target-graph gate keeps it independent from
+  world, network, and concrete renderer aggregation.
+- Runtime teardown is an explicit ownership contract: a module that enters
+  initialization receives exactly one shutdown call even after failure or an
+  exception, and is destroyed while window services are still alive. GLFW is
+  terminated only after the last acquired window session is released.
+- Public lifecycle calls are serialized on the host thread. Shutdown requested
+  by a startup, frame, diagnostics, or log callback is coalesced and drained at
+  a safe boundary; nested frame loops are rejected and the same `Engine` can be
+  started again after teardown completes.
+- `ve_voxel_sandbox` owns voxel gameplay, input, editor UI, HUD, world edits,
+  and backend-specific runtime drivers. `ve_app` remains only as a compatibility
+  alias.
+- `VoxelEngine::Authoring` is independent from the private runtime;
+  `VoxelEngine::SDK` adds the runtime adapter and voxel sandbox. Both are
+  installable CMake compile/link packages; the SDK exports its static internal
+  closure as implementation detail targets.
+- `voxel_demo` is the only authored application. Examples consume the public
+  SDK instead of defining alternate launchers.
+- Vulkan is the default runtime path. OpenGL remains an explicit compatibility
+  choice, and both backends have bounded runtime smoke coverage.
+- The first authored-scene walking skeleton is real but intentionally narrow:
+  one root entity with a finite world-space translation can render one
+  single-mesh static OBJ through OpenGL. Public and private validation reject
+  unsupported configuration shapes before window startup; imported nodes still
+  require identity transforms, and the importer returns structured failures for
+  unsupported OBJ payloads. Rendering is currently untextured vertex color and
+  does not bind OBJ/MTL materials. A generated-OBJ smoke covers the public API
+  through shutdown.
+- Version-1 world configuration loading now has a strict error channel. It
+  preserves legacy size-and-edits documents and current complete terrain
+  documents while rejecting partial, unknown, truncated, or out-of-range data
+  without publishing a partially parsed configuration.
+- Compound world-authoring helpers preflight every derived coordinate in a
+  wider integer domain. An unrepresentable shape is a complete no-op instead
+  of overflowing or leaving a partially-authored structure.
 
-- `engine/app`: engine runtime, screens, main loop.
-- `engine/mvc`: `GameModel`, `GameView`, `GameController`.
-- `engine/render`: render state, 2D primitives, 3D primitives, GPU resources.
-- `engine/world`: world, chunks, terrain, block storage.
-- `engine/network`: sockets, protocol, sessions, replication.
-- `engine/log`: logger, categories, formatting, sinks.
-- `gameplay`: input mapping, hotbar, block interaction, player movement.
+The codebase already has `GameModel`/`GameController`, a screen stack,
+`NetworkSession`, GLFW-backed window ownership, and both Vulkan and OpenGL
+ImGui integrations. Those are established components, not pending patterns.
 
-## Patterns To Apply Now
+## Next Release Boundary
 
-- MVC for game state, rendering, and input orchestration.
-- Facade for `NetworkSession`, hiding sockets from gameplay.
-- Command/request objects for rendering, meshing, networking, and world edits.
-- Screen stack for menu, loading, gameplay, and editor screens.
-- Adapter for the current GLFW window so an ImGui tools layer can be added cleanly.
+- Keep the installed SDK's current boundary precise: its headers, libraries,
+  dependency discovery, and CMake targets are relocatable and covered by a
+  moved-prefix consumer smoke. `RuntimeLayout` now supplies an explicit,
+  validated application-owned asset/shader contract without embedding source
+  or build roots. Installing a runnable payload remains pending.
+- Do not add the repository `assets/` tree or generated `.spv` files to the SDK
+  install as a shortcut. Define the runtime payload layout and settle the
+  redistribution rights of Minecraft/Mojang-derived assets before adding a
+  runtime packaging component.
+- Maintain the canonical project/SDK/package version. Configure-time gates now
+  keep the vcpkg manifest, CMake package metadata, and public
+  `voxel::Version()` synchronized; graphics API metadata should continue to
+  follow the same release version.
+- Keep the pinned vcpkg baseline on an intentional update cadence. Baseline
+  changes must pass a clean manifest restore and the complete CI matrix before
+  they are merged.
+- Select and add a repository license before describing source distribution as
+  an open-source release.
 
-## Immediate Refactors
+## Runtime and Rendering Work
 
-- Move remaining frame gameplay code from `Engine` into `GameController`.
-- Move 3D/HUD draw orchestration from `Engine` into `GameView`.
-- Rename old member fields gradually to Google-style trailing underscore.
-- Introduce `WindowBackend` before considering any non-GLFW window implementation.
-- Add ImGui through GLFW/OpenGL first; do not mix WinForms into the game render loop.
+- Extend the current one-OBJ OpenGL walking skeleton only through explicit
+  capability slices: define material/texture ownership, multiple mesh/entity
+  lifetime, root rotation and scale, hierarchy, then a Vulkan frame-resource
+  contract. Unsupported `AssetCatalog`, `MaterialLibrary`, and `SceneGraph`
+  combinations must continue to produce validation issues instead of being
+  ignored.
+- Keep the Vulkan and OpenGL bounded runtime smokes green as backend ownership
+  and shutdown ordering evolve.
+- Keep `Headless` rejected by runtime validation until the host can initialize
+  timing and content modules without constructing GLFW or a render driver.
+- Continue moving backend-owned resources and draw orchestration out of the
+  compatibility renderer; retain migration-status metadata until direct tests
+  prove each backend contract.
+- Add stable public entity identifiers to frame callbacks only after entity
+  ownership and event lifetime are defined as runtime contracts.
 
-## Long-Lived Architecture Work
+## World and Network Work
 
-- Public SDK packaging: split `voxel_engine_sdk` away from private runtime/application targets, then add install/export package targets and an installed-tree consumer smoke project.
-- Public scene/runtime bridge: feed `AssetCatalog`, `MaterialLibrary`, and `SceneGraph` into runtime systems before exposing custom importer registration or data-driven authored scenes.
-- World runtime shape: split chunk storage, generation, meshing, and event publication so tools/tests can use `World` headlessly; extend the current grow-on-demand chunk storage with explicit non-square streaming bounds and vertical world bounds.
-- Backend-neutral rendering: replace compatibility OpenGL volume/raymarch/HUD paths with backend-owned resources and command-list driven passes; keep `RenderBackendMigrationStatus` until tests cover the migrated contracts directly.
-- Runtime entity systems: add stable public entity ids to frame callbacks only after entity ownership and event lifetime are part of the runtime contract.
+- Fixed square worlds support 1 through 64 chunks per side. Public and private
+  validation reject larger requests before runtime allocation; larger spaces
+  require the streaming boundary below rather than a larger eager grid.
+- Fill-box execution is bounded by its intersection with loaded chunks, so an
+  extreme coordinate range cannot dictate iteration count. A separate explicit
+  batch/frame budget is still needed for many valid or overlapping edits.
+- Separate chunk storage, generation, meshing, and event publication far enough
+  that tools can use world data without a graphics runtime.
+- Replace grow-only chunk assumptions with explicit horizontal streaming bounds
+  and vertical world bounds.
+- Keep [Network Protocol and Replication](NetworkProtocol.md) synchronized with
+  the internal wire contract. Before exposing multiplayer through the public
+  SDK, implement the documented `ServerWelcome` negotiation, authoritative
+  player snapshots, initial world snapshots, revision barriers, and runtime
+  integration.

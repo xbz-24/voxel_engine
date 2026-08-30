@@ -1,5 +1,6 @@
 #include "VulkanDevice.h"
 
+#include "CoreTypes.h"
 #include "VulkanDeviceExtensions.h"
 
 #include <algorithm>
@@ -46,7 +47,7 @@ namespace ve::rendering
 		VkDeviceCreateInfo create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		create_info.queueCreateInfoCount = same_queue ? 1u : 2u;
 		create_info.pQueueCreateInfos = queue_infos.data();
-		create_info.enabledExtensionCount = static_cast<std::uint32_t>(extensions.size());
+		create_info.enabledExtensionCount = ve::core::ToU32(extensions.size());
 		create_info.ppEnabledExtensionNames = extensions.data();
 		if (vkCreateDevice(physical_device, &create_info, nullptr, &device_) != VK_SUCCESS) return false;
 		volkLoadDevice(device_);

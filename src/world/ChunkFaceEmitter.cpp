@@ -1,6 +1,7 @@
 #include "ChunkFaceEmitter.h"
 
 #include "ChunkFaceOffsets.h"
+#include "CoreTypes.h"
 
 namespace ve::world::mesh
 {
@@ -15,8 +16,8 @@ namespace ve::world::mesh
 		 */
 		FaceVertexOffset ScaleOffset(const MeshFace& face, FaceVertexOffset offset)
 		{
-			const float width = static_cast<float>(face.width);
-			const float height = static_cast<float>(face.height);
+			const float width = ve::core::ToFloat(face.width);
+			const float height = ve::core::ToFloat(face.height);
 			if (face.direction == MeshFaceDirection::Top || face.direction == MeshFaceDirection::Bottom)
 			{
 				offset.local_position_x *= width;

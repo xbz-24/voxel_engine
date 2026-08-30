@@ -11,7 +11,7 @@ namespace ve::physics
 	/// Queries one octree node recursively.
 	void PhysicsOctree::QueryNode(int node_index, const Aabb& bounds, ve::core::DynamicArray<unsigned int>& output_ids) const
 	{
-		const OctreeNode& node = nodes_[static_cast<ve::core::Index>(node_index)];
+		const OctreeNode& node = nodes_[ve::core::ToIndex(node_index)];
 		if (!node.bounds.Intersects(bounds)) return;
 		for (const PhysicsProxy& proxy : node.proxies)
 		{

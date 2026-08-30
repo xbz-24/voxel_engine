@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "CoreTypes.h"
 #include "Hotbar.h"
 #include "Render2D.h"
 #include "TextureLoader.h"
@@ -10,15 +11,15 @@ namespace ve::ui
 	{
 		for (int icon_index = 0; icon_index < icon_count; icon_index++)
 		{
-			const float icon_x = row_start_x + (static_cast<float>(icon_index) * icon_spacing * direction);
+			const float icon_x = row_start_x + (ve::core::ToFloat(icon_index) * icon_spacing * direction);
 			ve::rendering::DrawTexturedQuad(texture, icon_x, icon_y, icon_size, icon_size);
 		}
 	}
 
 	void HudRenderer::DrawSurvivalHud(const ve::engine::Window& window, const ve::blocks::BlockRegistry& block_registry, ve::blocks::BlockId selected_placement_block)
 	{
-		const float window_width = static_cast<float>(window.GetWidth());
-		const float window_height = static_cast<float>(window.GetHeight());
+		const float window_width = ve::core::ToFloat(window.GetWidth());
+		const float window_height = ve::core::ToFloat(window.GetHeight());
 		const float window_center_x = window_width / 2.0f;
 		const float window_center_y = window_height / 2.0f;
 		const float crosshair_half_size = 30.0f;
@@ -41,7 +42,7 @@ namespace ve::ui
 		const float selection_size = 24.0f * scale;
 		const int selected_slot_index = ve::gameplay::HotbarIndexFor(selected_placement_block);
 		ve::rendering::DrawTexturedQuad(textures_.hotbar_selection,
-			hotbar_x + (static_cast<float>(selected_slot_index) * slot_size) - scale,
+			hotbar_x + (ve::core::ToFloat(selected_slot_index) * slot_size) - scale,
 			hotbar_y - scale,
 			selection_size,
 			selection_size);
@@ -49,11 +50,11 @@ namespace ve::ui
 		const auto& hotbar_blocks = ve::gameplay::DefaultHotbarBlocks();
 		for (int slot = 0; slot < ve::gameplay::HotbarSlotCount; slot++)
 		{
-			const ve::blocks::BlockId block = hotbar_blocks[static_cast<std::size_t>(slot)];
+			const ve::blocks::BlockId block = hotbar_blocks[ve::core::ToIndex(slot)];
 			const ve::rendering::TextureHandle block_texture =
 				block_registry.TextureFor(block, ve::blocks::BlockFace::Top);
 			ve::rendering::DrawTexturedQuad(block_texture,
-				hotbar_x + (static_cast<float>(slot) * slot_size) + block_icon_inset,
+				hotbar_x + (ve::core::ToFloat(slot) * slot_size) + block_icon_inset,
 				hotbar_y + block_icon_inset,
 				block_icon_size,
 				block_icon_size);

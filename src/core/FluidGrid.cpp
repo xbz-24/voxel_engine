@@ -12,8 +12,8 @@ namespace ve::simulation
 	{
 		width_ = std::max(width, 1);
 		height_ = std::max(height, 1);
-		density_.assign(static_cast<ve::core::Index>(width_ * height_), 0.0f);
-		velocity_.assign(static_cast<ve::core::Index>(width_ * height_), glm::vec2{ 0.0f });
+		density_.assign(ve::core::ToIndex(width_ * height_), 0.0f);
+		velocity_.assign(ve::core::ToIndex(width_ * height_), glm::vec2{ 0.0f });
 	}
 
 	/** Clears density and velocity values. */
@@ -70,6 +70,6 @@ namespace ve::simulation
 	{
 		const int clamped_x = std::clamp(cell_x, 0, width_ - 1);
 		const int clamped_y = std::clamp(cell_y, 0, height_ - 1);
-		return static_cast<ve::core::Index>(clamped_y * width_ + clamped_x);
+		return ve::core::ToIndex(clamped_y * width_ + clamped_x);
 	}
 }

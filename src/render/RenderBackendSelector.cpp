@@ -2,21 +2,24 @@
 
 #include "RenderBackendCatalog.h"
 
+#include <algorithm>
+
 namespace ve::rendering
 {
 	namespace
 	{
 		[[nodiscard]] GraphicsApi FirstImplementedBackend() noexcept
 		{
-			for (const RenderBackendDescriptor& backend : RenderBackendCatalog::Backends())
+			const auto backends = RenderBackendCatalog::Backends();
+			const auto default_backend = std::ranges::find_if(backends, [](const RenderBackendDescriptor& backend)
 			{
-				if (backend.is_default && backend.is_implemented) return backend.api;
-			}
-			for (const RenderBackendDescriptor& backend : RenderBackendCatalog::Backends())
-			{
-				if (backend.is_implemented) return backend.api;
-			}
-			return RenderBackendCatalog::DefaultBackend().api;
+				return backend.is_default && backend.is_implemented;
+			});
+			if (default_backend != backends.end()) return default_backend->api;
+			const auto implemented_backend = std::ranges::find(backends, true, &RenderBackendDescriptor::is_implemented);
+			return implemented_backend == backends.end()
+				? RenderBackendCatalog::DefaultBackend().api
+				: implemented_backend->api;
 		}
 	}
 

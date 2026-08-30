@@ -11,7 +11,7 @@ namespace ve::simulation
 		settings_.width = std::max(settings_.width, 1);
 		settings_.height = std::max(settings_.height, 1);
 		settings_.pressure_iterations = std::max(settings_.pressure_iterations, 1);
-		const auto cell_count = static_cast<ve::core::Index>(settings_.width * settings_.height);
+		const auto cell_count = ve::core::ToIndex(settings_.width * settings_.height);
 		pressure_.assign(cell_count, 0.0f);
 		divergence_.assign(cell_count, 0.0f);
 	}
@@ -55,6 +55,6 @@ namespace ve::simulation
 	{
 		const int clamped_x = std::clamp(cell_x, 0, current_.Width() - 1);
 		const int clamped_y = std::clamp(cell_y, 0, current_.Height() - 1);
-		return static_cast<ve::core::Index>(clamped_y * current_.Width() + clamped_x);
+		return ve::core::ToIndex(clamped_y * current_.Width() + clamped_x);
 	}
 }

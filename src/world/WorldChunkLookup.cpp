@@ -1,5 +1,7 @@
 #include "World.h"
 
+#include "WorldGridMath.h"
+
 namespace ve::world
 {
 	Chunk* World::FindChunk(int chunkX, int chunkZ)
@@ -8,7 +10,7 @@ namespace ve::world
 		{
 			return nullptr;
 		}
-		return &_chunks[static_cast<std::size_t>(chunkX * _worldSize + chunkZ)];
+		return &_chunks[grid::FlattenWorldChunkIndex(chunkX, chunkZ, _worldSize)];
 	}
 
 	const Chunk* World::FindChunk(int chunkX, int chunkZ) const
@@ -17,7 +19,7 @@ namespace ve::world
 		{
 			return nullptr;
 		}
-		return &_chunks[static_cast<std::size_t>(chunkX * _worldSize + chunkZ)];
+		return &_chunks[grid::FlattenWorldChunkIndex(chunkX, chunkZ, _worldSize)];
 	}
 
 	void World::MarkBorderNeighborsDirty(int chunkX, int chunkZ, int localX, int localZ)

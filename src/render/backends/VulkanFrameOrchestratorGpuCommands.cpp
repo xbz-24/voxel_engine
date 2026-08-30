@@ -6,13 +6,18 @@
 
 namespace ve::rendering
 {
-	bool VulkanFrameOrchestrator::RecordGpuCommandBuffer(VkCommandBuffer command_buffer, std::uint32_t image_index, std::size_t frame_index, const Camera& camera)
+	bool VulkanFrameOrchestrator::RecordGpuCommandBuffer(
+		VkCommandBuffer command_buffer,
+		std::uint32_t image_index,
+		std::size_t frame_index,
+		float elapsed_seconds,
+		const Camera& camera)
 	{
 		VkCommandBufferBeginInfo begin_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS) return false;
 
-		const std::uint32_t first_query = static_cast<std::uint32_t>(frame_index * 2u);
+		const std::uint32_t first_query = TimestampQueryIndex(frame_index);
 		if (timestamp_query_pool_ != VK_NULL_HANDLE)
 		{
 			vkCmdResetQueryPool(command_buffer, timestamp_query_pool_, first_query, 2u);
@@ -20,7 +25,14 @@ namespace ve::rendering
 		}
 		const VulkanOverlayRecordCallback overlay_callback = imgui_overlay_.IsInitialized() ? RecordImguiOverlay : nullptr;
 		void* overlay_user_data = imgui_overlay_.IsInitialized() ? &imgui_overlay_ : nullptr;
-		if (!gpu_chunk_renderer_.Record(command_buffer, image_index, camera, overlay_callback, overlay_user_data))
+		if (!gpu_chunk_renderer_.Record(
+			command_buffer,
+			image_index,
+			frame_index,
+			elapsed_seconds,
+			camera,
+			overlay_callback,
+			overlay_user_data))
 		{
 			VE_LOG_CATEGORY_WARNING(ve::log::category::Render, "Failed to record Vulkan GPU chunk commands");
 			return false;
@@ -43,14 +55,16 @@ namespace ve::rendering
 		std::array<std::uint64_t, 2> timestamps{};
 		const VkResult result = vkGetQueryPoolResults(device_,
 			timestamp_query_pool_,
-			static_cast<std::uint32_t>(frame_index * 2u),
-			static_cast<std::uint32_t>(timestamps.size()),
+			TimestampQueryIndex(frame_index),
+			RenderElementCount(timestamps.size()),
 			sizeof(std::uint64_t) * timestamps.size(),
 			timestamps.data(),
 			sizeof(std::uint64_t),
 			VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 		if (result != VK_SUCCESS || timestamps[1] <= timestamps[0]) return;
-		const double elapsed_ns = static_cast<double>(timestamps[1] - timestamps[0]) * static_cast<double>(timestamp_period_ns_);
+		const double elapsed_ns =
+			TimestampValueDouble(timestamps[1] - timestamps[0]) *
+			TimestampValueDouble(timestamp_period_ns_);
 		timing.gpu_copy_ms = elapsed_ns / 1'000'000.0;
 		timing.has_gpu_copy_timing = true;
 	}

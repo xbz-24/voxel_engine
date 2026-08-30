@@ -1,6 +1,9 @@
 #include "ChunkDecorationRules.h"
 
+#include "ChunkTerrainMath.h"
+
 using ve::blocks::BlockId;
+using ve::world::terrain::detail::WorldBlockPatternCoordinate;
 
 namespace ve::world::terrain::decorations::detail
 {
@@ -14,8 +17,8 @@ namespace ve::world::terrain::decorations::detail
 			int z_divisor,
 			int z_remainder)
 		{
-			const int world_block_x_integer = static_cast<int>(world_block_x);
-			const int world_block_z_integer = static_cast<int>(world_block_z);
+			const int world_block_x_integer = WorldBlockPatternCoordinate(world_block_x);
+			const int world_block_z_integer = WorldBlockPatternCoordinate(world_block_z);
 			return world_block_x_integer % x_divisor == x_remainder &&
 				world_block_z_integer % z_divisor == z_remainder;
 		}

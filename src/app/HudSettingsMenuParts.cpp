@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "CoreTypes.h"
 #include "Render2D.h"
 #include "RenderDistanceSettings.h"
 
@@ -47,7 +48,7 @@ namespace ve::ui
 		constexpr float kButtonHeight = 42.0f;
 		const bool is_selected = option == frame.settings_menu.selected_option;
 		const float row_x = panel_x + ((kPanelWidth - kButtonWidth) * 0.5f);
-		const float row_y = first_row_y + (static_cast<float>(row_index) * 48.0f);
+		const float row_y = first_row_y + (ve::core::ToFloat(row_index) * 48.0f);
 		const ve::rendering::TextureHandle button_texture =
 			is_selected ? textures_.menu_button_highlighted : textures_.menu_button;
 		ve::rendering::DrawTexturedQuad(button_texture, row_x, row_y, kButtonWidth, kButtonHeight);

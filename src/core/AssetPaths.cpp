@@ -1,5 +1,6 @@
 #include "AssetPaths.h"
 #include "AssetRootDiscovery.h"
+#include "VulkanShaderPathDiscovery.h"
 
 namespace ve::assets
 {
@@ -7,14 +8,17 @@ namespace ve::assets
 	{
 		[[nodiscard]] std::filesystem::path TexturePath(const AssetPaths& paths, const char* relative_path)
 		{
-			return paths.rootDirectory / "assets/textures" / relative_path;
+			return paths.assetsDirectory / "textures" / relative_path;
 		}
 	}
 
 	AssetPaths Resolve(const AssetPathResolveOptions& options)
 	{
 		AssetPaths paths;
-		paths.rootDirectory = detail::ResolveRootDirectory(options);
+		paths.assetsDirectory = detail::ResolveAssetDirectory(options);
+		paths.rootDirectory = paths.assetsDirectory.parent_path();
+		paths.vulkanShaderDirectory = ResolveVulkanShaderDirectory(
+			options.explicit_vulkan_shader_directory);
 		paths.blockTexturesDirectory = TexturePath(paths, "block/");
 		paths.environmentTexturesDirectory = TexturePath(paths, "environment/");
 		paths.crosshairTexture = TexturePath(paths, "gui/sprites/hud/crosshair.png");

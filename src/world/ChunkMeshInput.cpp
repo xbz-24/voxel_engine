@@ -1,23 +1,19 @@
 #include "ChunkMeshInput.h"
 
-#include <cstddef>
+#include "WorldGridMath.h"
 
 namespace
 {
 	/// Returns true when a local block coordinate is inside one chunk.
 	bool IsInsideChunk(int local_block_x, int local_block_y, int local_block_z)
 	{
-		return local_block_x >= 0 && local_block_x < ve::world::terrain::ChunkWidth &&
-			local_block_y >= 0 && local_block_y < ve::world::terrain::ChunkHeight &&
-			local_block_z >= 0 && local_block_z < ve::world::terrain::ChunkDepth;
+		return ve::world::grid::IsInsideChunk(local_block_x, local_block_y, local_block_z);
 	}
 
 	/// Converts a 3D local coordinate into a flat storage index.
 	std::size_t ToBlockIndex(int local_block_x, int local_block_y, int local_block_z)
 	{
-		return static_cast<std::size_t>(
-			(local_block_x * ve::world::terrain::ChunkHeight + local_block_y) *
-			ve::world::terrain::ChunkDepth + local_block_z);
+		return ve::world::grid::FlattenChunkBlockIndex(local_block_x, local_block_y, local_block_z);
 	}
 }
 

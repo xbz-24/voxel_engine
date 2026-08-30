@@ -1,5 +1,7 @@
 #include "ChunkTerrainUnderground.h"
 
+#include "ChunkTerrainMath.h"
+
 using ve::blocks::BlockId;
 
 namespace ve::world::terrain::detail
@@ -11,10 +13,15 @@ namespace ve::world::terrain::detail
 		const ve::world::TerrainBlockPalette& block_palette,
 		const ve::world::TerrainGenerationSettings& terrain_generation)
 	{
-		const int seed_pattern = static_cast<int>(terrain_generation.terrainSeed % 8191U);
-		const int ore_pattern = static_cast<int>(
-			world_block_x * 13.0f + world_block_z * 7.0f + static_cast<float>(local_block_y) * 5.0f) +
-			seed_pattern;
+		const int seed_pattern = TerrainSeedPattern(terrain_generation.terrainSeed);
+		const int ore_pattern = WeightedTerrainPattern(
+			world_block_x,
+			world_block_z,
+			local_block_y,
+			13.0f,
+			7.0f,
+			5.0f,
+			seed_pattern);
 		if (local_block_y == 0) return block_palette.bedrockBlock;
 		if (local_block_y < 28 && ore_pattern % 97 == 0) return BlockId::DiamondOre;
 		if (local_block_y < 34 && ore_pattern % 89 == 0) return BlockId::EmeraldOre;

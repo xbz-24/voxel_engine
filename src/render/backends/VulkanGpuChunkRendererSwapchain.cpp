@@ -6,7 +6,7 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::CreateSwapchainResources()
+	bool VulkanGpuChunkRendererResourceOperations::CreateSwapchainResources()
 	{
 		ReleaseSwapchainResources();
 		extent_ = backend_->Swapchain().Extent();
@@ -26,7 +26,7 @@ namespace ve::rendering
 		}
 		return CreateDepthResources() && CreateFramebuffers();
 	}
-	bool VulkanGpuChunkRenderer::CreateDepthResources()
+	bool VulkanGpuChunkRendererResourceOperations::CreateDepthResources()
 	{
 		VkImageCreateInfo image_info{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -50,7 +50,7 @@ namespace ve::rendering
 		view_info.subresourceRange.layerCount = 1u;
 		return vkCreateImageView(device_, &view_info, nullptr, &depth_view_) == VK_SUCCESS;
 	}
-	bool VulkanGpuChunkRenderer::CreateFramebuffers()
+	bool VulkanGpuChunkRendererResourceOperations::CreateFramebuffers()
 	{
 		framebuffers_.resize(swapchain_image_views_.size());
 		for (std::size_t index = 0; index < swapchain_image_views_.size(); ++index)
@@ -58,7 +58,7 @@ namespace ve::rendering
 			std::array attachments{ swapchain_image_views_[index], depth_view_ };
 			VkFramebufferCreateInfo framebuffer_info{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			framebuffer_info.renderPass = render_pass_;
-			framebuffer_info.attachmentCount = static_cast<std::uint32_t>(attachments.size());
+			framebuffer_info.attachmentCount = RenderElementCount(attachments.size());
 			framebuffer_info.pAttachments = attachments.data();
 			framebuffer_info.width = extent_.width;
 			framebuffer_info.height = extent_.height;

@@ -1,5 +1,6 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
+#include "CoreTypes.h"
 #include "VulkanSoftwareRasterizerColor.h"
 
 #include <algorithm>
@@ -34,28 +35,28 @@ namespace ve::rendering
 		const float range = std::max(max_value - min_value, 0.001f);
 		const double mouse_scale_x = extent_.width == 0u ?
 			0.0 :
-			static_cast<double>(render_extent_.width) / static_cast<double>(extent_.width);
+			ve::core::ToDouble(render_extent_.width) / ve::core::ToDouble(extent_.width);
 		const double mouse_scale_y = extent_.height == 0u ?
 			0.0 :
-			static_cast<double>(render_extent_.height) / static_cast<double>(extent_.height);
+			ve::core::ToDouble(render_extent_.height) / ve::core::ToDouble(extent_.height);
 		const double scaled_mouse_x = frame.input.mouse_x * mouse_scale_x;
 		const double scaled_mouse_y = frame.input.mouse_y * mouse_scale_y;
 		const bool hovered =
 			scaled_mouse_x >= rail_x &&
-			scaled_mouse_x <= static_cast<double>(rail_x + rail_width) &&
+			scaled_mouse_x <= ve::core::ToDouble(rail_x + rail_width) &&
 			scaled_mouse_y >= rail_y &&
-			scaled_mouse_y <= static_cast<double>(rail_y + 14u);
+			scaled_mouse_y <= ve::core::ToDouble(rail_y + 14u);
 		bool changed = false;
 		if (hovered && frame.input.mouse_left_down)
 		{
 			const float drag_fraction =
-				static_cast<float>((scaled_mouse_x - static_cast<double>(rail_x)) / static_cast<double>(rail_width));
+				ve::core::ToFloat((scaled_mouse_x - ve::core::ToDouble(rail_x)) / ve::core::ToDouble(rail_width));
 			value = min_value + (std::clamp(drag_fraction, 0.0f, 1.0f) * range);
 			changed = true;
 		}
 
 		const float normalized = std::clamp((value - min_value) / range, 0.0f, 1.0f);
-		const std::uint32_t filled = static_cast<std::uint32_t>(normalized * static_cast<float>(rail_width));
+		const std::uint32_t filled = ve::core::ToU32(normalized * ve::core::ToFloat(rail_width));
 		DrawFilledRect(rail_x, rail_y + 4u, filled, 5u, fill);
 		const std::uint32_t knob_x = rail_x + std::min(filled, rail_width > 1u ? rail_width - 1u : 0u);
 		DrawFilledRect(knob_x > 2u ? knob_x - 2u : knob_x, rail_y, 5u, 13u, handle);

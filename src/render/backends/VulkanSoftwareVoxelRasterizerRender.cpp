@@ -1,6 +1,7 @@
 #include "VulkanSoftwareVoxelRasterizer.h"
 
 #include "Camera.h"
+#include "CoreTypes.h"
 #include "VulkanSoftwareVoxelRasterizerRaycast.h"
 #include "World.h"
 
@@ -11,12 +12,12 @@ namespace ve::rendering
 {
 	namespace
 	{
-		[[nodiscard]] std::uint32_t SampleStepFor(const VulkanDemoSettings& settings) noexcept
+		[[nodiscard]] std::uint32_t SampleStepFor(const VulkanSoftwareRasterizerSettings& settings) noexcept
 		{
 			return std::clamp(settings.pixel_block_size, 1u, 8u);
 		}
 
-		[[nodiscard]] std::uint32_t EffectiveSampleStepFor(const VulkanDemoSettings& settings, const VulkanFrameTiming& previous_timing) noexcept
+		[[nodiscard]] std::uint32_t EffectiveSampleStepFor(const VulkanSoftwareRasterizerSettings& settings, const VulkanFrameTiming& previous_timing) noexcept
 		{
 			const std::uint32_t requested = SampleStepFor(settings);
 			if (!settings.adaptive_quality || previous_timing.render_extent.width == 0u || previous_timing.render_extent.height == 0u)
@@ -59,7 +60,7 @@ namespace ve::rendering
 		RenderSamplesMultithreaded(work);
 		const auto raster_end = std::chrono::steady_clock::now();
 		ApplyVoxelOutlines(frame.format, frame.settings.outline_strength);
-		if (frame.settings.show_debug_overlay) DrawDemoOverlay(frame);
+		if (frame.settings.show_debug_overlay) DrawDebugOverlay(frame);
 		if (frame.settings.show_tuning_panel) DrawTuningPanel(frame);
 		DrawCrosshair(frame.format);
 		const auto overlay_end = std::chrono::steady_clock::now();
@@ -67,7 +68,7 @@ namespace ve::rendering
 		last_timing_.snapshot_cpu_ms = std::chrono::duration<double, std::milli>(snapshot_end - snapshot_start).count();
 		last_timing_.raster_cpu_ms = std::chrono::duration<double, std::milli>(raster_end - raster_start).count();
 		last_timing_.upscale_cpu_ms = std::chrono::duration<double, std::milli>(overlay_end - raster_end).count();
-		last_timing_.worker_count = static_cast<std::uint32_t>(workers_.size() + 1u);
+		last_timing_.worker_count = ve::core::ToU32(workers_.size() + 1u);
 		last_timing_.sample_step = sample_step;
 		last_timing_.render_extent = render_extent_;
 	}

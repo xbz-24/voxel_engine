@@ -1,5 +1,6 @@
 #include "HudRenderer.h"
 
+#include "CoreTypes.h"
 #include "TextureLoader.h"
 
 namespace ve::ui
@@ -19,11 +20,11 @@ namespace ve::ui
 				continue;
 			}
 
-			const int asciiCode = static_cast<int>(c);
+			const int asciiCode = ve::core::ToInt(c);
 			const int col = asciiCode % 16;
 			const int row = 15 - (asciiCode / 16);
-			const float uvX = static_cast<float>(col) * uvStep;
-			const float uvY = static_cast<float>(row) * uvStep;
+			const float uvX = ve::core::ToFloat(col) * uvStep;
+			const float uvY = ve::core::ToFloat(row) * uvStep;
 			glTexCoord2f(uvX, uvY + uvStep); glVertex2f(cursorX, y);
 			glTexCoord2f(uvX + uvStep, uvY + uvStep); glVertex2f(cursorX + charSize, y);
 			glTexCoord2f(uvX + uvStep, uvY); glVertex2f(cursorX + charSize, y + charSize);

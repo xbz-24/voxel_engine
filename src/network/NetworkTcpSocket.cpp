@@ -1,52 +1,59 @@
 #include "NetworkTcpSocket.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <WinSock2.h>
+#include "NetworkTcpSocketAsio.h"
 
-namespace
-{
-	constexpr std::uintptr_t InvalidSocketHandle = static_cast<std::uintptr_t>(INVALID_SOCKET);
-
-	/// Converts the stored integer handle back to a WinSock socket.
-	SOCKET ToSocket(std::uintptr_t nativeSocketHandle) noexcept
-	{
-		return static_cast<SOCKET>(nativeSocketHandle);
-	}
-}
+#include <string>
+#include <system_error>
+#include <utility>
 
 namespace ve::network
 {
-	TcpSocket::TcpSocket() noexcept : _nativeSocketHandle(InvalidSocketHandle) {}
-	TcpSocket::TcpSocket(std::uintptr_t nativeSocketHandle) noexcept : _nativeSocketHandle(nativeSocketHandle) {}
+	TcpSocket::TcpSocket() : impl_(std::make_unique<Impl>()) {}
 	TcpSocket::~TcpSocket() { Close(); }
+	TcpSocket::TcpSocket(TcpSocket&& other) noexcept = default;
+	TcpSocket& TcpSocket::operator=(TcpSocket&& other) noexcept = default;
 
-	TcpSocket::TcpSocket(TcpSocket&& other) noexcept : _nativeSocketHandle(other._nativeSocketHandle)
+	void TcpSocket::Shutdown() const noexcept
 	{
-		other._nativeSocketHandle = InvalidSocketHandle;
-	}
-
-	TcpSocket& TcpSocket::operator=(TcpSocket&& other) noexcept
-	{
-		if (this != &other)
-		{
-			Close();
-			_nativeSocketHandle = other._nativeSocketHandle;
-			other._nativeSocketHandle = InvalidSocketHandle;
-		}
-		return *this;
+		if (!impl_) return;
+		impl_->shutdown_requested = true;
+		std::error_code ignored_error;
+		impl_->socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_error);
 	}
 
 	void TcpSocket::Close() noexcept
 	{
-		if (IsOpen())
+		if (!impl_) return;
+		impl_->open = false;
+		impl_->shutdown_requested = true;
+		std::error_code ignored_error;
+		if (impl_->acceptor.is_open())
 		{
-			closesocket(ToSocket(_nativeSocketHandle));
-			_nativeSocketHandle = InvalidSocketHandle;
+			impl_->acceptor.cancel(ignored_error);
+			impl_->acceptor.close(ignored_error);
+		}
+		if (impl_->socket.is_open())
+		{
+			impl_->socket.cancel(ignored_error);
+			impl_->socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_error);
+			impl_->socket.close(ignored_error);
 		}
 	}
 
 	bool TcpSocket::IsOpen() const noexcept
 	{
-		return _nativeSocketHandle != InvalidSocketHandle;
+		return impl_ && impl_->open;
+	}
+
+	std::optional<NetworkEndpoint> TcpSocket::LocalEndpoint() const
+	{
+		if (!impl_) return std::nullopt;
+		std::error_code error;
+		const asio::ip::tcp::endpoint endpoint = impl_->acceptor.is_open()
+			? impl_->acceptor.local_endpoint(error)
+			: impl_->socket.local_endpoint(error);
+		if (error) return std::nullopt;
+		const std::string host_name = endpoint.address().to_string(error);
+		return error ? std::nullopt : std::optional<NetworkEndpoint>{ NetworkEndpoint{ host_name, endpoint.port() } };
 	}
 }

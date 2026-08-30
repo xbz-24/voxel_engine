@@ -1,7 +1,7 @@
 option(VE_BUILD_API_DOCS "Add the optional Doxygen API documentation target" OFF)
 option(VE_BUILD_EXAMPLES "Build public API example applications" ON)
 option(VE_BUILD_TESTS "Build engine tests" ON)
-option(VE_BUILD_RUNTIME_SMOKE_TESTS "Add short voxel_engine launch tests that exit after a few frames" OFF)
+option(VE_BUILD_RUNTIME_SMOKE_TESTS "Add a short voxel_demo launch test that exits after a few frames" OFF)
 option(VE_ENABLE_STRICT_WARNINGS "Enable the project's extended compiler warning set" ON)
 option(VE_ENABLE_PRECOMPILED_HEADERS "Use common project precompiled headers to shorten C++ rebuilds" ON)
 option(VE_ENABLE_ASAN "Build supported targets with AddressSanitizer instrumentation" OFF)

@@ -30,8 +30,7 @@ namespace ve::rendering
 
 	[[nodiscard]] inline std::size_t FaceIndex(ve::blocks::BlockId block, ve::blocks::BlockFace face) noexcept
 	{
-		return (static_cast<std::size_t>(block) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)) +
-			static_cast<std::size_t>(face);
+		return ve::blocks::BlockFaceTextureSlot(block, face);
 	}
 
 	[[nodiscard]] inline bool IsRenderableBlock(const ve::blocks::BlockRegistry& block_registry, ve::blocks::BlockId block) noexcept

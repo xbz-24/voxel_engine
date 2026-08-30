@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditorDemoState.h"
+#include "EditorSettings.h"
 #include "EditorGui.h"
 
 namespace ve::engine { class Window; }
@@ -32,6 +32,6 @@ namespace ve::editor
 
 	private:
 		EditorGui gui_;
-		EditorDemoState state_;
+		EditorSettings state_;
 	};
 }

@@ -8,20 +8,38 @@ namespace ve::rendering
 	bool VulkanGpuChunkRenderer::Initialize(VulkanBackend& backend,
 		VkCommandPool command_pool,
 		const std::filesystem::path& block_texture_directory,
-		const std::filesystem::path& shader_directory)
+		const std::filesystem::path& shader_directory,
+		const VoxelRenderStyle& render_style,
+		std::size_t frame_resource_count)
 	{
 		Release();
 		backend_ = &backend;
 		device_ = backend.Device().Handle();
 		physical_device_ = backend.PhysicalDevice().Handle();
 		command_pool_ = command_pool;
+		render_style_ = render_style;
 		if (device_ == VK_NULL_HANDLE || physical_device_ == VK_NULL_HANDLE || command_pool_ == VK_NULL_HANDLE) return false;
 		(void)block_texture_directory;
-		if (!CreateRenderPass() || !CreatePipeline(shader_directory) || !CreateSwapchainResources())
+		if (!CreateRenderPass() ||
+			!CreateShaderFrameResources(frame_resource_count) ||
+			!CreatePipeline(shader_directory) ||
+			!CreateSwapchainResources())
 		{
 			Release();
 			return false;
 		}
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(voxel_pipeline_),
+			"voxel_engine.pipeline.voxels");
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(sky_pipeline_),
+			"voxel_engine.pipeline.sky");
+		(void)backend.DebugLabels().NameObject(
+			VK_OBJECT_TYPE_PIPELINE,
+			VulkanPipelineObjectHandle(shadow_pipeline_),
+			"voxel_engine.pipeline.directional_shadow");
 		initialized_ = true;
 		VE_LOG_CATEGORY_INFO(ve::log::category::Render, "Vulkan GPU chunk renderer initialized");
 		return true;
@@ -30,7 +48,7 @@ namespace ve::rendering
 	std::uint32_t VulkanGpuChunkRenderer::IndexCount() const noexcept { return index_count_; }
 	const VulkanGpuChunkMeshStats& VulkanGpuChunkRenderer::MeshStats() const noexcept { return mesh_stats_; }
 	VkRenderPass VulkanGpuChunkRenderer::RenderPass() const noexcept { return render_pass_; }
-	std::uint32_t VulkanGpuChunkRenderer::FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
+	std::uint32_t VulkanGpuChunkRendererResourceOperations::FindMemoryType(VkPhysicalDevice physical_device, std::uint32_t type_filter, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memory_properties{};
 		vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);

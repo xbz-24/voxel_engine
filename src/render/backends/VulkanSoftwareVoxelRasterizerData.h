@@ -48,7 +48,7 @@ namespace ve::rendering
 	struct VulkanRasterTextureLibrary
 	{
 		std::vector<VulkanRasterCpuTexture> textures;
-		std::array<std::uint16_t, static_cast<std::size_t>(ve::blocks::BlockId::Count) * static_cast<std::size_t>(ve::blocks::BlockFace::Count)> face_texture_indices{};
+		std::array<std::uint16_t, ve::blocks::BlockFaceTextureSlotCount> face_texture_indices{};
 		bool loaded = false;
 	};
 

@@ -9,7 +9,7 @@ namespace ve::simulation
 		{
 			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const glm::vec2 position{ static_cast<float>(cell_x), static_cast<float>(cell_y) };
+				const glm::vec2 position{ ve::core::ToFloat(cell_x), ve::core::ToFloat(cell_y) };
 				const glm::vec2 velocity = previous_.VelocityAt(cell_x, cell_y);
 				const glm::vec2 backtraced_position = position - velocity * delta_seconds;
 				current_.SetVelocity(
@@ -27,7 +27,7 @@ namespace ve::simulation
 		{
 			for (int cell_x = 0; cell_x < current_.Width(); ++cell_x)
 			{
-				const glm::vec2 position{ static_cast<float>(cell_x), static_cast<float>(cell_y) };
+				const glm::vec2 position{ ve::core::ToFloat(cell_x), ve::core::ToFloat(cell_y) };
 				const glm::vec2 velocity = current_.VelocityAt(cell_x, cell_y);
 				const glm::vec2 backtraced_position = position - velocity * delta_seconds;
 				current_.SetDensity(cell_x, cell_y, previous_.SampleDensity(backtraced_position));

@@ -1,21 +1,24 @@
 #include "ModelImporterRegistry.h"
 
+#include <algorithm>
+#include <utility>
+
 namespace ve::assets
 {
 	/// Registers one importer implementation.
 	void ModelImporterRegistry::Register(std::unique_ptr<IModelImporter> importer)
 	{
-		if (importer) importers_.push_back(ve::core::Move(importer));
+		if (importer) importers_.push_back(std::move(importer));
 	}
 
 	/// Finds the first importer that supports a model path.
 	const IModelImporter* ModelImporterRegistry::FindImporter(const std::filesystem::path& model_path) const
 	{
-		for (const std::unique_ptr<IModelImporter>& importer : importers_)
+		const auto matching_importer = std::ranges::find_if(importers_, [&model_path](const auto& importer)
 		{
-			if (importer->CanImport(model_path)) return importer.get();
-		}
-		return nullptr;
+			return importer->CanImport(model_path);
+		});
+		return matching_importer == importers_.end() ? nullptr : matching_importer->get();
 	}
 
 	/// Imports a model through the matching registered importer.

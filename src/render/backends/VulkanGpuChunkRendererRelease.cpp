@@ -4,19 +4,25 @@
 
 namespace ve::rendering
 {
-	void VulkanGpuChunkRenderer::ReleaseMeshBuffers()
+	void VulkanGpuChunkRendererMeshOperations::ReleaseMeshBuffers()
 	{
 		if (vertex_buffer_ != VK_NULL_HANDLE) vkDestroyBuffer(device_, vertex_buffer_, nullptr);
 		if (vertex_memory_ != VK_NULL_HANDLE) vkFreeMemory(device_, vertex_memory_, nullptr);
 		if (index_buffer_ != VK_NULL_HANDLE) vkDestroyBuffer(device_, index_buffer_, nullptr);
 		if (index_memory_ != VK_NULL_HANDLE) vkFreeMemory(device_, index_memory_, nullptr);
+		if (shadow_index_buffer_ != VK_NULL_HANDLE) vkDestroyBuffer(device_, shadow_index_buffer_, nullptr);
+		if (shadow_index_memory_ != VK_NULL_HANDLE) vkFreeMemory(device_, shadow_index_memory_, nullptr);
 		vertex_buffer_ = VK_NULL_HANDLE;
 		vertex_memory_ = VK_NULL_HANDLE;
 		vertex_buffer_capacity_bytes_ = 0;
 		index_buffer_ = VK_NULL_HANDLE;
 		index_memory_ = VK_NULL_HANDLE;
 		index_buffer_capacity_bytes_ = 0;
+		shadow_index_buffer_ = VK_NULL_HANDLE;
+		shadow_index_memory_ = VK_NULL_HANDLE;
+		shadow_index_buffer_capacity_bytes_ = 0;
 		index_count_ = 0u;
+		shadow_index_count_ = 0u;
 		mesh_stats_ = VulkanGpuChunkMeshStats{};
 		mesh_valid_ = false;
 		mesh_revision_ = 0u;
@@ -24,7 +30,7 @@ namespace ve::rendering
 		last_rebuilt_chunk_count_ = 0u;
 		cached_chunk_meshes_.clear();
 	}
-	void VulkanGpuChunkRenderer::ReleaseSwapchainResources()
+	void VulkanGpuChunkRendererResourceOperations::ReleaseSwapchainResources()
 	{
 		for (VkFramebuffer framebuffer : framebuffers_)
 		{
@@ -44,13 +50,22 @@ namespace ve::rendering
 		swapchain_image_views_.clear();
 		extent_ = {};
 	}
-	void VulkanGpuChunkRenderer::ReleasePipelineResources()
+	void VulkanGpuChunkRendererResourceOperations::ReleasePipelineResources()
 	{
-		if (pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, pipeline_, nullptr);
+		if (shadow_pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, shadow_pipeline_, nullptr);
+		if (sky_pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, sky_pipeline_, nullptr);
+		if (voxel_pipeline_ != VK_NULL_HANDLE) vkDestroyPipeline(device_, voxel_pipeline_, nullptr);
 		if (pipeline_layout_ != VK_NULL_HANDLE) vkDestroyPipelineLayout(device_, pipeline_layout_, nullptr);
-		if (render_pass_ != VK_NULL_HANDLE) vkDestroyRenderPass(device_, render_pass_, nullptr);
-		pipeline_ = VK_NULL_HANDLE;
+		shadow_pipeline_ = VK_NULL_HANDLE;
+		sky_pipeline_ = VK_NULL_HANDLE;
+		voxel_pipeline_ = VK_NULL_HANDLE;
 		pipeline_layout_ = VK_NULL_HANDLE;
+	}
+	void VulkanGpuChunkRendererResourceOperations::ReleaseRenderPassResources()
+	{
+		if (shadow_render_pass_ != VK_NULL_HANDLE) vkDestroyRenderPass(device_, shadow_render_pass_, nullptr);
+		if (render_pass_ != VK_NULL_HANDLE) vkDestroyRenderPass(device_, render_pass_, nullptr);
+		shadow_render_pass_ = VK_NULL_HANDLE;
 		render_pass_ = VK_NULL_HANDLE;
 	}
 	void VulkanGpuChunkRenderer::Release()
@@ -59,11 +74,14 @@ namespace ve::rendering
 		ReleaseMeshBuffers();
 		ReleaseSwapchainResources();
 		ReleasePipelineResources();
+		ReleaseShaderFrameResources();
+		ReleaseRenderPassResources();
 		backend_ = nullptr;
 		device_ = VK_NULL_HANDLE;
 		physical_device_ = VK_NULL_HANDLE;
 		command_pool_ = VK_NULL_HANDLE;
 		color_format_ = VK_FORMAT_UNDEFINED;
+		render_style_ = {};
 		initialized_ = false;
 	}
 }

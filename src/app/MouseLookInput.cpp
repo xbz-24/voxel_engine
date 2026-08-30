@@ -1,5 +1,7 @@
 #include "MouseLookInput.h"
 
+#include "CoreTypes.h"
+
 #include <algorithm>
 
 namespace ve::engine
@@ -34,8 +36,8 @@ namespace ve::engine
 		const float pitch_axis = settings.invert_y_axis ? -1.0f : 1.0f;
 
 		return MouseLookDelta{
-			static_cast<float>(raw_delta_x) * sensitivity_degrees_per_pixel * yaw_axis,
-			static_cast<float>(raw_delta_y) * sensitivity_degrees_per_pixel * pitch_axis
+			ve::core::ToFloat(raw_delta_x) * sensitivity_degrees_per_pixel * yaw_axis,
+			ve::core::ToFloat(raw_delta_y) * sensitivity_degrees_per_pixel * pitch_axis
 		};
 	}
 }

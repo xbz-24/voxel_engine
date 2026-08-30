@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include "Window.h"
+#include "WindowGlfwSession.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -7,7 +8,12 @@
 /// Starts GLFW and reports whether initialization succeeded.
 bool ve::engine::Window::InitializeGlfw()
 {
-	if (glfwInit() == GLFW_TRUE) return true;
+	if (_ownsGlfwSession) return true;
+	if (detail::AcquireGlfwSession())
+	{
+		_ownsGlfwSession = true;
+		return true;
+	}
 	VE_LOG_ERROR("Failed to initialize GLFW");
 	return false;
 }
@@ -15,10 +21,9 @@ bool ve::engine::Window::InitializeGlfw()
 /// Creates the native GLFW window.
 bool ve::engine::Window::CreateNativeWindow(GLFWmonitor* fullscreen_monitor)
 {
-	_window = glfwCreateWindow(_width, _height, _title.c_str(), fullscreen_monitor, nullptr);
-	if (_window) return true;
+	_window.reset(glfwCreateWindow(_width, _height, _title.c_str(), fullscreen_monitor, nullptr));
+	if (_window != nullptr) return true;
 	VE_LOG_ERROR("Failed to create GLFW window");
-	glfwTerminate();
 	return false;
 }
 
@@ -31,9 +36,9 @@ void ve::engine::Window::ApplyInitialCursorMode()
 /// Wires GLFW user data, callbacks and current context.
 void ve::engine::Window::ConfigureNativeCallbacks()
 {
-	glfwSetWindowUserPointer(_window, &_callbackContext);
-	glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
-	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window);
+	glfwSetWindowUserPointer(_window.get(), &_callbackContext);
+	glfwSetFramebufferSizeCallback(_window.get(), FramebufferResizeCallback);
+	if (_graphicsApi == ve::rendering::GraphicsApi::OpenGLCompatibility) glfwMakeContextCurrent(_window.get());
 }
 
 /// Initializes the native window with the default Vulkan backend.
@@ -45,6 +50,7 @@ bool ve::engine::Window::Initialize()
 /// Initializes the native window for the requested graphics API.
 bool ve::engine::Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
 {
+	if (_window != nullptr) return _graphicsApi == graphicsApi;
 	if (!InitializeGlfw()) return false;
 	_graphicsApi = graphicsApi;
 	GLFWmonitor* display_monitor = SelectDisplayMonitor();
@@ -52,12 +58,16 @@ bool ve::engine::Window::Initialize(ve::rendering::GraphicsApi graphicsApi)
 	if (!videoMode)
 	{
 		VE_LOG_ERROR("Failed to read GLFW display mode");
-		glfwTerminate();
+		Shutdown();
 		return false;
 	}
 	ApplyWindowHints(*videoMode);
 	GLFWmonitor* fullscreen_monitor = _fullscreen ? display_monitor : nullptr;
-	if (!CreateNativeWindow(fullscreen_monitor)) return false;
+	if (!CreateNativeWindow(fullscreen_monitor))
+	{
+		Shutdown();
+		return false;
+	}
 	ConfigureNativeCallbacks();
 	ApplyInitialCursorMode();
 	return true;

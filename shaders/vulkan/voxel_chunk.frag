@@ -1,5 +1,18 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive : require
+
+#include "voxel_math.glsl"
+#include "voxel_environment.glsl"
+#include "voxel_surface_masks.glsl"
+#include "voxel_surface_detail.glsl"
+#include "voxel_shadowing.glsl"
+#include "voxel_materials.glsl"
+#include "voxel_normal_detail.glsl"
+#include "voxel_lighting.glsl"
+#include "voxel_atmosphere.glsl"
+#include "voxel_grade.glsl"
+
 layout(location = 0) in vec4 frag_color;
 layout(location = 1) in float frag_light;
 layout(location = 2) in vec3 frag_normal;
@@ -8,54 +21,48 @@ layout(location = 4) in vec3 frag_world_position;
 
 layout(location = 0) out vec4 out_color;
 
-vec3 saturate(vec3 value)
-{
-	return clamp(value, vec3(0.0), vec3(1.0));
-}
-
-float hash13(vec3 value)
-{
-	value = fract(value * 0.1031);
-	value += dot(value, value.yzx + 33.33);
-	return fract((value.x + value.y) * value.z);
-}
-
 void main()
 {
 	if (frag_color.a < 0.05)
 	{
 		discard;
 	}
-	vec3 normal = normalize(frag_normal);
-	vec3 sun_direction = normalize(vec3(-0.42, 0.78, -0.46));
-	float direct_light = max(dot(normal, sun_direction), 0.0);
-	float sky_bounce = clamp((normal.y * 0.5) + 0.5, 0.0, 1.0);
-	float side_fill = 1.0 - abs(normal.y);
+	vec3 geometric_normal = normalize(frag_normal);
 	float vertex_light = clamp(frag_light, 0.0, 1.70);
 	float height_blend = smoothstep(38.0, 118.0, frag_world_position.y);
+	VoxelSurfaceMasks surface_masks = build_voxel_surface_masks(frag_color, geometric_normal, frag_world_position, height_blend);
+	VoxelEnvironment environment = current_voxel_environment();
+	vec3 normal = perturb_voxel_surface_normal(
+		geometric_normal,
+		frag_world_position,
+		surface_masks,
+		environment);
+	vec3 view_direction = normalize(environment.camera_position - frag_world_position);
 
-	vec3 cool_shadow = vec3(0.58, 0.69, 0.92);
-	vec3 warm_sun = vec3(1.12, 1.02, 0.86);
-	vec3 lowland_warmth = vec3(1.04, 0.97, 0.89);
-	vec3 canopy_coolness = vec3(0.91, 1.02, 1.08);
-	vec3 light_color = mix(cool_shadow, warm_sun, smoothstep(0.05, 0.95, direct_light));
-	float ambient = mix(0.36, 0.62, sky_bounce);
-	float diffuse = mix(0.18, 0.70, direct_light);
-	float rim = 0.055 * side_fill * sky_bounce;
-
-	vec3 lit = frag_color.rgb * vertex_light * (ambient + diffuse + rim) * light_color;
-	lit *= mix(lowland_warmth, canopy_coolness, height_blend * 0.38);
-	lit += vec3(0.018, 0.022, 0.030) * side_fill * (1.0 - direct_light);
-	lit = max(lit - vec3(0.018), vec3(0.0));
-	float luminance = dot(lit, vec3(0.2126, 0.7152, 0.0722));
-	lit = mix(vec3(luminance), lit, 1.08);
-	float grain = (hash13(floor(frag_world_position * 0.73)) - 0.5) * 0.026;
-	lit += vec3(grain);
-	lit = pow(saturate(lit), vec3(0.88));
-
-	vec3 fog_color = mix(vec3(0.68, 0.74, 0.79), vec3(0.53, 0.68, 0.86), height_blend);
-	float fog = smoothstep(170.0, 430.0, frag_view_depth);
-	float ground_haze = smoothstep(34.0, 52.0, frag_world_position.y) * (1.0 - smoothstep(70.0, 120.0, frag_world_position.y));
-	vec3 final_color = mix(saturate(lit), fog_color, (fog * 0.42) + (ground_haze * 0.055));
+	vec3 albedo = apply_voxel_material_tint(
+		frag_color.rgb,
+		frag_world_position,
+		geometric_normal,
+		height_blend,
+		surface_masks,
+		environment);
+	vec3 lit = evaluate_voxel_lighting(
+		albedo,
+		normal,
+		view_direction,
+		vertex_light,
+		height_blend,
+		frag_world_position,
+		surface_masks,
+		environment);
+	float ordered_grain = (hash13(floor(frag_world_position * 0.73)) - 0.5) * 0.020;
+	float screen_grain = screen_dither(gl_FragCoord.xy) * 0.006;
+	vec3 final_color = apply_voxel_atmosphere(
+		lit + vec3(ordered_grain + screen_grain),
+		frag_view_depth,
+		frag_world_position,
+		height_blend,
+		environment);
+	final_color = apply_voxel_color_grade(final_color, frag_world_position, surface_masks);
 	out_color = vec4(saturate(final_color), frag_color.a);
 }

@@ -23,7 +23,7 @@ namespace ve::rendering
 		/**
 		 * Releases the GPU buffer owned by this mesh.
 		 */
-		~ChunkGpuMesh();
+		~ChunkGpuMesh() noexcept;
 
 		ChunkGpuMesh(const ChunkGpuMesh&) = delete;
 		ChunkGpuMesh& operator=(const ChunkGpuMesh&) = delete;
@@ -61,7 +61,7 @@ namespace ve::rendering
 		/**
 		 * Frees the GPU buffer and clears batch metadata.
 		 */
-		void Release();
+		void Release() noexcept;
 
 	private:
 		std::unique_ptr<RenderMesh> _mesh;

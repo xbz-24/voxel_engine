@@ -1,6 +1,7 @@
 #include "VulkanGpuChunkRenderer.h"
 
 #include "Logger.h"
+#include "VulkanGpuChunkRendererShadowIndices.h"
 #include "World.h"
 
 #include <chrono>
@@ -8,12 +9,17 @@
 
 namespace ve::rendering
 {
-	bool VulkanGpuChunkRenderer::UploadMeshBuffers(std::span<const VoxelVertex> vertices, std::span<const std::uint32_t> indices)
+	bool VulkanGpuChunkRendererMeshOperations::UploadMeshBuffers(
+		std::span<const VoxelVertex> vertices,
+		std::span<const std::uint32_t> indices,
+		std::span<const std::uint32_t> shadow_indices)
 	{
-		index_count_ = static_cast<std::uint32_t>(indices.size());
+		index_count_ = RenderElementCount(indices.size());
+		shadow_index_count_ = RenderElementCount(shadow_indices.size());
 		if (vertices.empty() || indices.empty()) return true;
-		const VkDeviceSize vertex_bytes = static_cast<VkDeviceSize>(vertices.size_bytes());
-		const VkDeviceSize index_bytes = static_cast<VkDeviceSize>(indices.size_bytes());
+		const VkDeviceSize vertex_bytes = VulkanByteSize(vertices.size_bytes());
+		const VkDeviceSize index_bytes = VulkanByteSize(indices.size_bytes());
+		const VkDeviceSize shadow_index_bytes = VulkanByteSize(shadow_indices.size_bytes());
 		const bool uploaded = UploadDeviceLocalBuffer(
 			vertices.data(),
 			vertex_bytes,
@@ -27,7 +33,14 @@ namespace ve::rendering
 				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 				index_buffer_,
 				index_memory_,
-				index_buffer_capacity_bytes_);
+				index_buffer_capacity_bytes_) &&
+			(shadow_indices.empty() || UploadDeviceLocalBuffer(
+				shadow_indices.data(),
+				shadow_index_bytes,
+				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+				shadow_index_buffer_,
+				shadow_index_memory_,
+				shadow_index_buffer_capacity_bytes_));
 		if (!uploaded) ReleaseMeshBuffers();
 		return uploaded;
 	}
@@ -38,9 +51,13 @@ namespace ve::rendering
 		std::vector<VoxelVertex> vertices;
 		std::vector<std::uint32_t> indices;
 		RebuildMesh(world, block_registry, vertices, indices);
+		const std::vector<std::uint32_t> shadow_indices = detail::BuildDirectionalShadowIndices(
+			vertices,
+			indices,
+			render_style_.sun_direction);
 		const auto rebuild_end = std::chrono::steady_clock::now();
 		const auto upload_start = std::chrono::steady_clock::now();
-		if (!UploadMeshBuffers(vertices, indices)) return false;
+		if (!UploadMeshBuffers(vertices, indices, shadow_indices)) return false;
 		const auto upload_end = std::chrono::steady_clock::now();
 		mesh_revision_ = world.Revision();
 		mesh_valid_ = true;
@@ -49,15 +66,18 @@ namespace ve::rendering
 		mesh_stats_ = VulkanGpuChunkMeshStats{
 			rebuild_ms,
 			upload_ms,
-			static_cast<std::uint32_t>(vertices.size()),
+			RenderElementCount(vertices.size()),
 			index_count_,
+			shadow_index_count_,
 			last_rebuilt_chunk_count_,
-			static_cast<std::uint32_t>(cached_chunk_meshes_.size()),
+			RenderElementCount(cached_chunk_meshes_.size()),
 			vertex_buffer_capacity_bytes_,
-			index_buffer_capacity_bytes_
+			index_buffer_capacity_bytes_,
+			shadow_index_buffer_capacity_bytes_
 		};
 		VE_LOG_CATEGORY_DEBUG(ve::log::category::Render, "Rebuilt Vulkan world mesh: " + std::to_string(index_count_) +
-			" indices, " + std::to_string(last_rebuilt_chunk_count_) + "/" +
+			" indices, " + std::to_string(shadow_index_count_) + " shadow indices, " +
+			std::to_string(last_rebuilt_chunk_count_) + "/" +
 			std::to_string(cached_chunk_meshes_.size()) + " chunks rebuilt in " +
 			std::to_string(rebuild_ms + upload_ms) + " ms");
 		return true;

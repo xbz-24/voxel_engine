@@ -22,11 +22,10 @@ namespace ve::editor
 	/// Draws the editor and applies edited runtime settings.
 	void EditorRuntimeController::DrawAndApply(ve::engine::Window& window, ve::gameplay::RuntimeSettings& settings)
 	{
-		gui_.DrawDemoPanel(state_);
+		gui_.DrawSettingsPanel(state_);
 		settings.renderer.render_distance_chunks = state_.render_distance_chunks;
 		settings.renderer.is_vsync_enabled = state_.is_vsync_enabled;
 		if (window.IsVSyncEnabled() != state_.is_vsync_enabled) window.SetVSync(state_.is_vsync_enabled);
-		state_.request_demo_rebuild = false;
 	}
 
 	/// Presents the editor UI.

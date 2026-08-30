@@ -8,19 +8,10 @@
 
 namespace voxel
 {
-	[[nodiscard]] EngineConfig DesertDemo();
-	[[nodiscard]] EngineConfig AquaModelDemo();
-	[[nodiscard]] EngineConfig SponzaAtriumDemo();
-	[[nodiscard]] EngineConfig MinecraftDemo();
-	[[nodiscard]] EngineConfig WorldEditDemo();
-	[[nodiscard]] EngineConfig ShowcaseDemo();
-	[[nodiscard]] EngineConfig ArcadeSnakeDemo();
-	[[nodiscard]] EngineConfig ArcadePaddleDemo();
-	[[nodiscard]] EngineConfig ArcadeBlocksDemo();
-	[[nodiscard]] EngineConfig ArcadeInvadersDemo();
-	[[nodiscard]] EngineConfig ArcadeMazeDemo();
-	[[nodiscard]] EngineConfig DefaultConfig();
-
+	/** @addtogroup voxel_sdk_startup
+	 * @{
+	 */
+	/** Structured startup failure reason for EngineStartResult. */
 	enum class EngineStartFailure
 	{
 		None,
@@ -29,23 +20,40 @@ namespace voxel
 		RuntimeStartupFailed
 	};
 
+	/** Structured result returned by Engine::StartDetailed. */
 	struct EngineStartResult
 	{
 		EngineStartFailure failure = EngineStartFailure::None;
 		std::vector<std::string> issues;
 		std::string message;
 
+		/** Creates a successful startup result. */
 		[[nodiscard]] static EngineStartResult Success();
+
+		/** Creates a validation-failure startup result with public issue messages. */
 		[[nodiscard]] static EngineStartResult InvalidConfiguration(std::vector<std::string> issues);
+
+		/** Creates a startup result for missing runtime capabilities. */
 		[[nodiscard]] static EngineStartResult RuntimeUnavailable(std::string message);
+
+		/** Creates a startup result for runtime initialization failure. */
 		[[nodiscard]] static EngineStartResult RuntimeStartupFailed(std::string message);
+
+		/** Returns true only for successful startup. */
 		[[nodiscard]] explicit operator bool() const noexcept;
 	};
 
+	/**
+	 * Owns a host-thread runtime; moved-from instances remain safely inert.
+	 * Shutdown from callbacks is deferred; callbacks must not destroy or move this Engine.
+	 */
 	class Engine
 	{
 	public:
+		/** Creates an engine wrapper with a copied public configuration. */
 		explicit Engine(EngineConfig config = {});
+
+		/** Releases any active runtime before destroying the wrapper. */
 		~Engine();
 
 		Engine(const Engine&) = delete;
@@ -79,18 +87,13 @@ namespace voxel
 		std::unique_ptr<Impl> impl_;
 	};
 
+	/** Runs the engine-owned main loop and returns a process-style exit code. */
 	[[nodiscard]] int Run(EngineConfig config = {});
+
+	/** Runs a world config using default engine settings. */
 	[[nodiscard]] int Run(WorldConfig world);
+
+	/** Runs a scene/world config using default engine settings. */
 	[[nodiscard]] int RunScene(WorldConfig scene);
-	[[nodiscard]] int RunDesertDemo();
-	[[nodiscard]] int RunAquaModelDemo();
-	[[nodiscard]] int RunSponzaAtriumDemo();
-	[[nodiscard]] int RunMinecraftDemo();
-	[[nodiscard]] int RunWorldEditDemo();
-	[[nodiscard]] int RunShowcaseDemo();
-	[[nodiscard]] int RunArcadeSnakeDemo();
-	[[nodiscard]] int RunArcadePaddleDemo();
-	[[nodiscard]] int RunArcadeBlocksDemo();
-	[[nodiscard]] int RunArcadeInvadersDemo();
-	[[nodiscard]] int RunArcadeMazeDemo();
+	/** @} */
 }

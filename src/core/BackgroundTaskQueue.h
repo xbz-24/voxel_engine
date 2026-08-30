@@ -44,7 +44,7 @@ namespace ve::tasks
 		 * Pushes one task with scheduling metadata.
 		 *
 		 * @param task Callable executed by a background worker.
-		 * @param options Priority and optional cancellation id for queued work.
+		 * @param options Scheduling, cancellation, and failure-recovery metadata.
 		 * @return True when the task was accepted.
 		 */
 		bool Enqueue(BackgroundTask task, BackgroundTaskOptions options);
@@ -79,7 +79,7 @@ namespace ve::tasks
 		void RunWorker(std::stop_token stopToken);
 		bool WaitForTask(std::stop_token stopToken, QueuedBackgroundTask& queuedTask);
 		void RecordTaskStarted(std::chrono::steady_clock::duration queueLatency);
-		void RecordTaskCompleted(std::chrono::steady_clock::duration executionTime);
+		void RecordTaskFinished(std::chrono::steady_clock::duration executionTime, bool succeeded);
 		void RecordShutdownWait(std::chrono::steady_clock::duration shutdownWait);
 
 		std::vector<std::jthread> _workers;

@@ -1,5 +1,7 @@
 #include "RenderBackendCatalog.h"
 
+#include <algorithm>
+
 namespace ve::rendering
 {
 	namespace
@@ -10,13 +12,13 @@ namespace ve::rendering
 				.has_backend_neutral_textures = false,
 				.has_backend_neutral_hud = false,
 				.has_backend_neutral_world_renderer = true,
-				.has_runtime_smoke_test = false } },
+				.has_runtime_smoke_test = true } },
 			RenderBackendDescriptor{ GraphicsApi::OpenGLCompatibility, "OpenGLCompatibility", false, true, RenderBackendMigrationStatus{
 				.has_backend_neutral_meshes = true,
 				.has_backend_neutral_textures = false,
 				.has_backend_neutral_hud = false,
 				.has_backend_neutral_world_renderer = false,
-				.has_runtime_smoke_test = true } },
+				.has_runtime_smoke_test = false } },
 			RenderBackendDescriptor{ GraphicsApi::DirectX12, "DirectX12", false, false, RenderBackendMigrationStatus{} }
 		};
 	}
@@ -36,10 +38,7 @@ namespace ve::rendering
 	/** Finds a backend descriptor by API. */
 	const RenderBackendDescriptor& RenderBackendCatalog::Find(GraphicsApi api) noexcept
 	{
-		for (const RenderBackendDescriptor& backend : kBackends)
-		{
-			if (backend.api == api) return backend;
-		}
-		return DefaultBackend();
+		const auto backend = std::ranges::find(kBackends, api, &RenderBackendDescriptor::api);
+		return backend == kBackends.end() ? DefaultBackend() : *backend;
 	}
 }

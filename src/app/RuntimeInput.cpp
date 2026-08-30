@@ -1,8 +1,5 @@
 #include "RuntimeInput.h"
 
-#include "Input.h"
-#include "Window.h"
-
 #include <array>
 #include <optional>
 
@@ -10,7 +7,7 @@ namespace ve::engine
 {
 	namespace
 	{
-		constexpr std::array<RuntimeInputAction, 9> kTrackedRuntimeInputActions{ {
+		constexpr std::array<RuntimeInputAction, 9> TrackedActions{ {
 			RuntimeInputAction::MoveForward,
 			RuntimeInputAction::MoveLeft,
 			RuntimeInputAction::MoveBack,
@@ -22,93 +19,54 @@ namespace ve::engine
 			RuntimeInputAction::PrimaryAction
 		} };
 
-		[[nodiscard]] std::optional<std::size_t> RuntimeInputActionIndex(
-			RuntimeInputAction runtime_input_action) noexcept
+		[[nodiscard]] std::optional<std::size_t> ActionIndex(RuntimeInputAction action) noexcept
 		{
-			for (std::size_t action_index = 0; action_index < kTrackedRuntimeInputActions.size(); ++action_index)
+			for (std::size_t index = 0; index < TrackedActions.size(); ++index)
 			{
-				if (kTrackedRuntimeInputActions[action_index] == runtime_input_action) return action_index;
+				if (TrackedActions[index] == action) return index;
 			}
 			return std::nullopt;
 		}
 	}
 
-	RuntimeInputSnapshot CaptureRuntimeInputSnapshot(const Window& window) noexcept
-	{
-		const ve::input::InputSnapshot central_input_snapshot =
-			ve::input::CaptureInputSnapshot(window);
-		RuntimeInputSnapshot runtime_input_snapshot{};
-		runtime_input_snapshot.move_forward =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::W);
-		runtime_input_snapshot.move_left =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::A);
-		runtime_input_snapshot.move_back =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::S);
-		runtime_input_snapshot.move_right =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::D);
-		runtime_input_snapshot.jump =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::Space);
-		runtime_input_snapshot.escape =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::Escape);
-		runtime_input_snapshot.f1 =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::F1);
-		runtime_input_snapshot.f2 =
-			ve::input::IsPressed(central_input_snapshot, ve::input::Key::F2);
-		runtime_input_snapshot.primary_action =
-			ve::input::IsPressed(central_input_snapshot, ve::input::MouseButton::Left);
-
-		const Window::CursorPosition cursor_position = window.CurrentCursorPosition();
-		runtime_input_snapshot.mouse_x = cursor_position.x;
-		runtime_input_snapshot.mouse_y = cursor_position.y;
-
-		return runtime_input_snapshot;
-	}
-
 	bool IsRuntimeInputActionActive(
-		const RuntimeInputSnapshot& runtime_input_snapshot,
-		RuntimeInputAction runtime_input_action) noexcept
+		const RuntimeInputSnapshot& input,
+		RuntimeInputAction action) noexcept
 	{
-		switch (runtime_input_action)
+		switch (action)
 		{
-		case RuntimeInputAction::MoveForward: return runtime_input_snapshot.move_forward;
-		case RuntimeInputAction::MoveLeft: return runtime_input_snapshot.move_left;
-		case RuntimeInputAction::MoveBack: return runtime_input_snapshot.move_back;
-		case RuntimeInputAction::MoveRight: return runtime_input_snapshot.move_right;
-		case RuntimeInputAction::Jump: return runtime_input_snapshot.jump;
-		case RuntimeInputAction::Cancel: return runtime_input_snapshot.escape;
-		case RuntimeInputAction::ToggleDebugOverlay: return runtime_input_snapshot.f1;
-		case RuntimeInputAction::ToggleRenderMode: return runtime_input_snapshot.f2;
-		case RuntimeInputAction::PrimaryAction: return runtime_input_snapshot.primary_action;
+		case RuntimeInputAction::MoveForward: return input.move_forward;
+		case RuntimeInputAction::MoveLeft: return input.move_left;
+		case RuntimeInputAction::MoveBack: return input.move_back;
+		case RuntimeInputAction::MoveRight: return input.move_right;
+		case RuntimeInputAction::Jump: return input.jump;
+		case RuntimeInputAction::Cancel: return input.escape;
+		case RuntimeInputAction::ToggleDebugOverlay: return input.f1;
+		case RuntimeInputAction::ToggleRenderMode: return input.f2;
+		case RuntimeInputAction::PrimaryAction: return input.primary_action;
 		default: return false;
 		}
 	}
 
-	void RuntimeInputActionTracker::Update(const RuntimeInputSnapshot& runtime_input_snapshot) noexcept
+	void RuntimeInputActionTracker::Update(const RuntimeInputSnapshot& input) noexcept
 	{
 		previous_action_states_ = current_action_states_;
 		current_action_states_.reset();
-
-		for (std::size_t action_index = 0; action_index < kTrackedRuntimeInputActions.size(); ++action_index)
+		for (std::size_t index = 0; index < TrackedActions.size(); ++index)
 		{
-			const RuntimeInputAction tracked_runtime_input_action =
-				kTrackedRuntimeInputActions[action_index];
-			current_action_states_.set(
-				action_index,
-				IsRuntimeInputActionActive(runtime_input_snapshot, tracked_runtime_input_action));
+			current_action_states_.set(index, IsRuntimeInputActionActive(input, TrackedActions[index]));
 		}
 	}
 
-	bool RuntimeInputActionTracker::IsDown(RuntimeInputAction runtime_input_action) const noexcept
+	bool RuntimeInputActionTracker::IsDown(RuntimeInputAction action) const noexcept
 	{
-		const std::optional<std::size_t> action_index = RuntimeInputActionIndex(runtime_input_action);
-		return action_index.has_value() && current_action_states_[*action_index];
+		const std::optional<std::size_t> index = ActionIndex(action);
+		return index.has_value() && current_action_states_[*index];
 	}
 
-	bool RuntimeInputActionTracker::WasJustPressed(RuntimeInputAction runtime_input_action) const noexcept
+	bool RuntimeInputActionTracker::WasJustPressed(RuntimeInputAction action) const noexcept
 	{
-		const std::optional<std::size_t> action_index = RuntimeInputActionIndex(runtime_input_action);
-		return action_index.has_value() &&
-			current_action_states_[*action_index] &&
-			!previous_action_states_[*action_index];
+		const std::optional<std::size_t> index = ActionIndex(action);
+		return index.has_value() && current_action_states_[*index] && !previous_action_states_[*index];
 	}
 }

@@ -10,7 +10,7 @@ namespace ve::rendering
 	class RenderMesh
 	{
 	public:
-		virtual ~RenderMesh() = default;
+		virtual ~RenderMesh() noexcept = default;
 
 		/** @param description CPU mesh payload to upload into backend-owned memory. */
 		virtual void Upload(const MeshDescription& description) = 0;
@@ -19,7 +19,7 @@ namespace ve::rendering
 		virtual void Draw() const = 0;
 
 		/** Releases native backend resources. */
-		virtual void Release() = 0;
+		virtual void Release() noexcept = 0;
 	};
 
 	/** @return Compatibility OpenGL mesh resource. */

@@ -1,38 +1,18 @@
 #pragma once
 
-#include "voxel/Assets.h"
-#include "voxel/Camera.h"
-#include "voxel/EngineConfigTypes.h"
-#include "voxel/Materials.h"
+#include "voxel/EngineConfigSlices.h"
 #include "voxel/Runtime.h"
-#include "voxel/Scene.h"
-#include "voxel/World.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace voxel
 {
-	struct EngineStartupConfig
-	{
-		WindowConfig window{};
-		WorldConfig world{};
-		AssetCatalog assets{};
-		MaterialLibrary materials{};
-		SceneGraph scene_graph{};
-		CameraConfig camera{};
-		LogSettings logging{};
-		GraphicsApi graphics_api = GraphicsApi::Vulkan;
-		DemoScene demo_scene = DemoScene::HyperrealDesert;
-	};
-
-	struct EngineRuntimeTuning
-	{
-		int render_distance_chunks = 8;
-		bool show_debug_overlay = true;
-		bool enable_settings_menu = true;
-	};
-
+	/** @addtogroup voxel_sdk_startup
+	 * @{
+	 */
+	/** Main fluent configuration object for launching or embedding the engine. */
 	struct EngineConfig
 	{
 		WindowConfig window{};
@@ -43,7 +23,8 @@ namespace voxel
 		CameraConfig camera{};
 		LogSettings logging{};
 		GraphicsApi graphics_api = GraphicsApi::Vulkan;
-		DemoScene demo_scene = DemoScene::HyperrealDesert;
+		std::optional<RuntimeLayout> runtime_layout;
+		VoxelRenderStyle voxel_render_style{};
 		int render_distance_chunks = 8;
 		bool show_debug_overlay = true;
 		bool enable_settings_menu = true;
@@ -52,17 +33,6 @@ namespace voxel
 		LogCallback on_log{};
 
 		[[nodiscard]] static EngineConfig Default();
-		[[nodiscard]] static EngineConfig DesertDemo();
-		[[nodiscard]] static EngineConfig AquaModelDemo();
-		[[nodiscard]] static EngineConfig SponzaAtriumDemo();
-		[[nodiscard]] static EngineConfig MinecraftDemo();
-		[[nodiscard]] static EngineConfig WorldEditDemo();
-		[[nodiscard]] static EngineConfig ShowcaseDemo();
-		[[nodiscard]] static EngineConfig ArcadeSnakeDemo();
-		[[nodiscard]] static EngineConfig ArcadePaddleDemo();
-		[[nodiscard]] static EngineConfig ArcadeBlocksDemo();
-		[[nodiscard]] static EngineConfig ArcadeInvadersDemo();
-		[[nodiscard]] static EngineConfig ArcadeMazeDemo();
 		[[nodiscard]] std::vector<std::string> Validate() const;
 		[[nodiscard]] bool IsValid() const;
 		[[nodiscard]] EngineStartupConfig StartupConfig() const;
@@ -86,7 +56,9 @@ namespace voxel
 		EngineConfig& UseVulkan() noexcept;
 		EngineConfig& UseOpenGLCompatibility() noexcept;
 		EngineConfig& UseDirectX12() noexcept;
-		EngineConfig& WithDemoScene(DemoScene value) noexcept;
+		EngineConfig& WithRuntimeLayout(RuntimeLayout value) noexcept;
+		EngineConfig& UseDiscoveredRuntimeLayout() noexcept;
+		EngineConfig& WithVoxelRenderStyle(VoxelRenderStyle value) noexcept;
 		EngineConfig& WithWorldSizeChunks(int value) noexcept;
 		EngineConfig& WithRenderDistanceChunks(int value) noexcept;
 		EngineConfig& WithRuntimeTuning(EngineRuntimeTuning value) noexcept;
@@ -98,4 +70,5 @@ namespace voxel
 		EngineConfig& OnDiagnostics(DiagnosticsCallback callback) noexcept;
 		EngineConfig& OnLog(LogCallback callback) noexcept;
 	};
+	/** @} */
 }
