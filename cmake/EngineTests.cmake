@@ -23,7 +23,9 @@ if (VE_BUILD_TESTS)
     set_target_properties(engine_tests PROPERTIES FOLDER "Tests")
     ve_copy_msvc_asan_runtime(engine_tests)
     add_test(NAME engine_tests COMMAND engine_tests)
-    set_tests_properties(engine_tests PROPERTIES TIMEOUT 60)
+    set_tests_properties(engine_tests PROPERTIES
+        TIMEOUT 60
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
     add_executable(runtime_host_tests
         Tests/RuntimeModuleLifecycleTests.cpp
